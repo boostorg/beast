@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 #define BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 
-#include <boost/beast/_experimental/core/detail/dynamic_buffer_ref.hpp>
+#include <boost/beast/core/dynamic_buffer_ref.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_adaptor.hpp>
@@ -164,7 +164,7 @@ public:
         std::size_t bytes_transferred)
     {
         using iterator = net::buffers_iterator<
-            typename beast::detail::dynamic_buffer_ref<
+            typename beast::dynamic_buffer_ref_wrapper<
                 buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
         BOOST_ASIO_CORO_REENTER(*this)
         {
@@ -250,7 +250,7 @@ public:
             BOOST_ASIO_CORO_YIELD
             net::async_read_until(
                 d_.s.next_layer(),
-                beast::detail::ref(d_.b),
+                beast::dynamic_buffer_ref(d_.b),
                 detail::match_icy<iterator>(d_.match),
                 std::move(*this));
             if(ec)
@@ -329,7 +329,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
         MutableBufferSequence>::value,
             "MutableBufferSequence requirements not met");
     using iterator = net::buffers_iterator<
-        typename beast::detail::dynamic_buffer_ref<
+        typename beast::dynamic_buffer_ref_wrapper<
             buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
     buffers_adaptor<MutableBufferSequence> b(buffers);
     if(b.max_size() == 0)
@@ -403,7 +403,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
     bool match = false;
     auto n = net::read_until(
         stream_,
-        beast::detail::ref(b),
+        beast::dynamic_buffer_ref(b),
         detail::match_icy<iterator>(match),
         ec);
     if(ec)

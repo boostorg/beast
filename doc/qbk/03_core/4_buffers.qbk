@@ -126,6 +126,15 @@ set of additional implementations of the dynamic buffer concept:
     [@https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer [*AllocatorAwareContainer]].
 ]]
 [[
+    [link beast.ref.boost__beast__dynamic_buffer_ref `dynamic_buffer_ref`]
+    [link beast.ref.boost__beast__dynamic_buffer_ref_wrapper `dynamic_buffer_ref_wrapper`]
+][
+    This function returns a wrapper containing a reference to the passed
+    dynamic buffer, permitting a Beast dynamic buffer type (which acts
+    like a true container type) to be used with Networking algorithms
+    which want to take ownership of the dynamic buffer in their interface.
+]]
+[[
     [link beast.ref.boost__beast__flat_static_buffer `flat_static_buffer`]
     [link beast.ref.boost__beast__flat_static_buffer_base `flat_static_buffer_base`]
 ][

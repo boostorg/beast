@@ -4,6 +4,7 @@ Version 209:
 * async_echo supports move-only handlers
 * test::stream maintains a handler work guard
 * Qualify buffer_copy, don't qualify buffer_size
+* Add dynamic_buffer_ref
 
 --------------------------------------------------------------------------------
 

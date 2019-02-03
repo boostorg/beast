@@ -186,6 +186,7 @@
             <member><link linkend="beast.ref.boost__beast__buffers_cat_view">buffers_cat_view</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_prefix_view">buffers_prefix_view</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_suffix">buffers_suffix</link></member>
+            <member><link linkend="beast.ref.boost__beast__dynamic_buffer_ref_wrapper">dynamic_buffer_ref_wrapper</link></member>
             <member><link linkend="beast.ref.boost__beast__file">file</link></member>
             <member><link linkend="beast.ref.boost__beast__file_mode">file_mode</link></member>
             <member><link linkend="beast.ref.boost__beast__file_posix">file_posix</link></member>
@@ -236,6 +237,7 @@
             <member><link linkend="beast.ref.boost__beast__buffers_range_ref">buffers_range_ref</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_to_string">buffers_to_string</link></member>
             <member><link linkend="beast.ref.boost__beast__close_socket">close_socket</link></member>
+            <member><link linkend="beast.ref.boost__beast__dynamic_buffer_ref">dynamic_buffer_ref</link></member>
             <member><link linkend="beast.ref.boost__beast__generic_category">generic_category</link></member>
             <member><link linkend="beast.ref.boost__beast__get_lowest_layer">get_lowest_layer</link></member>
             <member><link linkend="beast.ref.boost__beast__iequals">iequals</link></member>
