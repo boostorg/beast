@@ -7,6 +7,7 @@ Version 210:
 * Add executor_type trait
 * Fix hexadecimal string conversion table
 * is_completion_handler, type_traits.hpp are deprecated
+* Fixes to test::stream::async_read
 
 API Changes:
 

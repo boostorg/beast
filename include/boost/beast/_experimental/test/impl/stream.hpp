@@ -427,7 +427,8 @@ TeardownHandler&& handler)
         s.in_->fc->fail(ec))
         return net::post(
             s.get_executor(),
-            beast::bind_front_handler(std::move(handler), ec));
+            beast::bind_front_handler(
+                std::move(handler), ec));
     s.close();
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
@@ -437,7 +438,8 @@ TeardownHandler&& handler)
 
     net::post(
         s.get_executor(),
-        beast::bind_front_handler(std::move(handler), ec));
+        beast::bind_front_handler(
+            std::move(handler), ec));
 }
 
 //------------------------------------------------------------------------------
@@ -445,15 +447,16 @@ TeardownHandler&& handler)
 template<class Handler, class Buffers>
 class stream::read_op : public stream::read_op_base
 {
-    using ex1_type = net::io_context::executor_type;
-    using ex2_type = net::associated_executor_t<Handler, ex1_type>;
+    using ex1_type =
+        net::io_context::executor_type;
+    using ex2_type
+        = net::associated_executor_t<Handler, ex1_type>;
 
     class lambda
     {
         state& s_;
         Buffers b_;
         Handler h_;
-        net::executor_work_guard<ex1_type> wg1_;
         net::executor_work_guard<ex2_type> wg2_;
 
     public:
@@ -465,76 +468,66 @@ class stream::read_op : public stream::read_op_base
             : s_(s)
             , b_(b)
             , h_(std::forward<DeducedHandler>(h))
-            , wg1_(s_.ioc.get_executor())
             , wg2_(net::get_associated_executor(
                 h_, s_.ioc.get_executor()))
         {
         }
 
         void
-        post()
-        {
-            net::post(
-                s_.ioc.get_executor(),
-                std::move(*this));
-            wg1_.reset();
-            wg2_.reset();
-        }
-
-        void
         operator()()
         {
             std::unique_lock<std::mutex> lock{s_.m};
+            error_code ec;
+            std::size_t bytes_transferred = 0;
             BOOST_ASSERT(! s_.op);
             if(s_.b.size() > 0)
             {
-                auto const bytes_transferred =
+                bytes_transferred =
                     net::buffer_copy(
                         b_, s_.b.data(), s_.read_max);
                 s_.b.consume(bytes_transferred);
-                auto& s = s_;
-                Handler h{std::move(h_)};
-                lock.unlock();
-                ++s.nread;
-                net::post(
-                    s.ioc.get_executor(),
-                    beast::bind_front_handler(
-                        std::move(h),
-                        error_code{},
-                        bytes_transferred));
+                ++s_.nread;
             }
             else
             {
                 BOOST_ASSERT(s_.code != status::ok);
                 auto& s = s_;
-                Handler h{std::move(h_)};
-                lock.unlock();
                 ++s.nread;
-                error_code ec;
                 if(s.code == status::eof)
                     ec = net::error::eof;
                 else if(s.code == status::reset)
                     ec = net::error::connection_reset;
-                net::post(
-                    s.ioc.get_executor(),
-                    beast::bind_front_handler(std::move(h), ec, 0));
+
             }
+            lock.unlock();
+            auto alloc = net::get_associated_allocator(h_);
+            wg2_.get_executor().dispatch(
+                beast::bind_front_handler(
+                    std::move(h_),
+                    ec,
+                    bytes_transferred), alloc);
+            wg2_.reset();
         }
     };
 
     lambda fn_;
+    net::executor_work_guard<ex1_type> wg1_;
 
 public:
     template<class DeducedHandler>
     read_op(state& s, Buffers const& b, DeducedHandler&& h)
         : fn_(s, b, std::forward<DeducedHandler>(h))
+        , wg1_(s.ioc.get_executor())
     {
     }
 
     void
     operator()() override
     {
-        fn_.post();
+        net::post(
+            wg1_.get_executor(),
+            std::move(fn_));
+        wg1_.reset();
     }
 };
 

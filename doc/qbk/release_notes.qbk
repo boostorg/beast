@@ -210,12 +210,15 @@ New websocket-chat-multi example
 * `ostream`
   does not overflow or exceed the dynamic buffer's maximum size
 
-* A handler work guard is maintained on paused websocket operations
-
-* All behavior of default-constructed iterators is conforming
+* Fixes to
+  `test::stream::async_read`
 
 * `file_mode::append_existing`
   works correctly
+
+* A handler work guard is maintained on paused websocket operations
+
+* All behavior of default-constructed iterators is conforming
 
 [/-----------------------------------------------------------------------------]
 
