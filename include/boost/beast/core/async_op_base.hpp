@@ -586,8 +586,8 @@ public:
 #if BOOST_BEAST_DOXYGEN
     template<class Handler>
     stable_async_op_base(
-        Executor1 const& ex1,
         Handler&& handler,
+        Executor1 const& ex1,
         Allocator const& alloc = Allocator());
 #else
     template<
