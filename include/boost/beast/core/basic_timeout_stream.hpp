@@ -201,11 +201,14 @@ class basic_timeout_stream
     static std::size_t constexpr no_limit =
         (std::numeric_limits<std::size_t>::max)();
 
+    using tick_type = std::uint64_t;
+
     struct op_state
     {
         net::steady_timer timer;    // for timing out
+        tick_type tick = 0;         // counts waits
         bool pending = false;       // if op is pending
-        bool closed = false;        // if timed out
+        bool timeout = false;       // if timed out
 
         explicit
         op_state(net::io_context& ioc)

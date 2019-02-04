@@ -915,8 +915,7 @@ public:
                 [&](error_code ec)
                 {
                     invoked = true;
-                    BEAST_EXPECTS(ec == error::timeout,
-                        ec.message());
+                    BEAST_EXPECTS(! ec, ec.message());
                 });
             ioc1.run();
             ioc1.restart();

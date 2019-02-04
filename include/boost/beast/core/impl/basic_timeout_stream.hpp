@@ -28,7 +28,8 @@ struct basic_timeout_stream<
     Protocol, Executor>::timeout_handler
 {
     op_state& state;
-    std::shared_ptr<impl_type> impl;
+    std::weak_ptr<impl_type> wp;
+    tick_type tick;
 
     void
     operator()(error_code ec)
@@ -36,20 +37,29 @@ struct basic_timeout_stream<
         // timer canceled
         if(ec == net::error::operation_aborted)
             return;
-
         BOOST_ASSERT(! ec);
 
-        if(! state.closed)
+        auto sp = wp.lock();
+
+        // stream destroyed
+        if(! sp)
+            return;
+
+        // stale timer
+        if(tick < state.tick)
+            return;
+        BOOST_ASSERT(tick == state.tick);
+
+        // late completion
+        if(state.timeout)
         {
-            // timeout
-            impl->close();
-            state.closed = true;
+            state.timeout = false;
+            return;
         }
-        else
-        {
-            // late completion
-            state.closed = false;
-        }
+
+        // timeout
+        sp->close();
+        state.timeout = true;
     }
 };
 
@@ -130,40 +140,40 @@ public:
         {
             // VFALCO TODO handle buffer size == 0
 
-            // must come first
             state().timer.async_wait(
                 net::bind_executor(
                     this->get_executor(),
-                    timeout_handler{state(),
-                        impl_->shared_from_this()}));
+                    timeout_handler{
+                        state(),
+                        impl_,
+                        state().tick
+                    }));
 
             BOOST_ASIO_CORO_YIELD
             async_perform(
                 std::integral_constant<bool, isRead>{});
+            ++state().tick;
 
             // try cancelling timer
             auto const n =
                 state().timer.cancel();
-
-            if(state().closed)
+            if(n == 0)
             {
-                // timeout handler already invoked
-                BOOST_ASSERT(n == 0);
-                ec = beast::error::timeout;
-                state().closed = false;
-            }
-            else if(n == 0)
-            {
-                // timeout handler already queued
-                ec = beast::error::timeout;
-
-                impl_->close();
-                state().closed = true;
+                if(state().timeout)
+                {
+                    // timeout handler invoked
+                    ec = beast::error::timeout;
+                    state().timeout = false;
+                }
+                else
+                {
+                    // timeout handler queued, stale
+                }
             }
             else
             {
-                // timeout was canceled
                 BOOST_ASSERT(n == 1);
+                BOOST_ASSERT(! state().timeout);
             }
 
             pg_.reset();
@@ -192,6 +202,12 @@ class timeout_stream_connect_op
     typename stream_type::pending_guard pg0_;
     typename stream_type::pending_guard pg1_;
 
+    typename stream_type::op_state&
+    state() noexcept
+    {
+        return impl_->write;
+    }
+
 public:
     template<
         class Endpoints, class Condition,
@@ -208,12 +224,13 @@ public:
         , pg1_(impl_->write.pending)
     {
         // must come first
-        // VFALCO TODO what about the handler's allocator?
         impl_->write.timer.async_wait(
             net::bind_executor(
                 this->get_executor(),
-                timeout_handler{impl_->write,
-                    impl_->shared_from_this()}));
+                timeout_handler{
+                    state(),
+                    impl_,
+                    state().tick}));
 
         net::async_connect(impl_->socket,
             eps, cond, std::move(*this));
@@ -238,8 +255,10 @@ public:
         impl_->write.timer.async_wait(
             net::bind_executor(
                 this->get_executor(),
-                timeout_handler{impl_->write,
-                    impl_->shared_from_this()}));
+                timeout_handler{
+                    state(),
+                    impl_,
+                    state().tick}));
 
         net::async_connect(impl_->socket,
             begin, end, cond, std::move(*this));
@@ -261,8 +280,10 @@ public:
         impl_->write.timer.async_wait(
             net::bind_executor(
                 this->get_executor(),
-                timeout_handler{impl_->write,
-                    impl_->shared_from_this()}));
+                timeout_handler{
+                    state(),
+                    impl_,
+                    state().tick}));
 
         impl_->socket.async_connect(
             ep, std::move(*this));
@@ -273,31 +294,30 @@ public:
     void
     operator()(error_code ec, Args&&... args)
     {
-        // try to cancel the timer
+        ++state().tick;
+
+        // try cancelling timer
         auto const n =
             impl_->write.timer.cancel();
-
-        if(impl_->write.closed)
+        if(n == 0)
         {
-            // timeout handler already invoked
-            BOOST_ASSERT(n == 0);
-            ec = beast::error::timeout;
-            impl_->write.closed = false;
-        }
-        else if(n == 0)
-        {
-            // timeout handler already queued
-            ec = beast::error::timeout;
-
-            impl_->close();
-            impl_->write.closed = true;
+            if(state().timeout)
+            {
+                // timeout handler invoked
+                ec = beast::error::timeout;
+                state().timeout = false;
+            }
+            else
+            {
+                // timeout handler queued, stale
+            }
         }
         else
         {
-            // timeout was canceled
             BOOST_ASSERT(n == 1);
+            BOOST_ASSERT(! state().timeout);
         }
-
+        
         pg0_.reset();
         pg1_.reset();
         this->invoke(ec, std::forward<Args>(args)...);
