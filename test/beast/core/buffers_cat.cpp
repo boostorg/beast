@@ -33,7 +33,7 @@ public:
     testDefaultIterators()
     {
         // default ctor is one past the end
-        char c[2];
+        char c[2] = {};
         auto bs = buffers_cat(
             net::const_buffer(&c[0], 1),
             net::const_buffer(&c[1], 1));
@@ -58,7 +58,7 @@ public:
         try
         {
             it = {};
-            *it;
+            (void)*it;
             fail();
         }
         catch(std::logic_error const&)
@@ -114,7 +114,7 @@ public:
         checkException(
             []
             {
-                *(type::const_iterator{});
+                (void)*(type::const_iterator{});
             });
 
         // Incrementing a default-constructed iterator

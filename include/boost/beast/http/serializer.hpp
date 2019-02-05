@@ -187,7 +187,7 @@ private:
     int s_ = do_construct;
     bool split_ = false;
     bool header_done_ = false;
-    bool more_;
+    bool more_ = false;
 
 public:
     /// Constructor

@@ -107,7 +107,7 @@ public:
         std::thread t_;
 
         void
-        fail(error_code ec, string_view what)
+        fail(error_code const& ec, string_view what)
         {
             if(ec != net::error::operation_aborted)
                 log_ << what << ": " << ec.message() << "\n";
@@ -221,19 +221,19 @@ public:
 
         protected:
             void
-            on_read(error_code ec)
+            on_read(error_code const& ec)
             {
                 boost::ignore_unused(ec);
             }
 
             void
-            on_write(error_code, std::size_t)
+            on_write(error_code const& , std::size_t)
             {
             }
         };
 
         void
-        on_accept(error_code ec)
+        on_accept(error_code const& ec)
         {
             if(! acceptor_.is_open())
                 return;
@@ -410,7 +410,7 @@ public:
         }
 
         void
-        operator()(error_code ec, std::size_t n)
+        operator()(error_code const& ec, std::size_t n)
         {
             BEAST_EXPECTS(ec == ec_, ec.message());
             BEAST_EXPECT(n == n_);

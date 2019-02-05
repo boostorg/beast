@@ -122,7 +122,7 @@ make_prng_no_tls(bool secure)
         std::minstd_rand r_;
 
     public:
-        fast_prng* next;
+        fast_prng* next = nullptr;
 
         fast_prng()
             : r_([]
@@ -166,7 +166,7 @@ make_prng_no_tls(bool secure)
         beast::detail::chacha<20> r_;
 
     public:
-        secure_prng* next;
+        secure_prng* next = nullptr;
 
         secure_prng()
             : r_(prng_seed(), []

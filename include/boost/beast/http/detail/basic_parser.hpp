@@ -269,8 +269,8 @@ struct basic_parser_base
             if(BOOST_UNLIKELY(! is_print(*p)))
                 if((BOOST_LIKELY(static_cast<
                         unsigned char>(*p) < '\040') &&
-                    BOOST_LIKELY(*p != '\011')) ||
-                    BOOST_UNLIKELY(*p == '\177'))
+                    BOOST_LIKELY(*p != 9)) ||
+                    BOOST_UNLIKELY(*p == 127))
                     goto found_control;
         }
     found_control:

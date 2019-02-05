@@ -47,7 +47,7 @@ struct span_body_test
             BEAST_EXPECT(! buf->second);
         }
         {
-            char buf[5];
+            char buf[5] = {};
             using B = span_body<char>;
             request<B> req;
             req.body() = span<char>{buf, sizeof(buf)};
