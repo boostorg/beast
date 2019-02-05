@@ -33,7 +33,6 @@
 #include <boost/beast/core/file_win32.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
-#include <boost/beast/core/get_lowest_layer.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/make_printable.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
@@ -42,6 +41,7 @@
 #include <boost/beast/core/span.hpp>
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/static_string.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/string_param.hpp>
 #include <boost/beast/core/timeout_stream.hpp>

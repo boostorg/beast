@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_DETAIL_GET_LOWEST_LAYER_HPP
-#define BOOST_BEAST_DETAIL_GET_LOWEST_LAYER_HPP
+#ifndef BOOST_BEAST_DETAIL_STREAM_TRAITS_HPP
+#define BOOST_BEAST_DETAIL_STREAM_TRAITS_HPP
 
 #include <boost/type_traits/make_void.hpp>
 #include <type_traits>
@@ -16,6 +16,13 @@
 namespace boost {
 namespace beast {
 namespace detail {
+
+//------------------------------------------------------------------------------
+//
+// get_lowest_layer
+// lowest_layer_type
+// detail::has_next_layer
+//
 
 template <class T>
 std::false_type has_next_layer_impl(void*) {}
@@ -28,8 +35,6 @@ auto has_next_layer_impl(decltype(nullptr)) ->
 
 template <class T>
 using has_next_layer = decltype(has_next_layer_impl<T>(nullptr));
-
-//---
 
 template<class T, bool = has_next_layer<T>::value>
 struct lowest_layer_type_impl
@@ -48,8 +53,6 @@ template<class T>
 using lowest_layer_type = typename
     lowest_layer_type_impl<T>::type;
 
-//---
-
 template<class T>
 T&
 get_lowest_layer_impl(
@@ -67,6 +70,8 @@ get_lowest_layer_impl(
         has_next_layer<typename std::decay<
             decltype(t.next_layer())>::type>{});
 }
+
+//------------------------------------------------------------------------------
 
 } // detail
 } // beast

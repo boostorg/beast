@@ -12,7 +12,7 @@
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
-#include <boost/beast/core/get_lowest_layer.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/string.hpp>
 
 #include <boost/asio/ip/tcp.hpp>

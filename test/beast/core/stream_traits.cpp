@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/get_lowest_layer.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/core/error.hpp>
@@ -17,7 +17,7 @@
 namespace boost {
 namespace beast {
 
-class get_lowest_layer_test
+class stream_traits_test
     : public beast::unit_test::suite
 {
 public:
@@ -186,7 +186,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,get_lowest_layer);
+BEAST_DEFINE_TESTSUITE(beast,core,stream_traits);
 
 } // beast
 } // boost

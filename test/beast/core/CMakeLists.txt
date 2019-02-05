@@ -50,7 +50,6 @@ add_executable (tests-beast-core
     file_win32.cpp
     flat_buffer.cpp
     flat_static_buffer.cpp
-    get_lowest_layer.cpp
     handler_ptr.cpp
     make_printable.cpp
     multi_buffer.cpp
@@ -60,6 +59,7 @@ add_executable (tests-beast-core
     span.cpp
     static_buffer.cpp
     static_string.cpp
+    stream_traits.cpp
     string.cpp
     string_param.cpp
     timeout_stream.cpp

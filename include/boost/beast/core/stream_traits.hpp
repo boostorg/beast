@@ -7,11 +7,11 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_GET_LOWEST_LAYER_HPP
-#define BOOST_BEAST_GET_LOWEST_LAYER_HPP
+#ifndef BOOST_BEAST_STREAM_TRAITS_HPP
+#define BOOST_BEAST_STREAM_TRAITS_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/get_lowest_layer.hpp>
+#include <boost/beast/core/detail/stream_traits.hpp>
 
 namespace boost {
 namespace beast {
