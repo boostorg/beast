@@ -109,6 +109,16 @@ facilities for authoring and working with layered streams:
     allows for move-construction and move-assignment, and also implements
     a work-around for a performance limitation in the original SSL stream.
 ]]
+[[
+    [link beast.ref.boost__beast__stranded_stream `stranded_stream`]
+][
+    A timeout stream meets the requirements for synchronous and asynchronous
+    read and write streams by passing I/O through to an underlying
+    `net::basic_stream_socket`, and additionally supports
+    [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html [P1322R0] "Networking TS enhancement to enable custom I/O executors"],
+    allowing a custom executor (such a strand) to be used for all
+    asynchronous operations.
+]]
 ]
 
 [heading Example]

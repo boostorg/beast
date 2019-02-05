@@ -45,6 +45,7 @@
           <member><link linkend="beast.ref.boost__beast__span">span</link></member>
           <member><link linkend="beast.ref.boost__beast__static_string">static_string</link></member>
           <member><link linkend="beast.ref.boost__beast__stable_async_op_base">stable_async_op_base</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__stranded_stream">stranded_stream</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__string_param">string_param</link></member>
           <member><link linkend="beast.ref.boost__beast__string_view">string_view</link></member>
           <member><link linkend="beast.ref.boost__beast__timeout_stream">timeout_stream</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>

@@ -40,6 +40,7 @@
 #include <boost/beast/core/span.hpp>
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/static_string.hpp>
+#include <boost/beast/core/stranded_stream.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/string_param.hpp>

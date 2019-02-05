@@ -60,6 +60,7 @@ add_executable (tests-beast-core
     span.cpp
     static_buffer.cpp
     static_string.cpp
+    stranded_stream.cpp
     stream_traits.cpp
     string.cpp
     string_param.cpp

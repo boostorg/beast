@@ -20,6 +20,40 @@
 namespace boost {
 namespace beast {
 
+template<class SyncReadStream>
+void
+test_sync_read_stream()
+{
+    BOOST_ASSERT(is_sync_read_stream<SyncReadStream>::value);
+    BEAST_EXPECT(static_cast<
+        std::size_t(SyncReadStream::*)(net::mutable_buffer const&)>(
+        &SyncReadStream::template read_some<net::mutable_buffer>));
+    BEAST_EXPECT(static_cast<
+        std::size_t(SyncReadStream::*)(net::mutable_buffer const&, error_code&)>(
+        &SyncReadStream::template read_some<net::mutable_buffer>));
+}
+
+template<class SyncWriteStream>
+void
+test_sync_write_stream()
+{
+    BOOST_ASSERT(is_sync_write_stream<SyncWriteStream>::value);
+    BEAST_EXPECT(static_cast<
+        std::size_t(SyncWriteStream::*)(net::const_buffer const&)>(
+        &SyncWriteStream::template write_some<net::const_buffer>));
+    BEAST_EXPECT(static_cast<
+        std::size_t(SyncWriteStream::*)(net::const_buffer const&, error_code&)>(
+        &SyncWriteStream::template write_some<net::const_buffer>));
+}
+
+template<class SyncReadStream>
+void
+test_sync_stream()
+{
+    test_sync_read_stream<SyncReadStream>();
+    test_sync_write_stream<SyncReadStream>();
+}
+
 template<class AsyncReadStream>
 void
 test_async_read_stream()
