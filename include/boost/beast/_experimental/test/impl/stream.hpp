@@ -11,7 +11,6 @@
 #define BOOST_BEAST_TEST_IMPL_STREAM_HPP
 
 #include <boost/beast/core/buffer_size.hpp>
-#include <boost/beast/core/detail/stream_algorithm.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 
 namespace boost {
