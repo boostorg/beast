@@ -23,6 +23,7 @@ add_executable (tests-beast-core
     _detail_base64.cpp
     _detail_buffer.cpp
     _detail_clamp.cpp
+    _detail_is_invocable.cpp
     _detail_read.cpp
     _detail_sha1.cpp
     _detail_tuple.cpp

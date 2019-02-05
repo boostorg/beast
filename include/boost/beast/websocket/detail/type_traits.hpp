@@ -11,7 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_TYPE_TRAITS_HPP
 
 #include <boost/beast/websocket/rfc6455.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/core/detail/is_invocable.hpp>
 
 namespace boost {
 namespace beast {
