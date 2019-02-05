@@ -10,10 +10,12 @@ Version 210:
 API Changes:
 
 * Stream traits are now in stream_traits.hpp
+* `is_file` is now in file_base.hpp
 
 Actions Required:
 
-* Include the file stream_traits.hpp as needed
+* Include stream_traits.hpp as needed
+* Include file_base.hpp as needed
 
 --------------------------------------------------------------------------------
 

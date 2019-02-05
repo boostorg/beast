@@ -25,7 +25,7 @@ New websocket-chat-multi example
 ]
 
 [tip
-  The namespace alias `net` is now used throughout for `boost::asio`.
+  The namespace alias `net` is used throughout for `boost::asio`.
 ]
 
 [*New Features]
@@ -113,8 +113,13 @@ New websocket-chat-multi example
   `is_async_stream`,
   `is_async_read_stream`, and
   `is_async_write_stream`
-  are now located in stream_traits.hpp.
+  are in stream_traits.hpp.
   ['Actions Required]: Include stream_traits.hpp as needed.
+
+* Metafunction
+  `is_file`
+  is in file_base.hpp.
+  ['Actions Required]: Include file_base.hpp as needed.
 
 * `flat_static_buffer::reset()`
   is deprecated.
@@ -122,14 +127,14 @@ New websocket-chat-multi example
   * call
     `clear()` instead.
 
-* `buffers_adapter` is now spelled
+* `buffers_adapter` is spelled
   `buffers_adaptor`.
   ['Actions Required]:
   * Replace `buffers_adapter` with
     `buffers_adaptor`,
     or define `BOOST_BEAST_ALLOW_DEPRECATED`.
 
-* `buffers` is now spelled
+* `buffers` is spelled
   `make_printable`.
   ['Actions Required]:
   * Replace `buffers` with

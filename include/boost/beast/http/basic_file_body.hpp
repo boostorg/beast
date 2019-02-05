@@ -13,7 +13,6 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file_base.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>

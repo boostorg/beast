@@ -45,6 +45,7 @@ add_executable (tests-beast-core
     dynamic_buffer_ref.cpp
     error.cpp
     file.cpp
+    file_base.cpp
     file_posix.cpp
     file_stdio.cpp
     file_win32.cpp
