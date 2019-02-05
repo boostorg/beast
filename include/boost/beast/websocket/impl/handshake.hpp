@@ -16,8 +16,8 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
@@ -35,7 +35,7 @@ template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::handshake_op
     : public beast::stable_async_op_base<Handler,
-        beast::detail::get_executor_type<stream>>
+        beast::executor_type<stream>>
     , public net::coroutine
 {
     struct data
@@ -72,7 +72,7 @@ public:
         Handler_&& h,
         stream& ws, Args&&... args)
         : stable_async_op_base<Handler,
-            beast::detail::get_executor_type<stream>>(
+            beast::executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
         , d_(beast::allocate_stable<data>(
             *this, ws, std::forward<Args>(args)...))

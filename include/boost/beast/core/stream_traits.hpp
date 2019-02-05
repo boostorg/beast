@@ -16,12 +16,15 @@
 namespace boost {
 namespace beast {
 
-/** Return the type of the lowest layer of a type representing a stack of stream layers.
+/** A trait to determine the lowest layer type of a stack of stream layers.
 
-    This type alias will return the type of lowest layer object for a type
-    which defines a stack of stream layers. 
+    If `t.next_layer()` is well-defined for an object `t` of type `T`,
+    then `lowest_layer_type<T>` will be an alias for
+    `lowest_layer_type<decltype(t.next_layer())>`,
+    otherwise it will be the type
+    `std::remove_reference<T>`.
 
-    @param T The type determine the lowest layer type of.
+    @param T The type to determine the lowest layer type of.
 
     @return The type of the lowest layer.
 */
@@ -35,7 +38,7 @@ using lowest_layer_type = detail::lowest_layer_type<T>;
 /** Return the lowest layer in a stack of stream layers.
 
     If `t.next_layer()` is well-defined, returns
-    `lowest_layer(t.next_layer())`. Otherwise, it returns `t`.
+    `get_lowest_layer(t.next_layer())`. Otherwise, it returns `t`.
 
     A stream layer is an object of class type which wraps another object through
     composition, and meets some or all of the named requirements of the wrapped
@@ -83,6 +86,29 @@ get_lowest_layer(T& t) noexcept
     return detail::get_lowest_layer_impl(
         t, detail::has_next_layer<T>{});
 }
+
+/** A trait to determine the return type of get_executor.
+
+    This type alias will be the type of values returned by
+    by calling member `get_exector` on an object of type `T&`.
+
+    @param T The type to query
+
+    @return The type of values returned from `get_executor`.
+*/
+// Workaround for ICE on gcc 4.8
+#if BOOST_BEAST_DOXYGEN
+template<class T>
+using executor_type = __see_below__;
+#elif BOOST_WORKAROUND(BOOST_GCC, < 40900)
+template<class T>
+using executor_type =
+    typename std::decay<T>::type::executor_type;
+#else
+template<class T>
+using executor_type =
+    decltype(std::declval<T&>().get_executor());
+#endif
 
 } // beast
 } // boost

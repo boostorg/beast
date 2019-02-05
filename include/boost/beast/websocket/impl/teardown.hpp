@@ -12,8 +12,8 @@
 
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
 #include <memory>
@@ -27,7 +27,7 @@ namespace detail {
 template<class Handler>
 class teardown_tcp_op
     : public beast::async_op_base<
-        Handler, beast::detail::get_executor_type<
+        Handler, beast::executor_type<
             net::ip::tcp::socket>>
     , public net::coroutine
 {
@@ -44,7 +44,7 @@ public:
         socket_type& s,
         role_type role)
         : async_op_base<Handler,
-            beast::detail::get_executor_type<
+            beast::executor_type<
                 net::ip::tcp::socket>>(
                     std::forward<Handler_>(h), s.get_executor())
         , s_(s)

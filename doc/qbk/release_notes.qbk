@@ -40,7 +40,7 @@ New websocket-chat-multi example
   * Eligible member functions are declared `noexcept`
 
 * ([issue 1345]) Better `flat_buffer`, `multi_buffer`
-  * Add `reserve()`, `max_size()`, `shrink_to_fit()`
+  * Add `clear`, `reserve()`, `max_size()`, `shrink_to_fit()`
   * Respect Allocator `max_size()`
   * Specify exception safety
 
@@ -53,7 +53,7 @@ New websocket-chat-multi example
 
 * Faster `http::string_to_field`
 
-* New file <boost/beast/core/buffer_type.hpp>
+* New file <boost/beast/core/buffer_traits.hpp>
   * New variadic `is_const_buffer_sequence`
   * New variadic `is_mutable_buffer_sequence`
   * New `buffers_iterator_type` trait
@@ -69,6 +69,7 @@ New websocket-chat-multi example
   * `saved_handler`
   * `buffers_range_ref` 
   * `dynamic_buffer_ref`
+  * `executor_type`
   * `get_lowest_layer` and `lowest_layer_type`
   * `close_socket` and `beast_close_socket`
   * `error` and `condition`

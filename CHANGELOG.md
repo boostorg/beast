@@ -4,6 +4,7 @@ Version 210:
 * Fix stable_async_op_base javadoc
 * Better handling of stream timeouts
 * Add stream_traits.hpp
+* Add executor_type trait
 
 --------------------------------------------------------------------------------
 

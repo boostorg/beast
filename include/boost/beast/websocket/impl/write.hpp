@@ -19,10 +19,10 @@
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
@@ -39,7 +39,7 @@ template<class NextLayer, bool deflateSupported>
 template<class Buffers, class Handler>
 class stream<NextLayer, deflateSupported>::write_some_op
     : public beast::async_op_base<
-        Handler, beast::detail::get_executor_type<stream>>
+        Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
     stream& ws_;
@@ -64,7 +64,7 @@ public:
         bool fin,
         Buffers const& bs)
         : beast::async_op_base<Handler,
-            beast::detail::get_executor_type<stream>>(
+            beast::executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
         , ws_(ws)
         , cb_(bs)

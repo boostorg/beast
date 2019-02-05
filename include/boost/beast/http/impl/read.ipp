@@ -15,7 +15,7 @@
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/core/async_op_base.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/read.hpp>
 #include <boost/asio/error.hpp>
 
@@ -149,7 +149,7 @@ template<
     class Handler>
 class read_msg_op
     : public beast::stable_async_op_base<
-        Handler, beast::detail::get_executor_type<Stream>>
+        Handler, beast::executor_type<Stream>>
     , public net::coroutine
 {
     using parser_type =
@@ -184,7 +184,7 @@ public:
         message_type& m,
         Handler_&& h)
         : stable_async_op_base<
-            Handler, beast::detail::get_executor_type<Stream>>(
+            Handler, beast::executor_type<Stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , d_(beast::allocate_stable<data>(
             *this, s, m))

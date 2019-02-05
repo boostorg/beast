@@ -10,15 +10,15 @@
 #ifndef BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 #define BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 
-#include <boost/beast/core/dynamic_buffer_ref.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
+#include <boost/beast/core/dynamic_buffer_ref.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/buffers_iterator.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
@@ -121,7 +121,7 @@ template<class NextLayer>
 template<class MutableBufferSequence, class Handler>
 class icy_stream<NextLayer>::read_op
     : public beast::stable_async_op_base<Handler,
-        beast::detail::get_executor_type<icy_stream>>
+        beast::executor_type<icy_stream>>
     , public net::coroutine
 {
     // VFALCO We need a stable reference to `b`
@@ -151,7 +151,7 @@ public:
         icy_stream& s,
         MutableBufferSequence const& b)
         : stable_async_op_base<Handler,
-            beast::detail::get_executor_type<icy_stream>>(
+            beast::executor_type<icy_stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , d_(beast::allocate_stable<data>(*this, s, b))
     {

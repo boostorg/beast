@@ -58,8 +58,13 @@ and also provides them as public interfaces so users may use the
 same techniques to augment their own code. The use of these type
 checks helps provide more concise errors during compilation:
 
-[table Stream Type Checks
+[table Type Traits and Metafunctions
 [[Name][Description]]
+[[
+    [link beast.ref.boost__beast__executor_type `executor_type`]
+][
+    An alias for the type of object returned by `get_executor`.
+]]
 [[
     [link beast.ref.boost__beast__has_get_executor `has_get_executor`]
 ][

@@ -14,8 +14,8 @@
 #include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
@@ -37,7 +37,7 @@ template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::close_op
     : public beast::stable_async_op_base<
-        Handler, beast::detail::get_executor_type<stream>>
+        Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
     struct state
@@ -69,7 +69,7 @@ public:
         stream<NextLayer, deflateSupported>& ws,
         close_reason const& cr)
         : stable_async_op_base<
-            Handler, beast::detail::get_executor_type<stream>>(
+            Handler, beast::executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
         , d_(beast::allocate_stable<state>(
             *this, ws, cr))

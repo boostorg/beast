@@ -14,8 +14,8 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/read_size.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 
@@ -27,7 +27,7 @@ template<class MutableBufferSequence, class Handler>
 class buffered_read_stream<
     Stream, DynamicBuffer>::read_some_op
     : public async_op_base<
-        Handler, detail::get_executor_type<buffered_read_stream>>
+        Handler, beast::executor_type<buffered_read_stream>>
 {
     buffered_read_stream& s_;
     MutableBufferSequence b_;
@@ -43,7 +43,7 @@ public:
         buffered_read_stream& s,
         MutableBufferSequence const& b)
         : async_op_base<
-            Handler, detail::get_executor_type<buffered_read_stream>>(
+            Handler, beast::executor_type<buffered_read_stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , b_(b)

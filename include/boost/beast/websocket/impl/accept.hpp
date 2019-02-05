@@ -19,8 +19,8 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
@@ -39,7 +39,7 @@ template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::response_op
     : public beast::stable_async_op_base<
-        Handler, beast::detail::get_executor_type<stream>>
+        Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
     stream<NextLayer, deflateSupported>& ws_;
@@ -57,7 +57,7 @@ public:
         http::request<Body, http::basic_fields<Allocator>> const& req,
         Decorator const& decorator)
         : stable_async_op_base<
-            Handler, beast::detail::get_executor_type<stream>>(
+            Handler, beast::executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
         , ws_(ws)
         , res_(beast::allocate_stable<response_type>(*this, 
@@ -96,7 +96,7 @@ template<class NextLayer, bool deflateSupported>
 template<class Decorator, class Handler>
 class stream<NextLayer, deflateSupported>::accept_op
     : public beast::stable_async_op_base<
-        Handler, beast::detail::get_executor_type<stream>>
+        Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
     stream<NextLayer, deflateSupported>& ws_;
@@ -110,7 +110,7 @@ public:
         stream<NextLayer, deflateSupported>& ws,
         Decorator const& decorator)
         : stable_async_op_base<
-            Handler, beast::detail::get_executor_type<stream>>(
+            Handler, beast::executor_type<stream>>(
                 std::forward<Handler_>(h), ws.get_executor())
         , ws_(ws)
         , p_(beast::allocate_stable<

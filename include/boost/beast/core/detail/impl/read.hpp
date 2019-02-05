@@ -13,7 +13,7 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/throw_exception.hpp>
@@ -37,7 +37,7 @@ template<
 class read_op
     : public net::coroutine
     , public async_op_base<
-        Handler, get_executor_type<Stream>>
+        Handler, beast::executor_type<Stream>>
 {
     Stream& s_;
     DynamicBuffer& b_;
@@ -54,7 +54,7 @@ public:
         Condition cond,
         Handler_&& h)
         : async_op_base<Handler,
-            get_executor_type<Stream>>(
+            beast::executor_type<Stream>>(
                 std::forward<Handler_>(h),
                     s.get_executor())
         , s_(s)
@@ -115,7 +115,7 @@ template<
 class read_non_blocking_op
     : public net::coroutine
     , public async_op_base<Handler,
-        get_executor_type<net::basic_stream_socket<Protocol>>>
+        beast::executor_type<net::basic_stream_socket<Protocol>>>
 {
     net::basic_stream_socket<Protocol>& s_;
     DynamicBuffer& b_;
@@ -133,7 +133,7 @@ public:
         DynamicBuffer& b,
         Condition cond,
         Handler_&& h)
-        : async_op_base<Handler, get_executor_type<
+        : async_op_base<Handler, beast::executor_type<
             net::basic_stream_socket<Protocol>>>(
                 s.get_executor(), std::forward<Handler_>(h))
         , s_(s)

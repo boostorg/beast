@@ -13,7 +13,7 @@
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/async_result.hpp>
 #include <cstdlib>
@@ -75,7 +75,7 @@ class counted_stream
 
 public:
     /// The type of executor used by this stream
-    using executor_type = detail::get_executor_type<NextLayer>;
+    using executor_type = beast::executor_type<NextLayer>;
 
     /// Constructor
     template <class... Args>

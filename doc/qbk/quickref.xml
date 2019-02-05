@@ -76,6 +76,7 @@
       <entry valign="top">
         <bridgehead renderas="sect3">Type Traits</bridgehead>
         <simplelist type="vert" columns="1">
+          <member><link linkend="beast.ref.boost__beast__executor_type">executor_type</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__lowest_layer_type">lowest_layer_type</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__has_get_executor">has_get_executor</link></member>
           <member><link linkend="beast.ref.boost__beast__is_async_read_stream">is_async_read_stream</link></member>

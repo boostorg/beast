@@ -13,8 +13,8 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
@@ -148,7 +148,7 @@ public:
     }
     
     using executor_type =
-        detail::get_executor_type<next_layer_type>;
+        beast::executor_type<next_layer_type>;
 
     /** Get the executor associated with the object.
     

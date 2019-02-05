@@ -15,8 +15,8 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/type_traits.hpp>
-#include <boost/beast/core/detail/get_executor_type.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/write.hpp>
@@ -35,7 +35,7 @@ template<
     bool isRequest, class Body, class Fields>
 class write_some_op
     : public beast::async_op_base<
-        Handler, beast::detail::get_executor_type<Stream>>
+        Handler, beast::executor_type<Stream>>
 {
     Stream& s_;
     serializer<isRequest,Body, Fields>& sr_;
@@ -73,7 +73,7 @@ public:
         Stream& s,
         serializer<isRequest, Body, Fields>& sr)
         : async_op_base<
-            Handler, beast::detail::get_executor_type<Stream>>(
+            Handler, beast::executor_type<Stream>>(
                  std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , sr_(sr)
@@ -155,7 +155,7 @@ template<
     bool isRequest, class Body, class Fields>
 class write_op
     : public beast::async_op_base<
-        Handler, beast::detail::get_executor_type<Stream>>
+        Handler, beast::executor_type<Stream>>
     , public net::coroutine
 {
     Stream& s_;
@@ -169,7 +169,7 @@ public:
         Stream& s,
         serializer<isRequest, Body, Fields>& sr)
         : async_op_base<
-            Handler, beast::detail::get_executor_type<Stream>>(
+            Handler, beast::executor_type<Stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , sr_(sr)
@@ -216,7 +216,7 @@ template<
     bool isRequest, class Body, class Fields>
 class write_msg_op
     : public beast::stable_async_op_base<
-        Handler, beast::detail::get_executor_type<Stream>>
+        Handler, beast::executor_type<Stream>>
 {
     Stream& s_;
     serializer<isRequest, Body, Fields>& sr_;
@@ -230,7 +230,7 @@ public:
         Handler_&& h,
         Args&&... args)
         : stable_async_op_base<
-            Handler, beast::detail::get_executor_type<Stream>>(
+            Handler, beast::executor_type<Stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , sr_(beast::allocate_stable<
