@@ -13,7 +13,7 @@
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
 #include <memory>
@@ -168,7 +168,7 @@ async_teardown(
     net::ip::tcp::socket& socket,
     TeardownHandler&& handler)
 {
-    static_assert(beast::is_completion_handler<
+    static_assert(beast::detail::is_invocable<
         TeardownHandler, void(error_code)>::value,
             "TeardownHandler requirements not met");
     detail::teardown_tcp_op<typename std::decay<

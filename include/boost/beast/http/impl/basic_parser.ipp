@@ -12,7 +12,6 @@
 
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/static_string.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/http/error.hpp>

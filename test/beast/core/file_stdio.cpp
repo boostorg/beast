@@ -12,7 +12,6 @@
 
 #include "file_test.hpp"
 
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 
 namespace boost {

@@ -13,7 +13,6 @@
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>

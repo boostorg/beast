@@ -17,7 +17,6 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>

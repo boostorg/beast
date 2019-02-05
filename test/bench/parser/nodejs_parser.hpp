@@ -16,7 +16,6 @@
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/throw_exception.hpp>

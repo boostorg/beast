@@ -133,10 +133,10 @@ struct is_contiguous_container<T, E, void_t<
     expected by the initiating function,
 */
 #define BOOST_BEAST_HANDLER_INIT(type, sig) \
-    static_assert(boost::beast::is_completion_handler< \
+    static_assert(::boost::beast::detail::is_invocable< \
     BOOST_ASIO_HANDLER_TYPE(type, sig), sig>::value, \
     "CompletionHandler signature requirements not met"); \
-    net::async_completion<type, sig> init{handler}
+    ::boost::beast::net::async_completion<type, sig> init{handler}
 
 } // detail
 } // beast

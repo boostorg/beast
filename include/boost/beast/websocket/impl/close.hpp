@@ -15,7 +15,6 @@
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>

@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_READ_SIZE_HPP
 #define BOOST_BEAST_IMPL_READ_SIZE_HPP
 
+#include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
 #include <stdexcept>
 #include <type_traits>

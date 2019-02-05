@@ -11,7 +11,6 @@
 #define BOOST_BEAST_WRITE_OSTREAM_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/ostream.hpp>
 #include <type_traits>
 #include <streambuf>

@@ -14,7 +14,6 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>

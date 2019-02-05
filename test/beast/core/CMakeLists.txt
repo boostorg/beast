@@ -65,7 +65,6 @@ add_executable (tests-beast-core
     string.cpp
     string_param.cpp
     timeout_stream.cpp
-    type_traits.cpp
 )
 
 set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")

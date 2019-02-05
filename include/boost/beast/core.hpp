@@ -45,6 +45,5 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/string_param.hpp>
 #include <boost/beast/core/timeout_stream.hpp>
-#include <boost/beast/core/type_traits.hpp>
 
 #endif

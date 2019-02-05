@@ -10,40 +10,32 @@
 #ifndef BOOST_BEAST_TYPE_TRAITS_HPP
 #define BOOST_BEAST_TYPE_TRAITS_HPP
 
-#include <boost/beast/core/detail/config.hpp>
+#ifndef BOOST_BEAST_DOXYGEN
+
+BOOST_PRAGMA_MESSAGE("<boost/beast/core/type_traits.hpp> is DEPRECATED and will be removed in a future release.")
+
 #include <boost/beast/core/file_base.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/asio/buffer.hpp>
-#include <type_traits>
+#include <boost/config/pragma_message.hpp>
+#include <type_traits.hpp>
 
 namespace boost {
 namespace beast {
 
-//------------------------------------------------------------------------------
-//
-// Handler concepts
-//
-//------------------------------------------------------------------------------
-
 /** Determine if `T` meets the requirements of @b CompletionHandler.
-
     This trait checks whether a type meets the requirements for a completion
     handler, and is also callable with the specified signature.
     Metafunctions are used to perform compile time checking of template
     types. This type will be `std::true_type` if `T` meets the requirements,
     else the type will be `std::false_type`. 
-
     @par Example
-
     Use with `static_assert`:
-
     @code
     struct handler
     {
         void operator()(error_code&);
     };
-
     static_assert(is_completion_handler<handler, void(error_code&)>::value,
         "Not a completion handler");
     @endcode
@@ -59,5 +51,7 @@ using is_completion_handler = std::integral_constant<bool,
 
 } // beast
 } // boost
+
+#endif
 
 #endif

@@ -10,7 +10,6 @@
 #ifndef BOOST_BEAST_HTTP_DETAIL_CHUNK_ENCODE_HPP
 #define BOOST_BEAST_HTTP_DETAIL_CHUNK_ENCODE_HPP
 
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>

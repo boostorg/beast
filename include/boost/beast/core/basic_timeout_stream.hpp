@@ -13,7 +13,6 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/timeout_stream_base.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/connect.hpp>

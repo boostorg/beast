@@ -16,7 +16,6 @@
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>

@@ -11,7 +11,6 @@
 #define BOOST_BEAST_READ_SIZE_HELPER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {

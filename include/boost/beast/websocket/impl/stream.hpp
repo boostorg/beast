@@ -23,7 +23,6 @@
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/bind_executor.hpp>

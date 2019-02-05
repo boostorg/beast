@@ -16,7 +16,6 @@
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/write.hpp>

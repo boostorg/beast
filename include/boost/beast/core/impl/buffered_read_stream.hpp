@@ -15,7 +15,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 
@@ -123,7 +123,7 @@ async_write_some(
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    static_assert(is_completion_handler<WriteHandler,
+    static_assert(detail::is_invocable<WriteHandler,
         void(error_code, std::size_t)>::value,
             "WriteHandler requirements not met");
     return next_layer_.async_write_some(buffers,

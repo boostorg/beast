@@ -6,16 +6,19 @@ Version 210:
 * Add stream_traits.hpp
 * Add executor_type trait
 * Fix hexadecimal string conversion table
+* is_completion_handler, type_traits.hpp are deprecated
 
 API Changes:
 
 * Stream traits are now in stream_traits.hpp
 * `is_file` is now in file_base.hpp
+* is_completion_handler is deprecated
 
 Actions Required:
 
 * Include stream_traits.hpp as needed
 * Include file_base.hpp as needed
+* Use std::is_invocable instead of is_completion_handler
 
 --------------------------------------------------------------------------------
 

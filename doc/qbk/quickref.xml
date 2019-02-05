@@ -82,7 +82,6 @@
           <member><link linkend="beast.ref.boost__beast__is_async_read_stream">is_async_read_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__is_async_write_stream">is_async_write_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__is_async_stream">is_async_stream</link></member>
-          <member><link linkend="beast.ref.boost__beast__is_completion_handler">is_completion_handler</link></member>
           <member><link linkend="beast.ref.boost__beast__is_file">is_file</link></member>
           <member><link linkend="beast.ref.boost__beast__is_sync_read_stream">is_sync_read_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__is_sync_stream">is_sync_stream</link></member>

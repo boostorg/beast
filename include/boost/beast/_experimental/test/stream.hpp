@@ -13,7 +13,6 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/websocket/role.hpp>
 #include <boost/beast/_experimental/test/fail_count.hpp>
 #include <boost/asio/async_result.hpp>

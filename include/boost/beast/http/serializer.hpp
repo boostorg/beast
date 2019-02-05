@@ -15,7 +15,6 @@
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/variant.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/chunk_encode.hpp>

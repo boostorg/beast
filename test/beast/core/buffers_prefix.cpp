@@ -14,7 +14,6 @@
 
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <string>
 

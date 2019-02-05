@@ -87,12 +87,6 @@ checks helps provide more concise errors during compilation:
     Determine if a type meets the requirements of __AsyncWriteStream__.
 ]]
 [[
-    [link beast.ref.boost__beast__is_completion_handler `is_completion_handler`]
-][
-    Determine if a type meets the requirements of __CompletionHandler__,
-    and is callable with a specified signature.
-]]
-[[
     [link beast.ref.boost__beast__is_sync_read_stream `is_sync_read_stream`]
 ][
     Determine if a type meets the requirements of __SyncReadStream__.

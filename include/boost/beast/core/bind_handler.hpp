@@ -11,7 +11,6 @@
 #define BOOST_BEAST_BIND_HANDLER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/type_traits.hpp>
 #include <boost/beast/core/detail/bind_handler.hpp>
 #include <type_traits>
 #include <utility>
@@ -65,12 +64,6 @@ detail::bind_wrapper<
 #endif
 bind_handler(Handler&& handler, Args&&... args)
 {
-#if 0
-    // Can't do this because of placeholders
-    static_assert(is_completion_handler<
-        Handler, void(Args...)>::value,
-            "Handler requirements not met");
-#endif
     return detail::bind_wrapper<
         typename std::decay<Handler>::type,
         typename std::decay<Args>::type...>(
