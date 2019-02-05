@@ -5,6 +5,7 @@ Version 210:
 * Better handling of stream timeouts
 * Add stream_traits.hpp
 * Add executor_type trait
+* Fix hexadecimal string conversion table
 
 API Changes:
 
