@@ -74,7 +74,7 @@ namespace net = boost::asio;
 #endif
 
 #define BOOST_BEAST_INLINE_VARIABLE(name, type) \
-    inline namespace \
+    namespace \
     { \
         constexpr auto& name = \
             ::boost::beast::detail::static_const<type>::value; \
