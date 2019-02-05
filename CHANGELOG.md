@@ -6,6 +6,14 @@ Version 210:
 * Add stream_traits.hpp
 * Add executor_type trait
 
+API Changes:
+
+* Stream traits are now in stream_traits.hpp
+
+Actions Required:
+
+* Include the file stream_traits.hpp as needed
+
 --------------------------------------------------------------------------------
 
 Version 209:

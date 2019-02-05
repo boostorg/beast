@@ -12,7 +12,7 @@
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/use_future.hpp>

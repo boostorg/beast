@@ -32,21 +32,31 @@ New websocket-chat-multi example
 
 [/* `BASIC_TIMEOUT_STREAM` TODO]
 
-* ([issue 1305]) Better `flat_buffer`, `flat_static_buffer`, `multi_buffer`, and `static_buffer`:
+* ([issue 1305]) Better
+  `flat_buffer`,
+  `flat_static_buffer`,
+  `multi_buffer`, and
+  `static_buffer`:
   * Revise all reference documentation
   * Move construction does not always invalidate buffers
   * non-const `data()` returns a mutable buffer sequence
   * Add `cdata()` to also return constant readable bytes
   * Eligible member functions are declared `noexcept`
 
-* ([issue 1345]) Better `flat_buffer`, `multi_buffer`
+* ([issue 1345]) Better
+  `flat_buffer`,
+  `multi_buffer`
   * Add `clear`, `reserve()`, `max_size()`, `shrink_to_fit()`
   * Respect Allocator `max_size()`
   * Specify exception safety
 
-* ([issue 1384]) New functions `bind_back_handler`, `bind_front_handler`
+* ([issue 1384]) New functions
+  `bind_back_handler`,
+  `bind_front_handler`
 
-* Better `static_buffer`, `flat_static_buffer`
+* Better
+  `static_buffer`,
+  `flat_static_buffer`
   * Add `clear()`
   * More members are `noexcept`
   * Specify exception safety
@@ -56,23 +66,32 @@ New websocket-chat-multi example
 * New file <boost/beast/core/buffer_traits.hpp>
   * New variadic `is_const_buffer_sequence`
   * New variadic `is_mutable_buffer_sequence`
-  * New `buffers_iterator_type` trait
-  * New `buffers_type` trait
+  * New trait `buffers_iterator_type`
+  * New trait `buffers_type`
 
-* New classes `async_op_base` and `stable_async_op_base`
+* New classes
+  `async_op_base`,
+  `stable_async_op_base`
   * Handle boilerplate for writing composed operations
-  * New `allocate_stable` is preferred over `handler_ptr`
+  * New
+    `allocate_stable`
+    is preferred over `handler_ptr`
 
-* New `buffer_size` replacement for `net::buffer_size`
+* New
+  `buffer_size`
+  replacement for `net::buffer_size`
 
 * New:
   * `saved_handler`
   * `buffers_range_ref` 
   * `dynamic_buffer_ref`
   * `executor_type`
-  * `get_lowest_layer` and `lowest_layer_type`
-  * `close_socket` and `beast_close_socket`
-  * `error` and `condition`
+  * `get_lowest_layer`,
+    `lowest_layer_type`
+  * `close_socket`,
+    `beast_close_socket`
+  * `error`,
+    `condition`
 
 [*API Changes]
 
@@ -80,38 +99,64 @@ New websocket-chat-multi example
   from the stream. Previously, they returned the number of bytes
   consumed by the parser.
   ['Actions Required]:
-  * Callers depending on the return value of `http::read` or
-    `http::async_read` overloads should adjust the usage of
+  * Callers depending on the return value of
+    `http::read` or
+    `http::async_read`
+    overloads should adjust the usage of
     the returned value as needed.
 
-* `flat_static_buffer::reset()` is deprecated.
-  ['Actions Required]:
-  * call `clear()` instead.
+* Metafunctions
+  `has_get_executor`,
+  `is_sync_stream`,
+  `is_sync_read_stream`,
+  `is_sync_write_stream`,
+  `is_async_stream`,
+  `is_async_read_stream`, and
+  `is_async_write_stream`
+  are now located in stream_traits.hpp.
+  ['Actions Required]: Include stream_traits.hpp as needed.
 
-* `buffers_adapter` is now called `buffers_adaptor`.
+* `flat_static_buffer::reset()`
+  is deprecated.
   ['Actions Required]:
-  * Replace `buffers_adapter` with `buffers_adaptor`, or define
-    `BOOST_BEAST_ALLOW_DEPRECATED`.
+  * call
+    `clear()` instead.
 
-* `buffers` is now called `make_printable`.
+* `buffers_adapter` is now spelled
+  `buffers_adaptor`.
   ['Actions Required]:
-  * Replace `buffers` with `make_printable`, and include
-    "make_printable.hpp" instead of "ostream.hpp".
+  * Replace `buffers_adapter` with
+    `buffers_adaptor`,
+    or define `BOOST_BEAST_ALLOW_DEPRECATED`.
+
+* `buffers` is now spelled
+  `make_printable`.
+  ['Actions Required]:
+  * Replace `buffers` with
+    `make_printable`,
+    and include "make_printable.hpp" instead of "ostream.hpp".
 
 * `file_mode::append_new` is removed, as it makes no sense.
   ['Actions Required]:
-  - Replace `file_mode::append_new` with either `file_mode::append`
-    or `file_mode::append_existing` as needed.
+  - Replace `file_mode::append_new` with either
+    `file_mode::append` or
+    `file_mode::append_existing`
+    as needed.
 
-* `buffers_range_ref` is preferred to `std::reference_wrapper`.
+* `buffers_range_ref`
+  is preferred to `std::reference_wrapper`.
   ['Actions Required]:
-  - Call `buffers_range_ref` with the buffer, instead of calling
-    `buffers_range` with a reference wrapper constructed from
-    the buffer.
+  - Call
+    `buffers_range_ref`
+    with the buffer, instead of calling
+    `buffers_range`
+    with a reference wrapper constructed from the buffer.
 
 * Nested `lowest_layer` and `lowest_layer_type` are removed.
-  ['Actions Required]: Use the free function `get_lowest_layer` and the
-  type trait `lowest_layer_type` instead.
+  ['Actions Required]: Use the free function
+  `get_lowest_layer` and the
+  type trait
+  `lowest_layer_type` instead.
 
 [*Examples]
 
@@ -119,9 +164,10 @@ New websocket-chat-multi example
 
 * ([issue 1347]) Improve echo-op
 
-* ([issue 1401]) Examples use `flat_buffer`
+* ([issue 1401]) Examples use
+  `flat_buffer`
 
-* New websocket-chat-multi example
+* New example [[source_file example/websocket/server/chat-multi]]
 
 * `async_echo` works with move-only handlers
 
@@ -129,33 +175,42 @@ New websocket-chat-multi example
 
 * ([issue 1223]) HTTP read counts bytes correctly when an error occurs
 
-* ([issue 1247]) Update `ssl_stream` for Asio changes
+* ([issue 1247]) Update `ssl_stream`
+  for Asio changes
 
-* ([issue 1279]) Enable explicit instantiations of `websocket::stream`
+* ([issue 1279]) Enable explicit instantiations of
+  `websocket::stream`
 
 * ([issue 1290]) Don't use deprecated Asio interfaces
 
-* ([issue 1306]) `http::message` is not-a `boost::empty_value`
+* ([issue 1306]) `http::message`
+  is not-a `boost::empty_value`
 
-* ([issue 1306]) `test::stream` has fewer dependencies
+* ([issue 1306]) `test::stream`
+  has fewer dependencies
 
 * ([issue 1365]) Handler wrappers decay parameters sooner
 
-* ([issue 1408]) `session_alloc` is thread-safe
+* ([issue 1408]) `session_alloc`
+  is thread-safe
 
 * ([issue 1414]) Boost.System is header-only
 
-* ([issue 1418]) `test::stream` maintains a handler work guard
+* ([issue 1418]) `test::stream`
+  maintains a handler work guard
 
-* `buffers_cat` correctly skips empty buffers when iterated
+* `buffers_cat`
+  correctly skips empty buffers when iterated
 
-* `ostream` does not overflow or exceed the dynamic buffer's maximum size
+* `ostream`
+  does not overflow or exceed the dynamic buffer's maximum size
 
 * A handler work guard is maintained on paused websocket operations
 
 * All behavior of default-constructed iterators is conforming
 
-* `file_mode::append_existing` works correctly
+* `file_mode::append_existing`
+  works correctly
 
 [/-----------------------------------------------------------------------------]
 

@@ -12,7 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/type_traits.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <cstdlib>
 

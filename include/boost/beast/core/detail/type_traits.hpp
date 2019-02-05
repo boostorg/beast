@@ -13,7 +13,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/mp11/function.hpp>
-#include <boost/type_traits.hpp>
+#include <boost/type_traits/make_void.hpp>
 #include <iterator>
 #include <tuple>
 #include <type_traits>
@@ -160,39 +160,6 @@ struct is_contiguous_container<T, E, void_t<
 {};
 
 //------------------------------------------------------------------------------
-
-//
-// buffer concepts
-//
-
-// Types that meet the requirements,
-// for use with std::declval only.
-template<class BufferType>
-struct BufferSequence
-{
-    using value_type = BufferType;
-    using const_iterator = BufferType const*;
-    ~BufferSequence();
-    BufferSequence(BufferSequence const&) = default;
-    const_iterator begin() const noexcept;
-    const_iterator end() const noexcept;
-};
-using ConstBufferSequence =
-    BufferSequence<net::const_buffer>;
-using MutableBufferSequence =
-    BufferSequence<net::mutable_buffer>;
-
-//
-
-// Types that meet the requirements,
-// for use with std::declval only.
-struct StreamHandler
-{
-    StreamHandler(StreamHandler const&) = default;
-    void operator()(error_code ec, std::size_t);
-};
-using ReadHandler = StreamHandler;
-using WriteHandler = StreamHandler;
 
 /*  If this static assert goes off, it means that the completion
     handler you provided to an asynchronous initiating function did

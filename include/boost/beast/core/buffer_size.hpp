@@ -14,7 +14,7 @@
 #include <boost/beast/core/detail/static_const.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/type_traits.hpp>
+#include <boost/type_traits/make_void.hpp>
 #include <type_traits>
 
 namespace boost {

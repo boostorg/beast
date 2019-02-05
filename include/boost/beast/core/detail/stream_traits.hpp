@@ -10,6 +10,8 @@
 #ifndef BOOST_BEAST_DETAIL_STREAM_TRAITS_HPP
 #define BOOST_BEAST_DETAIL_STREAM_TRAITS_HPP
 
+#include <boost/beast/core/error.hpp>
+#include <boost/asio/buffer.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <type_traits>
 
@@ -25,13 +27,11 @@ namespace detail {
 //
 
 template <class T>
-std::false_type has_next_layer_impl(void*) {}
+std::false_type has_next_layer_impl(void*);
 
 template <class T>
 auto has_next_layer_impl(decltype(nullptr)) ->
-    decltype(std::declval<T&>().next_layer(), std::true_type{})
-{
-}
+    decltype(std::declval<T&>().next_layer(), std::true_type{});
 
 template <class T>
 using has_next_layer = decltype(has_next_layer_impl<T>(nullptr));
@@ -70,6 +70,37 @@ get_lowest_layer_impl(
         has_next_layer<typename std::decay<
             decltype(t.next_layer())>::type>{});
 }
+
+//------------------------------------------------------------------------------
+
+// Types that meet the requirements,
+// for use with std::declval only.
+template<class BufferType>
+struct BufferSequence
+{
+    using value_type = BufferType;
+    using const_iterator = BufferType const*;
+    ~BufferSequence();
+    BufferSequence(BufferSequence const&) = default;
+    const_iterator begin() const noexcept;
+    const_iterator end() const noexcept;
+};
+using ConstBufferSequence =
+    BufferSequence<net::const_buffer>;
+using MutableBufferSequence =
+    BufferSequence<net::mutable_buffer>;
+
+//
+
+// Types that meet the requirements,
+// for use with std::declval only.
+struct StreamHandler
+{
+    StreamHandler(StreamHandler const&) = default;
+    void operator()(error_code ec, std::size_t);
+};
+using ReadHandler = StreamHandler;
+using WriteHandler = StreamHandler;
 
 //------------------------------------------------------------------------------
 
