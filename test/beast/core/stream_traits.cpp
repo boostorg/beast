@@ -198,47 +198,31 @@ public:
     struct sync_read_stream
     {
         template<class MutableBufferSequence>
-        std::size_t
-        read_some(MutableBufferSequence const&);
-
+        std::size_t read_some(MutableBufferSequence const&);
         template<class MutableBufferSequence>
-        std::size_t
-        read_some(MutableBufferSequence const&,
-            error_code& ec);
+        std::size_t read_some(MutableBufferSequence const&, error_code& ec);
     };
 
     struct sync_write_stream
     {
         template<class ConstBufferSequence>
-        std::size_t
-        write_some(ConstBufferSequence const&);
-
+        std::size_t write_some(ConstBufferSequence const&);
         template<class ConstBufferSequence>
-        std::size_t
-        write_some(
-            ConstBufferSequence const&, error_code&);
+        std::size_t write_some(ConstBufferSequence const&, error_code&);
     };
 
     struct async_read_stream
     {
-        net::io_context::executor_type
-        get_executor();
-
+        net::io_context::executor_type get_executor();
         template<class MutableBufferSequence, class ReadHandler>
-        void
-        async_read_some(
-            MutableBufferSequence const&, ReadHandler&&);
+        void async_read_some(MutableBufferSequence const&, ReadHandler&&);
     };
 
     struct async_write_stream
     {
-        net::io_context::executor_type
-        get_executor();
-
+        net::io_context::executor_type get_executor();
         template<class ConstBufferSequence, class WriteHandler>
-        void
-        async_write_some(
-            ConstBufferSequence const&, WriteHandler&&);
+        void async_write_some(ConstBufferSequence const&, WriteHandler&&);
     };
 
     struct sync_stream : sync_read_stream, sync_write_stream
@@ -247,27 +231,43 @@ public:
 
     struct async_stream : async_read_stream, async_write_stream
     {
-        using async_read_stream::get_executor;
+        net::io_context::executor_type get_executor();
+        template<class MutableBufferSequence, class ReadHandler>
+        void async_read_some(MutableBufferSequence const&, ReadHandler&&);
+        template<class ConstBufferSequence, class WriteHandler>
+        void async_write_some(ConstBufferSequence const&, WriteHandler&&);
     };
 
     BOOST_STATIC_ASSERT(is_sync_read_stream<sync_read_stream>::value);
-    BOOST_STATIC_ASSERT(is_sync_write_stream<sync_write_stream>::value);
     BOOST_STATIC_ASSERT(is_sync_read_stream<sync_stream>::value);
+    BOOST_STATIC_ASSERT(is_sync_write_stream<sync_write_stream>::value);
     BOOST_STATIC_ASSERT(is_sync_write_stream<sync_stream>::value);
     BOOST_STATIC_ASSERT(is_sync_stream<sync_stream>::value);
 
+    BOOST_STATIC_ASSERT(! is_sync_read_stream<sync_write_stream>::value);
+    BOOST_STATIC_ASSERT(! is_sync_write_stream<sync_read_stream>::value);
+    BOOST_STATIC_ASSERT(! is_sync_stream<async_stream>::value);
+
+    BOOST_STATIC_ASSERT(has_get_executor<async_read_stream>::value);
+    BOOST_STATIC_ASSERT(has_get_executor<async_write_stream>::value);
+    BOOST_STATIC_ASSERT(has_get_executor<async_stream>::value);
+
+    BOOST_STATIC_ASSERT(! has_get_executor<sync_read_stream>::value);
+    BOOST_STATIC_ASSERT(! has_get_executor<sync_write_stream>::value);
+    BOOST_STATIC_ASSERT(! has_get_executor<sync_stream>::value);
+
     BOOST_STATIC_ASSERT(is_async_read_stream<async_read_stream>::value);
-    BOOST_STATIC_ASSERT(is_async_write_stream<async_write_stream>::value);
     BOOST_STATIC_ASSERT(is_async_read_stream<async_stream>::value);
+#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+    BOOST_STATIC_ASSERT(is_async_write_stream<net::ip::tcp::socket>::value);
+#else
+    BOOST_STATIC_ASSERT(is_async_write_stream<async_write_stream>::value);
+#endif
     BOOST_STATIC_ASSERT(is_async_write_stream<async_stream>::value);
     BOOST_STATIC_ASSERT(is_async_stream<async_stream>::value);
 
-    BOOST_STATIC_ASSERT(! is_sync_read_stream<sync_write_stream>::value);
-    BOOST_STATIC_ASSERT(! is_sync_write_stream<sync_read_stream>::value);
-    BOOST_STATIC_ASSERT(! is_async_read_stream<async_write_stream>::value);
     BOOST_STATIC_ASSERT(! is_async_write_stream<async_read_stream>::value);
-
-    BOOST_STATIC_ASSERT(! is_sync_stream<async_stream>::value);
+    BOOST_STATIC_ASSERT(! is_async_read_stream<async_write_stream>::value);
     BOOST_STATIC_ASSERT(! is_async_stream<sync_stream>::value);
 
     //--------------------------------------------------------------------------
