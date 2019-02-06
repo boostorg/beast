@@ -1,6 +1,7 @@
 Version 211:
 
 * close_socket is in stream_traits.hpp
+* Improvements to test::stream
 
 --------------------------------------------------------------------------------
 

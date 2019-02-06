@@ -98,7 +98,7 @@ class stream
     struct read_op_base
     {
         virtual ~read_op_base() = default;
-        virtual void operator()() = 0;
+        virtual void operator()(bool cancel = false) = 0;
     };
 
     template<class Handler, class Buffers>
@@ -108,7 +108,6 @@ class stream
     {
         ok,
         eof,
-        reset
     };
 
     struct state
@@ -129,33 +128,16 @@ class stream
         std::size_t write_max =
             (std::numeric_limits<std::size_t>::max)();
 
-        ~state()
-        {
-            BOOST_ASSERT(! op);
-        }
-
+        BOOST_BEAST_DECL
         explicit
-        state(
-            net::io_context& ioc_,
-            fail_count* fc_)
-            : ioc(ioc_)
-            , fc(fc_)
-        {
-        }
+        state(net::io_context& ioc_, fail_count* fc_);
 
+        BOOST_BEAST_DECL
+        ~state();
+        
+        BOOST_BEAST_DECL
         void
-        on_write()
-        {
-            if(op)
-            {
-                std::unique_ptr<read_op_base> op_ = std::move(op);
-                op_->operator()();
-            }
-            else
-            {
-                cv.notify_all();
-            }
-        }
+        notify_read();
     };
 
     std::shared_ptr<state> in_;
