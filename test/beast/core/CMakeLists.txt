@@ -42,7 +42,6 @@ add_executable (tests-beast-core
     buffers_range.cpp
     buffers_suffix.cpp
     buffers_to_string.cpp
-    close_socket.cpp
     dynamic_buffer_ref.cpp
     error.cpp
     file.cpp

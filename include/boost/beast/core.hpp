@@ -23,7 +23,6 @@
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
-#include <boost/beast/core/close_socket.hpp>
 #include <boost/beast/core/dynamic_buffer_ref.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file.hpp>

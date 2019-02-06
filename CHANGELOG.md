@@ -1,3 +1,9 @@
+Version 211:
+
+* close_socket is in stream_traits.hpp
+
+--------------------------------------------------------------------------------
+
 Version 210:
 
 * Tidy up read implementation
