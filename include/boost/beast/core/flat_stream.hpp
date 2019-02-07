@@ -12,7 +12,9 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/_experimental/core/detail/flat_stream.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/detail/flat_stream.hpp>
 #include <boost/asio/async_result.hpp>
 #include <cstdlib>
 #include <utility>
@@ -73,12 +75,12 @@ namespace beast {
     `net::ssl::stream`.
 
     @par Concepts
-        @b AsyncStream
-        @b SyncStream
+        @li SyncStream
+        @li AsyncStream
 
     @see
-        @li https://github.com/boostorg/beast/issues/1108
         @li https://github.com/boostorg/asio/issues/100
+        @li https://github.com/boostorg/beast/issues/1108
         @li https://stackoverflow.com/questions/38198638/openssl-ssl-write-from-multiple-buffers-ssl-writev
         @li https://stackoverflow.com/questions/50026167/performance-drop-on-port-from-beast-1-0-0-b66-to-boost-1-67-0-beast
 */
@@ -92,9 +94,22 @@ class flat_stream
     // 16KB is the upper limit on reasonably sized HTTP messages.
     static std::size_t constexpr max_size = 16 * 1024;
 
-    template<class, class> class write_op;
+    // Largest stack we will use to flatten
+    static std::size_t constexpr max_stack = 16 * 1024;
+
+    template<class> class write_op;
 
     NextLayer stream_;
+    flat_buffer buffer_;
+
+    BOOST_STATIC_ASSERT(has_get_executor<NextLayer>::value);
+
+    template<class ConstBufferSequence>
+    std::size_t
+    stack_write_some(
+        std::size_t size,
+        ConstBufferSequence const& buffers,
+        error_code& ec);
 
 public:
     /// The type of the next layer.
@@ -102,7 +117,7 @@ public:
         typename std::remove_reference<NextLayer>::type;
 
     /// The type of the executor associated with the object.
-    using executor_type = typename next_layer_type::executor_type;
+    using executor_type = beast::executor_type<next_layer_type>;
 
     flat_stream(flat_stream&&) = default;
     flat_stream(flat_stream const&) = default;
@@ -322,6 +337,6 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/core/impl/flat_stream.hpp>
+#include <boost/beast/core/impl/flat_stream.hpp>
 
 #endif

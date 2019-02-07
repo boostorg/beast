@@ -8,11 +8,14 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/_experimental/core/flat_stream.hpp>
+#include <boost/beast/core/flat_stream.hpp>
+
+#include "stream_tests.hpp"
 
 #include <boost/beast/test/websocket.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/test/stream.hpp>
 #include <initializer_list>
 #include <vector>
 
@@ -24,6 +27,13 @@ class flat_stream_test
     , public test::enable_yield_to
 {
 public:
+    void
+    testStream()
+    {
+        test_sync_stream<flat_stream<test::stream>>();
+        test_async_stream<flat_stream<test::stream>>();
+    }
+
     void
     testSplit()
     {
@@ -81,7 +91,7 @@ public:
             test::ws_echo_server es{log};
             net::io_context ioc;
             websocket::stream<flat_stream<test::stream>> ws{ioc};
-            ws.next_layer().next_layer().connect(es.stream());
+            get_lowest_layer(ws).connect(es.stream());
             ws.async_handshake("localhost", "/",
                 [&](error_code)
                 {
@@ -97,6 +107,7 @@ public:
     void
     run() override
     {
+        testStream();
         testSplit();
         testHttp();
         testWebsocket();

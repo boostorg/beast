@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/asio/buffer.hpp>
@@ -22,39 +23,16 @@ namespace boost {
 namespace beast {
 
 template<class NextLayer>
-template<class ConstBufferSequence, class Handler>
+template<class Handler>
 class flat_stream<NextLayer>::write_op
     : public async_op_base<Handler,
         beast::executor_type<flat_stream>>
-
     , public net::coroutine
 {
-    using alloc_type = std::allocator<char>;
-
-    struct deleter
-    {
-        alloc_type alloc;
-        std::size_t size = 0;
-
-        explicit
-        deleter(alloc_type const& alloc_)
-            : alloc(alloc_)
-        {
-        }
-
-        void
-        operator()(char* p)
-        {
-            alloc.deallocate(p, size);
-        }
-    };
-
-    flat_stream<NextLayer>& s_;
-    ConstBufferSequence b_;
-    std::unique_ptr<char, deleter> p_;
-
 public:
-    template<class Handler_>
+    template<
+        class ConstBufferSequence,
+        class Handler_>
     write_op(
         flat_stream<NextLayer>& s,
         ConstBufferSequence const& b,
@@ -63,11 +41,26 @@ public:
             beast::executor_type<flat_stream>>(
                 std::forward<Handler_>(h),
                 s.get_executor())
-        , s_(s)
-        , b_(b)
-        , p_(nullptr, deleter{alloc_type{}})
     {
-        (*this)({}, 0);
+        auto const result =
+            coalesce(b,  coalesce_limit);
+        if(result.needs_coalescing)
+        {
+            s.buffer_.clear();
+            s.buffer_.commit(net::buffer_copy(
+                s.buffer_.prepare(result.size),
+                b, result.size));
+            s.stream_.async_write_some(
+                s.buffer_.data(), std::move(*this));
+        }
+        else
+        {
+            s.buffer_.clear();
+            s.buffer_.shrink_to_fit();
+            s.stream_.async_write_some(
+                beast::buffers_prefix(
+                    result.size, b), std::move(*this));
+        }
     }
 
     void
@@ -75,36 +68,7 @@ public:
         boost::system::error_code ec,
         std::size_t bytes_transferred)
     {
-        BOOST_ASIO_CORO_REENTER(*this)
-        {
-            BOOST_ASIO_CORO_YIELD
-            {
-                auto const result =
-                    coalesce(b_,  coalesce_limit);
-                if(result.needs_coalescing)
-                {
-                    p_.get_deleter().size = result.size;
-                    p_.reset(p_.get_deleter().alloc.allocate(
-                        p_.get_deleter().size));
-                    net::buffer_copy(
-                        net::buffer(
-                            p_.get(), p_.get_deleter().size),
-                        b_, result.size);
-                    s_.stream_.async_write_some(
-                        net::buffer(
-                            p_.get(), p_.get_deleter().size),
-                                std::move(*this));
-                }
-                else
-                {
-                    s_.stream_.async_write_some(
-                        boost::beast::buffers_prefix(
-                            result.size, b_), std::move(*this));
-                }
-            }
-            p_.reset();
-            this->invoke(ec, bytes_transferred);
-        }
+        this->invoke(ec, bytes_transferred);
     }
 };
 
@@ -128,7 +92,7 @@ read_some(MutableBufferSequence const& buffers)
         "SyncReadStream requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
-            "MutableBufferSequence requirements not met");
+        "MutableBufferSequence requirements not met");
     error_code ec;
     auto n = read_some(buffers, ec);
     if(ec)
@@ -142,6 +106,11 @@ std::size_t
 flat_stream<NextLayer>::
 read_some(MutableBufferSequence const& buffers, error_code& ec)
 {
+    static_assert(boost::beast::is_sync_read_stream<next_layer_type>::value,
+        "SyncReadStream requirements not met");
+    static_assert(net::is_mutable_buffer_sequence<
+        MutableBufferSequence>::value,
+        "MutableBufferSequence requirements not met");
     return stream_.read_some(buffers, ec);
 }
 
@@ -159,7 +128,7 @@ async_read_some(
     static_assert(boost::beast::is_async_read_stream<next_layer_type>::value,
         "AsyncReadStream requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
-            MutableBufferSequence >::value,
+        MutableBufferSequence >::value,
         "MutableBufferSequence  requirements not met");
     return stream_.async_read_some(
         buffers, std::forward<ReadHandler>(handler));
@@ -176,16 +145,26 @@ write_some(ConstBufferSequence const& buffers)
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    auto const result = coalesce(buffers, coalesce_limit);
-    if(result.needs_coalescing)
-    {
-        std::unique_ptr<char[]> p{new char[result.size]};
-        auto const b = net::buffer(p.get(), result.size);
-        net::buffer_copy(b, buffers);
-        return stream_.write_some(b);
-    }
-    return stream_.write_some(
-        boost::beast::buffers_prefix(result.size, buffers));
+    error_code ec;
+    auto n = write_some(buffers, ec);
+    if(ec)
+        BOOST_THROW_EXCEPTION(boost::system::system_error{ec});
+    return n;
+}
+
+template<class NextLayer>
+template<class ConstBufferSequence>
+std::size_t
+flat_stream<NextLayer>::
+stack_write_some(
+    std::size_t size,
+    ConstBufferSequence const& buffers,
+    error_code& ec)
+{
+    static_buffer<max_stack> b;
+    b.commit(net::buffer_copy(
+        b.prepare(size), buffers));
+    return stream_.write_some(b.data(), ec);
 }
 
 template<class NextLayer>
@@ -198,15 +177,21 @@ write_some(ConstBufferSequence const& buffers, error_code& ec)
         "SyncWriteStream requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+        "ConstBufferSequence requirements not met");
     auto const result = coalesce(buffers, coalesce_limit);
     if(result.needs_coalescing)
     {
-        std::unique_ptr<char[]> p{new char[result.size]};
-        auto const b = net::buffer(p.get(), result.size);
-        net::buffer_copy(b, buffers);
-        return stream_.write_some(b, ec);
+        if(result.size > max_stack)
+            return stack_write_some(result.size, buffers, ec);
+
+        buffer_.clear();
+        buffer_.commit(net::buffer_copy(
+            buffer_.prepare(result.size),
+            buffers));
+        return stream_.write_some(buffer_.data(), ec);
     }
+    buffer_.clear();
+    buffer_.shrink_to_fit();
     return stream_.write_some(
         boost::beast::buffers_prefix(result.size, buffers), ec);
 }
@@ -225,13 +210,13 @@ async_write_some(
     static_assert(boost::beast::is_async_write_stream<next_layer_type>::value,
         "AsyncWriteStream requirements not met");
     static_assert(net::is_const_buffer_sequence<
-            ConstBufferSequence>::value,
+        ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
-    write_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
-        WriteHandler, void(error_code, std::size_t))>{
-            *this, buffers, std::move(init.completion_handler)};
+    write_op<BOOST_ASIO_HANDLER_TYPE(
+        WriteHandler, void(error_code, std::size_t))>(
+            *this, buffers, std::move(init.completion_handler));
     return init.result.get();
 }
 

@@ -51,6 +51,7 @@ add_executable (tests-beast-core
     file_win32.cpp
     flat_buffer.cpp
     flat_static_buffer.cpp
+    flat_stream.cpp
     handler_ptr.cpp
     make_printable.cpp
     multi_buffer.cpp
