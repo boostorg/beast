@@ -88,6 +88,9 @@ public:
         cq("\t; \t xyz=1 ; ijk=\"q\\\"t\"", ";xyz=1;ijk=q\"t");
         ce(";x;y");
 
+		ce("chunked;a=b;i=j,gzip;windowBits=12");
+		ce("chunked;a=b;i=j,gzip;windowBits=12;permessage-deflate");
+
         // invalid strings
         cs(";", "");
         cs(";,", "");
@@ -345,11 +348,9 @@ public:
     run()
     {
         testOptTokenList();
-#if 0
         testParamList();
         testExtList();
         testTokenList();
-#endif
     }
 };
 
