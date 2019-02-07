@@ -94,7 +94,7 @@ public:
             fc_->fail(ec);
         else
             ec = {};
-        fields[name.to_string()] = value.to_string();
+        fields[std::string(name)] = std::string(value);
     }
 
     void

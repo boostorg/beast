@@ -205,7 +205,7 @@ public:
         bool get_keep_alive_impl(unsigned) const { return true; }
         bool has_content_length_impl() const { return false; }
         void set_method_impl(string_view) {}
-        void set_target_impl(string_view s) { target = s.to_string(); }
+        void set_target_impl(string_view s) { target = std::string(s); }
         void set_reason_impl(string_view) {}
         void set_chunked_impl(bool) {}
         void set_content_length_impl(boost::optional<std::uint64_t>) {}

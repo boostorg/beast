@@ -119,7 +119,7 @@ private:
             response_.set(http::field::content_type, "text/plain");
             beast::ostream(response_.body())
                 << "Invalid request-method '"
-                << request_.method_string().to_string()
+                << std::string(request_.method_string())
                 << "'";
             break;
         }
