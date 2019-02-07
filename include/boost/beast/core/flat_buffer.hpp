@@ -239,7 +239,7 @@ public:
     template<class OtherAlloc>
     basic_flat_buffer(
         basic_flat_buffer<OtherAlloc> const& other)
-            noexcept(default_nothrow);;
+            noexcept(default_nothrow);
 
     /** Copy Constructor
 
