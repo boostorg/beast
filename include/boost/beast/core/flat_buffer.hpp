@@ -370,13 +370,9 @@ public:
     void
     shrink_to_fit();
 
-    /** Deallocate the internal buffer and reduce capacity to zero.
+    /** Set the size of the readable and writable bytes to zero.
 
-        This function deallocates the dynamically allocated
-        internal buffer, and reduces the capacity to zero without
-        affecting the maximum size. The readable and writable
-        bytes will be empty after the object is cleared.
-
+        This clears the buffer without changing capacity.
         Buffer sequences previously obtained using @ref data or
         @ref prepare become invalid.
 

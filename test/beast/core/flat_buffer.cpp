@@ -409,6 +409,19 @@ public:
             b.shrink_to_fit();
             BEAST_EXPECT(b.capacity() == 0);
         }
+
+        // clear
+        {
+            flat_buffer b;
+            BEAST_EXPECT(b.capacity() == 0);
+            b.prepare(50);
+            b.commit(50);
+            BEAST_EXPECT(b.size() == 50);
+            BEAST_EXPECT(b.capacity() == 50);
+            b.clear();
+            BEAST_EXPECT(b.size() == 0);
+            BEAST_EXPECT(b.capacity() == 50);
+        }
     }
 
     void

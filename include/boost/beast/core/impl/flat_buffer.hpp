@@ -66,7 +66,7 @@ template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(Allocator const& alloc) noexcept
     : boost::empty_value<base_alloc_type>(
-        boost::empty_init_t(), alloc)
+        boost::empty_init_t{}, alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -83,7 +83,7 @@ basic_flat_buffer(
     std::size_t limit,
     Allocator const& alloc) noexcept
     : boost::empty_value<base_alloc_type>(
-        boost::empty_init_t(), alloc)
+        boost::empty_init_t{}, alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -97,7 +97,7 @@ template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer&& other) noexcept
     : boost::empty_value<base_alloc_type>(
-        boost::empty_init_t(), std::move(other.get()))
+        boost::empty_init_t{}, std::move(other.get()))
     , begin_(boost::exchange(other.begin_, nullptr))
     , in_(boost::exchange(other.in_, nullptr))
     , out_(boost::exchange(other.out_, nullptr))
@@ -113,7 +113,7 @@ basic_flat_buffer(
     basic_flat_buffer&& other,
     Allocator const& alloc)
     : boost::empty_value<base_alloc_type>(
-        boost::empty_init_t(), alloc)
+        boost::empty_init_t{}, alloc)
 {
     if(this->get() != other.get())
     {
@@ -125,6 +125,7 @@ basic_flat_buffer(
         max_ = other.max_;
         copy_from(other);
         other.clear();
+        other.shrink_to_fit();
         return;
     }
 
@@ -147,7 +148,7 @@ basic_flat_buffer(
 template<class Allocator>
 basic_flat_buffer<Allocator>::
 basic_flat_buffer(basic_flat_buffer const& other)
-    : boost::empty_value<base_alloc_type>(boost::empty_init_t(),
+    : boost::empty_value<base_alloc_type>(boost::empty_init_t{},
         alloc_traits::select_on_container_copy_construction(
             other.get()))
     , begin_(nullptr)
@@ -166,7 +167,7 @@ basic_flat_buffer(
     basic_flat_buffer const& other,
     Allocator const& alloc)
     : boost::empty_value<base_alloc_type>(
-        boost::empty_init_t(), alloc)
+        boost::empty_init_t{}, alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -200,7 +201,7 @@ basic_flat_buffer(
     basic_flat_buffer<OtherAlloc> const& other,
     Allocator const& alloc)
     : boost::empty_value<base_alloc_type>(
-        boost::empty_init_t(), alloc)
+        boost::empty_init_t{}, alloc)
     , begin_(nullptr)
     , in_(nullptr)
     , out_(nullptr)
@@ -292,13 +293,9 @@ void
 basic_flat_buffer<Allocator>::
 clear() noexcept
 {
-    alloc_traits::deallocate(
-        this->get(), begin_, size());
-    begin_ = nullptr;
-    in_ = nullptr;
-    out_ = nullptr;
-    last_ = nullptr;
-    end_ = nullptr;
+    in_ = begin_;
+    out_ = begin_;
+    last_ = begin_;
 }
 
 //------------------------------------------------------------------------------
@@ -379,11 +376,21 @@ copy_from(
     basic_flat_buffer<OtherAlloc> const& other)
 {
     std::size_t const n = other.size();
-    if(begin_ && (n == 0 || n > capacity()))
-        clear();
-    if(n > capacity())
+    if(n == 0 || n > capacity())
     {
-        BOOST_ASSERT(! begin_);
+        if(begin_ != nullptr)
+        {
+            alloc_traits::deallocate(
+                this->get(), begin_,
+                this->capacity());
+            begin_ = nullptr;
+            in_ = nullptr;
+            out_ = nullptr;
+            last_ = nullptr;
+            end_ = nullptr;
+        }
+        if(n == 0)
+            return;
         begin_ = alloc(n);
         in_ = begin_;
         out_ = begin_ + n;
@@ -406,6 +413,7 @@ basic_flat_buffer<Allocator>::
 move_assign(basic_flat_buffer& other, std::true_type)
 {
     clear();
+    shrink_to_fit();
     this->get() = std::move(other.get());
     begin_ = other.begin_;
     in_ = other.in_;
@@ -429,6 +437,7 @@ move_assign(basic_flat_buffer& other, std::false_type)
     {
         copy_from(other);
         other.clear();
+        other.shrink_to_fit();
     }
     else
     {
@@ -452,6 +461,7 @@ basic_flat_buffer<Allocator>::
 copy_assign(basic_flat_buffer const& other, std::false_type)
 {
     clear();
+    shrink_to_fit();
     max_ = other.max_;
     copy_from(other);
 }
