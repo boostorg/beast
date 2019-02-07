@@ -1152,7 +1152,7 @@ public:
                 "HTTP/1.1 200 OK\r\n"
                 "Transfer-Encoding: chunked\r\n"
                 "\r\n"
-                "0" + s.to_string() + "\r\n"
+                "0" + std::string(s) + "\r\n"
                 "\r\n";
             error_code ec;
             test_parser<false> p;
@@ -1169,7 +1169,7 @@ public:
                 "HTTP/1.1 200 OK\r\n"
                 "Transfer-Encoding: chunked\r\n"
                 "\r\n"
-                "0" + s.to_string() + "\r\n"
+                "0" + std::string(s) + "\r\n"
                 "\r\n";
             error_code ec;
             test_parser<false> p;

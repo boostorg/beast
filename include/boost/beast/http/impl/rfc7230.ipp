@@ -316,7 +316,7 @@ increment()
         param-list  = *( OWS ";" OWS param )
         param       = token OWS "=" OWS ( token / quoted-string )
 
-        chunked;a=b;i=j,gzip;windowBits=12
+        chunked;a=b;i=j;gzip;windowBits=12
         x,y
         ,,,,,chameleon
     */
@@ -350,6 +350,8 @@ increment()
             }
             v_.first = string_view{&*p0,
                 static_cast<std::size_t>(it_ - p0)};
+			if (it_ == last_) 
+				return;
             detail::param_iter pi;
             pi.it = it_;
             pi.first = it_;

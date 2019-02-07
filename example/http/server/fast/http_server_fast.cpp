@@ -196,7 +196,7 @@ private:
             // we do not recognize the request method.
             send_bad_response(
                 http::status::bad_request,
-                "Invalid request-method '" + req.method_string().to_string() + "'\r\n");
+                "Invalid request-method '" + std::string(req.method_string()) + "'\r\n");
             break;
         }
     }
@@ -269,7 +269,7 @@ private:
         file_response_->result(http::status::ok);
         file_response_->keep_alive(false);
         file_response_->set(http::field::server, "Beast");
-        file_response_->set(http::field::content_type, mime_type(target.to_string()));
+        file_response_->set(http::field::content_type, mime_type(std::string(target)));
         file_response_->body() = std::move(file);
         file_response_->prepare_payload();
 

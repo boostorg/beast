@@ -295,7 +295,7 @@ public:
         write(ts, m, ec);
         if(ec && ec != error::end_of_stream)
             BOOST_THROW_EXCEPTION(system_error{ec});
-        return tr.str().to_string();
+        return std::string(tr.str());
     }
 
     void

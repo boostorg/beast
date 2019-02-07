@@ -339,7 +339,7 @@ void do_server_head(
         // we do not recognize the request method.
         res.result(status::bad_request);
         res.set(field::content_type, "text/plain");
-        res.body() = "Invalid request-method '" + req.method_string().to_string() + "'";
+        res.body() = "Invalid request-method '" + std::string(req.method_string()) + "'";
         res.prepare_payload();
         break;
     }

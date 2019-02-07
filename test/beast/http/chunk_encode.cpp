@@ -195,11 +195,11 @@ public:
                 std::string s;
                 for(auto const& v : ce)
                 {
-                    s.append(v.first.to_string());
+                    s.append(std::string(v.first));
                     s.push_back(',');
                     if(! v.second.empty())
                     {
-                        s.append(v.second.to_string());
+                        s.append(std::string(v.second));
                         s.push_back(',');
                     }
                 }

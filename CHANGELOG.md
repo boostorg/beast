@@ -6,6 +6,7 @@ Version 211:
 * Add flat_stream
 * flat_buffer::clear preserves capacity
 * multi_buffer::clear preserves capacity
+* Fixes to rfc7230
 
 --------------------------------------------------------------------------------
 
