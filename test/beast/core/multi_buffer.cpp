@@ -54,6 +54,112 @@ public:
     }
 
     void
+    testShrinkToFit()
+    {
+        // empty list
+
+        {
+            multi_buffer b;
+            BEAST_EXPECT(b.size() == 0);
+            BEAST_EXPECT(b.capacity() == 0);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 0);
+            BEAST_EXPECT(b.capacity() == 0);
+        }
+
+        // zero readable bytes
+
+        {
+            multi_buffer b;
+            b.prepare(512);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 0);
+            BEAST_EXPECT(b.capacity() == 0);
+        }
+
+        {
+            multi_buffer b;
+            b.prepare(512);
+            b.commit(32);
+            b.consume(32);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 0);
+            BEAST_EXPECT(b.capacity() == 0);
+        }
+
+        {
+            multi_buffer b;
+            b.prepare(512);
+            b.commit(512);
+            b.prepare(512);
+            b.clear();
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 0);
+            BEAST_EXPECT(b.capacity() == 0);
+        }
+
+        // unused list
+
+        {
+            multi_buffer b;
+            b.prepare(512);
+            b.commit(512);
+            b.prepare(512);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 512);
+            BEAST_EXPECT(b.capacity() == 512);
+        }
+
+        {
+            multi_buffer b;
+            b.prepare(512);
+            b.commit(512);
+            b.prepare(512);
+            b.prepare(1024);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 512);
+            BEAST_EXPECT(b.capacity() == 512);
+        }
+
+        // partial last buffer
+
+        {
+            multi_buffer b;
+            b.prepare(512);
+            b.commit(512);
+            b.prepare(512);
+            b.commit(88);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 600);
+            BEAST_EXPECT(b.capacity() == 600);
+        }
+
+        // shrink front of first buffer
+
+        {
+            multi_buffer b;
+            b.prepare(512);
+            b.commit(512);
+            b.consume(12);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 500);
+            BEAST_EXPECT(b.capacity() == 500);
+        }
+
+        // shrink ends of first buffer
+
+        {
+            multi_buffer b;
+            b.prepare(512);
+            b.commit(500);
+            b.consume(100);
+            b.shrink_to_fit();
+            BEAST_EXPECT(b.size() == 400);
+            BEAST_EXPECT(b.capacity() == 400);
+        }
+    }
+
+    void
     testDynamicBuffer()
     {
         multi_buffer b(30);
@@ -496,18 +602,14 @@ public:
         // clear
         {
             multi_buffer b;
+            BEAST_EXPECT(b.capacity() == 0);
             b.prepare(50);
-            BEAST_EXPECT(b.capacity() >= 50);
+            b.commit(50);
+            BEAST_EXPECT(b.size() == 50);
+            BEAST_EXPECT(b.capacity() == 512);
             b.clear();
             BEAST_EXPECT(b.size() == 0);
-            BEAST_EXPECT(b.capacity() == 0);
-            b.prepare(80);
-            b.commit(30);
-            BEAST_EXPECT(b.size() == 30);
-            BEAST_EXPECT(b.capacity() >= 80);
-            b.clear();
-            BEAST_EXPECT(b.size() == 0);
-            BEAST_EXPECT(b.capacity() == 0);
+            BEAST_EXPECT(b.capacity() == 512);
         }
 
         // swap
@@ -714,13 +816,12 @@ public:
     void
     run() override
     {
+#if 1
+        testShrinkToFit();
         testDynamicBuffer();
         testMembers();
         testMatrix1();
         testMatrix2();
-#if 0
-        testIterators();
-        testMutableData<multi_buffer>();
 #endif
     }
 };

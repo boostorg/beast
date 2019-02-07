@@ -30,39 +30,38 @@ namespace beast {
 
 1   Input and output contained entirely in one element:
 
-    0                            out_
-    |<-------------+------------------------------------------->|
-    in_pos_     out_pos_                                     out_end_
+    0                           out_
+    |<------+-----------+--------------------------------+----->|
+          in_pos_    out_pos_                         out_end_
 
 
 2   Output contained in first and second elements:
 
-                    out_
-    |<------+----------+------->|   |<----------+-------------->|
-          in_pos_   out_pos_                 out_end_
+                 out_
+    |<------+-----------+------>|   |<-------------------+----->|
+          in_pos_    out_pos_                         out_end_
 
 
 3   Output contained in the second element:
 
-                                                    out_
-    |<------------+------------>|   |<----+-------------------->|
-                in_pos_                out_pos_              out_end_
+                                                  out_
+    |<------+------------------>|   |<----+--------------+----->|
+          in_pos_                      out_pos_       out_end_
 
 
 4   Output contained in second and third elements:
 
-                                    out_
-    |<-----+-------->|   |<-------+------>|   |<--------------->|
-         in_pos_               out_pos_                      out_end_
+                                 out_
+    |<------+------->|   |<-------+------>|   |<---------+----->|
+          in_pos_               out_pos_              out_end_
 
 
 5   Input sequence is empty:
 
-                    out_
-    |<------+------------------>|   |<-----------+------------->|
-         out_pos_                             out_end_
+                 out_
+    |<------+------------------>|   |<-------------------+----->|
+         out_pos_                                     out_end_
           in_pos_
-
 
 6   Output sequence is empty:
 
@@ -464,7 +463,7 @@ template<class Allocator>
 basic_multi_buffer<Allocator>::
 ~basic_multi_buffer()
 {
-    delete_list();
+    destroy(list_);
 }
 
 template<class Allocator>
@@ -540,23 +539,23 @@ basic_multi_buffer(
         out_ = list_.end();
         copy_from(other);
         other.clear();
+        other.shrink_to_fit();
+        return;
     }
-    else
-    {
-        auto const at_end =
-            other.out_ == other.list_.end();
-        list_ = std::move(other.list_);
-        out_ = at_end ? list_.end() : other.out_;
-        in_size_ = other.in_size_;
-        in_pos_ = other.in_pos_;
-        out_pos_ = other.out_pos_;
-        out_end_ = other.out_end_;
-        other.in_size_ = 0;
-        other.out_ = other.list_.end();
-        other.in_pos_ = 0;
-        other.out_pos_ = 0;
-        other.out_end_ = 0;
-    }
+
+    auto const at_end =
+        other.out_ == other.list_.end();
+    list_ = std::move(other.list_);
+    out_ = at_end ? list_.end() : other.out_;
+    in_size_ = other.in_size_;
+    in_pos_ = other.in_pos_;
+    out_pos_ = other.out_pos_;
+    out_end_ = other.out_end_;
+    other.in_size_ = 0;
+    other.out_ = other.list_.end();
+    other.in_pos_ = 0;
+    other.out_pos_ = 0;
+    other.out_end_ = 0;
 }
 
 template<class Allocator>
@@ -644,7 +643,6 @@ operator=(
     basic_multi_buffer<OtherAlloc> const& other) ->
         basic_multi_buffer&
 {
-    clear();
     copy_from(other);
     return *this;
 }
@@ -692,7 +690,7 @@ reserve(std::size_t n)
     //        the sizeof(element) plus padding
     if(n > alloc_traits::max_size(this->get()))
         BOOST_THROW_EXCEPTION(std::length_error(
-            "A basic_multi_buffer exceeded the allocator's maximum size"));
+        "A basic_multi_buffer exceeded the allocator's maximum size"));
     std::size_t total = in_size_;
     if(n <= total)
         return;
@@ -717,22 +715,126 @@ reserve(std::size_t n)
 template<class Allocator>
 void
 basic_multi_buffer<Allocator>::
-shrink_to_fit() noexcept
+shrink_to_fit()
 {
-    if( out_ != list_.end() &&
-        out_ != list_.iterator_to(list_.back()))
+    // empty list
+    if(list_.empty())
+        return;
+
+    // zero readable bytes
+    if(in_size_ == 0)
     {
-        list_type extra;
-        extra.splice(extra.end(), list_,
-            std::next(out_), list_.end());
-        for(auto it = extra.begin(); it != extra.end();)
+        destroy(list_);
+        list_.clear();
+        out_ = list_.end();
+        in_size_ = 0;
+        in_pos_ = 0;
+        out_pos_ = 0;
+        out_end_ = 0;
+    #if BOOST_BEAST_MULTI_BUFFER_DEBUG_CHECK
+        debug_check();
+    #endif
+        return;
+    }
+
+    // one or more unused output buffers
+    if(out_ != list_.end())
+    {
+        if(out_ != list_.iterator_to(list_.back()))
         {
-            auto& e = *it++;
-            auto const len = sizeof(e) + e.size();
-            e.~element();
-            alloc_traits::deallocate(this->get(),
-                reinterpret_cast<char*>(&e), len);
+            // unused list
+            list_type extra;
+            extra.splice(
+                extra.end(),
+                list_,
+                std::next(out_),
+                list_.end());
+            destroy(extra);
+        #if BOOST_BEAST_MULTI_BUFFER_DEBUG_CHECK
+            debug_check();
+        #endif
         }
+
+        // unused out_
+        BOOST_ASSERT(out_ ==
+            list_.iterator_to(list_.back()));
+        if(out_pos_ == 0)
+        {
+            BOOST_ASSERT(out_ != list_.begin());
+            auto& e = *out_;
+            list_.erase(out_);
+            out_ = list_.end();
+            destroy(e);
+            out_end_ = 0;
+        #if BOOST_BEAST_MULTI_BUFFER_DEBUG_CHECK
+            debug_check();
+        #endif
+        }
+    }
+
+    auto const replace =
+        [&](iter pos, element& e)
+        {
+            auto it =
+                list_.insert(pos, e);
+            auto& e0 = *pos;
+            list_.erase(pos);
+            destroy(e0);
+            return it;
+        };
+
+    // partial last buffer
+    if(list_.size() > 1 && out_ != list_.end())
+    {
+        BOOST_ASSERT(out_ ==
+            list_.iterator_to(list_.back()));
+        BOOST_ASSERT(out_pos_ != 0);
+        auto& e = alloc(out_pos_);
+        std::memcpy(
+            e.data(),
+            out_->data(),
+            out_pos_);
+        replace(out_, e);
+        out_ = list_.end();
+        out_pos_ = 0;
+        out_end_ = 0;
+    #if BOOST_BEAST_MULTI_BUFFER_DEBUG_CHECK
+        debug_check();
+    #endif
+    }
+
+    // partial first buffer
+    if(in_pos_ != 0)
+    {
+        if(out_ != list_.begin())
+        {
+            auto const n =
+                list_.front().size() - in_pos_;
+            auto& e = alloc(n);
+            std::memcpy(
+                e.data(),
+                list_.front().data() + in_pos_,
+                n);
+            replace(list_.begin(), e);
+            in_pos_ = 0;
+        }
+        else
+        {
+            BOOST_ASSERT(list_.size() == 1);
+            BOOST_ASSERT(out_pos_ > in_pos_);
+            auto const n = out_pos_ - in_pos_;
+            auto& e = alloc(n);
+            std::memcpy(
+                e.data(),
+                list_.front().data() + in_pos_,
+                n);
+            replace(list_.begin(), e);
+            in_pos_ = 0;
+            out_ = list_.end();
+        }
+    #if BOOST_BEAST_MULTI_BUFFER_DEBUG_CHECK
+        debug_check();
+    #endif
     }
 }
 
@@ -741,9 +843,7 @@ void
 basic_multi_buffer<Allocator>::
 clear() noexcept
 {
-    delete_list();
-    list_.clear();
-    out_ = list_.end();
+    out_ = list_.begin();
     in_size_ = 0;
     in_pos_ = 0;
     out_pos_ = 0;
@@ -813,15 +913,7 @@ prepare(size_type n) ->
     BOOST_ASSERT(total <= max_);
     if(! reuse.empty() || n > 0)
     {
-        for(auto it = reuse.begin(); it != reuse.end();)
-        {
-            auto& e = *it++;
-            reuse.erase(list_.iterator_to(e));
-            auto const len = sizeof(e) + e.size();
-            e.~element();
-            alloc_traits::deallocate(this->get(),
-                reinterpret_cast<char*>(&e), len);
-        }
+        destroy(reuse);
         if(n > 0)
         {
             static auto const growth_factor = 2.0f;
@@ -833,8 +925,7 @@ prepare(size_type n) ->
                             in_size_ * growth_factor - in_size_),
                         512,
                         n}));
-            auto &e = *::new(alloc(
-                sizeof(element) + size)) element(size);
+            auto& e = alloc(size);
             list_.push_back(e);
             if(out_ == list_.end())
                 out_ = list_.iterator_to(e);
@@ -1009,6 +1100,7 @@ move_assign(basic_multi_buffer& other, std::false_type)
     {
         copy_from(other);
         other.clear();
+        other.shrink_to_fit();
     }
     else
     {
@@ -1103,27 +1195,45 @@ swap(
 template<class Allocator>
 void
 basic_multi_buffer<Allocator>::
-delete_list() noexcept
+destroy(list_type& list) noexcept
 {
-    for(auto it = list_.begin(); it != list_.end();)
-    {
-        auto& e = *it++;
-        auto const len = sizeof(e) + e.size();
-        e.~element();
-        alloc_traits::deallocate(this->get(),
-            reinterpret_cast<char*>(&e), len);
-    }
+    for(auto it = list.begin();
+            it != list.end();)
+        destroy(*it++);
 }
 
 template<class Allocator>
-char*
+void
 basic_multi_buffer<Allocator>::
-alloc(std::size_t n)
+destroy(const_iter it)
 {
-    if(n > alloc_traits::max_size(this->get()))
+    auto& e = list_.erase(it);
+    destroy(e);
+}
+
+template<class Allocator>
+void
+basic_multi_buffer<Allocator>::
+destroy(element& e)
+{
+    auto const len = sizeof(e) + e.size();
+    e.~element();
+    alloc_traits::deallocate(this->get(),
+        reinterpret_cast<char*>(&e), len);
+}
+
+template<class Allocator>
+auto
+basic_multi_buffer<Allocator>::
+alloc(std::size_t size) ->
+    element&
+{
+    if(size > alloc_traits::max_size(this->get()))
         BOOST_THROW_EXCEPTION(std::length_error(
-            "A basic_multi_buffer exceeded the allocator's maximum size"));
-    return alloc_traits::allocate(this->get(), n);
+        "A basic_multi_buffer exceeded the allocator's maximum size"));
+    return *::new(alloc_traits::allocate(
+        this->get(),
+        sizeof(element) + size)) element(size);
 }
 
 template<class Allocator>

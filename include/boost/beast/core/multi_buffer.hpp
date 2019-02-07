@@ -377,18 +377,14 @@ public:
 
         @par Exception Safety
 
-        No-throw guarantee.
+        Strong guarantee.
     */
     void
-    shrink_to_fit() noexcept;
+    shrink_to_fit();
 
-    /** Deallocate all buffers and reduce capacity to zero.
+    /** Set the size of the readable and writable bytes to zero.
 
-        This function deallocates all dynamically allocated
-        buffers, and reduces the capacity to zero without
-        affecting the maximum size. The readable and writable
-        bytes will be empty after the object is cleared.
-
+        This clears the buffer without changing capacity.
         Buffer sequences previously obtained using @ref data or
         @ref prepare become invalid.
 
@@ -541,8 +537,10 @@ private:
     void swap(basic_multi_buffer&) noexcept;
     void swap(basic_multi_buffer&, std::true_type) noexcept;
     void swap(basic_multi_buffer&, std::false_type) noexcept;
-    void delete_list() noexcept;
-    char* alloc(std::size_t n);
+    void destroy(list_type& list) noexcept;
+    void destroy(const_iter it);
+    void destroy(element& e);
+    element& alloc(std::size_t size);
     void debug_check() const;
 };
 

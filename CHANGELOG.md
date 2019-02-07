@@ -5,6 +5,7 @@ Version 211:
 * Add stranded_stream
 * Add flat_stream
 * flat_buffer::clear preserves capacity
+* multi_buffer::clear preserves capacity
 
 --------------------------------------------------------------------------------
 
