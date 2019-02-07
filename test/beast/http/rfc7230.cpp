@@ -88,8 +88,8 @@ public:
         cq("\t; \t xyz=1 ; ijk=\"q\\\"t\"", ";xyz=1;ijk=q\"t");
         ce(";x;y");
 
-		ce("chunked;a=b;i=j,gzip;windowBits=12");
-		ce("chunked;a=b;i=j,gzip;windowBits=12;permessage-deflate");
+		ce(";chunked;a=b;i=j;gzip;windowBits=12");
+		ce(";chunked;a=b;i=j;gzip;windowBits=12;permessage-deflate");
 
         // invalid strings
         cs(";", "");

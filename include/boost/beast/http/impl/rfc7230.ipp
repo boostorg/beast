@@ -316,7 +316,7 @@ increment()
         param-list  = *( OWS ";" OWS param )
         param       = token OWS "=" OWS ( token / quoted-string )
 
-        chunked;a=b;i=j,gzip;windowBits=12
+        chunked;a=b;i=j;gzip;windowBits=12
         x,y
         ,,,,,chameleon
     */
