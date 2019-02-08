@@ -1,3 +1,9 @@
+Version 212:
+
+* dynamic_buffer_ref tests and tidy
+
+--------------------------------------------------------------------------------
+
 Version 211:
 
 * close_socket is in stream_traits.hpp

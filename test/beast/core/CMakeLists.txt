@@ -16,7 +16,7 @@ add_executable (tests-beast-core
     ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
-    buffer_test.hpp
+    test_buffer.hpp
     file_test.hpp
     stream_tests.hpp
     test_handler.hpp

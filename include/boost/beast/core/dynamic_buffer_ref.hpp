@@ -44,6 +44,9 @@ public:
     dynamic_buffer_ref_wrapper(
         dynamic_buffer_ref_wrapper&&) = default;
 
+    dynamic_buffer_ref_wrapper(
+        dynamic_buffer_ref_wrapper const&) = default;
+
     explicit
     dynamic_buffer_ref_wrapper(
         DynamicBuffer& b) noexcept

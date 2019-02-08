@@ -15,7 +15,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "buffer_test.hpp"
+#include "test_buffer.hpp"
 
 namespace boost {
 namespace beast {

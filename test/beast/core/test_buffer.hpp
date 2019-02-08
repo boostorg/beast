@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_BUFFER_TEST_HPP
-#define BOOST_BEAST_BUFFER_TEST_HPP
+#ifndef BOOST_BEAST_TEST_BUFFER_HPP
+#define BOOST_BEAST_TEST_BUFFER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>

@@ -39,9 +39,31 @@ public:
                 &read_line<test::stream>));
     }
 
+    void
+    testBuffer()
+    {
+        flat_buffer b;
+        b.max_size(1000);
+        auto db = dynamic_buffer_ref(b);
+        BEAST_EXPECT(db.max_size() == 1000);
+        BEAST_EXPECT(db.size() == 0);
+        BEAST_EXPECT(db.capacity() == 0);
+        db.prepare(512);
+        BEAST_EXPECT(db.size() == 0);
+        BEAST_EXPECT(db.capacity() == 512);
+        db.commit(12);
+        BEAST_EXPECT(db.size() == 12);
+        BEAST_EXPECT(db.capacity() == 512);
+        BEAST_EXPECT(buffer_size(db.data()) == 12);
+        db.consume(12);
+        BEAST_EXPECT(db.size() == 0);
+        BEAST_EXPECT(db.capacity() == 512);
+    }
+
     void run() override
     {
         testJavadocs();
+        testBuffer();
     }
 };
 
