@@ -43,8 +43,8 @@ public:
                 s.get_executor())
     {
         auto const result =
-            coalesce(b,  coalesce_limit);
-        if(result.needs_coalescing)
+            flatten(b, max_size);
+        if(result.flatten)
         {
             s.buffer_.clear();
             s.buffer_.commit(net::buffer_copy(
@@ -178,10 +178,10 @@ write_some(ConstBufferSequence const& buffers, error_code& ec)
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
         "ConstBufferSequence requirements not met");
-    auto const result = coalesce(buffers, coalesce_limit);
-    if(result.needs_coalescing)
+    auto const result = flatten(buffers, max_size);
+    if(result.flatten)
     {
-        if(result.size > max_stack)
+        if(result.size <= max_stack)
             return stack_write_some(result.size, buffers, ec);
 
         buffer_.clear();

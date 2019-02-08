@@ -90,13 +90,6 @@ class flat_stream
     : private detail::flat_stream_base
 #endif
 {
-    // Largest buffer size we will flatten.
-    // 16KB is the upper limit on reasonably sized HTTP messages.
-    static std::size_t constexpr max_size = 16 * 1024;
-
-    // Largest stack we will use to flatten
-    static std::size_t constexpr max_stack = 16 * 1024;
-
     template<class> class write_op;
 
     NextLayer stream_;

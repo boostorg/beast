@@ -23,22 +23,25 @@ class flat_stream_base
 public:
     // Largest buffer size we will flatten.
     // 16KB is the upper limit on reasonably sized HTTP messages.
-    static std::size_t constexpr coalesce_limit = 16 * 1024;
+    static std::size_t constexpr max_size = 16 * 1024;
 
-    struct coalesce_result
+    // Largest stack we will use to flatten
+    static std::size_t constexpr max_stack = 8 * 1024;
+
+    struct flatten_result
     {
         std::size_t size;
-        bool needs_coalescing;
+        bool flatten;
     };
 
-    // calculates the coalesce settings for a buffer sequence
+    // calculates the flatten settings for a buffer sequence
     template<class BufferSequence>
     static
-    coalesce_result
-    coalesce(
+    flatten_result
+    flatten(
         BufferSequence const& buffers, std::size_t limit)
     {
-        coalesce_result result{0, false};
+        flatten_result result{0, false};
         auto first = net::buffer_sequence_begin(buffers);
         auto last = net::buffer_sequence_end(buffers);
         if(first != last)
@@ -56,7 +59,7 @@ public:
                     result.size += n;
                     prev = it;
                 }
-                result.needs_coalescing = prev != first;
+                result.flatten = prev != first;
             }
         }
         return result;

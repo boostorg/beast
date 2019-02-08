@@ -332,7 +332,7 @@ read_some(MutableBufferSequence const& buffers,
     if(in_->fc && in_->fc->fail(ec))
         return 0;
 
-    // 0-byte reads are no-ops
+    // A request to read 0 bytes from a stream is a no-op.
     if(buffer_size(buffers) == 0)
     {
         ec.clear();
@@ -398,7 +398,7 @@ async_read_some(
         return init.result.get();
     }
 
-    // 0-byte reads are no-ops
+    // A request to read 0 bytes from a stream is a no-op.
     if(buffer_size(buffers) == 0)
     {
         lock.unlock();
@@ -474,6 +474,17 @@ write_some(
 
     ++in_->nwrite;
 
+    // test failure
+    if(in_->fc && in_->fc->fail(ec))
+        return 0;
+
+    // A request to write 0 bytes to a stream is a no-op.
+    if(buffer_size(buffers) == 0)
+    {
+        ec.clear();
+        return 0;
+    }
+
     // connection closed
     auto out = out_.lock();
     if(! out)
@@ -481,10 +492,6 @@ write_some(
         ec = net::error::connection_reset;
         return 0;
     }
-
-    // test failure
-    if(in_->fc && in_->fc->fail(ec))
-        return 0;
 
     // copy buffers
     auto n = std::min<std::size_t>(
@@ -513,19 +520,6 @@ async_write_some(ConstBufferSequence const& buffers,
 
     ++in_->nwrite;
 
-    // connection closed
-    auto out = out_.lock();
-    if(! out)
-    {
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(init.completion_handler),
-                net::error::connection_reset,
-                std::size_t{0}));
-        return init.result.get();
-    }
-
     // test failure
     error_code ec;
     if(in_->fc && in_->fc->fail(ec))
@@ -535,6 +529,30 @@ async_write_some(ConstBufferSequence const& buffers,
             beast::bind_front_handler(
                 std::move(init.completion_handler),
                 ec,
+                std::size_t{0}));
+        return init.result.get();
+    }
+
+    // A request to read 0 bytes from a stream is a no-op.
+    if(buffer_size(buffers) == 0)
+    {
+        net::post(
+            in_->ioc.get_executor(),
+            beast::bind_front_handler(
+                std::move(init.completion_handler),
+                ec, std::size_t{0}));
+        return init.result.get();
+    }
+
+    // connection closed
+    auto out = out_.lock();
+    if(! out)
+    {
+        net::post(
+            in_->ioc.get_executor(),
+            beast::bind_front_handler(
+                std::move(init.completion_handler),
+                net::error::connection_reset,
                 std::size_t{0}));
         return init.result.get();
     }
