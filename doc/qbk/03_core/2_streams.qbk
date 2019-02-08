@@ -113,30 +113,4 @@ synchronous stream may check its argument:
 
 [snippet_core_3]
 
-
-
-[heading Stream Interfaces]
-
-To facilitiate stream algorithms, these types provide enhanced functionality
-above what is offered by networking:
-
-[table Stream Interfaces
-[[Name][Description]]
-[[
-    [link beast.ref.boost__beast__basic_timeout_stream `basic_timeout_stream`]
-    [link beast.ref.boost__beast__timeout_stream `timeout_stream`]
-][
-    Objects of this type are designed to act as a replacement for the
-    traditional networking socket. They
-]]
-[[
-    [link beast.ref.boost__beast__flat_stream `flat_stream`]
-][
-    This stream wrapper improves performance by working around a limitation
-    of networking's `ssl::stream` to improve performance.
-]]
-]
-
-
-
 [endsect]

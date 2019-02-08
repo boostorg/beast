@@ -110,7 +110,7 @@ facilities for authoring and working with layered streams:
     a work-around for a performance limitation in the original SSL stream.
 ]]
 [[
-    [link beast.ref.boost__beast__stranded_stream `stranded_stream`]
+    [link beast.ref.boost__beast__stranded_socket `stranded_socket`]
 ][
     A timeout stream meets the requirements for synchronous and asynchronous
     read and write streams by passing I/O through to an underlying
@@ -131,4 +131,3 @@ streams:
 [code_core_3_layers_5]
 
 [endsect]
-

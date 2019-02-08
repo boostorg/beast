@@ -46,7 +46,7 @@
           <member><link linkend="beast.ref.boost__beast__span">span</link></member>
           <member><link linkend="beast.ref.boost__beast__static_string">static_string</link></member>
           <member><link linkend="beast.ref.boost__beast__stable_async_op_base">stable_async_op_base</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
-          <member><link linkend="beast.ref.boost__beast__stranded_stream">stranded_stream</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__stranded_socket">stranded_socket</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__string_param">string_param</link></member>
           <member><link linkend="beast.ref.boost__beast__string_view">string_view</link></member>
           <member><link linkend="beast.ref.boost__beast__timeout_stream">timeout_stream</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
@@ -69,6 +69,7 @@
           <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>
           <member><link linkend="beast.ref.boost__beast__buffer_size">buffer_size</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__close_socket">close_socket</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__connect">connect</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__generic_category">generic_category</link></member>
           <member><link linkend="beast.ref.boost__beast__get_lowest_layer">get_lowest_layer</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__iequals">iequals</link></member>

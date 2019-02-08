@@ -39,6 +39,9 @@
     <xsl:when test="type = 'class EndpointSequence'">
       <xsl:text>class __EndpointSequence__</xsl:text>
     </xsl:when>
+    <xsl:when test="type = 'class ExecutionContext'">
+      <xsl:text>class __ExecutionContext__</xsl:text>
+    </xsl:when>
     <xsl:when test="type = 'class Executor'">
       <xsl:text>class __Executor__</xsl:text>
     </xsl:when>

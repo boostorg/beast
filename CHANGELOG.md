@@ -2,6 +2,7 @@ Version 212:
 
 * dynamic_buffer_ref tests and tidy
 * flat_stream tests and tidy
+* stranded_socket tests and tidy
 
 --------------------------------------------------------------------------------
 

@@ -134,7 +134,7 @@ public:
         {
             // shouldn't be called since the enclosing
             // networking wrapper only uses dispatch
-            s_.fail("unexpected post", __FILE__, __LINE__);
+            BEAST_FAIL();
         }
 
         template<class F, class Alloc>
@@ -142,7 +142,7 @@ public:
         {
             // shouldn't be called since the enclosing
             // networking wrapper only uses dispatch
-            s_.fail("unexpected defer", __FILE__, __LINE__);
+            BEAST_FAIL();
         }
     };
 

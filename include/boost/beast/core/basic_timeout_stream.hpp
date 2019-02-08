@@ -682,6 +682,7 @@ async_connect(
     indicate success. The @c next parameter is the next endpoint to be tried.
     The function object should return true if the next endpoint should be tried,
     and false if it should be skipped.
+
     @param handler The handler to be called when the connect operation
     completes. Ownership of the handler may be transferred. The function
     signature of the handler must be:
@@ -701,7 +702,7 @@ async_connect(
     not, the handler will not be invoked from within this function. Invocation
     of the handler will be performed in a manner equivalent to using
     `net::io_context::post()`.
-    
+
     @par Example
     The following connect condition function object can be used to output
     information about the individual connection attempts:
