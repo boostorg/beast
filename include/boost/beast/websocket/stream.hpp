@@ -113,6 +113,17 @@ class frame_test;
         @b AsyncStream,
         @b DynamicBuffer,
         @b SyncStream
+
+    @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-7.1.2">Websocket Closing Handshake (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">Websocket Close (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-5.5.2">WebSocket Ping (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-5.5.3">WebSocket Pong (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
 */
 template<
     class NextLayer,
@@ -287,7 +298,7 @@ public:
     bool
     is_message_done() const noexcept;
 
-    /** Returns the close reason received from the peer.
+    /** Returns the close reason received from the remote peer.
 
         This is only valid after a read completes with error::closed.
     */
@@ -574,92 +585,100 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    /** Send an HTTP WebSocket Upgrade request and receive the response.
+    /** Perform the WebSocket handshake in the client role.
 
-        This function is used to synchronously send the WebSocket
-        upgrade HTTP request. The call blocks until one of the
-        following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        The call blocks until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
-        @param host The name of the remote host,
-        required by the HTTP protocol.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
 
         @throws system_error Thrown on failure.
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_context};
-        ...
-        try
-        {
-            ws.handshake("localhost", "/");
-        }
-        catch(...)
-        {
-            // An error occurred.
-        }
+        ws.handshake("localhost", "/");
         @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     void
     handshake(
         string_view host,
         string_view target);
 
-    /** Send an HTTP WebSocket Upgrade request and receive the response.
+    /** Perform the WebSocket handshake in the client role.
 
-        This function is used to synchronously send the WebSocket
-        upgrade HTTP request. The call blocks until one of the
-        following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        The call blocks until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
         @param res The HTTP Upgrade response returned by the remote
-        endpoint.
+        endpoint. The caller may use the response to access any
+        additional information sent by the server.
 
-        @param host The name of the remote host,
-        required by the HTTP protocol.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
 
         @throws system_error Thrown on failure.
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_context};
-        ...
-        try
-        {
-            response_type res;
-            ws.handshake(res, "localhost", "/");
-        }
-        catch(...)
-        {
-            // An error occurred.
-        }
+        response_type res;
+        ws.handshake(res, "localhost", "/");
+        std::cout << res;
         @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     void
     handshake(
@@ -667,57 +686,62 @@ public:
         string_view host,
         string_view target);
 
-    /** Send an HTTP WebSocket Upgrade request and receive the response.
+    /** Perform the WebSocket handshake in the client role.
 
-        This function is used to synchronously send the WebSocket
-        upgrade HTTP request. The call blocks until one of the
-        following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        The call blocks until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
-        @param host The name of the remote host,
-        required by the HTTP protocol.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
 
         @param decorator A function object which will be called to modify
         the HTTP request object generated by the implementation. This
         could be used to set the User-Agent field, subprotocols, or other
-        application or HTTP specific fields. The object will be called
-        with this equivalent signature:
-        @code void decorator(
+        application or HTTP specific fields. The function object will be
+        called with this equivalent signature:
+        @code
+        void decorator(
             request_type& req
-        ); @endcode
+        );
+        @endcode
 
         @throws system_error Thrown on failure.
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_context};
-        ...
-        try
-        {
-            ws.handshake("localhost", "/",
-                [](request_type& req)
-                {
-                    req.set(field::user_agent, "Beast");
-                });
-        }
-        catch(...)
-        {
-            // An error occurred.
-        }
+        ws.handshake("localhost", "/",
+            [](request_type& req)
+            {
+                req.set(field::user_agent, "Beast");
+            });
         @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class RequestDecorator>
     void
@@ -726,61 +750,68 @@ public:
         string_view target,
         RequestDecorator const& decorator);
 
-    /** Send an HTTP WebSocket Upgrade request and receive the response.
+    /** Perform the WebSocket handshake in the client role.
 
-        This function is used to synchronously send the WebSocket
-        upgrade HTTP request. The call blocks until one of the
-        following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        The call blocks until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
         @param res The HTTP Upgrade response returned by the remote
-        endpoint.
+        endpoint. The caller may use the response to access any
+        additional information sent by the server.
 
-        @param host The name of the remote host,
-        required by the HTTP protocol.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
 
         @param decorator A function object which will be called to modify
         the HTTP request object generated by the implementation. This
         could be used to set the User-Agent field, subprotocols, or other
-        application or HTTP specific fields. The object will be called
-        with this equivalent signature:
-        @code void decorator(
+        application or HTTP specific fields. The function object will be
+        called with this equivalent signature:
+        @code
+        void decorator(
             request_type& req
-        ); @endcode
+        );
+        @endcode
 
         @throws system_error Thrown on failure.
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_context};
-        ...
-        try
-        {
-            response_type res;
-            ws.handshake(res, "localhost", "/",
-                [](request_type& req)
-                {
-                    req.set(field::user_agent, "Beast");
-                });
-        }
-        catch(...)
-        {
-            // An error occurred.
-        }
+        response_type res;
+        ws.handshake(res, "localhost", "/",
+            [](request_type& req)
+            {
+                req.set(field::user_agent, "Beast");
+            });
+        std::cout << res;
         @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class RequestDecorator>
     void
@@ -790,42 +821,48 @@ public:
         string_view target,
         RequestDecorator const& decorator);
 
-    /** Send an HTTP WebSocket Upgrade request and receive the response.
+    /** Perform the WebSocket handshake in the client role.
 
-        This function is used to synchronously send the WebSocket
-        upgrade HTTP request. The call blocks until one of the
-        following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        The call blocks until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
-        @param host The name of the remote host,
-        required by the HTTP protocol.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
 
         @param ec Set to indicate what error occurred, if any.
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_context};
-        ...
         error_code ec;
-        ws.handshake(host, target, ec);
-        if(ec)
-        {
-            // An error occurred.
-        }
+        ws.handshake("localhost", "/", ec);
         @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     void
     handshake(
@@ -833,46 +870,55 @@ public:
         string_view target,
         error_code& ec);
 
-    /** Send an HTTP WebSocket Upgrade request and receive the response.
+    /** Perform the WebSocket handshake in the client role.
 
-        This function is used to synchronously send the WebSocket
-        upgrade HTTP request. The call blocks until one of the
-        following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        The call blocks until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
         @param res The HTTP Upgrade response returned by the remote
-        endpoint. If `ec` is set, the returned value is undefined.
+        endpoint. The caller may use the response to access any
+        additional information sent by the server.
 
-        @param host The name of the remote host,
-        required by the HTTP protocol.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
 
         @param ec Set to indicate what error occurred, if any.
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_context};
-        ...
         error_code ec;
         response_type res;
-        ws.handshake(res, host, target, ec);
-        if(ec)
-        {
-            // An error occurred.
-        }
+        ws.handshake(res, "localhost", "/", ec);
+        if(! ec)
+            std::cout << res;
         @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     void
     handshake(
@@ -881,44 +927,50 @@ public:
         string_view target,
         error_code& ec);
 
-    /** Send an HTTP WebSocket Upgrade request and receive the response.
+    /** Perform the WebSocket handshake in the client role.
 
-        This function is used to synchronously send the WebSocket
-        upgrade HTTP request. The call blocks until one of the
-        following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        The call blocks until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
-        @param host The name of the remote host,
-        required by the HTTP protocol.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
 
         @param decorator A function object which will be called to modify
         the HTTP request object generated by the implementation. This
         could be used to set the User-Agent field, subprotocols, or other
-        application or HTTP specific fields. The object will be called
-        with this equivalent signature:
-        @code void decorator(
+        application or HTTP specific fields. The function object will be
+        called with this equivalent signature:
+        @code
+        void decorator(
             request_type& req
-        ); @endcode
+        );
+        @endcode
 
         @param ec Set to indicate what error occurred, if any.
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_context};
-        ...
         error_code ec;
         ws.handshake("localhost", "/",
             [](request_type& req)
@@ -926,11 +978,13 @@ public:
                 req.set(field::user_agent, "Beast");
             },
             ec);
-        if(ec)
-        {
-            // An error occurred.
-        }
         @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class RequestDecorator>
     void
@@ -940,47 +994,54 @@ public:
         RequestDecorator const& decorator,
         error_code& ec);
 
-    /** Send an HTTP WebSocket Upgrade request and receive the response.
+    /** Perform the WebSocket handshake in the client role.
 
-        This function is used to synchronously send the WebSocket
-        upgrade HTTP request. The call blocks until one of the
-        following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        The call blocks until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
         @param res The HTTP Upgrade response returned by the remote
-        endpoint.
+        endpoint. The caller may use the response to access any
+        additional information sent by the server.
 
-        @param host The name of the remote host,
-        required by the HTTP protocol.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
 
         @param decorator A function object which will be called to modify
         the HTTP request object generated by the implementation. This
         could be used to set the User-Agent field, subprotocols, or other
-        application or HTTP specific fields. The object will be called
-        with this equivalent signature:
-        @code void decorator(
+        application or HTTP specific fields. The function object will be
+        called with this equivalent signature:
+        @code
+        void decorator(
             request_type& req
-        ); @endcode
+        );
+        @endcode
 
         @param ec Set to indicate what error occurred, if any.
 
         @par Example
         @code
-        websocket::stream<ip::tcp::socket> ws{io_context};
-        ...
         error_code ec;
         response_type res;
         ws.handshake(res, "localhost", "/",
@@ -989,11 +1050,15 @@ public:
                 req.set(field::user_agent, "Beast");
             },
             ec);
-        if(ec)
-        {
-            // An error occurred.
-        }
+        if(! ec)
+            std::cout << res;
         @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class RequestDecorator>
     void
@@ -1004,45 +1069,69 @@ public:
         RequestDecorator const& decorator,
         error_code& ec);
 
-    /** Start an asynchronous operation to send an upgrade request and receive the response.
+    /** Perform the WebSocket handshake asynchronously in the client role.
 
-        This function is used to asynchronously send the HTTP WebSocket
-        upgrade request and receive the HTTP WebSocket Upgrade response.
-        This function call always returns immediately. The asynchronous
-        operation will continue until one of the following conditions is
-        true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions, and
-        is known as a <em>composed operation</em>. The program must ensure
-        that the stream performs no other operations until this operation
-        completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
-        @param host The name of the remote host, required by
-        the HTTP protocol. Copies may be made as needed.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
+        The implementation will not access the string data after the
+        initiating function returns.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol. Copies of this parameter may
-        be made as needed.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
+        The implementation will not access the string data after the
+        initiating function returns.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
+        @code
+        void handler(
             error_code const& ec    // Result of operation
-        ); @endcode
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @par Example
+        @code
+        ws.async_handshake("localhost", "/",
+            [](error_code ec)
+            {
+                if(ec)
+                    std::cerr << "Error: " << ec.message() << "\n";
+            });
+        @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class HandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -1052,49 +1141,78 @@ public:
         string_view target,
         HandshakeHandler&& handler);
 
-    /** Start an asynchronous operation to send an upgrade request and receive the response.
+    /** Perform the WebSocket handshake asynchronously in the client role.
 
-        This function is used to asynchronously send the HTTP WebSocket
-        upgrade request and receive the HTTP WebSocket Upgrade response.
-        This function call always returns immediately. The asynchronous
-        operation will continue until one of the following conditions is
-        true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions, and
-        is known as a <em>composed operation</em>. The program must ensure
-        that the stream performs no other operations until this operation
-        completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
         @param res The HTTP Upgrade response returned by the remote
-        endpoint. The caller must ensure this object is valid for at
-        least until the completion handler is invoked.
+        endpoint. The caller may use the response to access any
+        additional information sent by the server. This object will
+        be assigned before the completion handler is invoked.
 
-        @param host The name of the remote host, required by
-        the HTTP protocol. Copies may be made as needed.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
+        The implementation will not access the string data after the
+        initiating function returns.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol. Copies of this parameter may
-        be made as needed.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
+        The implementation will not access the string data after the
+        initiating function returns.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
-            error_code const& ec     // Result of operation
-        ); @endcode
+        @code
+        void handler(
+            error_code const& ec    // Result of operation
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @par Example
+        @code
+        response_type res;
+        ws.async_handshake(res, "localhost", "/",
+            [&res](error_code ec)
+            {
+                if(ec)
+                    std::cerr << "Error: " << ec.message() << "\n";
+                else
+                    std::cout << res;
+
+            });
+        @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class HandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -1105,54 +1223,84 @@ public:
         string_view target,
         HandshakeHandler&& handler);
 
-    /** Start an asynchronous operation to send an upgrade request and receive the response.
+    /** Perform the WebSocket handshake asynchronously in the client role.
 
-        This function is used to asynchronously send the HTTP WebSocket
-        upgrade request and receive the HTTP WebSocket Upgrade response.
-        This function call always returns immediately. The asynchronous
-        operation will continue until one of the following conditions is
-        true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions, and
-        is known as a <em>composed operation</em>. The program must ensure
-        that the stream performs no other operations until this operation
-        completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
-        @param host The name of the remote host, required by
-        the HTTP protocol. Copies may be made as needed.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
+        The implementation will not access the string data after the
+        initiating function returns.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol. Copies of this parameter may
-        be made as needed.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
+        The implementation will not access the string data after the
+        initiating function returns.
 
         @param decorator A function object which will be called to modify
         the HTTP request object generated by the implementation. This
         could be used to set the User-Agent field, subprotocols, or other
-        application or HTTP specific fields. The object will be called
-        with this equivalent signature:
-        @code void decorator(
+        application or HTTP specific fields. The function object will be
+        called with this equivalent signature:
+        @code
+        void decorator(
             request_type& req
-        ); @endcode
+        );
+        @endcode
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
-            error_code const& ec     // Result of operation
-        ); @endcode
+        @code
+        void handler(
+            error_code const& ec    // Result of operation
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @par Example
+        @code
+        ws.async_handshake("localhost", "/",
+            [](request_type& req)
+            {
+                req.set(field::user_agent, "Beast");
+            },
+            [](error_code ec)
+            {
+                if(ec)
+                    std::cerr << "Error: " << ec.message() << "\n";
+            });
+        @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class RequestDecorator, class HandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -1163,58 +1311,92 @@ public:
         RequestDecorator const& decorator,
         HandshakeHandler&& handler);
 
-    /** Start an asynchronous operation to send an upgrade request and receive the response.
+    /** Perform the WebSocket handshake asynchronously in the client role.
 
-        This function is used to asynchronously send the HTTP WebSocket
-        upgrade request and receive the HTTP WebSocket Upgrade response.
-        This function call always returns immediately. The asynchronous
-        operation will continue until one of the following conditions is
-        true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
         @li The request is sent and the response is received.
 
-        @li An error occurs on the stream
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions, and
-        is known as a <em>composed operation</em>. The program must ensure
-        that the stream performs no other operations until this operation
-        completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
 
-        The operation is successful if the received HTTP response indicates
-        a successful HTTP Upgrade (represented by a Status-Code of 101,
-        "switching protocols").
+        The handshake is successful if the received HTTP response
+        indicates the upgrade was accepted by the server, represented by a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols.
 
         @param res The HTTP Upgrade response returned by the remote
-        endpoint. The caller must ensure this object is valid for at
-        least until the completion handler is invoked.
+        endpoint. The caller may use the response to access any
+        additional information sent by the server. This object will
+        be assigned before the completion handler is invoked.
 
-        @param host The name of the remote host, required by
-        the HTTP protocol. Copies may be made as needed.
+        @param host The name of the remote host. This is required by
+        the HTTP protocol to set the "Host" header field.
+        The implementation will not access the string data after the
+        initiating function returns.
 
-        @param target The Request Target, which may not be empty,
-        required by the HTTP protocol. Copies of this parameter may
-        be made as needed.
+        @param target The request-target, in origin-form. The server may use the
+        target to distinguish different services on the same listening port.
+        The implementation will not access the string data after the
+        initiating function returns.
 
         @param decorator A function object which will be called to modify
         the HTTP request object generated by the implementation. This
         could be used to set the User-Agent field, subprotocols, or other
-        application or HTTP specific fields. The object will be called
-        with this equivalent signature:
-        @code void decorator(
+        application or HTTP specific fields. The function object will be
+        called with this equivalent signature:
+        @code
+        void decorator(
             request_type& req
-        ); @endcode
+        );
+        @endcode
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
-            error_code const& ec     // Result of operation
-        ); @endcode
+        @code
+        void handler(
+            error_code const& ec    // Result of operation
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @par Example
+        @code
+        response_type res;
+        ws.async_handshake("localhost", "/",
+            [](request_type& req)
+            {
+                req.set(field::user_agent, "Beast");
+            },
+            [&res](error_code ec)
+            {
+                if(ec)
+                    std::cerr << "Error: " << ec.message() << "\n";
+                else
+                    std::cout << res;
+            });
+        @endcode
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.4">Host field (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">request-target (RFC7230)</a>
+        @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class RequestDecorator, class HandshakeHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -1232,79 +1414,91 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    /** Read and respond to a WebSocket HTTP Upgrade request.
+    /** Perform the WebSocket handshake in the server role.
 
-        This function is used to synchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks
-        until one of the following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @throws system_error Thrown on failure.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     void
     accept();
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks
-        until one of the following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param decorator A function object which will be called to modify
         the HTTP response object delivered by the implementation. This
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
         @throws system_error Thrown on failure.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class ResponseDecorator>
     void
@@ -1312,77 +1506,89 @@ public:
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks
-        until one of the following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param ec Set to indicate what error occurred, if any.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     void
     accept(error_code& ec);
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks
-        until one of the following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param decorator A function object which will be called to modify
         the HTTP response object delivered by the implementation. This
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
         @param ec Set to indicate what error occurred, if any.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class ResponseDecorator>
     void
@@ -1392,38 +1598,43 @@ public:
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks
-        until one of the following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param buffers Caller provided data that has already been
         received on the stream. The implementation will copy the
         caller provided data before the function returns.
 
         @throws system_error Thrown on failure.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class ConstBufferSequence>
 #if BOOST_BEAST_DOXYGEN
@@ -1436,32 +1647,34 @@ public:
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks
-        until one of the following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param buffers Caller provided data that has already been
         received on the stream. The implementation will copy the
@@ -1472,11 +1685,16 @@ public:
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
         @throws system_error Thrown on failure.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class ConstBufferSequence,
         class ResponseDecorator>
@@ -1492,38 +1710,43 @@ public:
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks
-        until one of the following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param buffers Caller provided data that has already been
         received on the stream. The implementation will copy the
         caller provided data before the function returns.
 
         @param ec Set to indicate what error occurred, if any.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class ConstBufferSequence>
 #if BOOST_BEAST_DOXYGEN
@@ -1538,32 +1761,34 @@ public:
 
     /** Read and respond to a WebSocket HTTP Upgrade request.
 
-        This function is used to synchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The call blocks
-        until one of the following conditions is true:
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param buffers Caller provided data that has already been
         received on the stream. The implementation will copy the
@@ -1574,11 +1799,16 @@ public:
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
         @param ec Set to indicate what error occurred, if any.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class ConstBufferSequence, class ResponseDecorator>
 #if BOOST_BEAST_DOXYGEN
@@ -1594,30 +1824,36 @@ public:
 
     /** Respond to a WebSocket HTTP Upgrade request
 
-        This function is used to synchronously send the HTTP response
-        to an HTTP request possibly containing a WebSocket Upgrade.
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
         The call blocks until one of the following conditions is true:
 
-        @li The response finishes sending.
+        @li The response is sent.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
 
         @param req An object containing the HTTP Upgrade request.
         Ownership is not transferred, the implementation will not
         access this object from other threads.
 
         @throws system_error Thrown on failure.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class Body, class Allocator>
     void
@@ -1626,24 +1862,27 @@ public:
 
     /** Respond to a WebSocket HTTP Upgrade request
 
-        This function is used to synchronously send the HTTP response
-        to an HTTP request possibly containing a WebSocket Upgrade.
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
         The call blocks until one of the following conditions is true:
 
-        @li The response finishes sending.
+        @li The response is sent.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
 
         @param req An object containing the HTTP Upgrade request.
         Ownership is not transferred, the implementation will not
@@ -1654,11 +1893,16 @@ public:
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
         @throws system_error Thrown on failure.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class Body, class Allocator,
         class ResponseDecorator>
@@ -1669,30 +1913,36 @@ public:
 
     /** Respond to a WebSocket HTTP Upgrade request
 
-        This function is used to synchronously send the HTTP response
-        to an HTTP request possibly containing a WebSocket Upgrade.
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
         The call blocks until one of the following conditions is true:
 
-        @li The response finishes sending.
+        @li The response is sent.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
 
         @param req An object containing the HTTP Upgrade request.
         Ownership is not transferred, the implementation will not
         access this object from other threads.
 
         @param ec Set to indicate what error occurred, if any.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class Body, class Allocator>
     void
@@ -1702,24 +1952,27 @@ public:
 
     /** Respond to a WebSocket HTTP Upgrade request
 
-        This function is used to synchronously send the HTTP response
-        to an HTTP request possibly containing a WebSocket Upgrade.
+        This function is used to perform the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
+
         The call blocks until one of the following conditions is true:
 
-        @li The response finishes sending.
+        @li The response is sent.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This function is implemented in terms of one or more calls to
-        the next layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When this call returns, the stream is then ready to send and
-        receive WebSocket protocol frames and messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
 
         @param req An object containing the HTTP Upgrade request.
         Ownership is not transferred, the implementation will not
@@ -1730,11 +1983,16 @@ public:
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
         @param ec Set to indicate what error occurred, if any.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class Body, class Allocator,
         class ResponseDecorator>
@@ -1744,113 +2002,119 @@ public:
             ResponseDecorator const& decorator,
                 error_code& ec);
 
-    /** Start reading and responding to a WebSocket HTTP Upgrade request.
+    /** Perform the WebSocket handshake asynchronously in the server role.
 
-        This function is used to asynchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The function call
-        always returns immediately. The asynchronous operation will
-        continue until one of the following conditions is true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This operation is implemented in terms of one or more calls to
-        the next layer's `async_read_some` and `async_write_some`
-        functions, and is known as a <em>composed operation</em>. The
-        program must ensure that the stream performs no other
-        asynchronous operations until this operation completes.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When the completion handler is invoked, the stream is then
-        ready to send and receive WebSocket protocol frames and
-        messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure, and
-        the completion handler will be invoked with a suitable error
-        code set.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::async_read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
+
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
+        @code
+        void handler(
             error_code const& ec    // Result of operation
-        ); @endcode
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class AcceptHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
         AcceptHandler, void(error_code))
     async_accept(AcceptHandler&& handler);
 
-    /** Start reading and responding to a WebSocket HTTP Upgrade request.
+    /** Perform the WebSocket handshake asynchronously in the server role.
 
-        This function is used to asynchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The function call
-        always returns immediately. The asynchronous operation will
-        continue until one of the following conditions is true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This operation is implemented in terms of one or more calls to
-        the next layer's `async_read_some` and `async_write_some`
-        functions, and is known as a <em>composed operation</em>. The
-        program must ensure that the stream performs no other
-        asynchronous operations until this operation completes.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When the completion handler is invoked, the stream is then
-        ready to send and receive WebSocket protocol frames and
-        messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure, and
-        the completion handler will be invoked with a suitable error
-        code set.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::async_read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param decorator A function object which will be called to modify
         the HTTP response object delivered by the implementation. This
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
+        @code
+        void handler(
             error_code const& ec    // Result of operation
-        ); @endcode
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<
         class ResponseDecorator,
@@ -1861,41 +2125,38 @@ public:
         ResponseDecorator const& decorator,
         AcceptHandler&& handler);
 
-    /** Start reading and responding to a WebSocket HTTP Upgrade request.
+    /** Perform the WebSocket handshake asynchronously in the server role.
 
-        This function is used to asynchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The function call
-        always returns immediately. The asynchronous operation will
-        continue until one of the following conditions is true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This operation is implemented in terms of one or more calls to
-        the next layer's `async_read_some` and `async_write_some`
-        functions, and is known as a <em>composed operation</em>. The
-        program must ensure that the stream performs no other
-        asynchronous operations until this operation completes.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When the completion handler is invoked, the stream is then
-        ready to send and receive WebSocket protocol frames and
-        messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure, and
-        the completion handler will be invoked with a suitable error
-        code set.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::async_read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param buffers Caller provided data that has already been
         received on the stream. This may be used for implementations
@@ -1904,16 +2165,21 @@ public:
         then to received WebSocket frames. The implementation will
         copy the caller provided data before the function returns.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
+        @code
+        void handler(
             error_code const& ec    // Result of operation
-        ); @endcode
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<
         class ConstBufferSequence,
@@ -1930,41 +2196,38 @@ public:
         ConstBufferSequence const& buffers,
         AcceptHandler&& handler);
 
-    /** Start reading and responding to a WebSocket HTTP Upgrade request.
+    /** Perform the WebSocket handshake asynchronously in the server role.
 
-        This function is used to asynchronously read an HTTP WebSocket
-        Upgrade request and send the HTTP response. The function call
-        always returns immediately. The asynchronous operation will
-        continue until one of the following conditions is true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The request is received and the response finishes sending.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This operation is implemented in terms of one or more calls to
-        the next layer's `async_read_some` and `async_write_some`
-        functions, and is known as a <em>composed operation</em>. The
-        program must ensure that the stream performs no other
-        asynchronous operations until this operation completes.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When the completion handler is invoked, the stream is then
-        ready to send and receive WebSocket protocol frames and
-        messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure, and
-        the completion handler will be invoked with a suitable error
-        code set.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
 
-        The implementation uses fixed size internal storage to
-        receive the request. If the request is too large, the error
-        @ref error::buffer_overflow will be indicated. Applications
-        that wish to receive larger requests should first read the
-        request using their own buffer and a suitable overload of
-        @ref http::read or @ref http::async_read, then call @ref accept
-        or @ref async_accept with the request.
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
+
+        If the request size exceeds the capacity of the stream's
+        internal buffer, the error @ref error::buffer_overflow will be
+        indicated. To handle larger requests, an application should
+        read the HTTP request directly using @ref http::async_read and then
+        pass the request to the appropriate overload of @ref accept or
+        @ref async_accept
 
         @param buffers Caller provided data that has already been
         received on the stream. This may be used for implementations
@@ -1978,20 +2241,27 @@ public:
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
+        @code
+        void handler(
             error_code const& ec    // Result of operation
-        ); @endcode
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<
         class ConstBufferSequence,
@@ -2010,49 +2280,51 @@ public:
         ResponseDecorator const& decorator,
         AcceptHandler&& handler);
 
-    /** Start responding to a WebSocket HTTP Upgrade request.
+    /** Perform the WebSocket handshake asynchronously in the server role.
 
-        This function is used to asynchronously send the HTTP response
-        to an HTTP request possibly containing a WebSocket Upgrade
-        request. The function call always returns immediately. The
-        asynchronous operation will continue until one of the following
-        conditions is true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The response finishes sending.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This operation is implemented in terms of one or more calls to
-        the next layer's `async_write_some` functions, and is known as
-        a <em>composed operation</em>. The program must ensure that the
-        stream performs no other operations until this operation
-        completes.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When the completion handler is invoked, the stream is then
-        ready to send and receive WebSocket protocol frames and
-        messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure, and
-        the completion handler will be invoked with a suitable error
-        code set.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
+
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
 
         @param req An object containing the HTTP Upgrade request.
         Ownership is not transferred, the implementation will not access
         this object from other threads.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
+        @code
+        void handler(
             error_code const& ec    // Result of operation
-        ); @endcode
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<
         class Body, class Allocator,
@@ -2064,34 +2336,31 @@ public:
             http::basic_fields<Allocator>> const& req,
         AcceptHandler&& handler);
 
-    /** Start responding to a WebSocket HTTP Upgrade request.
+    /** Perform the WebSocket handshake asynchronously in the server role.
 
-        This function is used to asynchronously send the HTTP response
-        to an HTTP request possibly containing a WebSocket Upgrade
-        request. The function call always returns immediately. The
-        asynchronous operation will continue until one of the following
-        conditions is true:
+        This initiating function is used to asynchronously begin performing the
+        <a href="https://en.wikipedia.org/wiki/WebSocket#Protocol_handshake">WebSocket handshake</a>,
+        required before messages can be sent and received. During the handshake,
+        the client sends the Websocket Upgrade HTTP request, and the server
+        replies with an HTTP response indicating the result of the handshake.
 
-        @li The response finishes sending.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The request is received and the response is sent.
 
-        This operation is implemented in terms of one or more calls to
-        the next layer's `async_write_some` functions, and is known as
-        a <em>composed operation</em>. The program must ensure that the
-        stream performs no other operations until this operation
-        completes.
+        @li An error occurs.
 
-        If the stream receives a valid HTTP WebSocket Upgrade request,
-        an HTTP response is sent back indicating a successful upgrade.
-        When the completion handler is invoked, the stream is then
-        ready to send and receive WebSocket protocol frames and
-        messages.
-        If the HTTP Upgrade request is invalid or cannot be satisfied,
-        an HTTP response is sent indicating the reason and status code
-        (typically 400, "Bad Request"). This counts as a failure, and
-        the completion handler will be invoked with a suitable error
-        code set.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. No other operation may be performed
+        on the stream until this operation completes.
+
+        If a valid upgrade request is received, an HTTP response with a
+        <a href="https://tools.ietf.org/html/rfc7230#section-3.1.2">status-code</a>
+        of @ref beast::http::status::switching_protocols is sent to
+        the peer, otherwise a non-successful error is associated with
+        the operation.
 
         @param req An object containing the HTTP Upgrade request.
         Ownership is not transferred, the implementation will not access
@@ -2102,20 +2371,27 @@ public:
         could be used to set the Server field, subprotocols, or other
         application or HTTP specific fields. The object will be called
         with this equivalent signature:
-        @code void decorator(
+        @code
+        void decorator(
             response_type& res
-        ); @endcode
+        );
+        @endcode
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
+        @code
+        void handler(
             error_code const& ec    // Result of operation
-        ); @endcode
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<
         class Body, class Allocator,
@@ -2131,101 +2407,113 @@ public:
 
     //--------------------------------------------------------------------------
     //
-    // Control Frames
+    // Close Frames
     //
     //--------------------------------------------------------------------------
 
-    /** Send a WebSocket close frame.
+    /** Send a websocket close control frame.
 
-        This function is used to synchronously send a close frame on
-        the stream. The call blocks until one of the following is true:
+        This function is used to send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>,
+        which begins the websocket closing handshake. The session ends when
+        both ends of the connection have sent and received a close frame.
 
-        @li The close frame finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The close frame is written.
 
-        This function is implemented in terms of one or more calls
-        to the next layer's `write_some` functions.
+        @li An error occurs.
 
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
+
+        After beginning the closing handshake, the program should not write
+        further message data, pings, or pongs. Instead, the program should
+        continue reading message data until an error occurs. A read returning
+        @ref error::closed indicates a successful connection closure.
+
+        @param cr The reason for the close.
         If the close reason specifies a close code other than
         @ref beast::websocket::close_code::none, the close frame is
         sent with the close code and optional reason string. Otherwise,
         the close frame is sent with no payload.
 
-        Callers should not attempt to write WebSocket data after
-        initiating the close. Instead, callers should continue
-        reading until an error occurs. A read returning @ref error::closed
-        indicates a successful connection closure.
-
-        @param cr The reason for the close.
-
         @throws system_error Thrown on failure.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-7.1.2">Websocket Closing Handshake (RFC6455)</a>
     */
     void
     close(close_reason const& cr);
 
-    /** Send a WebSocket close frame.
+    /** Send a websocket close control frame.
 
-        This function is used to synchronously send a close frame on
-        the stream. The call blocks until one of the following is true:
+        This function is used to send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>,
+        which begins the websocket closing handshake. The session ends when
+        both ends of the connection have sent and received a close frame.
 
-        @li The close frame finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The close frame is written.
 
-        This function is implemented in terms of one or more calls
-        to the next layer's `write_some` functions.
+        @li An error occurs.
 
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
+
+        After beginning the closing handshake, the program should not write
+        further message data, pings, or pongs. Instead, the program should
+        continue reading message data until an error occurs. A read returning
+        @ref error::closed indicates a successful connection closure.
+
+        @param cr The reason for the close.
         If the close reason specifies a close code other than
         @ref beast::websocket::close_code::none, the close frame is
         sent with the close code and optional reason string. Otherwise,
         the close frame is sent with no payload.
 
-        Callers should not attempt to write WebSocket data after
-        initiating the close. Instead, callers should continue
-        reading until an error occurs. A read returning @ref error::closed
-        indicates a successful connection closure.
-
-        @param cr The reason for the close.
-
         @param ec Set to indicate what error occurred, if any.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-7.1.2">Websocket Closing Handshake (RFC6455)</a>
     */
     void
     close(close_reason const& cr, error_code& ec);
 
-    /** Start an asynchronous operation to send a WebSocket close frame.
+    /** Send a websocket close control frame asynchronously.
 
-        This function is used to asynchronously send a close frame on
-        the stream. This function call always returns immediately. The
-        asynchronous operation will continue until one of the following
-        conditions is true:
+        This function is used to asynchronously send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>,
+        which begins the websocket closing handshake. The session ends when
+        both ends of the connection have sent and received a close frame.
+
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
         @li The close frame finishes sending.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_write_some` functions, and is known as a
-        <em>composed operation</em>. The program must ensure that the
-        stream performs no other write operations (such as @ref async_ping,
-        @ref async_write, @ref async_write_some, or @ref async_close)
-        until this operation completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_write_some`
+        function. No other operations except for message reading operations
+        should be initiated on the stream after a close operation is started.
 
+        After beginning the closing handshake, the program should not write
+        further message data, pings, or pongs. Instead, the program should
+        continue reading message data until an error occurs. A read returning
+        @ref error::closed indicates a successful connection closure.
+
+        @param cr The reason for the close.
         If the close reason specifies a close code other than
         @ref beast::websocket::close_code::none, the close frame is
         sent with the close code and optional reason string. Otherwise,
         the close frame is sent with no payload.
 
-        Callers should not attempt to write WebSocket data after
-        initiating the close. Instead, callers should continue
-        reading until an error occurs. A read returning @ref error::closed
-        indicates a successful connection closure.
-
-        @param cr The reason for the close.
-
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
-        The function signature of the handler must be:
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
+        The equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -2234,24 +2522,37 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
+
+        @see
+        @li <a href="https://tools.ietf.org/html/rfc6455#section-7.1.2">Websocket Closing Handshake (RFC6455)</a>
     */
     template<class CloseHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
         CloseHandler, void(error_code))
     async_close(close_reason const& cr, CloseHandler&& handler);
 
-    /** Send a WebSocket ping frame.
+    //--------------------------------------------------------------------------
+    //
+    // Ping/Pong Frames
+    //
+    //--------------------------------------------------------------------------
 
-        This function is used to synchronously send a ping frame on
-        the stream. The call blocks until one of the following is true:
+    /** Send a websocket ping control frame.
 
-        @li The ping frame finishes sending.
+        This function is used to send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.2">ping frame</a>,
+        which usually elicits an automatic pong control frame response from
+        the peer.
 
-        @li An error occurs on the stream.
+        The call blocks until one of the following conditions is true:
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `write_some` functions.
+        @li The ping frame is written.
+
+        @li An error occurs.
+
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
 
         @param payload The payload of the ping message, which may be empty.
 
@@ -2260,17 +2561,21 @@ public:
     void
     ping(ping_data const& payload);
 
-    /** Send a WebSocket ping frame.
+    /** Send a websocket ping control frame.
 
-        This function is used to synchronously send a ping frame on
-        the stream. The call blocks until one of the following is true:
+        This function is used to send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.2">ping frame</a>,
+        which usually elicits an automatic pong control frame response from
+        the peer.
 
-        @li The ping frame finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The ping frame is written.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `write_some` functions.
+        @li An error occurs.
+
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
 
         @param payload The payload of the ping message, which may be empty.
 
@@ -2279,31 +2584,34 @@ public:
     void
     ping(ping_data const& payload, error_code& ec);
 
-    /** Start an asynchronous operation to send a WebSocket ping frame.
+    /** Send a websocket ping control frame asynchronously.
 
-        This function is used to asynchronously send a ping frame to
-        the stream. The function call always returns immediately. The
-        asynchronous operation will continue until one of the following
-        is true:
+        This function is used to asynchronously send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.2">ping frame</a>,
+        which usually elicits an automatic pong control frame response from
+        the peer.
 
-        @li The entire ping frame is sent.
+        @li The ping frame is written.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_write_some` functions, and is known as a
-        <em>composed operation</em>. The program must ensure that the
-        stream performs no other writes until this operation completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_write_some`
+        function. The program must ensure that no other calls to @ref ping,
+        @ref pong, @ref async_ping, or @ref async_pong are performed until
+        this operation completes.
 
         If a close frame is sent or received before the ping frame is
-        sent, the completion handler will be called with the error
-        set to `net::error::operation_aborted`.
+        sent, the error received by this completion handler will be
+        `net::error::operation_aborted`.
 
         @param payload The payload of the ping message, which may be empty.
+        The implementation will not access the contents of this object after
+        the initiating function returns.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
-        The function signature of the handler must be:
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
+        The equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -2312,29 +2620,32 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
     */
     template<class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
         WriteHandler, void(error_code))
     async_ping(ping_data const& payload, WriteHandler&& handler);
 
-    /** Send a WebSocket pong frame.
+    /** Send a websocket pong control frame.
 
-        This function is used to synchronously send a pong frame on
-        the stream. The call blocks until one of the following is true:
+        This function is used to send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.3">pong frame</a>,
+        which is usually sent automatically in response to a ping frame
+        from the the remote peer.
 
-        @li The pong frame finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The pong frame is written.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `write_some` functions.
+        @li An error occurs.
 
-        The WebSocket protocol allows pong frames to be sent from either
-        end at any time. It is not necessary to first receive a ping in
-        order to send a pong. The remote peer may use the receipt of a
-        pong frame as an indication that the connection is not dead.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
+
+        WebSocket allows pong frames to be sent at any time, without first
+        receiving a ping. An unsolicited pong sent in this fashion may
+        indicate to the remote peer that the connection is still active.
 
         @param payload The payload of the pong message, which may be empty.
 
@@ -2343,22 +2654,25 @@ public:
     void
     pong(ping_data const& payload);
 
-    /** Send a WebSocket pong frame.
+    /** Send a websocket pong control frame.
 
-        This function is used to synchronously send a pong frame on
-        the stream. The call blocks until one of the following is true:
+        This function is used to send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.3">pong frame</a>,
+        which is usually sent automatically in response to a ping frame
+        from the the remote peer.
 
-        @li The pong frame finishes sending.
+        The call blocks until one of the following conditions is true:
 
-        @li An error occurs on the stream.
+        @li The pong frame is written.
 
-        This function is implemented in terms of one or more calls to the
-        next layer's `write_some` functions.
+        @li An error occurs.
 
-        The WebSocket protocol allows pong frames to be sent from either
-        end at any time. It is not necessary to first receive a ping in
-        order to send a pong. The remote peer may use the receipt of a
-        pong frame as an indication that the connection is not dead.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
+
+        WebSocket allows pong frames to be sent at any time, without first
+        receiving a ping. An unsolicited pong sent in this fashion may
+        indicate to the remote peer that the connection is still active.
 
         @param payload The payload of the pong message, which may be empty.
 
@@ -2367,36 +2681,38 @@ public:
     void
     pong(ping_data const& payload, error_code& ec);
 
-    /** Start an asynchronous operation to send a WebSocket pong frame.
+    /** Send a websocket pong control frame asynchronously.
 
-        This function is used to asynchronously send a pong frame to
-        the stream. The function call always returns immediately. The
-        asynchronous operation will continue until one of the following
-        is true:
+        This function is used to asynchronously send a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.3">pong frame</a>,
+        which is usually sent automatically in response to a ping frame
+        from the the remote peer.
 
-        @li The entire pong frame is sent.
+        @li The pong frame is written.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_write_some` functions, and is known as a
-        <em>composed operation</em>. The program must ensure that the
-        stream performs no other writes until this operation completes.
-
-        The WebSocket protocol allows pong frames to be sent from either
-        end at any time. It is not necessary to first receive a ping in
-        order to send a pong. The remote peer may use the receipt of a
-        pong frame as an indication that the connection is not dead.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_write_some`
+        function. The program must ensure that no other calls to @ref ping,
+        @ref pong, @ref async_ping, or @ref async_pong are performed until
+        this operation completes.
 
         If a close frame is sent or received before the pong frame is
-        sent, the completion handler will be called with the error
-        set to `net::error::operation_aborted`.
+        sent, the error received by this completion handler will be
+        `net::error::operation_aborted`.
+
+        WebSocket allows pong frames to be sent at any time, without first
+        receiving a ping. An unsolicited pong sent in this fashion may
+        indicate to the remote peer that the connection is still active.
 
         @param payload The payload of the pong message, which may be empty.
+        The implementation will not access the contents of this object after
+        the initiating function returns.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
-        The function signature of the handler must be:
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
+        The equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -2405,7 +2721,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
     */
     template<class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2418,10 +2734,10 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    /** Read a message
+    /** Read a complete message.
 
-        This function is used to synchronously read a complete
-        message from the stream.
+        This function is used to read a complete message.
+
         The call blocks until one of the following is true:
 
         @li A complete message is received.
@@ -2429,43 +2745,42 @@ public:
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the next
-        layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        Received message data, if any, is appended to the input area of the
-        buffer. The functions @ref got_binary and @ref got_text may be used
+        Received message data is appended to the buffer.
+        The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
 
-        While this operation is active, the implementation will read incoming
-        control frames and handle them automatically as follows:
+        Until the call returns, the implementation will read incoming control
+        frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
 
         @li For each received ping frame, a pong frame will be
             automatically sent.
 
-        @li If a close frame is received, the WebSocket close procedure is
+        @li If a close frame is received, the WebSocket closing handshake is
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
         @return The number of message payload bytes appended to the buffer.
 
-        @param buffer A dynamic buffer to hold the message data after any
-        masking or decompression has been applied.
+        @param buffer A dynamic buffer to append message data to.
 
-        @throws system_error Thrown to indicate an error. The corresponding
-        error code may be retrieved from the exception object for inspection.
+        @throws system_error Thrown on failure.
     */
     template<class DynamicBuffer>
     std::size_t
     read(DynamicBuffer& buffer);
 
-    /** Read a message
+    /** Read a complete message.
 
-        This function is used to synchronously read a complete
-        message from the stream.
+        This function is used to read a complete message.
+
         The call blocks until one of the following is true:
 
         @li A complete message is received.
@@ -2473,31 +2788,31 @@ public:
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the next
-        layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        Received message data, if any, is appended to the input area of the
-        buffer. The functions @ref got_binary and @ref got_text may be used
+        Received message data is appended to the buffer.
+        The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
 
-        While this operation is active, the implementation will read incoming
-        control frames and handle them automatically as follows:
+        Until the call returns, the implementation will read incoming control
+        frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
 
         @li For each received ping frame, a pong frame will be
             automatically sent.
 
-        @li If a close frame is received, the WebSocket close procedure is
+        @li If a close frame is received, the WebSocket closing handshake is
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
         @return The number of message payload bytes appended to the buffer.
 
-        @param buffer A dynamic buffer to hold the message data after any
-        masking or decompression has been applied.
+        @param buffer A dynamic buffer to append message data to.
 
         @param ec Set to indicate what error occurred, if any.
     */
@@ -2505,32 +2820,31 @@ public:
     std::size_t
     read(DynamicBuffer& buffer, error_code& ec);
 
-    /** Read a message asynchronously
+    /** Read a complete message asynchronously.
 
-        This function is used to asynchronously read a complete
-        message from the stream.
-        The function call always returns immediately.
-        The asynchronous operation will continue until one of the
-        following is true:
+        This function is used to asynchronously read a complete message.
+
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
 
         @li A complete message is received.
 
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions,
-        and is known as a <em>composed operation</em>. The program must
-        ensure that the stream performs no other reads until this operation
-        completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. The program must ensure that no other
+        calls to @ref read, @ref read_some, @ref async_read, or @ref async_read_some
+        are performed until this operation completes.
 
-        Received message data, if any, is appended to the input area of the
-        buffer. The functions @ref got_binary and @ref got_text may be used
+        Received message data is appended to the buffer.
+        The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
 
-        While this operation is active, the implementation will read incoming
+        Until the operation completes, the implementation will read incoming
         control frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
@@ -2542,18 +2856,15 @@ public:
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
-        Because of the need to handle control frames, asynchronous read
-        operations can cause writes to take place. These writes are managed
-        transparently; callers can still have one active asynchronous
-        read and asynchronous write operation pending simultaneously
-        (a user initiated call to @ref async_close counts as a write).
+        Pong frames and close frames sent by the implementation while the
+        read operation is outstanding do not prevent the application from
+        also writing message data, sending pings, sending pongs, or sending
+        close frames.
 
-        @param buffer A dynamic buffer to hold the message data after
-        any masking or decompression has been applied. This object must
-        remain valid until the handler is called.
+        @param buffer A dynamic buffer to append message data to.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
         @code
         void handler(
@@ -2564,7 +2875,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2575,51 +2886,50 @@ public:
 
     //--------------------------------------------------------------------------
 
-    /** Read part of a message
+    /** Read some message data.
 
-        This function is used to synchronously read some
-        message data from the stream.
+        This function is used to read some message data.
+
         The call blocks until one of the following is true:
 
-        @li Some or all of the message is received.
+        @li Some message data is received.
 
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the next
-        layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        Received message data, if any, is appended to the input area of the
-        buffer. The functions @ref got_binary and @ref got_text may be used
+        Received message data is appended to the buffer.
+        The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
         The function @ref is_message_done may be called to determine if the
         message received by the last read operation is complete.
 
-        While this operation is active, the implementation will read incoming
-        control frames and handle them automatically as follows:
+        Until the call returns, the implementation will read incoming control
+        frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
 
         @li For each received ping frame, a pong frame will be
             automatically sent.
 
-        @li If a close frame is received, the WebSocket close procedure is
+        @li If a close frame is received, the WebSocket closing handshake is
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
         @return The number of message payload bytes appended to the buffer.
 
-        @param buffer A dynamic buffer to hold the message data after any
-        masking or decompression has been applied.
+        @param buffer A dynamic buffer to append message data to.
 
         @param limit An upper limit on the number of bytes this function
         will append into the buffer. If this value is zero, then a reasonable
         size will be chosen automatically.
 
-        @throws system_error Thrown to indicate an error. The corresponding
-        error code may be retrieved from the exception object for inspection.
+        @throws system_error Thrown on failure.
     */
     template<class DynamicBuffer>
     std::size_t
@@ -2627,44 +2937,44 @@ public:
         DynamicBuffer& buffer,
         std::size_t limit);
 
-    /** Read part of a message
+    /** Read some message data.
 
-        This function is used to synchronously read some
-        message data from the stream.
+        This function is used to read some message data.
+
         The call blocks until one of the following is true:
 
-        @li Some or all of the message is received.
+        @li Some message data is received.
 
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the next
-        layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        Received message data, if any, is appended to the input area of the
-        buffer. The functions @ref got_binary and @ref got_text may be used
+        Received message data is appended to the buffer.
+        The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
         The function @ref is_message_done may be called to determine if the
         message received by the last read operation is complete.
 
-        While this operation is active, the implementation will read incoming
-        control frames and handle them automatically as follows:
+        Until the call returns, the implementation will read incoming control
+        frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
 
         @li For each received ping frame, a pong frame will be
             automatically sent.
 
-        @li If a close frame is received, the WebSocket close procedure is
+        @li If a close frame is received, the WebSocket closing handshake is
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
         @return The number of message payload bytes appended to the buffer.
 
-        @param buffer A dynamic buffer to hold the message data after any
-        masking or decompression has been applied.
+        @param buffer A dynamic buffer to append message data to.
 
         @param limit An upper limit on the number of bytes this function
         will append into the buffer. If this value is zero, then a reasonable
@@ -2679,34 +2989,31 @@ public:
         std::size_t limit,
         error_code& ec);
 
-    /** Read part of a message asynchronously
+    /** Read some message data asynchronously.
 
-        This function is used to asynchronously read part of a
-        message from the stream.
-        The function call always returns immediately.
-        The asynchronous operation will continue until one of the
-        following is true:
+        This function is used to asynchronously read some message data.
 
-        @li Some or all of the message is received.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
+
+        @li Some message data is received.
 
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions,
-        and is known as a <em>composed operation</em>. The program must
-        ensure that the stream performs no other reads until this operation
-        completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. The program must ensure that no other
+        calls to @ref read, @ref read_some, @ref async_read, or @ref async_read_some
+        are performed until this operation completes.
 
-        Received message data, if any, is appended to the input area of the
-        buffer. The functions @ref got_binary and @ref got_text may be used
+        Received message data is appended to the buffer.
+        The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
-        The function @ref is_message_done may be called to determine if the
-        message received by the last read operation is complete.
 
-        While this operation is active, the implementation will read incoming
+        Until the operation completes, the implementation will read incoming
         control frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
@@ -2718,22 +3025,15 @@ public:
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
-        Because of the need to handle control frames, asynchronous read
-        operations can cause writes to take place. These writes are managed
-        transparently; callers can still have one active asynchronous
-        read and asynchronous write operation pending simultaneously
-        (a user initiated call to @ref async_close counts as a write).
+        Pong frames and close frames sent by the implementation while the
+        read operation is outstanding do not prevent the application from
+        also writing message data, sending pings, sending pongs, or sending
+        close frames.
 
-        @param buffer A dynamic buffer to hold the message data after
-        any masking or decompression has been applied. This object must
-        remain valid until the handler is called.
+        @param buffer A dynamic buffer to append message data to.
 
-        @param limit An upper limit on the number of bytes this function
-        will append into the buffer. If this value is zero, then a reasonable
-        size will be chosen automatically.
-
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
         @code
         void handler(
@@ -2744,7 +3044,7 @@ public:
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2756,93 +3056,100 @@ public:
 
     //--------------------------------------------------------------------------
 
-    /** Read part of a message
+    /** Read some message data.
 
-        This function is used to synchronously read some
-        message data from the stream.
+        This function is used to read some message data.
+
         The call blocks until one of the following is true:
 
-        @li Some or all of the message is received.
+        @li Some message data is received.
 
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the next
-        layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        Received message data, if any, is written to the buffer sequence.
         The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
         The function @ref is_message_done may be called to determine if the
         message received by the last read operation is complete.
 
-        While this operation is active, the implementation will read incoming
-        control frames and handle them automatically as follows:
+        Until the call returns, the implementation will read incoming control
+        frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
 
         @li For each received ping frame, a pong frame will be
             automatically sent.
 
-        @li If a close frame is received, the WebSocket close procedure is
+        @li If a close frame is received, the WebSocket closing handshake is
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
-        @return The number of message payload bytes written to the
-        buffer sequence.
+        @return The number of message payload bytes appended to the buffer.
 
-        @param buffers A buffer sequence to hold the message data after any
-        masking or decompression has been applied.
+        @param buffers A buffer sequence to write message data into.
+        The previous contents of the buffers will be overwritten, starting
+        from the beginning.
 
-        @throws system_error Thrown to indicate an error. The corresponding
-        error code may be retrieved from the exception object for inspection.
+        @param limit An upper limit on the number of bytes this function
+        will append into the buffer. If this value is zero, then a reasonable
+        size will be chosen automatically.
+
+        @throws system_error Thrown on failure.
     */
     template<class MutableBufferSequence>
     std::size_t
     read_some(
         MutableBufferSequence const& buffers);
 
-    /** Read part of a message
+    /** Read some message data.
 
-        This function is used to synchronously read some
-        message data from the stream.
+        This function is used to read some message data.
+
         The call blocks until one of the following is true:
 
-        @li Some or all of the message is received.
+        @li Some message data is received.
 
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the next
-        layer's `read_some` and `write_some` functions.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `read_some` and `write_some`
+        functions.
 
-        Received message data, if any, is written to the buffer sequence.
         The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
         The function @ref is_message_done may be called to determine if the
         message received by the last read operation is complete.
 
-        While this operation is active, the implementation will read incoming
-        control frames and handle them automatically as follows:
+        Until the call returns, the implementation will read incoming control
+        frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
 
         @li For each received ping frame, a pong frame will be
             automatically sent.
 
-        @li If a close frame is received, the WebSocket close procedure is
+        @li If a close frame is received, the WebSocket closing handshake is
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
-        @return The number of message payload bytes written to the
-        buffer sequence.
+        @return The number of message payload bytes appended to the buffer.
 
-        @param buffers A buffer sequence to hold the message data after any
-        masking or decompression has been applied.
+        @param buffers A buffer sequence to write message data into.
+        The previous contents of the buffers will be overwritten, starting
+        from the beginning.
+
+        @param limit An upper limit on the number of bytes this function
+        will append into the buffer. If this value is zero, then a reasonable
+        size will be chosen automatically.
 
         @param ec Set to indicate what error occurred, if any.
     */
@@ -2852,34 +3159,31 @@ public:
         MutableBufferSequence const& buffers,
         error_code& ec);
 
-    /** Read part of a message asynchronously
+    /** Read some message data asynchronously.
 
-        This function is used to asynchronously read part of a
-        message from the stream.
-        The function call always returns immediately.
-        The asynchronous operation will continue until one of the
-        following is true:
+        This function is used to asynchronously read some message data.
 
-        @li Some or all of the message is received.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
+
+        @li Some message data is received.
 
         @li A close frame is received. In this case the error indicated by
             the function will be @ref error::closed.
 
-        @li An error occurs on the stream.
+        @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `async_read_some` and `async_write_some` functions,
-        and is known as a <em>composed operation</em>. The program must
-        ensure that the stream performs no other reads until this operation
-        completes.
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's `async_read_some`
+        and `async_write_some` functions. The program must ensure that no other
+        calls to @ref read, @ref read_some, @ref async_read, or @ref async_read_some
+        are performed until this operation completes.
 
-        Received message data, if any, is written to the buffer sequence.
+        Received message data is appended to the buffer.
         The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
-        The function @ref is_message_done may be called to determine if the
-        message received by the last read operation is complete.
 
-        While this operation is active, the implementation will read incoming
+        Until the operation completes, the implementation will read incoming
         control frames and handle them automatically as follows:
 
         @li The @ref control_callback will be invoked for each control frame.
@@ -2891,33 +3195,33 @@ public:
             performed. In this case, when the function returns, the error
             @ref error::closed will be indicated.
 
-        Because of the need to handle control frames, asynchronous read
-        operations can cause writes to take place. These writes are managed
-        transparently; callers can still have one active asynchronous
-        read and asynchronous write operation pending simultaneously
-        (a user initiated call to @ref async_close counts as a write).
+        Pong frames and close frames sent by the implementation while the
+        read operation is outstanding do not prevent the application from
+        also writing message data, sending pings, sending pongs, or sending
+        close frames.
 
-        @param buffers The buffer sequence into which message data will
-        be placed after any masking or decompresison has been applied.
-        The implementation will make copies of this object as needed,
-        but ownership of the underlying memory is not transferred.
-        The caller is responsible for ensuring that the memory
-        locations pointed to by the buffer sequence remains valid
-        until the completion handler is called.
+        @param buffers A buffer sequence to write message data into.
+        The previous contents of the buffers will be overwritten, starting
+        from the beginning.
+        The implementation will make copies of this object as needed, but
+        but ownership of the underlying memory is not transferred. The
+        caller is responsible for ensuring that the memory locations
+        pointed to by the buffer sequence remain valid until the
+        completion handler is called.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec,       // Result of operation
-            std::size_t bytes_written   // Number of bytes written to the buffer sequence
+            std::size_t bytes_written   // Number of bytes written to the buffers
         );
         @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
     */
     template<class MutableBufferSequence, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(
@@ -2932,18 +3236,18 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    /** Write a message to the stream.
+    /** Write a complete message.
 
-        This function is used to synchronously write a message to
-        the stream. The call blocks until one of the following conditions
-        is met:
+        This function is used to write a complete message.
 
-        @li The entire message is sent.
+        The call blocks until one of the following is true:
+
+        @li The message is written.
 
         @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `write_some` function.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
 
         The current setting of the @ref binary option controls
         whether the message opcode is set to text or binary. If the
@@ -2951,38 +3255,28 @@ public:
         into one or more frames as necessary. The actual payload contents
         sent may be transformed as per the WebSocket protocol settings.
 
-        @param buffers The buffers containing the entire message
-        payload. The implementation will make copies of this object
-        as needed, but ownership of the underlying memory is not
-        transferred. The caller is responsible for ensuring that
-        the memory locations pointed to by buffers remains valid
-        until the completion handler is called.
+        @param buffers The buffers containing the message to send.
 
-        @return The number of bytes written from the buffers.
-        If an error occurred, this will be less than the sum
-        of the buffer sizes.
+        @return The number of bytes sent from the buffers.
 
         @throws system_error Thrown on failure.
-
-        @note This function always sends an entire message. To
-        send a message in fragments, use @ref write_some.
     */
     template<class ConstBufferSequence>
     std::size_t
     write(ConstBufferSequence const& buffers);
 
-    /** Write a message to the stream.
+    /** Write a complete message.
 
-        This function is used to synchronously write a message to
-        the stream. The call blocks until one of the following conditions
-        is met:
+        This function is used to write a complete message.
 
-        @li The entire message is sent.
+        The call blocks until one of the following is true:
+
+        @li The complete message is written.
 
         @li An error occurs.
 
-        This operation is implemented in terms of one or more calls to the
-        next layer's `write_some` function.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
 
         The current setting of the @ref binary option controls
         whether the message opcode is set to text or binary. If the
@@ -2990,45 +3284,32 @@ public:
         into one or more frames as necessary. The actual payload contents
         sent may be transformed as per the WebSocket protocol settings.
 
-        @param buffers The buffers containing the entire message
-        payload. The implementation will make copies of this object
-        as needed, but ownership of the underlying memory is not
-        transferred. The caller is responsible for ensuring that
-        the memory locations pointed to by buffers remains valid
-        until the completion handler is called.
-
-        @return The number of bytes written from the buffers.
-        If an error occurred, this will be less than the sum
-        of the buffer sizes.
+        @param buffers The buffers containing the message to send.
 
         @param ec Set to indicate what error occurred, if any.
 
-        @throws system_error Thrown on failure.
-
-        @note This function always sends an entire message. To
-        send a message in fragments, use @ref write_some.
+        @return The number of bytes sent from the buffers.
     */
     template<class ConstBufferSequence>
     std::size_t
     write(ConstBufferSequence const& buffers, error_code& ec);
 
-    /** Start an asynchronous operation to write a message to the stream.
+    /** Write a complete message asynchronously.
 
-        This function is used to asynchronously write a message to
-        the stream. The function call always returns immediately.
-        The asynchronous operation will continue until one of the
-        following conditions is true:
+        This function is used to asynchronously write a complete message.
 
-        @li The entire message is sent.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
+
+        @li The complete message is written.
 
         @li An error occurs.
 
-        This operation is implemented in terms of one or more calls
-        to the next layer's `async_write_some` functions, and is known
-        as a <em>composed operation</em>. The program must ensure that
-        the stream performs no other write operations (such as
-        @ref async_write, @ref async_write_some, or
-        @ref async_close).
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's
+        `async_write_some` function. The program must ensure that no other
+        calls to @ref write, @ref write_some, @ref async_write, or
+        @ref async_write_some are performed until this operation completes.
 
         The current setting of the @ref binary option controls
         whether the message opcode is set to text or binary. If the
@@ -3036,29 +3317,28 @@ public:
         into one or more frames as necessary. The actual payload contents
         sent may be transformed as per the WebSocket protocol settings.
 
-        @param buffers The buffers containing the entire message
+        @param buffers A buffer sequence containing the entire message
         payload. The implementation will make copies of this object
         as needed, but ownership of the underlying memory is not
         transferred. The caller is responsible for ensuring that
         the memory locations pointed to by buffers remains valid
         until the completion handler is called.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
-        The function signature of the handler must be:
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
+        The equivalent function signature of the handler must be:
         @code
         void handler(
             error_code const& ec,           // Result of operation
-            std::size_t bytes_transferred   // Number of bytes written from the
+            std::size_t bytes_transferred   // Number of bytes sent from the
                                             // buffers. If an error occurred,
-                                            // this will be less than the sum
-                                            // of the buffer sizes.
+                                            // this will be less than the buffer_size.
         );
         @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::io_context::post`.
+        manner equivalent to using `net::post`.
     */
     template<
         class ConstBufferSequence,
@@ -3069,33 +3349,29 @@ public:
         ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 
-    /** Write partial message data on the stream.
+    /** Write some message data.
 
-        This function is used to write some or all of a message's
-        payload to the stream. The call will block until one of the
-        following conditions is true:
+        This function is used to send part of a message.
 
-        @li A frame is sent.
+        The call blocks until one of the following is true:
 
-        @li Message data is transferred to the write buffer.
+        @li The message data is written.
 
         @li An error occurs.
 
-        This operation is implemented in terms of one or more calls
-        to the stream's `write_some` function.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
 
         If this is the beginning of a new message, the message opcode
-        will be set to text or binary as per the current setting of
-        the @ref binary option. The actual payload sent may be
-        transformed as per the WebSocket protocol settings.
+        will be set to text or binary based on the current setting of
+        the @ref binary (or @ref text) option. The actual payload sent
+        may be transformed as per the WebSocket protocol settings.
 
         @param fin `true` if this is the last part of the message.
 
-        @param buffers The input buffer sequence holding the data to write.
+        @param buffers The buffers containing the message part to send.
 
-        @return The number of bytes written from the buffers.
-        If an error occurred, this will be less than the sum
-        of the buffer sizes.
+        @return The number of bytes sent from the buffers.
 
         @throws system_error Thrown on failure.
     */
@@ -3103,35 +3379,29 @@ public:
     std::size_t
     write_some(bool fin, ConstBufferSequence const& buffers);
 
-    /** Write partial message data on the stream.
+    /** Write some message data.
 
-        This function is used to write some or all of a message's
-        payload to the stream. The call will block until one of the
-        following conditions is true:
+        This function is used to send part of a message.
 
-        @li A frame is sent.
+        The call blocks until one of the following is true:
 
-        @li Message data is transferred to the write buffer.
+        @li The message data is written.
 
         @li An error occurs.
 
-        This operation is implemented in terms of one or more calls
-        to the stream's `write_some` function.
+        The algorithm, known as a <em>composed operation</em> is implemented
+        in terms of calls to the next layer's `write_some` function.
 
         If this is the beginning of a new message, the message opcode
-        will be set to text or binary as per the current setting of
-        the @ref binary option. The actual payload sent may be
-        transformed as per the WebSocket protocol settings.
+        will be set to text or binary based on the current setting of
+        the @ref binary (or @ref text) option. The actual payload sent
+        may be transformed as per the WebSocket protocol settings.
 
         @param fin `true` if this is the last part of the message.
 
-        @param buffers The input buffer sequence holding the data to write.
+        @param buffers The buffers containing the message part to send.
 
-        @param ec Set to indicate what error occurred, if any.
-
-        @return The number of bytes written from the buffers.
-        If an error occurred, this will be less than the sum
-        of the buffer sizes.
+        @return The number of bytes sent from the buffers.
 
         @return The number of bytes consumed in the input buffers.
     */
@@ -3140,49 +3410,52 @@ public:
     write_some(bool fin,
         ConstBufferSequence const& buffers, error_code& ec);
 
-    /** Start an asynchronous operation to send a message frame on the stream.
+    /** Write some message data asynchronously.
 
-        This function is used to asynchronously write a message frame
-        on the stream. This function call always returns immediately.
-        The asynchronous operation will continue until one of the following
-        conditions is true:
+        This function is used to asynchronously write part of a message.
 
-        @li The entire frame is sent.
+        This call always returns immediately. The asynchronous operation
+        will continue until one of the following conditions is true:
+
+        @li The message data is written.
 
         @li An error occurs.
 
-        This operation is implemented in terms of one or more calls
-        to the next layer's `async_write_some` functions, and is known
-        as a <em>composed operation</em>. The actual payload sent
-        may be transformed as per the WebSocket protocol settings. The
-        program must ensure that the stream performs no other write
-        operations (such as @ref async_write, @ref async_write_some,
-        or @ref async_close).
+        The algorithm, known as a <em>composed asynchronous operation</em>,
+        is implemented in terms of calls to the next layer's
+        `async_write_some` function. The program must ensure that no other
+        calls to @ref write, @ref write_some, @ref async_write, or
+        @ref async_write_some are performed until this operation completes.
 
         If this is the beginning of a new message, the message opcode
-        will be set to text or binary as per the current setting of
-        the @ref binary option. The actual payload sent may be
-        transformed as per the WebSocket protocol settings.
+        will be set to text or binary based on the current setting of
+        the @ref binary (or @ref text) option. The actual payload sent
+        may be transformed as per the WebSocket protocol settings.
 
         @param fin `true` if this is the last part of the message.
 
-        @param buffers A object meeting the requirements of
-        ConstBufferSequence which holds the payload data before any
-        masking or compression. Although the buffers object may be copied
-        as necessary, ownership of the underlying buffers is retained by
-        the caller, which must guarantee that they remain valid until
-        the handler is called.
+        @param buffers The buffers containing the message part to send.
+        The implementation will make copies of this object
+        as needed, but ownership of the underlying memory is not
+        transferred. The caller is responsible for ensuring that
+        the memory locations pointed to by buffers remains valid
+        until the completion handler is called.
 
-        @param handler Invoked when the operation completes.
-        The handler may be moved or copied as needed.
+        @param handler Invoked when the operation completes. Ownership
+        of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
-        @code void handler(
+        @code
+        void handler(
             error_code const& ec,           // Result of operation
-            std::size_t bytes_transferred   // Number of bytes written from the
+            std::size_t bytes_transferred   // Number of bytes sent from the
                                             // buffers. If an error occurred,
-                                            // this will be less than the sum
-                                            // of the buffer sizes.
-        ); @endcode
+                                            // this will be less than the buffer_size.
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(

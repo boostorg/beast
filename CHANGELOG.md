@@ -4,6 +4,7 @@ Version 212:
 * flat_stream tests and tidy
 * stranded_socket tests and tidy
 * buffers_front tests
+* Improved websocket stream documentation
 
 --------------------------------------------------------------------------------
 

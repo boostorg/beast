@@ -56,17 +56,17 @@ following operations to be active at the same time:
 * [link beast.ref.boost__beast__websocket__stream.async_ping `async_ping`] or [link beast.ref.boost__beast__websocket__stream.async_pong `async_pong`]
 * [link beast.ref.boost__beast__websocket__stream.async_close `async_close`]
 
-For example, the following code is malformed, because the program is
-attempting to perform two simultaneous reads:
+For example, the following code is produces undefined behavior, because the
+program is attempting to perform two simultaneous reads:
 
 [ws_snippet_24]
 
-However, this code is well-formed:
+However, this code is correct:
 
 [ws_snippet_25]
 
 The implementation uses composed asynchronous operations; although
-some individiual operations can perform both reads and writes, this
+some individual operations can perform both reads and writes, this
 behavior is coordinated internally to make sure the underlying stream
 is operated in a safe fashion. This allows an asynchronous read operation
 to respond to a received ping frame even while a user-initiated call to

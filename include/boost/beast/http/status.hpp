@@ -30,7 +30,16 @@ enum class status : unsigned
     unknown = 0,
 
     continue_                           = 100,
+
+    /** Switching Protocols
+
+        This status indicates that a request to switch to a new
+        protocol was accepted and applied by the server. A successful
+        response to a WebSocket Upgrade HTTP request will have this
+        code.
+    */
     switching_protocols                 = 101,
+
     processing                          = 102,
 
     ok                                  = 200,
