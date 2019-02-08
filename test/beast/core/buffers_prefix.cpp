@@ -125,6 +125,36 @@ public:
     }
 
     void
+    testBuffersFront()
+    {
+        {
+            std::array<net::const_buffer, 2> v;
+            v[0] = {"", 0};
+            v[1] = net::const_buffer("Hello, world!", 13);
+            BEAST_EXPECT(buffers_front(v).size() == 0);
+            std::swap(v[0], v[1]);
+            BEAST_EXPECT(buffers_front(v).size() == 13);
+        }
+        {
+            struct null_sequence
+            {
+                net::const_buffer b;
+                using iterator = net::const_buffer const*;
+                iterator begin() const noexcept
+                {
+                    return &b;
+                }
+                iterator end() const noexcept
+                {
+                    return begin();
+                }
+            };
+            null_sequence z;
+            BEAST_EXPECT(buffers_front(z).size() == 0);
+        }
+    }
+
+    void
     run() override
     {
         testBufferSequence();
@@ -132,6 +162,7 @@ public:
         testPrefixes<net::const_buffer>();
         testPrefixes<net::mutable_buffer>();
         testEmpty();
+        testBuffersFront();
     }
 };
 
