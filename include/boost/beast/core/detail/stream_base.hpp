@@ -7,18 +7,21 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_DETAIL_TIMEOUT_STREAM_BASE_HPP
-#define BOOST_BEAST_CORE_DETAIL_TIMEOUT_STREAM_BASE_HPP
+#ifndef BOOST_BEAST_CORE_DETAIL_STREAM_BASE_HPP
+#define BOOST_BEAST_CORE_DETAIL_STREAM_BASE_HPP
 
+#include <boost/asio/steady_timer.hpp>
 #include <boost/assert.hpp>
 #include <boost/core/exchange.hpp>
+#include <chrono>
+#include <cstdint>
 
 namespace boost {
 namespace beast {
 namespace detail {
 
 template<class, class, class>
-class timeout_stream_connect_op;
+class basic_stream_connect_op;
 
 struct any_endpoint
 {
@@ -31,9 +34,27 @@ struct any_endpoint
     }
 };
 
-class timeout_stream_base
+struct stream_base
 {
-protected:
+    using clock_type = std::chrono::steady_clock;
+    using time_point = typename
+        std::chrono::steady_clock::time_point;
+    using tick_type = std::uint64_t;
+
+    struct op_state
+    {
+        net::steady_timer timer;    // for timing out
+        tick_type tick = 0;         // counts waits
+        bool pending = false;       // if op is pending
+        bool timeout = false;       // if timed out
+
+        explicit
+        op_state(net::io_context& ioc)
+            : timer(ioc)
+        {
+        }
+    };
+
     class pending_guard
     {
         bool& b_;
@@ -70,6 +91,14 @@ protected:
             clear_ = false;
         }
     };
+
+    static constexpr time_point never()
+    {
+        return (time_point::max)();
+    }
+
+    static std::size_t constexpr no_limit =
+        (std::numeric_limits<std::size_t>::max)();
 };
 
 } // detail

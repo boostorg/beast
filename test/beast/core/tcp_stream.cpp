@@ -8,4 +8,4 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/timeout_stream.hpp>
+#include <boost/beast/core/tcp_stream.hpp>

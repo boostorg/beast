@@ -78,6 +78,25 @@ struct buffer_size_impl
     }
 };
 
+/** Return `true` if a buffer sequence is empty
+
+    This is sometimes faster than using @ref buffer_size
+*/
+template<class ConstBufferSequence>
+bool
+buffers_empty(ConstBufferSequence const& buffers)
+{
+    auto it = net::buffer_sequence_begin(buffers);
+    auto end = net::buffer_sequence_end(buffers);
+    while(it != end)
+    {
+        if(net::const_buffer(*it).size() > 0)
+            return false;
+        ++it;
+    }
+    return true;
+}
+
 } // detail
 
 /** Return the total number of bytes in a buffer or buffer sequence

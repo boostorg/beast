@@ -1,6 +1,7 @@
 Version 213:
 
 * Fix posix_file::close handling of EINTR
+* basic_stream subsumes stranded_stream:
 
 --------------------------------------------------------------------------------
 

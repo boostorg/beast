@@ -599,7 +599,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -646,7 +646,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -700,7 +700,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -764,7 +764,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -835,7 +835,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -884,7 +884,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -941,7 +941,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1008,7 +1008,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1428,7 +1428,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1467,7 +1467,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1518,7 +1518,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1557,7 +1557,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1610,7 +1610,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1659,7 +1659,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1722,7 +1722,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1773,7 +1773,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1836,7 +1836,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1874,7 +1874,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1925,7 +1925,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -1964,7 +1964,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -2424,7 +2424,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         After beginning the closing handshake, the program should not write
@@ -2459,7 +2459,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         After beginning the closing handshake, the program should not write
@@ -2551,7 +2551,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         @param payload The payload of the ping message, which may be empty.
@@ -2574,7 +2574,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         @param payload The payload of the ping message, which may be empty.
@@ -2640,7 +2640,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         WebSocket allows pong frames to be sent at any time, without first
@@ -2667,7 +2667,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         WebSocket allows pong frames to be sent at any time, without first
@@ -2747,7 +2747,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -2790,7 +2790,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -2899,7 +2899,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -2950,7 +2950,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -3032,6 +3032,10 @@ public:
 
         @param buffer A dynamic buffer to append message data to.
 
+        @param limit An upper limit on the number of bytes this function
+        will append into the buffer. If this value is zero, then a reasonable
+        size will be chosen automatically.
+
         @param handler Invoked when the operation completes. Ownership
         of the handler will be transferred by move-construction as needed.
         The equivalent function signature of the handler must be:
@@ -3069,7 +3073,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -3095,10 +3099,6 @@ public:
         @param buffers A buffer sequence to write message data into.
         The previous contents of the buffers will be overwritten, starting
         from the beginning.
-
-        @param limit An upper limit on the number of bytes this function
-        will append into the buffer. If this value is zero, then a reasonable
-        size will be chosen automatically.
 
         @throws system_error Thrown on failure.
     */
@@ -3120,7 +3120,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `read_some` and `write_some`
         functions.
 
@@ -3146,10 +3146,6 @@ public:
         @param buffers A buffer sequence to write message data into.
         The previous contents of the buffers will be overwritten, starting
         from the beginning.
-
-        @param limit An upper limit on the number of bytes this function
-        will append into the buffer. If this value is zero, then a reasonable
-        size will be chosen automatically.
 
         @param ec Set to indicate what error occurred, if any.
     */
@@ -3246,7 +3242,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         The current setting of the @ref binary option controls
@@ -3275,7 +3271,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         The current setting of the @ref binary option controls
@@ -3359,7 +3355,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         If this is the beginning of a new message, the message opcode
@@ -3389,7 +3385,7 @@ public:
 
         @li An error occurs.
 
-        The algorithm, known as a <em>composed operation</em> is implemented
+        The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
 
         If this is the beginning of a new message, the message opcode
@@ -3400,6 +3396,8 @@ public:
         @param fin `true` if this is the last part of the message.
 
         @param buffers The buffers containing the message part to send.
+
+        @param ec Set to indicate what error occurred, if any.
 
         @return The number of bytes sent from the buffers.
 

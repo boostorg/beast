@@ -14,14 +14,19 @@
 [heading Boost 1.70]
 [/ includes up to version 209]
 [/
+* Use `beast::tcp_socket` instead of `boost::asio::ip::tcp::socket`!
+* subscribe to this GitHub issue to be informed!
+* we need testers!
+* star the repo!
+
 Exposition:
 Enlarged scope
-New quality of life features:
-  timed stream
+- `net` is a namespace alias for `boost::asio`
+- New quality of life features:
+  tcp_socket
   async_op_base, stable_async_op_base
-New Networking refresher
-New websocket-chat-multi example
-* `net` is a namespace alias for `boost::asio`
+- New Networking refresher
+- New websocket-chat-multi example
 ]
 
 [tip

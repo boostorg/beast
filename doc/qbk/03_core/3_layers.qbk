@@ -46,12 +46,15 @@ facilities for authoring and working with layered streams:
 [table Layered Stream Algorithms and Types
 [[Name][Description]]
 [[
-    [link beast.ref.boost__beast__timeout_stream `timeout_stream`]
-    [link beast.ref.boost__beast__basic_timeout_stream `basic_timeout_stream`]
+    [link beast.ref.boost__beast__basic_stream `basic_stream`]
+    [link beast.ref.boost__beast__tcp_stream `tcp_stream`]
 ][
-    A timeout stream meets the requirements for synchronous and asynchronous
-    read and write streams, and additionally provides configurable timeouts
-    for logical operations that include reading, writing, and/or connecting.
+    This stream can be used for synchronous and asynchronous reading
+    and writing. It allows timeouts to be set on logical operations,
+    and can have an executor associated with the stream which is
+    used to invoke completion handlers. This lets you set a strand
+    on the stream once, which is then used for all asynchronous
+    operations automatically.
 ]]
 [[
     [link beast.ref.boost__beast__buffered_read_stream `buffered_read_stream`]
@@ -108,16 +111,6 @@ facilities for authoring and working with layered streams:
     The SSL stream is a drop-in replacement for `net::ssl::stream` which
     allows for move-construction and move-assignment, and also implements
     a work-around for a performance limitation in the original SSL stream.
-]]
-[[
-    [link beast.ref.boost__beast__stranded_socket `stranded_socket`]
-][
-    A timeout stream meets the requirements for synchronous and asynchronous
-    read and write streams by passing I/O through to an underlying
-    `net::basic_stream_socket`, and additionally supports
-    [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html [P1322R0] "Networking TS enhancement to enable custom I/O executors"],
-    allowing a custom executor (such a strand) to be used for all
-    asynchronous operations.
 ]]
 ]
 

@@ -30,7 +30,7 @@ add_executable (tests-beast-core
     _detail_variant.cpp
     _detail_varint.cpp
     async_op_base.cpp
-    basic_timeout_stream.cpp
+    basic_stream.cpp
     bind_handler.cpp
     buffer_size.cpp
     buffer_traits.cpp
@@ -61,11 +61,10 @@ add_executable (tests-beast-core
     span.cpp
     static_buffer.cpp
     static_string.cpp
-    stranded_socket.cpp
     stream_traits.cpp
     string.cpp
     string_param.cpp
-    timeout_stream.cpp
+    tcp_stream.cpp
 )
 
 set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")
