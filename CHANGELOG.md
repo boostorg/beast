@@ -1,3 +1,9 @@
+Version 213:
+
+* Fix posix_file::close handling of EINTR
+
+--------------------------------------------------------------------------------
+
 Version 212:
 
 * dynamic_buffer_ref tests and tidy

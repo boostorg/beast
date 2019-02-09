@@ -40,19 +40,30 @@ int
 file_posix::
 native_close(native_handle_type& fd)
 {
+/*  https://github.com/boostorg/beast/issues/1445
+
+    This function is tuned for Linux / Mac OS:
+    
+    * only calls close() once
+    * returns the error directly to the caller
+    * does not loop on EINTR
+
+    If this is incorrect for the platform, then the
+    caller will need to implement their own type
+    meeting the File requirements and use the correct
+    behavior.
+
+    See:
+        http://man7.org/linux/man-pages/man2/close.2.html
+*/
+    int ev = 0;
     if(fd != -1)
     {
-        for(;;)
-        {
-            if(::close(fd) == 0)
-                break;
-            int const ev = errno;
-            if(errno != EINTR)
-                return ev;
-        }
+        if(::close(fd) != 0)
+            ev = errno;
         fd = -1;
     }
-    return 0;
+    return ev;
 }
 
 file_posix::
