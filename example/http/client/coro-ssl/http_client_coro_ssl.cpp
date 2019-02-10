@@ -18,11 +18,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/connect.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/error.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -35,6 +32,11 @@ namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
+
+// The type of stream to use
+// Stackful coroutines are already stranded.
+using stream_type =
+    beast::ssl_stream<beast::tcp_stream<net::io_context::executor_type>>;
 
 // Report a failure
 void
@@ -57,8 +59,8 @@ do_session(
     beast::error_code ec;
 
     // These objects perform our I/O
-    tcp::resolver resolver{ioc};
-    ssl::stream<tcp::socket> stream{ioc, ctx};
+    tcp::resolver resolver(ioc);
+    stream_type stream(ioc, ctx);
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if(! SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
@@ -73,10 +75,16 @@ do_session(
     if(ec)
         return fail(ec, "resolve");
 
+    // Set the timeout.
+    beast::get_lowest_layer(stream).expires_after(std::chrono::seconds(30));
+
     // Make the connection on the IP address we get from a lookup
-    net::async_connect(stream.next_layer(), results.begin(), results.end(), yield[ec]);
+    beast::async_connect(get_lowest_layer(stream), results, yield[ec]);
     if(ec)
         return fail(ec, "connect");
+
+    // Set the timeout.
+    beast::get_lowest_layer(stream).expires_after(std::chrono::seconds(30));
 
     // Perform the SSL handshake
     stream.async_handshake(ssl::stream_base::client, yield[ec]);
@@ -87,6 +95,9 @@ do_session(
     http::request<http::string_body> req{http::verb::get, target, version};
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+    // Set the timeout.
+    beast::get_lowest_layer(stream).expires_after(std::chrono::seconds(30));
 
     // Send the HTTP request to the remote host
     http::async_write(stream, req, yield[ec]);
@@ -106,6 +117,9 @@ do_session(
 
     // Write the message to standard out
     std::cout << res << std::endl;
+
+    // Set the timeout.
+    beast::get_lowest_layer(stream).expires_after(std::chrono::seconds(30));
 
     // Gracefully close the stream
     stream.async_shutdown(yield[ec]);

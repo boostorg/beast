@@ -16,9 +16,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/connect.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -30,6 +28,10 @@ namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
+
+// The type of stream to use.
+// Stackful coroutines are already stranded.
+using stream_type = beast::tcp_stream<net::io_context::executor_type>;
 
 // Report a failure
 void
@@ -52,15 +54,18 @@ do_session(
 
     // These objects perform our I/O
     tcp::resolver resolver{ioc};
-    tcp::socket socket{ioc};
+    stream_type stream(ioc);
 
     // Look up the domain name
     auto const results = resolver.async_resolve(host, port, yield[ec]);
     if(ec)
         return fail(ec, "resolve");
 
+    // Set the timeout.
+    stream.expires_after(std::chrono::seconds(30));
+
     // Make the connection on the IP address we get from a lookup
-    net::async_connect(socket, results.begin(), results.end(), yield[ec]);
+    beast::async_connect(stream, results, yield[ec]);
     if(ec)
         return fail(ec, "connect");
 
@@ -69,8 +74,11 @@ do_session(
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
+    // Set the timeout.
+    stream.expires_after(std::chrono::seconds(30));
+
     // Send the HTTP request to the remote host
-    http::async_write(socket, req, yield[ec]);
+    http::async_write(stream, req, yield[ec]);
     if(ec)
         return fail(ec, "write");
 
@@ -81,7 +89,7 @@ do_session(
     http::response<http::dynamic_body> res;
 
     // Receive the HTTP response
-    http::async_read(socket, b, res, yield[ec]);
+    http::async_read(stream, b, res, yield[ec]);
     if(ec)
         return fail(ec, "read");
 
@@ -89,7 +97,7 @@ do_session(
     std::cout << res << std::endl;
 
     // Gracefully close the socket
-    socket.shutdown(tcp::socket::shutdown_both, ec);
+    stream.socket().shutdown(tcp::socket::shutdown_both, ec);
 
     // not_connected happens sometimes
     // so don't bother reporting it.
