@@ -4,6 +4,7 @@ Version 216:
 * Add websocket::stream timeouts
 * Use suggested timeouts in Websocket examples
 * Add make_strand
+* Add RatePolicy to basic_stream
 
 --------------------------------------------------------------------------------
 

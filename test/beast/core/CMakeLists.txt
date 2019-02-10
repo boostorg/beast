@@ -59,6 +59,7 @@ add_executable (tests-beast-core
     make_strand.cpp
     multi_buffer.cpp
     ostream.cpp
+    rate_policy.cpp
     read_size.cpp
     saved_handler.cpp
     span.cpp

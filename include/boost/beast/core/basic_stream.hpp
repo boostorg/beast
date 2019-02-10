@@ -13,6 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/stream_base.hpp>
 #include <boost/beast/core/error.hpp>
+#include <boost/beast/core/rate_policy.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/websocket/role.hpp> // VFALCO This is unfortunate
 #include <boost/asio/async_result.hpp>
@@ -25,6 +26,8 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
 #include <chrono>
+#include <limits>
+#include <memory>
 
 namespace boost {
 namespace asio {
@@ -37,9 +40,7 @@ template<typename> class stream;
 namespace boost {
 namespace beast {
 
-//------------------------------------------------------------------------------
-
-/** A stream socket wrapper with timeouts and associated executor.
+/** A stream socket wrapper with timeouts, bandwidth limits, and associated executor.
 
     This stream wraps a `net::basic_stream_socket` to provide
     the following features:
@@ -193,7 +194,9 @@ namespace beast {
 */
 template<
     class Protocol,
-    class Executor = net::executor>
+    class Executor = net::executor,
+    class RatePolicy = unlimited_rate_policy
+>
 class basic_stream
 #if ! BOOST_BEAST_DOXYGEN
     : private detail::stream_base
@@ -228,6 +231,7 @@ public:
 #endif
     struct impl_type
         : boost::enable_shared_from_this<impl_type>
+        , boost::empty_value<RatePolicy>
     {
         // must come first
         net::basic_stream_socket<
@@ -235,6 +239,8 @@ public:
 
         op_state read;
         op_state write;
+        net::steady_timer timer; // rate timer
+        int waiting = 0;
 
         impl_type(impl_type&&) = default;
 
@@ -249,6 +255,21 @@ public:
         {
             return this->socket.get_executor();
         }
+
+        RatePolicy&
+        policy() noexcept
+        {
+            return this->boost::empty_value<RatePolicy>::get();
+        }
+
+        RatePolicy const&
+        policy() const noexcept
+        {
+            return this->boost::empty_value<RatePolicy>::get();
+        }
+
+        template<class Executor2>
+        void on_timer(Executor2 const& ex2);
 
         void reset();       // set timeouts to never
         void close();       // cancel everything
@@ -265,10 +286,10 @@ private:
 
     template<bool, class, class> class async_op;
 
-    template<class, class, class>
+    template<class, class, class, class>
     friend class detail::basic_stream_connect_op;
 
-    template<class, class>
+    template<class, class, class>
     friend class basic_stream;
 
     struct timeout_handler;
@@ -353,6 +374,20 @@ public:
     release_socket();
 
     //--------------------------------------------------------------------------
+
+    /// Returns the rate policy associated with the object
+    RatePolicy&
+    rate_policy() noexcept
+    {
+        return impl_->policy();
+    }
+
+    /// Returns the rate policy associated with the object
+    RatePolicy const&
+    rate_policy() const noexcept
+    {
+        return impl_->policy();
+    }
 
     /** Set the timeout for the next logical operation.
 
@@ -1148,7 +1183,7 @@ connect(
     to using `net::post`.
 */
 template<
-    class Protocol, class Executor,
+    class Protocol, class Executor, class RatePolicy,
     class EndpointSequence,
     class RangeConnectHandler
 #if ! BOOST_BEAST_DOXYGEN
@@ -1160,7 +1195,7 @@ template<
 BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
     void (error_code, typename Protocol::endpoint))
 async_connect(
-    basic_stream<Protocol, Executor>& stream,
+    basic_stream<Protocol, Executor, RatePolicy>& stream,
     EndpointSequence const& endpoints,
     RangeConnectHandler&& handler);
 
@@ -1236,7 +1271,7 @@ async_connect(
     @endcode
 */
 template<
-    class Protocol, class Executor,
+    class Protocol, class Executor, class RatePolicy,
     class EndpointSequence,
     class ConnectCondition,
     class RangeConnectHandler
@@ -1249,7 +1284,7 @@ template<
 BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
     void (error_code, typename Protocol::endpoint))
 async_connect(
-    basic_stream<Protocol, Executor>& stream,
+    basic_stream<Protocol, Executor, RatePolicy>& stream,
     EndpointSequence const& endpoints,
     ConnectCondition connect_condition,
     RangeConnectHandler&& handler);
@@ -1296,13 +1331,13 @@ async_connect(
     to using `net::post`.
 */
 template<
-    class Protocol, class Executor,
+    class Protocol, class Executor, class RatePolicy,
     class Iterator,
     class IteratorConnectHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
     void (error_code, Iterator))
 async_connect(
-    basic_stream<Protocol, Executor>& stream,
+    basic_stream<Protocol, Executor, RatePolicy>& stream,
     Iterator begin, Iterator end,
     IteratorConnectHandler&& handler);
 
@@ -1355,14 +1390,14 @@ async_connect(
     to using `net::post`.
 */
 template<
-    class Protocol, class Executor,
+    class Protocol, class Executor, class RatePolicy,
     class Iterator,
     class ConnectCondition,
     class IteratorConnectHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
     void (error_code, Iterator))
 async_connect(
-    basic_stream<Protocol, Executor>& stream,
+    basic_stream<Protocol, Executor, RatePolicy>& stream,
     Iterator begin, Iterator end,
     ConnectCondition connect_condition,
     IteratorConnectHandler&& handler);

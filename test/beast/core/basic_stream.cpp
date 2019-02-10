@@ -31,6 +31,18 @@
 namespace boost {
 namespace beast {
 
+#if 0
+template class basic_stream<
+    net::ip::tcp,
+    net::executor,
+    unlimited_rate_policy>;
+
+template class basic_stream<
+    net::ip::tcp,
+    net::executor,
+    simple_rate_policy>;
+#endif
+
 namespace {
 
 template<class Executor = net::io_context::executor_type>

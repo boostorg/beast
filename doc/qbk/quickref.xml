@@ -37,6 +37,7 @@
           <member><link linkend="beast.ref.boost__beast__handler_ptr">handler_ptr</link></member>
           <member><link linkend="beast.ref.boost__beast__iequal">iequal</link></member>
           <member><link linkend="beast.ref.boost__beast__iless">iless</link></member>
+          <member><link linkend="beast.ref.boost__beast__rate_policy_access">rate_policy_access</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
         </simplelist>
       </entry>
       <entry valign="top">
@@ -44,11 +45,13 @@
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.ref.boost__beast__saved_handler">saved_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__span">span</link></member>
+          <member><link linkend="beast.ref.boost__beast__simple_rate_policy">simple_rate_policy</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__static_string">static_string</link></member>
           <member><link linkend="beast.ref.boost__beast__stable_async_op_base">stable_async_op_base</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__string_param">string_param</link></member>
           <member><link linkend="beast.ref.boost__beast__string_view">string_view</link></member>
           <member><link linkend="beast.ref.boost__beast__tcp_stream">tcp_stream</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__unlimited_rate_policy">unlimited_rate_policy</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
         </simplelist>
         <bridgehead renderas="sect3">Constants</bridgehead>
         <simplelist type="vert" columns="1">

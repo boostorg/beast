@@ -21,7 +21,7 @@ namespace boost {
 namespace beast {
 namespace detail {
 
-template<class, class, class>
+template<class, class, class, class>
 class basic_stream_connect_op;
 
 struct any_endpoint
