@@ -16,8 +16,6 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
@@ -244,22 +242,18 @@ class session : public std::enable_shared_from_this<session>
 
             // Write the response
             http::async_write(
-                self_.socket_,
+                self_.stream_,
                 *sp,
-                net::bind_executor(
-                    self_.strand_,
-                    std::bind(
-                        &session::on_write,
-                        self_.shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2,
-                        sp->need_eof())));
+                std::bind(
+                    &session::on_write,
+                    self_.shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2,
+                    sp->need_eof()));
         }
     };
 
-    tcp::socket socket_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    beast::tcp_stream<net::io_context::strand> stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
@@ -268,12 +262,10 @@ class session : public std::enable_shared_from_this<session>
 
 public:
     // Take ownership of the socket
-    explicit
     session(
-        tcp::socket socket,
+        tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root)
-        : socket_(std::move(socket))
-        , strand_(socket_.get_executor())
+        : stream_(std::move(socket))
         , doc_root_(doc_root)
         , lambda_(*this)
     {
@@ -293,15 +285,16 @@ public:
         // otherwise the operation behavior is undefined.
         req_ = {};
 
+        // Set the timeout.
+        stream_.expires_after(std::chrono::seconds(30));
+
         // Read a request
-        http::async_read(socket_, buffer_, req_,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+        http::async_read(stream_, buffer_, req_,
+            std::bind(
+                &session::on_read,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -352,7 +345,7 @@ public:
     {
         // Send a TCP shutdown
         beast::error_code ec;
-        socket_.shutdown(tcp::socket::shutdown_send, ec);
+        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
 
         // At this point the connection is closed gracefully
     }
@@ -364,7 +357,6 @@ public:
 class listener : public std::enable_shared_from_this<listener>
 {
     tcp::acceptor acceptor_;
-    tcp::socket socket_;
     std::shared_ptr<std::string const> doc_root_;
 
 public:
@@ -373,7 +365,6 @@ public:
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root)
         : acceptor_(ioc)
-        , socket_(ioc)
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -425,15 +416,15 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            socket_,
             std::bind(
                 &listener::on_accept,
                 shared_from_this(),
-                std::placeholders::_1));
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
-    on_accept(beast::error_code ec)
+    on_accept(beast::error_code ec, tcp::socket socket)
     {
         if(ec)
         {
@@ -443,7 +434,7 @@ public:
         {
             // Create the session and run it
             std::make_shared<session>(
-                std::move(socket_),
+                std::move(socket),
                 doc_root_)->run();
         }
 

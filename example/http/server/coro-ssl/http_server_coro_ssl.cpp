@@ -18,9 +18,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/ip/tcp.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
 #include <cstdlib>
@@ -208,6 +207,11 @@ handle_request(
 
 //------------------------------------------------------------------------------
 
+// The type of stream to use
+// Stackful coroutines are already stranded.
+using stream_type =
+    beast::ssl_stream<beast::tcp_stream<net::io_context::executor_type>>;
+
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -217,17 +221,15 @@ fail(beast::error_code ec, char const* what)
 
 // This is the C++11 equivalent of a generic lambda.
 // The function object is used to send an HTTP message.
-template<class Stream>
 struct send_lambda
 {
-    Stream& stream_;
+    stream_type& stream_;
     bool& close_;
     beast::error_code& ec_;
     net::yield_context yield_;
 
-    explicit
     send_lambda(
-        Stream& stream,
+        stream_type& stream,
         bool& close,
         beast::error_code& ec,
         net::yield_context yield)
@@ -256,16 +258,15 @@ struct send_lambda
 // Handles an HTTP server connection
 void
 do_session(
-    tcp::socket& socket,
-    ssl::context& ctx,
+    stream_type& stream,
     std::shared_ptr<std::string const> const& doc_root,
     net::yield_context yield)
 {
     bool close = false;
     beast::error_code ec;
 
-    // Construct the stream around the socket
-    ssl::stream<tcp::socket&> stream{socket, ctx};
+    // Set the timeout.
+    beast::get_lowest_layer(stream).expires_after(std::chrono::seconds(30));
 
     // Perform the SSL handshake
     stream.async_handshake(ssl::stream_base::server, yield[ec]);
@@ -276,10 +277,13 @@ do_session(
     beast::flat_buffer buffer;
 
     // This lambda is used to send messages
-    send_lambda<ssl::stream<tcp::socket&>> lambda{stream, close, ec, yield};
+    send_lambda lambda{stream, close, ec, yield};
 
     for(;;)
     {
+        // Set the timeout.
+        beast::get_lowest_layer(stream).expires_after(std::chrono::seconds(30));
+
         // Read a request
         http::request<http::string_body> req;
         http::async_read(stream, buffer, req, yield[ec]);
@@ -299,6 +303,9 @@ do_session(
             break;
         }
     }
+
+    // Set the timeout.
+    beast::get_lowest_layer(stream).expires_after(std::chrono::seconds(30));
 
     // Perform the SSL shutdown
     stream.async_shutdown(yield[ec]);
@@ -353,8 +360,7 @@ do_listen(
                 acceptor.get_executor().context(),
                 std::bind(
                     &do_session,
-                    std::move(socket),
-                    std::ref(ctx),
+                    stream_type(std::move(socket), ctx),
                     doc_root,
                     std::placeholders::_1));
     }

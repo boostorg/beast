@@ -18,9 +18,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
@@ -250,21 +248,16 @@ class session : public std::enable_shared_from_this<session>
             http::async_write(
                 self_.stream_,
                 *sp,
-                net::bind_executor(
-                    self_.strand_,
-                    std::bind(
-                        &session::on_write,
-                        self_.shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2,
-                        sp->need_eof())));
+                std::bind(
+                    &session::on_write,
+                    self_.shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2,
+                    sp->need_eof()));
         }
     };
 
-    tcp::socket socket_;
-    ssl::stream<tcp::socket&> stream_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    beast::ssl_stream<beast::tcp_stream<net::io_context::strand>> stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
@@ -275,12 +268,10 @@ public:
     // Take ownership of the socket
     explicit
     session(
-        tcp::socket socket,
+        tcp::socket&& socket,
         ssl::context& ctx,
         std::shared_ptr<std::string const> const& doc_root)
-        : socket_(std::move(socket))
-        , stream_(socket_, ctx)
-        , strand_(socket_.get_executor())
+        : stream_(std::move(socket), ctx)
         , doc_root_(doc_root)
         , lambda_(*this)
     {
@@ -290,15 +281,16 @@ public:
     void
     run()
     {
+        // Set the timeout.
+        beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+
         // Perform the SSL handshake
         stream_.async_handshake(
             ssl::stream_base::server,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_handshake,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            std::bind(
+                &session::on_handshake,
+                shared_from_this(),
+                std::placeholders::_1));
     }
 
     void
@@ -317,15 +309,16 @@ public:
         // otherwise the operation behavior is undefined.
         req_ = {};
 
+        // Set the timeout.
+        beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+
         // Read a request
         http::async_read(stream_, buffer_, req_,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &session::on_read,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -374,14 +367,15 @@ public:
     void
     do_close()
     {
+        // Set the timeout.
+        beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+
         // Perform the SSL shutdown
         stream_.async_shutdown(
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_shutdown,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            std::bind(
+                &session::on_shutdown,
+                shared_from_this(),
+                std::placeholders::_1));
     }
 
     void
@@ -401,7 +395,6 @@ class listener : public std::enable_shared_from_this<listener>
 {
     ssl::context& ctx_;
     tcp::acceptor acceptor_;
-    tcp::socket socket_;
     std::shared_ptr<std::string const> doc_root_;
 
 public:
@@ -412,7 +405,6 @@ public:
         std::shared_ptr<std::string const> const& doc_root)
         : ctx_(ctx)
         , acceptor_(ioc)
-        , socket_(ioc)
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -464,15 +456,15 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            socket_,
             std::bind(
                 &listener::on_accept,
                 shared_from_this(),
-                std::placeholders::_1));
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
-    on_accept(beast::error_code ec)
+    on_accept(beast::error_code ec, tcp::socket socket)
     {
         if(ec)
         {
@@ -482,7 +474,7 @@ public:
         {
             // Create the session and run it
             std::make_shared<session>(
-                std::move(socket_),
+                std::move(socket),
                 ctx_,
                 doc_root_)->run();
         }

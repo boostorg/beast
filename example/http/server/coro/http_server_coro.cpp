@@ -204,6 +204,10 @@ handle_request(
 
 //------------------------------------------------------------------------------
 
+// The type of stream to use.
+// Stackful coroutines are already stranded.
+using stream_type = beast::tcp_stream<net::io_context::executor_type>;
+
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -213,17 +217,15 @@ fail(beast::error_code ec, char const* what)
 
 // This is the C++11 equivalent of a generic lambda.
 // The function object is used to send an HTTP message.
-template<class Stream>
 struct send_lambda
 {
-    Stream& stream_;
+    stream_type& stream_;
     bool& close_;
     beast::error_code& ec_;
     net::yield_context yield_;
 
-    explicit
     send_lambda(
-        Stream& stream,
+        stream_type& stream,
         bool& close,
         beast::error_code& ec,
         net::yield_context yield)
@@ -252,7 +254,7 @@ struct send_lambda
 // Handles an HTTP server connection
 void
 do_session(
-    tcp::socket& socket,
+    stream_type& stream,
     std::shared_ptr<std::string const> const& doc_root,
     net::yield_context yield)
 {
@@ -263,13 +265,16 @@ do_session(
     beast::flat_buffer buffer;
 
     // This lambda is used to send messages
-    send_lambda<tcp::socket> lambda{socket, close, ec, yield};
+    send_lambda lambda{stream, close, ec, yield};
 
     for(;;)
     {
+        // Set the timeout.
+        stream.expires_after(std::chrono::seconds(30));
+
         // Read a request
         http::request<http::string_body> req;
-        http::async_read(socket, buffer, req, yield[ec]);
+        http::async_read(stream, buffer, req, yield[ec]);
         if(ec == http::error::end_of_stream)
             break;
         if(ec)
@@ -288,7 +293,7 @@ do_session(
     }
 
     // Send a TCP shutdown
-    socket.shutdown(tcp::socket::shutdown_send, ec);
+    stream.socket().shutdown(tcp::socket::shutdown_send, ec);
 
     // At this point the connection is closed gracefully
 }
@@ -337,7 +342,7 @@ do_listen(
                 acceptor.get_executor().context(),
                 std::bind(
                     &do_session,
-                    std::move(socket),
+                    stream_type(std::move(socket)),
                     doc_root,
                     std::placeholders::_1));
     }

@@ -18,10 +18,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/bind_executor.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
@@ -211,6 +209,10 @@ handle_request(
 
 //------------------------------------------------------------------------------
 
+// The type of TLS streams
+using ssl_stream_type =
+    beast::ssl_stream<beast::tcp_stream<net::io_context::strand>>;
+
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -253,21 +255,16 @@ class session
             http::async_write(
                 self_.stream_,
                 *sp,
-                net::bind_executor(
-                    self_.strand_,
-                    std::bind(
-                        &session::loop,
-                        self_.shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2,
-                        sp->need_eof())));
+                std::bind(
+                    &session::loop,
+                    self_.shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2,
+                    sp->need_eof()));
         }
     };
 
-    tcp::socket socket_;
-    ssl::stream<tcp::socket&> stream_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    ssl_stream_type stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
@@ -278,12 +275,10 @@ public:
     // Take ownership of the socket
     explicit
     session(
-        tcp::socket socket,
+        tcp::socket&& socket,
         ssl::context& ctx,
         std::shared_ptr<std::string const> const& doc_root)
-        : socket_(std::move(socket))
-        , stream_(socket_, ctx)
-        , strand_(socket_.get_executor())
+        : stream_(std::move(socket), ctx)
         , doc_root_(doc_root)
         , lambda_(*this)
     {
@@ -306,36 +301,38 @@ public:
         boost::ignore_unused(bytes_transferred);
         reenter(*this)
         {
+            // Set the timeout.
+            beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+
             // Perform the SSL handshake
             yield stream_.async_handshake(
                 ssl::stream_base::server,
-                net::bind_executor(
-                    strand_,
-                    std::bind(
-                        &session::loop,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        0,
-                        false)));
+                std::bind(
+                    &session::loop,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    0,
+                    false));
             if(ec)
                 return fail(ec, "handshake");
 
             for(;;)
             {
+                // Set the timeout.
+                beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+
                 // Make the request empty before reading,
                 // otherwise the operation behavior is undefined.
                 req_ = {};
 
                 // Read a request
                 yield http::async_read(stream_, buffer_, req_,
-                    net::bind_executor(
-                        strand_,
-                        std::bind(
-                            &session::loop,
-                            shared_from_this(),
-                            std::placeholders::_1,
-                            std::placeholders::_2,
-                            false)));
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        std::placeholders::_2,
+                        false));
                 if(ec == http::error::end_of_stream)
                 {
                     // The remote host closed the connection
@@ -359,16 +356,17 @@ public:
                 res_ = nullptr;
             }
 
+            // Set the timeout.
+            beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+
             // Perform the SSL shutdown
             yield stream_.async_shutdown(
-                net::bind_executor(
-                    strand_,
-                    std::bind(
-                        &session::loop,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        0,
-                        false)));
+                std::bind(
+                    &session::loop,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    0,
+                    false));
             if(ec)
                 return fail(ec, "shutdown");
 
