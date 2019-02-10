@@ -15,8 +15,6 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -42,7 +40,8 @@ fail(beast::error_code ec, char const* what)
 class session : public std::enable_shared_from_this<session>
 {
     tcp::resolver resolver_;
-    websocket::stream<tcp::socket> ws_;
+    websocket::stream<
+        beast::tcp_stream<net::io_context::executor_type>> ws_;
     beast::multi_buffer buffer_;
     std::string host_;
     std::string text_;
@@ -86,11 +85,13 @@ public:
         if(ec)
             return fail(ec, "resolve");
 
+        // Set the timeout for the operation
+        beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
+
         // Make the connection on the IP address we get from a lookup
-        net::async_connect(
-            ws_.next_layer(),
-            results.begin(),
-            results.end(),
+        beast::async_connect(
+            beast::get_lowest_layer(ws_),
+            results,
             std::bind(
                 &session::on_connect,
                 shared_from_this(),

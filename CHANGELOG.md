@@ -4,6 +4,7 @@ Version 213:
 * basic_stream subsumes stranded_stream:
 * Use timeouts in HTTP server examples
 * Use timeouts in HTTP client examples
+* Use tcp_stream in WebSocket client examples
 
 --------------------------------------------------------------------------------
 

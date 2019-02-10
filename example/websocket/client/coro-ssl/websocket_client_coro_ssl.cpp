@@ -18,10 +18,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
-#include <boost/asio/connect.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -57,17 +55,24 @@ do_session(
 
     // These objects perform our I/O
     tcp::resolver resolver{ioc};
-    websocket::stream<ssl::stream<tcp::socket>> ws{ioc, ctx};
+    websocket::stream<ssl::stream<
+        beast::tcp_stream<net::io_context::executor_type>>> ws(ioc, ctx);
 
     // Look up the domain name
     auto const results = resolver.async_resolve(host, port, yield[ec]);
     if(ec)
         return fail(ec, "resolve");
 
+    // Set a timeout on the operation
+    beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(30));
+
     // Make the connection on the IP address we get from a lookup
-    net::async_connect(ws.next_layer().next_layer(), results.begin(), results.end(), yield[ec]);
+    beast::async_connect(beast::get_lowest_layer(ws), results, yield[ec]);
     if(ec)
         return fail(ec, "connect");
+
+    // Set a timeout on the operation
+    beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(30));
 
     // Perform the SSL handshake
     ws.next_layer().async_handshake(ssl::stream_base::client, yield[ec]);

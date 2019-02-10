@@ -18,9 +18,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -47,7 +45,8 @@ fail(beast::error_code ec, char const* what)
 class session : public std::enable_shared_from_this<session>
 {
     tcp::resolver resolver_;
-    websocket::stream<ssl::stream<tcp::socket>> ws_;
+    websocket::stream<beast::ssl_stream<
+        beast::tcp_stream<net::io_context::executor_type>>> ws_;
     beast::multi_buffer buffer_;
     std::string host_;
     std::string text_;
@@ -91,11 +90,13 @@ public:
         if(ec)
             return fail(ec, "resolve");
 
+        // Set a timeout on the operation
+        beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
+
         // Make the connection on the IP address we get from a lookup
-        net::async_connect(
-            ws_.next_layer().next_layer(),
-            results.begin(),
-            results.end(),
+        beast::async_connect(
+            beast::get_lowest_layer(ws_),
+            results,
             std::bind(
                 &session::on_connect,
                 shared_from_this(),
@@ -107,6 +108,9 @@ public:
     {
         if(ec)
             return fail(ec, "connect");
+
+        // Set a timeout on the operation
+        beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
 
         // Perform the SSL handshake
         ws_.next_layer().async_handshake(
