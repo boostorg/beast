@@ -718,6 +718,9 @@ async_connect(
 }
 
 //------------------------------------------------------------------------------
+//
+// Customization points
+//
 
 #if ! BOOST_BEAST_DOXYGEN
 

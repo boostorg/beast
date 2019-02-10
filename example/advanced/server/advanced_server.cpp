@@ -18,10 +18,9 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/bind_executor.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/signal_set.hpp>
-#include <boost/asio/strand.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
@@ -221,9 +220,7 @@ fail(beast::error_code ec, char const* what)
 // Echoes back all received WebSocket messages
 class websocket_session : public std::enable_shared_from_this<websocket_session>
 {
-    websocket::stream<tcp::socket> ws_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    websocket::stream<beast::tcp_stream<net::io_context::strand>> ws_;
     net::steady_timer timer_;
     beast::flat_buffer buffer_;
     char ping_state_ = 0;
@@ -233,13 +230,12 @@ public:
     explicit
     websocket_session(tcp::socket socket)
         : ws_(std::move(socket))
-        , strand_(ws_.get_executor())
         , timer_(ws_.get_executor().context(),
             (std::chrono::steady_clock::time_point::max)())
     {
     }
 
-    // Start the asynchronous operation
+    // Start the asynchronous accept operation
     template<class Body, class Allocator>
     void
     do_accept(http::request<Body, http::basic_fields<Allocator>> req)
@@ -263,12 +259,10 @@ public:
         // Accept the websocket handshake
         ws_.async_accept(
             req,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &websocket_session::on_accept,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            std::bind(
+                &websocket_session::on_accept,
+                shared_from_this(),
+                std::placeholders::_1));
     }
 
     void
@@ -307,12 +301,10 @@ public:
 
                 // Now send the ping
                 ws_.async_ping({},
-                    net::bind_executor(
-                        strand_,
-                        std::bind(
-                            &websocket_session::on_ping,
-                            shared_from_this(),
-                            std::placeholders::_1)));
+                    std::bind(
+                        &websocket_session::on_ping,
+                        shared_from_this(),
+                        std::placeholders::_1));
             }
             else
             {
@@ -322,8 +314,8 @@ public:
 
                 // Closing the socket cancels all outstanding operations. They
                 // will complete with net::error::operation_aborted
-                ws_.next_layer().shutdown(tcp::socket::shutdown_both, ec);
-                ws_.next_layer().close(ec);
+                beast::get_lowest_layer(ws_).socket().shutdown(tcp::socket::shutdown_both, ec);
+                beast::get_lowest_layer(ws_).socket().close(ec);
                 return;
             }
         }
@@ -331,7 +323,7 @@ public:
         // Wait on the timer
         timer_.async_wait(
             net::bind_executor(
-                strand_,
+                ws_.get_executor(), // use the strand
                 std::bind(
                     &websocket_session::on_timer,
                     shared_from_this(),
@@ -391,13 +383,11 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &websocket_session::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &websocket_session::on_read,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -425,13 +415,11 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &websocket_session::on_write,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &websocket_session::on_write,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -530,15 +518,13 @@ class http_session : public std::enable_shared_from_this<http_session>
                 operator()()
                 {
                     http::async_write(
-                        self_.socket_,
+                        self_.stream_,
                         msg_,
-                        net::bind_executor(
-                            self_.strand_,
-                            std::bind(
-                                &http_session::on_write,
-                                self_.shared_from_this(),
-                                std::placeholders::_1,
-                                msg_.need_eof())));
+                        std::bind(
+                            &http_session::on_write,
+                            self_.shared_from_this(),
+                            std::placeholders::_1,
+                            msg_.need_eof()));
                 }
             };
 
@@ -552,10 +538,7 @@ class http_session : public std::enable_shared_from_this<http_session>
         }
     };
 
-    tcp::socket socket_;
-    net::strand<
-        net::io_context::executor_type> strand_;
-    net::steady_timer timer_;
+    beast::tcp_stream<net::io_context::strand> stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
@@ -567,10 +550,7 @@ public:
     http_session(
         tcp::socket socket,
         std::shared_ptr<std::string const> const& doc_root)
-        : socket_(std::move(socket))
-        , strand_(socket_.get_executor())
-        , timer_(socket_.get_executor().context(),
-            (std::chrono::steady_clock::time_point::max)())
+        : stream_(std::move(socket))
         , doc_root_(doc_root)
         , queue_(*this)
     {
@@ -581,17 +561,12 @@ public:
     run()
     {
         // Make sure we run on the strand
-        if(! strand_.running_in_this_thread())
+        if(! stream_.get_executor().running_in_this_thread())
             return net::post(
-                net::bind_executor(
-                    strand_,
-                    std::bind(
-                        &http_session::run,
-                        shared_from_this())));
-
-        // Run the timer. The timer is operated
-        // continuously, this simplifies the code.
-        on_timer({});
+                stream_.get_executor(),
+                std::bind(
+                    &http_session::run,
+                    shared_from_this()));
 
         do_read();
     }
@@ -599,61 +574,25 @@ public:
     void
     do_read()
     {
-        // Set the timer
-        timer_.expires_after(std::chrono::seconds(15));
 
         // Make the request empty before reading,
         // otherwise the operation behavior is undefined.
         req_ = {};
 
+        // Set the timeout.
+        stream_.expires_after(std::chrono::seconds(30));
+
         // Read a request
-        http::async_read(socket_, buffer_, req_,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &http_session::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1)));
-    }
-
-    // Called when the timer expires.
-    void
-    on_timer(beast::error_code ec)
-    {
-        if(ec && ec != net::error::operation_aborted)
-            return fail(ec, "timer");
-
-        // Check if this has been upgraded to Websocket
-        if(timer_.expiry() == (std::chrono::steady_clock::time_point::min)())
-            return;
-
-        // Verify that the timer really expired since the deadline may have moved.
-        if(timer_.expiry() <= std::chrono::steady_clock::now())
-        {
-            // Closing the socket cancels all outstanding operations. They
-            // will complete with net::error::operation_aborted
-            socket_.shutdown(tcp::socket::shutdown_both, ec);
-            socket_.close(ec);
-            return;
-        }
-
-        // Wait on the timer
-        timer_.async_wait(
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &http_session::on_timer,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+        http::async_read(stream_, buffer_, req_,
+            std::bind(
+                &http_session::on_read,
+                shared_from_this(),
+                std::placeholders::_1));
     }
 
     void
     on_read(beast::error_code ec)
     {
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
-
         // This means they closed the connection
         if(ec == http::error::end_of_stream)
             return do_close();
@@ -664,13 +603,9 @@ public:
         // See if it is a WebSocket Upgrade
         if(websocket::is_upgrade(req_))
         {
-            // Make timer expire immediately, by setting expiry to time_point::min we can detect
-            // the upgrade to websocket in the timer handler
-            timer_.expires_at((std::chrono::steady_clock::time_point::min)());
-
-            // Create a WebSocket websocket_session by transferring the socket
+            // Create a websocket session by transferring the socket
             std::make_shared<websocket_session>(
-                std::move(socket_))->do_accept(std::move(req_));
+                stream_.release_socket())->do_accept(std::move(req_));
             return;
         }
 
@@ -712,7 +647,7 @@ public:
     {
         // Send a TCP shutdown
         beast::error_code ec;
-        socket_.shutdown(tcp::socket::shutdown_send, ec);
+        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
 
         // At this point the connection is closed gracefully
     }
@@ -785,15 +720,15 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            socket_,
             std::bind(
                 &listener::on_accept,
                 shared_from_this(),
-                std::placeholders::_1));
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
-    on_accept(beast::error_code ec)
+    on_accept(beast::error_code ec, tcp::socket socket)
     {
         if(ec)
         {
@@ -801,9 +736,9 @@ public:
         }
         else
         {
-            // Create the http_session and run it
+            // Create the http session and run it
             std::make_shared<http_session>(
-                std::move(socket_),
+                std::move(socket),
                 doc_root_)->run();
         }
 
