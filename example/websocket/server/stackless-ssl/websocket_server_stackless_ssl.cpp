@@ -18,10 +18,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
-#include <boost/asio/bind_executor.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/strand.hpp>
 #include <algorithm>
 #include <cstdlib>
@@ -53,18 +51,14 @@ class session
     : public net::coroutine
     , public std::enable_shared_from_this<session>
 {
-    tcp::socket socket_;
-    websocket::stream<ssl::stream<tcp::socket&>> ws_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    websocket::stream<beast::ssl_stream<
+        beast::tcp_stream<net::io_context::strand>>> ws_;
     beast::multi_buffer buffer_;
 
 public:
     // Take ownership of the socket
-    session(tcp::socket socket, ssl::context& ctx)
-        : socket_(std::move(socket))
-        , ws_(socket_, ctx)
-        , strand_(ws_.get_executor())
+    session(tcp::socket&& socket, ssl::context& ctx)
+        : ws_(std::move(socket), ctx)
     {
     }
 
@@ -88,25 +82,21 @@ public:
             // Perform the SSL handshake
             yield ws_.next_layer().async_handshake(
                 ssl::stream_base::server,
-                net::bind_executor(
-                    strand_,
-                    std::bind(
-                        &session::loop,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        0)));
+                std::bind(
+                    &session::loop,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    0));
             if(ec)
                 return fail(ec, "handshake");
 
             // Accept the websocket handshake
             yield ws_.async_accept(
-                net::bind_executor(
-                    strand_,
-                    std::bind(
-                        &session::loop,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        0)));
+                std::bind(
+                    &session::loop,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    0));
             if(ec)
                 return fail(ec, "accept");
 
@@ -115,13 +105,11 @@ public:
                 // Read a message into our buffer
                 yield ws_.async_read(
                     buffer_,
-                    net::bind_executor(
-                        strand_,
-                        std::bind(
-                            &session::loop,
-                            shared_from_this(),
-                            std::placeholders::_1,
-                            std::placeholders::_2)));
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        std::placeholders::_2));
                 if(ec == websocket::error::closed)
                 {
                     // This indicates that the session was closed
@@ -134,13 +122,11 @@ public:
                 ws_.text(ws_.got_text());
                 yield ws_.async_write(
                     buffer_.data(),
-                    net::bind_executor(
-                        strand_,
-                        std::bind(
-                            &session::loop,
-                            shared_from_this(),
-                            std::placeholders::_1,
-                            std::placeholders::_2)));
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        std::placeholders::_2));
                 if(ec)
                     return fail(ec, "write");
 

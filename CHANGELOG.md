@@ -5,6 +5,7 @@ Version 213:
 * Use timeouts in HTTP server examples
 * Use timeouts in HTTP client examples
 * Use tcp_stream in WebSocket client examples
+* Use tcp_stream in WebSocket server examples
 
 --------------------------------------------------------------------------------
 

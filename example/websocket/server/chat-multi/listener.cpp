@@ -17,7 +17,6 @@ listener(
     tcp::endpoint endpoint,
     boost::shared_ptr<shared_state> const& state)
     : acceptor_(ioc)
-    , socket_(ioc)
     , state_(state)
 {
     beast::error_code ec;
@@ -62,11 +61,11 @@ run()
 {
     // Start accepting a connection
     acceptor_.async_accept(
-        socket_,
         std::bind(
             &listener::on_accept,
             shared_from_this(),
-            std::placeholders::_1));
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 // Report a failure
@@ -83,21 +82,21 @@ fail(beast::error_code ec, char const* what)
 // Handle a connection
 void
 listener::
-on_accept(beast::error_code ec)
+on_accept(beast::error_code ec, tcp::socket socket)
 {
     if(ec)
         return fail(ec, "accept");
     else
         // Launch a new session for this connection
         boost::make_shared<http_session>(
-            std::move(socket_),
+            std::move(socket),
             state_)->run();
 
     // Accept another connection
     acceptor_.async_accept(
-        socket_,
         std::bind(
             &listener::on_accept,
             shared_from_this(),
-            std::placeholders::_1));
+            std::placeholders::_1,
+            std::placeholders::_2));
 }

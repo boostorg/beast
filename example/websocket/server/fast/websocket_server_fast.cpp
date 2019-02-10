@@ -30,10 +30,8 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/strand.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -80,12 +78,16 @@ setup_stream(websocket::stream<NextLayer>& ws)
 
 //------------------------------------------------------------------------------
 
+// The type of websocket stream to use
+// Stackful coroutines are already stranded.
+using ws_type = websocket::stream<
+    beast::tcp_stream<net::io_context::executor_type>>;
+
 void
-do_sync_session(tcp::socket& socket)
+do_sync_session(ws_type& ws)
 {
     beast::error_code ec;
 
-    websocket::stream<tcp::socket> ws{std::move(socket)};
     setup_stream(ws);
 
     ws.accept_ex(
@@ -131,7 +133,7 @@ do_sync_listen(
 
         std::thread{std::bind(
             &do_sync_session,
-            std::move(socket))}.detach();
+            ws_type(std::move(socket)))}.detach();
     }
 }
 
@@ -140,9 +142,7 @@ do_sync_listen(
 // Echoes back all received WebSocket messages
 class async_session : public std::enable_shared_from_this<async_session>
 {
-    websocket::stream<tcp::socket> ws_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    websocket::stream<beast::tcp_stream<net::io_context::strand>> ws_;
     beast::multi_buffer buffer_;
 
 public:
@@ -150,7 +150,6 @@ public:
     explicit
     async_session(tcp::socket socket)
         : ws_(std::move(socket))
-        , strand_(ws_.get_executor())
     {
         setup_stream(ws_);
     }
@@ -166,12 +165,10 @@ public:
                 res.set(http::field::server,
                     "Boost.Beast/" + std::to_string(BOOST_BEAST_VERSION) + "-Async");
             },
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &async_session::on_accept,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            std::bind(
+                &async_session::on_accept,
+                shared_from_this(),
+                std::placeholders::_1));
     }
 
     void
@@ -190,13 +187,11 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &async_session::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &async_session::on_read,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -217,13 +212,11 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &async_session::on_write,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &async_session::on_write,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -247,18 +240,13 @@ public:
 // Accepts incoming connections and launches the sessions
 class async_listener : public std::enable_shared_from_this<async_listener>
 {
-    net::strand<
-        net::io_context::executor_type> strand_;
     tcp::acceptor acceptor_;
-    tcp::socket socket_;
 
 public:
     async_listener(
         net::io_context& ioc,
         tcp::endpoint endpoint)
-        : strand_(ioc.get_executor())
-        , acceptor_(ioc)
-        , socket_(ioc)
+        : acceptor_(ioc)
     {
         beast::error_code ec;
 
@@ -309,17 +297,15 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            socket_,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &async_listener::on_accept,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            std::bind(
+                &async_listener::on_accept,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
-    on_accept(beast::error_code ec)
+    on_accept(beast::error_code ec, tcp::socket socket)
     {
         if(ec)
         {
@@ -328,7 +314,7 @@ public:
         else
         {
             // Create the async_session and run it
-            std::make_shared<async_session>(std::move(socket_))->run();
+            std::make_shared<async_session>(std::move(socket))->run();
         }
 
         // Accept another connection
@@ -339,11 +325,10 @@ public:
 //------------------------------------------------------------------------------
 
 void
-do_coro_session(tcp::socket& socket, net::yield_context yield)
+do_coro_session(ws_type& ws, net::yield_context yield)
 {
     beast::error_code ec;
 
-    websocket::stream<tcp::socket> ws{std::move(socket)};
     setup_stream(ws);
 
     ws.async_accept_ex(
@@ -413,7 +398,7 @@ do_coro_listen(
             acceptor.get_executor().context(),
             std::bind(
                 &do_coro_session,
-                std::move(socket),
+                ws_type(std::move(socket)),
                 std::placeholders::_1));
     }
 }

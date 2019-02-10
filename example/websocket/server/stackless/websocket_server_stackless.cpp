@@ -15,10 +15,8 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/strand.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -48,9 +46,8 @@ class session
     : public net::coroutine
     , public std::enable_shared_from_this<session>
 {
-    websocket::stream<tcp::socket> ws_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    websocket::stream<
+        beast::tcp_stream<net::io_context::strand>> ws_;
     beast::multi_buffer buffer_;
 
 public:
@@ -58,7 +55,6 @@ public:
     explicit
     session(tcp::socket socket)
         : ws_(std::move(socket))
-        , strand_(ws_.get_executor())
     {
     }
 
@@ -80,13 +76,11 @@ public:
         {
             // Accept the websocket handshake
             yield ws_.async_accept(
-                net::bind_executor(
-                    strand_,
-                    std::bind(
-                        &session::loop,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        0)));
+                std::bind(
+                    &session::loop,
+                    shared_from_this(),
+                    std::placeholders::_1,
+                    0));
             if(ec)
                 return fail(ec, "accept");
 
@@ -95,13 +89,11 @@ public:
                 // Read a message into our buffer
                 yield ws_.async_read(
                     buffer_,
-                    net::bind_executor(
-                        strand_,
-                        std::bind(
-                            &session::loop,
-                            shared_from_this(),
-                            std::placeholders::_1,
-                            std::placeholders::_2)));
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        std::placeholders::_2));
                 if(ec == websocket::error::closed)
                 {
                     // This indicates that the session was closed
@@ -114,13 +106,11 @@ public:
                 ws_.text(ws_.got_text());
                 yield ws_.async_write(
                     buffer_.data(),
-                    net::bind_executor(
-                        strand_,
-                        std::bind(
-                            &session::loop,
-                            shared_from_this(),
-                            std::placeholders::_1,
-                            std::placeholders::_2)));
+                    std::bind(
+                        &session::loop,
+                        shared_from_this(),
+                        std::placeholders::_1,
+                        std::placeholders::_2));
                 if(ec)
                     return fail(ec, "write");
 

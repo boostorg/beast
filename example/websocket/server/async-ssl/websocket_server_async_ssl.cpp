@@ -18,10 +18,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
-#include <boost/asio/bind_executor.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/strand.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -50,18 +48,14 @@ fail(beast::error_code ec, char const* what)
 // Echoes back all received WebSocket messages
 class session : public std::enable_shared_from_this<session>
 {
-    tcp::socket socket_;
-    websocket::stream<ssl::stream<tcp::socket&>> ws_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    websocket::stream<beast::ssl_stream<
+        beast::tcp_stream<net::io_context::strand>>> ws_;
     beast::multi_buffer buffer_;
 
 public:
     // Take ownership of the socket
     session(tcp::socket socket, ssl::context& ctx)
-        : socket_(std::move(socket))
-        , ws_(socket_, ctx)
-        , strand_(ws_.get_executor())
+        : ws_(std::move(socket), ctx)
     {
     }
 
@@ -69,15 +63,16 @@ public:
     void
     run()
     {
+        // Set the timeout.
+        beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
+
         // Perform the SSL handshake
         ws_.next_layer().async_handshake(
             ssl::stream_base::server,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_handshake,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            std::bind(
+                &session::on_handshake,
+                shared_from_this(),
+                std::placeholders::_1));
     }
 
     void
@@ -88,12 +83,10 @@ public:
 
         // Accept the websocket handshake
         ws_.async_accept(
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_accept,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            std::bind(
+                &session::on_accept,
+                shared_from_this(),
+                std::placeholders::_1));
     }
 
     void
@@ -112,13 +105,11 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &session::on_read,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -139,13 +130,11 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_write,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &session::on_write,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -173,7 +162,6 @@ class listener : public std::enable_shared_from_this<listener>
 {
     ssl::context& ctx_;
     tcp::acceptor acceptor_;
-    tcp::socket socket_;
 
 public:
     listener(
@@ -182,7 +170,6 @@ public:
         tcp::endpoint endpoint)
         : ctx_(ctx)
         , acceptor_(ioc)
-        , socket_(ioc)
     {
         beast::error_code ec;
 
@@ -233,15 +220,15 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            socket_,
             std::bind(
                 &listener::on_accept,
                 shared_from_this(),
-                std::placeholders::_1));
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
-    on_accept(beast::error_code ec)
+    on_accept(beast::error_code ec, tcp::socket socket)
     {
         if(ec)
         {
@@ -250,7 +237,7 @@ public:
         else
         {
             // Create the session and run it
-            std::make_shared<session>(std::move(socket_), ctx_)->run();
+            std::make_shared<session>(std::move(socket), ctx_)->run();
         }
 
         // Accept another connection

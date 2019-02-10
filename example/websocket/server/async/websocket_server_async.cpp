@@ -15,9 +15,7 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/strand.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -45,9 +43,7 @@ fail(beast::error_code ec, char const* what)
 // Echoes back all received WebSocket messages
 class session : public std::enable_shared_from_this<session>
 {
-    websocket::stream<tcp::socket> ws_;
-    net::strand<
-        net::io_context::executor_type> strand_;
+    websocket::stream<beast::tcp_stream<net::io_context::strand>> ws_;
     beast::multi_buffer buffer_;
 
 public:
@@ -55,7 +51,6 @@ public:
     explicit
     session(tcp::socket socket)
         : ws_(std::move(socket))
-        , strand_(ws_.get_executor())
     {
     }
 
@@ -65,12 +60,10 @@ public:
     {
         // Accept the websocket handshake
         ws_.async_accept(
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_accept,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+            std::bind(
+                &session::on_accept,
+                shared_from_this(),
+                std::placeholders::_1));
     }
 
     void
@@ -89,13 +82,11 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &session::on_read,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -116,13 +107,11 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            net::bind_executor(
-                strand_,
-                std::bind(
-                    &session::on_write,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &session::on_write,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
@@ -149,14 +138,12 @@ public:
 class listener : public std::enable_shared_from_this<listener>
 {
     tcp::acceptor acceptor_;
-    tcp::socket socket_;
 
 public:
     listener(
         net::io_context& ioc,
         tcp::endpoint endpoint)
         : acceptor_(ioc)
-        , socket_(ioc)
     {
         beast::error_code ec;
 
@@ -207,15 +194,15 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            socket_,
             std::bind(
                 &listener::on_accept,
                 shared_from_this(),
-                std::placeholders::_1));
+                std::placeholders::_1,
+                std::placeholders::_2));
     }
 
     void
-    on_accept(beast::error_code ec)
+    on_accept(beast::error_code ec, tcp::socket socket)
     {
         if(ec)
         {
@@ -224,7 +211,7 @@ public:
         else
         {
             // Create the session and run it
-            std::make_shared<session>(std::move(socket_))->run();
+            std::make_shared<session>(std::move(socket))->run();
         }
 
         // Accept another connection

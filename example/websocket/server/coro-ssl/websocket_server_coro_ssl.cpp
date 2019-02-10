@@ -18,9 +18,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
-#include <boost/asio/ip/tcp.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -39,6 +38,11 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
+// The type of websocket stream to use
+// Stackful coroutines are already stranded.
+using ws_type = websocket::stream<beast::ssl_stream<
+    beast::tcp_stream<net::io_context::executor_type>>>;
+
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -49,14 +53,13 @@ fail(beast::error_code ec, char const* what)
 // Echoes back all received WebSocket messages
 void
 do_session(
-    tcp::socket& socket,
-    ssl::context& ctx,
+    ws_type& ws,
     net::yield_context yield)
 {
     beast::error_code ec;
 
-    // Construct the stream by moving in the socket
-    websocket::stream<ssl::stream<tcp::socket&>> ws{socket, ctx};
+    // Set the timeout.
+    beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(30));
 
     // Perform the SSL handshake
     ws.next_layer().async_handshake(ssl::stream_base::server, yield[ec]);
@@ -135,8 +138,7 @@ do_listen(
                 acceptor.get_executor().context(),
                 std::bind(
                     &do_session,
-                    std::move(socket),
-                    std::ref(ctx),
+                    ws_type(std::move(socket), ctx),
                     std::placeholders::_1));
     }
 }

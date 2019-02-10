@@ -35,7 +35,7 @@ main(int argc, char* argv[])
         std::cerr <<
             "Usage: websocket-chat-multi <address> <port> <doc_root> <threads>\n" <<
             "Example:\n" <<
-            "    websocket-chat-server 0.0.0.0 8080 .\n";
+            "    websocket-chat-server 0.0.0.0 8080 . 5\n";
         return EXIT_FAILURE;
     }
     auto address = net::ip::make_address(argv[1]);

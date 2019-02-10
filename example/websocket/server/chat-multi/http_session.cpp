@@ -190,11 +190,10 @@ handle_request(
 
 http_session::
 http_session(
-    tcp::socket socket,
+    tcp::socket&& socket,
     boost::shared_ptr<shared_state> const& state)
-    : socket_(std::move(socket))
+    : stream_(std::move(socket))
     , state_(state)
-    , strand_(socket_.get_executor())
 {
 }
 
@@ -202,14 +201,16 @@ void
 http_session::
 run()
 {
+    // Set the timeout.
+    stream_.expires_after(std::chrono::seconds(30));
+
     // Read a request
-    http::async_read(socket_, buffer_, req_,
-        net::bind_executor(strand_,
-            std::bind(
-                &http_session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+    http::async_read(stream_, buffer_, req_,
+        std::bind(
+            &http_session::on_read,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 // Report a failure
@@ -239,13 +240,12 @@ operator()(http::message<isRequest, Body, Fields>&& msg) const
     // Write the response
     auto self = self_.shared_from_this();
     http::async_write(
-        self_.socket_,
+        self_.stream_,
         *sp,
-        net::bind_executor(self_.strand_,
-            [self, sp](beast::error_code ec, std::size_t bytes)
-            {
-                self->on_write(ec, bytes, sp->need_eof());
-            }));
+        [self, sp](beast::error_code ec, std::size_t bytes)
+        {
+            self->on_write(ec, bytes, sp->need_eof());
+        });
 }
 
 void
@@ -255,7 +255,7 @@ on_read(beast::error_code ec, std::size_t)
     // This means they closed the connection
     if(ec == http::error::end_of_stream)
     {
-        socket_.shutdown(tcp::socket::shutdown_send, ec);
+        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
         return;
     }
 
@@ -268,7 +268,8 @@ on_read(beast::error_code ec, std::size_t)
     {
         // Create a WebSocket session by transferring the socket
         boost::make_shared<websocket_session>(
-            std::move(socket_), state_)->run(std::move(req_));
+            std::move(stream_.release_socket()),
+                state_)->run(std::move(req_));
         return;
     }
 
@@ -292,23 +293,21 @@ on_read(beast::error_code ec, std::size_t)
         #if 0
             // NOTE This causes an ICE in gcc 7.3
             // Write the response
-            http::async_write(this->socket_, *sp,
-                net::bind_executor(strand_,
-                    [self = shared_from_this(), sp](
-                        beast::error_code ec, std::size_t bytes)
-                    {
-                        self->on_write(ec, bytes, sp->need_eof()); 
-                    }));
+            http::async_write(this->stream_, *sp,
+                [self = shared_from_this(), sp](
+                    beast::error_code ec, std::size_t bytes)
+                {
+                    self->on_write(ec, bytes, sp->need_eof()); 
+                });
         #else
             // Write the response
             auto self = shared_from_this();
-            http::async_write(this->socket_, *sp,
-                net::bind_executor(strand_,
-                    [self, sp](
-                        beast::error_code ec, std::size_t bytes)
-                    {
-                        self->on_write(ec, bytes, sp->need_eof()); 
-                    }));
+            http::async_write(stream_, *sp,
+                [self, sp](
+                    beast::error_code ec, std::size_t bytes)
+                {
+                    self->on_write(ec, bytes, sp->need_eof()); 
+                });
         #endif
         });
 #else
@@ -336,7 +335,7 @@ on_write(beast::error_code ec, std::size_t, bool close)
     {
         // This means we should close the connection, usually because
         // the response indicated the "Connection: close" semantic.
-        socket_.shutdown(tcp::socket::shutdown_send, ec);
+        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
         return;
     }
 
@@ -344,8 +343,11 @@ on_write(beast::error_code ec, std::size_t, bool close)
     // otherwise the read behavior is undefined.
     req_ = {};
 
+    // Set the timeout.
+    stream_.expires_after(std::chrono::seconds(30));
+
     // Read another request
-    http::async_read(socket_, buffer_, req_,
+    http::async_read(stream_, buffer_, req_,
         std::bind(
             &http_session::on_read,
             shared_from_this(),

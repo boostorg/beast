@@ -23,11 +23,10 @@ class shared_state;
 class listener : public boost::enable_shared_from_this<listener>
 {
     tcp::acceptor acceptor_;
-    tcp::socket socket_;
     boost::shared_ptr<shared_state> state_;
 
     void fail(beast::error_code ec, char const* what);
-    void on_accept(beast::error_code ec);
+    void on_accept(beast::error_code ec, tcp::socket socket);
 
 public:
     listener(

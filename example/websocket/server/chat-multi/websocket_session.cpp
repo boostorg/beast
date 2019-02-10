@@ -12,11 +12,10 @@
 
 websocket_session::
 websocket_session(
-    tcp::socket socket,
+    tcp::socket&& socket,
     boost::shared_ptr<shared_state> const& state)
     : ws_(std::move(socket))
     , state_(state)
-    , strand_(ws_.get_executor())
 {
 }
 
@@ -53,12 +52,11 @@ on_accept(beast::error_code ec)
     // Read a message
     ws_.async_read(
         buffer_,
-        net::bind_executor(strand_,
-            std::bind(
-                &websocket_session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+        std::bind(
+            &websocket_session::on_read,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 void
@@ -78,12 +76,11 @@ on_read(beast::error_code ec, std::size_t)
     // Read another message
     ws_.async_read(
         buffer_,
-        net::bind_executor(strand_,
-            std::bind(
-                &websocket_session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+        std::bind(
+            &websocket_session::on_read,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 void
@@ -93,13 +90,13 @@ send(boost::shared_ptr<std::string const> const& ss)
     // Get on the strand if we aren't already,
     // otherwise we will concurrently access
     // objects which are not thread-safe.
-    if(! strand_.running_in_this_thread())
+    if(! ws_.get_executor().running_in_this_thread())
         return net::post(
-            net::bind_executor(strand_,
-                std::bind(
-                    &websocket_session::send,
-                    shared_from_this(),
-                    ss)));
+            ws_.get_executor(),
+            std::bind(
+                &websocket_session::send,
+                shared_from_this(),
+                ss));
 
     // Always add to queue
     queue_.push_back(ss);
@@ -111,12 +108,11 @@ send(boost::shared_ptr<std::string const> const& ss)
     // We are not currently writing, so send this immediately
     ws_.async_write(
         net::buffer(*queue_.front()),
-        net::bind_executor(strand_,
-            std::bind(
-                &websocket_session::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2)));
+        std::bind(
+            &websocket_session::on_write,
+            shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
 }
 
 void
@@ -134,10 +130,9 @@ on_write(beast::error_code ec, std::size_t)
     if(! queue_.empty())
         ws_.async_write(
             net::buffer(*queue_.front()),
-            net::bind_executor(strand_,
-                std::bind(
-                    &websocket_session::on_write,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+            std::bind(
+                &websocket_session::on_write,
+                shared_from_this(),
+                std::placeholders::_1,
+                std::placeholders::_2));
 }

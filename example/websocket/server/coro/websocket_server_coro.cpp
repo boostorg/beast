@@ -15,7 +15,6 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <algorithm>
 #include <cstdlib>
@@ -34,6 +33,11 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
+// The type of websocket stream to use
+// Stackful coroutines are already stranded.
+using ws_type = websocket::stream<
+    beast::tcp_stream<net::io_context::executor_type>>;
+
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -43,12 +47,9 @@ fail(beast::error_code ec, char const* what)
 
 // Echoes back all received WebSocket messages
 void
-do_session(tcp::socket& socket, net::yield_context yield)
+do_session(ws_type& ws, net::yield_context yield)
 {
     beast::error_code ec;
-
-    // Construct the stream by moving in the socket
-    websocket::stream<tcp::socket> ws{std::move(socket)};
 
     // Accept the websocket handshake
     ws.async_accept(yield[ec]);
@@ -121,7 +122,7 @@ do_listen(
                 acceptor.get_executor().context(),
                 std::bind(
                     &do_session,
-                    std::move(socket),
+                    ws_type(std::move(socket)),
                     std::placeholders::_1));
     }
 }
