@@ -45,6 +45,9 @@ class bind_wrapper
     template<class T, class Executor>
     friend struct net::associated_executor;
 
+    template<class T, class Allocator>
+    friend struct net::associated_allocator;
+
     template<class Arg, class Vals>
     static
     typename std::enable_if<
@@ -148,30 +151,7 @@ public:
             mp11::index_sequence_for<Args...>());
     }
 
-    // VFALCO I don't think this should be needed,
-    //        please let me know if something breaks.
-    /*
-    template<class... Values>
-    void
-    operator()(Values&&... values) const
-    {
-        invoke(h_, args_,
-            tuple<Values&&...>(
-                std::forward<Values>(values)...),
-            mp11::index_sequence_for<Args...>());
-    }
-    */
-
     //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return net::get_associated_allocator(h_);
-    }
 
     template<class Function>
     friend
@@ -231,6 +211,9 @@ class bind_front_wrapper
     template<class T, class Executor>
     friend struct net::associated_executor;
 
+    template<class T, class Allocator>
+    friend struct net::associated_allocator;
+
     template<std::size_t... I, class... Ts>
     void
     invoke(
@@ -265,15 +248,6 @@ public:
     }
 
     //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return net::get_associated_allocator(h_);
-    }
 
     template<class Function>
     friend
@@ -320,12 +294,15 @@ template<class Handler>
 class bind_front_wrapper<
     Handler, error_code, std::size_t>
 {
-    template<class T, class Executor>
-    friend struct net::associated_executor;
-
     Handler h_;
     error_code ec_;
     std::size_t n_;
+
+    template<class T, class Executor>
+    friend struct net::associated_executor;
+
+    template<class T, class Allocator>
+    friend struct net::associated_allocator;
 
 public:
     using result_type = void; // asio needs this
@@ -349,15 +326,6 @@ public:
     }
 
     //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return net::get_associated_allocator(h_);
-    }
 
     template<class Function>
     friend
@@ -411,6 +379,9 @@ class bind_back_wrapper
     template<class T, class Executor>
     friend struct net::associated_executor;
 
+    template<class T, class Allocator>
+    friend struct net::associated_allocator;
+
     template<std::size_t... I, class... Ts>
     void
     invoke(
@@ -443,15 +414,6 @@ public:
     }
 
     //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return net::get_associated_allocator(h_);
-    }
 
     template<class Function>
     friend
@@ -498,12 +460,15 @@ template<class Handler>
 class bind_back_wrapper<
     Handler, error_code, std::size_t>
 {
-    template<class T, class Executor>
-    friend struct net::associated_executor;
-
     Handler h_;
     error_code ec_;
     std::size_t n_;
+
+    template<class T, class Executor>
+    friend struct net::associated_executor;
+
+    template<class T, class Allocator>
+    friend struct net::associated_allocator;
 
 public:
     using result_type = void; // asio needs this
@@ -527,15 +492,6 @@ public:
     }
 
     //
-
-    using allocator_type =
-        net::associated_allocator_t<Handler>;
-
-    allocator_type
-    get_allocator() const noexcept
-    {
-        return net::get_associated_allocator(h_);
-    }
 
     template<class Function>
     friend
@@ -595,7 +551,7 @@ struct associated_executor<
     static
     type
     get(beast::detail::bind_wrapper<Handler, Args...> const& op,
-        Executor const& ex = Executor()) noexcept
+        Executor const& ex = Executor{}) noexcept
     {
         return associated_executor<
             Handler, Executor>::get(op.h_, ex);
@@ -612,7 +568,7 @@ struct associated_executor<
     static
     type
     get(beast::detail::bind_front_wrapper<Handler, Args...> const& op,
-        Executor const& ex = Executor()) noexcept
+        Executor const& ex = Executor{}) noexcept
     {
         return associated_executor<
             Handler, Executor>::get(op.h_, ex);
@@ -629,10 +585,63 @@ struct associated_executor<
     static
     type
     get(beast::detail::bind_back_wrapper<Handler, Args...> const& op,
-        Executor const& ex = Executor()) noexcept
+        Executor const& ex = Executor{}) noexcept
     {
         return associated_executor<
             Handler, Executor>::get(op.h_, ex);
+    }
+};
+
+//
+
+template<class Handler, class... Args, class Allocator>
+struct associated_allocator<
+    beast::detail::bind_wrapper<Handler, Args...>, Allocator>
+{
+    using type = typename
+        associated_allocator<Handler, Allocator>::type;
+
+    static
+    type
+    get(beast::detail::bind_wrapper<Handler, Args...> const& op,
+        Allocator const& alloc = Allocator{}) noexcept
+    {
+        return associated_allocator<
+            Handler, Allocator>::get(op.h_, alloc);
+    }
+};
+
+template<class Handler, class... Args, class Allocator>
+struct associated_allocator<
+    beast::detail::bind_front_wrapper<Handler, Args...>, Allocator>
+{
+    using type = typename
+        associated_allocator<Handler, Allocator>::type;
+
+    static
+    type
+    get(beast::detail::bind_front_wrapper<Handler, Args...> const& op,
+        Allocator const& alloc = Allocator{}) noexcept
+    {
+        return associated_allocator<
+            Handler, Allocator>::get(op.h_, alloc);
+    }
+};
+
+template<class Handler, class... Args, class Allocator>
+struct associated_allocator<
+    beast::detail::bind_back_wrapper<Handler, Args...>, Allocator>
+{
+    using type = typename
+        associated_allocator<Handler, Allocator>::type;
+
+    static
+    type
+    get(beast::detail::bind_back_wrapper<Handler, Args...> const& op,
+        Allocator const& alloc = Allocator{}) noexcept
+    {
+        return associated_allocator<
+            Handler, Allocator>::get(op.h_, alloc);
     }
 };
 

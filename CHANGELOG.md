@@ -1,3 +1,9 @@
+Version 214:
+
+* handler binders use the associated allocator
+
+--------------------------------------------------------------------------------
+
 Version 213:
 
 * Fix posix_file::close handling of EINTR
