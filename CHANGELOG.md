@@ -1,6 +1,7 @@
 Version 214:
 
-* handler binders use the associated allocator
+* Handler binders use the associated allocator
+* Add detail::bind_continuation
 
 --------------------------------------------------------------------------------
 

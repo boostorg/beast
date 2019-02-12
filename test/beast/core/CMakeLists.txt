@@ -31,6 +31,7 @@ add_executable (tests-beast-core
     _detail_varint.cpp
     async_op_base.cpp
     basic_stream.cpp
+    bind_continuation.cpp
     bind_handler.cpp
     buffer_size.cpp
     buffer_traits.cpp
