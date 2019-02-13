@@ -1,5 +1,5 @@
 //
-// Copyright (w) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -441,27 +441,11 @@ public:
     };
 
     void
-    testAsioHandlerInvoke()
-    {
-        // make sure things compile, also can set a
-        // breakpoint in asio_handler_invoke to make sure
-        // it is instantiated.
-        net::io_context ioc;
-        net::strand<
-            net::io_context::executor_type> s(
-                ioc.get_executor());
-        stream<test::stream> ws{ioc};
-        ws.async_ping({}, net::bind_executor(
-            s, copyable_handler{}));
-    }
-
-    void
     run() override
     {
         testPing();
         testSuspend();
         testMoveOnly();
-        testAsioHandlerInvoke();
     }
 };
 

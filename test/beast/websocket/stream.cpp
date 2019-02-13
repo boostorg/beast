@@ -1,5 +1,5 @@
 //
-// Copyright (w) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -10,6 +10,9 @@
 // Test that header file is self-contained.
 #include <boost/beast/websocket/stream.hpp>
 
+#include <boost/beast/core/tcp_stream.hpp>
+#include <boost/asio/strand.hpp>
+
 #include "test.hpp"
 
 namespace boost {
@@ -19,6 +22,32 @@ namespace websocket {
 class stream_test : public websocket_test_suite
 {
 public:
+    void
+    testGetSetOption()
+    {
+        net::io_context ioc;
+        stream<test::stream> ws(ioc);
+
+        {
+            ws.set_option(
+                stream_base::suggested_settings(
+                    role_type::client));
+
+            ws.set_option(
+                stream_base::suggested_settings(
+                    role_type::server));
+
+            ws.set_option({
+                std::chrono::seconds(30),
+                std::chrono::seconds(300),
+                true});
+
+            stream_base::timeout opt;
+            ws.get_option(opt);
+            ws.set_option(opt);
+        }
+    }
+
     void
     testOptions()
     {
@@ -110,6 +139,19 @@ public:
     }
 
     void
+    testJavadoc()
+    {
+        net::io_context ioc;
+        {
+            websocket::stream<tcp_stream<
+                net::io_context::strand>> ws{net::io_context::strand(ioc)};
+        }
+        {
+            websocket::stream<tcp_stream<net::io_context::executor_type>> ws(ioc);
+        }
+    }
+
+    void
     run() override
     {
         BOOST_STATIC_ASSERT(std::is_constructible<
@@ -136,6 +178,7 @@ public:
             sizeof(websocket::stream<test::stream&>::impl_type) << std::endl;
 
         testOptions();
+        testJavadoc();
     }
 };
 

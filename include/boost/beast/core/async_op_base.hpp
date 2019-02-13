@@ -347,8 +347,8 @@ public:
         }
         else
         {
-            wg1_.reset();
             h_(std::forward<Args>(args)...);
+            wg1_.reset();
         }
     }
 

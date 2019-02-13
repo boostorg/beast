@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_IMPL_ACCEPT_IPP
 
 #include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/websocket/impl/stream_impl.hpp>
 #include <boost/beast/websocket/detail/type_traits.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/parser.hpp>
@@ -42,7 +43,7 @@ class stream<NextLayer, deflateSupported>::response_op
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
-    stream<NextLayer, deflateSupported>& ws_;
+    boost::weak_ptr<impl_type> wp_;
     error_code result_; // must come before res_
     response_type& res_;
 
@@ -53,37 +54,53 @@ public:
         class Decorator>
     response_op(
         Handler_&& h,
-        stream<NextLayer, deflateSupported>& ws,
-        http::request<Body, http::basic_fields<Allocator>> const& req,
-        Decorator const& decorator)
-        : stable_async_op_base<
-            Handler, beast::executor_type<stream>>(
-                std::forward<Handler_>(h), ws.get_executor())
-        , ws_(ws)
+        boost::shared_ptr<impl_type> const& sp,
+        http::request<Body,
+            http::basic_fields<Allocator>> const& req,
+        Decorator const& decorator,
+        bool cont = false)
+        : stable_async_op_base<Handler,
+            beast::executor_type<stream>>(
+                std::forward<Handler_>(h),
+                    sp->stream.get_executor())
+        , wp_(sp)
         , res_(beast::allocate_stable<response_type>(*this, 
-            ws.build_response(req, decorator, result_)))
+            sp->build_response(req, decorator, result_)))
     {
+        (*this)({}, 0, cont);
     }
 
     void operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0)
+        std::size_t bytes_transferred = 0,
+        bool cont = true)
     {
         boost::ignore_unused(bytes_transferred);
+        auto sp = wp_.lock();
+        if(! sp)
+            return this->invoke(cont,
+                net::error::operation_aborted);
+        auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
+            impl.change_status(status::handshake);
+            impl.update_timer(this->get_executor());
+
             // Send response
             BOOST_ASIO_CORO_YIELD
             http::async_write(
-                ws_.next_layer(), res_, std::move(*this));
+                impl.stream, res_, std::move(*this));
+            if(impl.check_stop_now(ec))
+                goto upcall;
             if(! ec)
                 ec = result_;
             if(! ec)
             {
-                ws_.impl_->do_pmd_config(res_);
-                ws_.impl_->open(role_type::server);
+                impl.do_pmd_config(res_);
+                impl.open(role_type::server);
             }
-            this->invoke_now(ec);
+        upcall:
+            this->invoke(cont, ec);
         }
     }
 };
@@ -99,87 +116,141 @@ class stream<NextLayer, deflateSupported>::accept_op
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
-    stream<NextLayer, deflateSupported>& ws_;
+    boost::weak_ptr<impl_type> wp_;
     http::request_parser<http::empty_body>& p_;
     Decorator d_;
 
 public:
-    template<class Handler_>
+    template<class Handler_, class Buffers>
     accept_op(
         Handler_&& h,
-        stream<NextLayer, deflateSupported>& ws,
+        boost::shared_ptr<impl_type> const& sp,
+        Buffers const& buffers,
         Decorator const& decorator)
-        : stable_async_op_base<
-            Handler, beast::executor_type<stream>>(
-                std::forward<Handler_>(h), ws.get_executor())
-        , ws_(ws)
+        : stable_async_op_base<Handler,
+            beast::executor_type<stream>>(
+                std::forward<Handler_>(h),
+                    sp->stream.get_executor())
+        , wp_(sp)
         , p_(beast::allocate_stable<
             http::request_parser<http::empty_body>>(*this))
         , d_(decorator)
     {
-    }
-
-    template<class Buffers>
-    void run(Buffers const& buffers)
-    {
+        auto& impl = *sp;
         error_code ec;
-        auto const mb = beast::detail::dynamic_buffer_prepare(
-            ws_.impl_->rd_buf, buffer_size(buffers), ec,
-                error::buffer_overflow);
-        if(ec)
-            return (*this)(ec);
-        ws_.impl_->rd_buf.commit(net::buffer_copy(*mb, buffers));
+        auto const mb =
+            beast::detail::dynamic_buffer_prepare(
+            impl.rd_buf, buffer_size(buffers),
+                ec, error::buffer_overflow);
+        if(! ec)
+            impl.rd_buf.commit(
+                net::buffer_copy(*mb, buffers));
         (*this)(ec);
     }
 
     void operator()(
         error_code ec = {},
-        std::size_t bytes_transferred = 0)
+        std::size_t bytes_transferred = 0,
+        bool cont = true)
     {
         boost::ignore_unused(bytes_transferred);
-
+        auto sp = wp_.lock();
+        if(! sp)
+            return this->invoke(cont,
+                net::error::operation_aborted);
+        auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
+            impl.change_status(status::handshake);
+            impl.update_timer(this->get_executor());
+
+            // The constructor could have set ec
             if(ec)
+                goto upcall;
+
+            BOOST_ASIO_CORO_YIELD
+            http::async_read(impl.stream,
+                impl.rd_buf, p_, std::move(*this));
+            if(ec == http::error::end_of_stream)
+                ec = error::closed;
+            if(impl.check_stop_now(ec))
+                goto upcall;
+            
             {
-                BOOST_ASIO_CORO_YIELD
-                net::post(
-                    ws_.get_executor(),
-                    beast::bind_front_handler(std::move(*this), ec));
+                // Arguments from our state must be
+                // moved to the stack before releasing
+                // the handler.
+                auto const req = p_.release();
+                auto const decorator = d_;
+                response_op<Handler>(
+                    this->release_handler(),
+                        sp, req, decorator, true);
+                return;
             }
-            else
-            {
-                BOOST_ASIO_CORO_YIELD
-                http::async_read(
-                    ws_.next_layer(), ws_.impl_->rd_buf,
-                        p_, std::move(*this));
-                if(ec == http::error::end_of_stream)
-                    ec = error::closed;
-                if(! ec)
-                {
-                    // Arguments from our state must be
-                    // moved to the stack before releasing
-                    // the handler.
-                    auto& ws = ws_;
-                    auto const req = p_.release();
-                    auto const decorator = d_;
-                #if 1
-                    return response_op<Handler>{
-                        this->release_handler(),
-                            ws, req, decorator}(ec);
-                #else
-                    // VFALCO This *should* work but breaks
-                    //        coroutine invariants in the unit test.
-                    //        Also it calls reset() when it shouldn't.
-                    return ws.async_accept_ex(
-                        req, decorator, this->release_handler());
-                #endif
-                }
-            }
-            this->invoke_now(ec);
+
+        upcall:
+            this->invoke(cont, ec);
         }
     }
 };
+
+//------------------------------------------------------------------------------
+
+template<class NextLayer, bool deflateSupported>
+template<class Body, class Allocator,
+    class Decorator>
+void
+stream<NextLayer, deflateSupported>::
+do_accept(
+    http::request<Body,
+        http::basic_fields<Allocator>> const& req,
+    Decorator const& decorator,
+    error_code& ec)
+{
+    impl_->change_status(status::handshake);
+
+    error_code result;
+    auto const res = impl_->build_response(req, decorator, result);
+    http::write(impl_->stream, res, ec);
+    if(ec)
+        return;
+    ec = result;
+    if(ec)
+    {
+        // VFALCO TODO Respect keep alive setting, perform
+        //             teardown if Connection: close.
+        return;
+    }
+    impl_->do_pmd_config(res);
+    impl_->open(role_type::server);
+}
+
+template<class NextLayer, bool deflateSupported>
+template<class Buffers, class Decorator>
+void
+stream<NextLayer, deflateSupported>::
+do_accept(
+    Buffers const& buffers,
+    Decorator const& decorator,
+    error_code& ec)
+{
+    impl_->reset();
+    auto const mb =
+        beast::detail::dynamic_buffer_prepare(
+        impl_->rd_buf, buffer_size(buffers), ec,
+            error::buffer_overflow);
+    if(ec)
+        return;
+    impl_->rd_buf.commit(net::buffer_copy(*mb, buffers));
+
+    http::request_parser<http::empty_body> p;
+    http::read(next_layer(), impl_->rd_buf, p, ec);
+    if(ec == http::error::end_of_stream)
+        ec = error::closed;
+    if(ec)
+        return;
+    do_accept(p.get(), decorator, ec);
+}
 
 //------------------------------------------------------------------------------
 
@@ -220,8 +291,9 @@ accept(error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream requirements not met");
-    impl_->reset();
-    do_accept(&default_decorate_res, ec);
+    do_accept(
+        net::const_buffer{},
+        &default_decorate_res, ec);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -235,8 +307,9 @@ accept_ex(ResponseDecorator const& decorator, error_code& ec)
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
-    impl_->reset();
-    do_accept(decorator, ec);
+    do_accept(
+        net::const_buffer{},
+        decorator, ec);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -295,14 +368,7 @@ accept(
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    impl_->reset();
-    auto const mb = beast::detail::dynamic_buffer_prepare(
-        impl_->rd_buf, buffer_size(buffers), ec,
-            error::buffer_overflow);
-    if(ec)
-        return;
-    impl_->rd_buf.commit(net::buffer_copy(*mb, buffers));
-    do_accept(&default_decorate_res, ec);
+    do_accept(buffers, &default_decorate_res, ec);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -325,14 +391,7 @@ accept_ex(
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence requirements not met");
-    impl_->reset();
-    auto const mb = beast::detail::dynamic_buffer_prepare(
-        impl_->rd_buf, buffer_size(buffers), ec,
-            error::buffer_overflow);
-    if(ec)
-        return;
-    impl_->rd_buf.commit(net::buffer_copy(*mb, buffers));
-    do_accept(decorator, ec);
+    do_accept(buffers, decorator, ec);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -428,10 +487,10 @@ async_accept(
     accept_op<
         decltype(&default_decorate_res),
         BOOST_ASIO_HANDLER_TYPE(
-            AcceptHandler, void(error_code))>{
+            AcceptHandler, void(error_code))>(
                 std::move(init.completion_handler),
-                *this,
-                &default_decorate_res}({});
+                impl_, net::const_buffer{},
+                &default_decorate_res);;
     return init.result.get();
 }
 
@@ -457,10 +516,10 @@ async_accept_ex(
     accept_op<
         ResponseDecorator,
         BOOST_ASIO_HANDLER_TYPE(
-            AcceptHandler, void(error_code))>{
+            AcceptHandler, void(error_code))>(
                 std::move(init.completion_handler),
-                *this,
-                decorator}({});
+                impl_, net::const_buffer{},
+                decorator);
     return init.result.get();
 }
 
@@ -488,10 +547,9 @@ async_accept(
     accept_op<
         decltype(&default_decorate_res),
         BOOST_ASIO_HANDLER_TYPE(
-            AcceptHandler, void(error_code))>{
+            AcceptHandler, void(error_code))>(
                 std::move(init.completion_handler),
-                *this,
-                &default_decorate_res}.run(buffers);
+                    impl_, buffers, &default_decorate_res);
     return init.result.get();
 }
 
@@ -524,10 +582,9 @@ async_accept_ex(
     accept_op<
         ResponseDecorator,
         BOOST_ASIO_HANDLER_TYPE(
-            AcceptHandler, void(error_code))>{
+            AcceptHandler, void(error_code))>(
                 std::move(init.completion_handler),
-                *this,
-                decorator}.run(buffers);
+                    impl_, buffers, decorator);
     return init.result.get();
 }
 
@@ -549,11 +606,9 @@ async_accept(
     impl_->reset();
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
-            AcceptHandler, void(error_code))>{
+            AcceptHandler, void(error_code))>(
                 std::move(init.completion_handler),
-                *this,
-                req,
-                &default_decorate_res}();
+                    impl_, req, &default_decorate_res);
     return init.result.get();
 }
 
@@ -580,58 +635,10 @@ async_accept_ex(
     impl_->reset();
     response_op<
         BOOST_ASIO_HANDLER_TYPE(
-            AcceptHandler, void(error_code))>{
+            AcceptHandler, void(error_code))>(
                 std::move(init.completion_handler),
-                *this,
-                req,
-                decorator}();
+                    impl_, req, decorator);
     return init.result.get();
-}
-
-//------------------------------------------------------------------------------
-
-template<class NextLayer, bool deflateSupported>
-template<class Decorator>
-void
-stream<NextLayer, deflateSupported>::
-do_accept(
-    Decorator const& decorator,
-    error_code& ec)
-{
-    http::request_parser<http::empty_body> p;
-    http::read(next_layer(), impl_->rd_buf, p, ec);
-    if(ec == http::error::end_of_stream)
-        ec = error::closed;
-    if(ec)
-        return;
-    do_accept(p.get(), decorator, ec);
-}
-
-template<class NextLayer, bool deflateSupported>
-template<class Body, class Allocator,
-    class Decorator>
-void
-stream<NextLayer, deflateSupported>::
-do_accept(
-    http::request<Body,
-        http::basic_fields<Allocator>> const& req,
-    Decorator const& decorator,
-    error_code& ec)
-{
-    error_code result;
-    auto const res = build_response(req, decorator, result);
-    http::write(impl_->stream, res, ec);
-    if(ec)
-        return;
-    ec = result;
-    if(ec)
-    {
-        // VFALCO TODO Respect keep alive setting, perform
-        //             teardown if Connection: close.
-        return;
-    }
-    impl_->do_pmd_config(res);
-    impl_->open(role_type::server);
 }
 
 } // websocket

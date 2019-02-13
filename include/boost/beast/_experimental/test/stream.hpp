@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_TEST_STREAM_HPP
 #define BOOST_BEAST_TEST_STREAM_HPP
 
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/string.hpp>
@@ -511,6 +512,10 @@ connect(stream& to, Args&&... args);
 BOOST_BEAST_DECL
 stream
 connect(stream& to);
+
+BOOST_BEAST_DECL
+void
+connect(stream& s1, stream& s2);
 
 template<class Arg1, class... ArgN>
 stream

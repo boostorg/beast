@@ -12,6 +12,7 @@
 
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/beast/websocket/detail/mask.hpp>
+#include <boost/beast/websocket/impl/stream_impl.hpp>
 #include <boost/beast/core/async_op_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
@@ -39,26 +40,28 @@ class stream<NextLayer, deflateSupported>::close_op
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
-    stream<NextLayer, deflateSupported>& ws_;
+    boost::weak_ptr<impl_type> wp_;
     error_code ev_;
     detail::frame_buffer& fb_;
 
 public:
-    static constexpr int id = 4; // for soft_mutex
+    static constexpr int id = 5; // for soft_mutex
 
     template<class Handler_>
     close_op(
         Handler_&& h,
-        stream<NextLayer, deflateSupported>& ws,
+        boost::shared_ptr<impl_type> const& sp,
         close_reason const& cr)
-        : stable_async_op_base<
-            Handler, beast::executor_type<stream>>(
-                std::forward<Handler_>(h), ws.get_executor())
-        , ws_(ws)
-        , fb_(beast::allocate_stable<detail::frame_buffer>(*this))
+        : stable_async_op_base<Handler,
+            beast::executor_type<stream>>(
+                std::forward<Handler_>(h),
+                    sp->stream.get_executor())
+        , wp_(sp)
+        , fb_(beast::allocate_stable<
+            detail::frame_buffer>(*this))
     {
         // Serialize the close frame
-        ws.template write_close<
+        sp->template write_close<
             flat_static_buffer_base>(fb_, cr);
         (*this)({}, 0, false);
     }
@@ -70,14 +73,18 @@ public:
         bool cont = true)
     {
         using beast::detail::clamp;
-        auto& impl = *ws_.impl_;
+        auto sp = wp_.lock();
+        if(! sp)
+            return this->invoke(cont,
+                net::error::operation_aborted);
+        auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             // Acquire the write lock
             if(! impl.wr_block.try_lock(this))
             {
                 BOOST_ASIO_CORO_YIELD
-                impl.paused_close.emplace(std::move(*this));
+                impl.op_close.emplace(std::move(*this));
                 impl.wr_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
                 net::post(std::move(*this));
@@ -93,6 +100,7 @@ public:
             // Send close frame
             impl.wr_close = true;
             impl.change_status(status::closing);
+            impl.update_timer(this->get_executor());
             BOOST_ASIO_CORO_YIELD
             net::async_write(impl.stream, fb_.data(),
                 beast::detail::bind_continuation(std::move(*this)));
@@ -111,7 +119,7 @@ public:
             if(! impl.rd_block.try_lock(this))
             {
                 BOOST_ASIO_CORO_YIELD
-                impl.paused_r_close.emplace(std::move(*this));
+                impl.op_r_close.emplace(std::move(*this));
                 impl.rd_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
                 net::post(std::move(*this));
@@ -128,7 +136,7 @@ public:
             for(;;)
             {
                 // Read frame header
-                while(! ws_.parse_fh(
+                while(! impl.parse_fh(
                     impl.rd_fh, impl.rd_buf, ev_))
                 {
                     if(ev_)
@@ -212,10 +220,11 @@ public:
         upcall:
             impl.wr_block.unlock(this);
             impl.rd_block.try_unlock(this)
-                && impl.paused_r_rd.maybe_invoke();
-            impl.paused_rd.maybe_invoke()
-                || impl.paused_ping.maybe_invoke()
-                || impl.paused_wr.maybe_invoke();
+                && impl.op_r_rd.maybe_invoke();
+            impl.op_rd.maybe_invoke()
+                || impl.op_idle_ping.maybe_invoke()
+                || impl.op_ping.maybe_invoke()
+                || impl.op_wr.maybe_invoke();
             this->invoke(cont, ec);
         }
     }
@@ -259,7 +268,7 @@ close(close_reason const& cr, error_code& ec)
         impl.wr_close = true;
         impl.change_status(status::closing);
         detail::frame_buffer fb;
-        write_close<flat_static_buffer_base>(fb, cr);
+        impl.template write_close<flat_static_buffer_base>(fb, cr);
         net::write(impl.stream, fb.data(), ec);
         if(impl.check_stop_now(ec))
             return;
@@ -272,7 +281,7 @@ close(close_reason const& cr, error_code& ec)
     for(;;)
     {
         // Read frame header
-        while(! parse_fh(
+        while(! impl.parse_fh(
             impl.rd_fh, impl.rd_buf, ev))
         {
             if(ev)
@@ -355,7 +364,7 @@ async_close(close_reason const& cr, CloseHandler&& handler)
         CloseHandler, void(error_code));
     close_op<BOOST_ASIO_HANDLER_TYPE(
         CloseHandler, void(error_code))>(
-            std::move(init.completion_handler), *this, cr);
+            std::move(init.completion_handler), impl_, cr);
     return init.result.get();
 }
 

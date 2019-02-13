@@ -14,7 +14,7 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 #include <boost/beast/core/detail/sha1.hpp>
-#include <boost/beast/websocket/detail/stream_base.hpp>
+#include <boost/beast/websocket/detail/prng.hpp>
 #include <boost/assert.hpp>
 #include <array>
 #include <cstdint>
@@ -53,7 +53,8 @@ make_sec_ws_key(sec_ws_key_type& key)
 
 template<class = void>
 void
-make_sec_ws_accept(sec_ws_accept_type& accept,
+make_sec_ws_accept(
+    sec_ws_accept_type& accept,
     string_view key)
 {
     BOOST_ASSERT(key.size() <= sec_ws_key_type::max_size_n);

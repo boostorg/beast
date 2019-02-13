@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_HANDSHAKE_HPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_HANDSHAKE_HPP
 
+#include <boost/beast/websocket/impl/stream_impl.hpp>
 #include <boost/beast/websocket/detail/type_traits.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/message.hpp>
@@ -45,7 +46,7 @@ class stream<NextLayer, deflateSupported>::handshake_op
         response_type res;
     };
 
-    stream<NextLayer, deflateSupported>& ws_;
+    boost::weak_ptr<impl_type> wp_;
     detail::sec_ws_key_type key_;
     response_type* res_p_;
     data& d_;
@@ -54,53 +55,102 @@ public:
     template<class Handler_, class Decorator>
     handshake_op(
         Handler_&& h,
-        stream& ws,
+        boost::shared_ptr<impl_type> const& sp,
         response_type* res_p,
         string_view host, string_view target,
         Decorator const& decorator)
         : stable_async_op_base<Handler,
             beast::executor_type<stream>>(
-                std::forward<Handler_>(h), ws.get_executor())
-        , ws_(ws)
+                std::forward<Handler_>(h),
+                    sp->stream.get_executor())
+        , wp_(sp)
         , res_p_(res_p)
         , d_(beast::allocate_stable<data>(*this))
     {
-        d_.req = ws_.build_request(
+        d_.req = sp->build_request(
             key_, host, target, decorator);
-        ws_.impl_->reset(); // VFALCO I don't like this
+        sp->reset(); // VFALCO I don't like this
     }
 
     void
     operator()(
         error_code ec = {},
-        std::size_t bytes_used = 0)
+        std::size_t bytes_used = 0,
+        bool cont = true)
     {
         boost::ignore_unused(bytes_used);
+        auto sp = wp_.lock();
+        if(! sp)
+            return this->invoke(cont,
+                net::error::operation_aborted);
+        auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
-            // Send HTTP Upgrade
-            ws_.impl_->do_pmd_config(d_.req);
+            impl.change_status(status::handshake);
+            impl.update_timer(this->get_executor());
+
+            // write HTTP request
+            impl.do_pmd_config(d_.req);
             BOOST_ASIO_CORO_YIELD
-            http::async_write(ws_.impl_->stream,
+            http::async_write(impl.stream,
                 d_.req, std::move(*this));
-            if(ec)
+            if(impl.check_stop_now(ec))
                 goto upcall;
 
-            // Read HTTP response
+            // read HTTP response
             BOOST_ASIO_CORO_YIELD
-            http::async_read(ws_.next_layer(),
-                ws_.impl_->rd_buf, d_.res,
+            http::async_read(impl.stream,
+                impl.rd_buf, d_.res,
                     std::move(*this));
-            if(ec)
+            if(impl.check_stop_now(ec))
                 goto upcall;
-            ws_.on_response(d_.res, key_, ec);
+
+            // success
+            impl.reset_idle();
+            impl.on_response(d_.res, key_, ec);
             if(res_p_)
                 swap(d_.res, *res_p_);
+
         upcall:
-            this->invoke_now(ec);
+            this->invoke(cont ,ec);
         }
     }
 };
+
+//------------------------------------------------------------------------------
+
+template<class NextLayer, bool deflateSupported>
+template<class RequestDecorator>
+void
+stream<NextLayer, deflateSupported>::
+do_handshake(
+    response_type* res_p,
+    string_view host,
+    string_view target,
+    RequestDecorator const& decorator,
+    error_code& ec)
+{
+    response_type res;
+    impl_->change_status(status::handshake);
+    impl_->reset();
+    detail::sec_ws_key_type key;
+    {
+        auto const req = impl_->build_request(
+            key, host, target, decorator);
+        this->impl_->do_pmd_config(req);
+        http::write(impl_->stream, req, ec);
+    }
+    if(ec)
+        return;
+    http::read(next_layer(), impl_->rd_buf, res, ec);
+    if(ec)
+        return;
+    impl_->on_response(res, key, ec);
+    if(res_p)
+        *res_p = std::move(res);
+}
+
+//------------------------------------------------------------------------------
 
 template<class NextLayer, bool deflateSupported>
 template<class HandshakeHandler>
@@ -116,9 +166,10 @@ async_handshake(string_view host,
     BOOST_BEAST_HANDLER_INIT(
         HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>{
-            std::move(init.completion_handler), *this, nullptr, host,
-                target, &default_decorate_req}();
+        HandshakeHandler, void(error_code))>(
+            std::move(init.completion_handler),
+                impl_, nullptr, host, target,
+                    &default_decorate_req)();
     return init.result.get();
 }
 
@@ -137,9 +188,10 @@ async_handshake(response_type& res,
     BOOST_BEAST_HANDLER_INIT(
         HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>{
-            std::move(init.completion_handler), *this, &res, host,
-                target, &default_decorate_req}();
+        HandshakeHandler, void(error_code))>(
+            std::move(init.completion_handler),
+                impl_, &res, host, target,
+                    &default_decorate_req)();
     return init.result.get();
 }
 
@@ -161,9 +213,10 @@ async_handshake_ex(string_view host,
     BOOST_BEAST_HANDLER_INIT(
         HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>{
-            std::move(init.completion_handler), *this, nullptr, host,
-                target, decorator}();
+        HandshakeHandler, void(error_code))>(
+            std::move(init.completion_handler),
+                impl_, nullptr, host, target,
+                    decorator)();
     return init.result.get();
 }
 
@@ -186,9 +239,10 @@ async_handshake_ex(response_type& res,
     BOOST_BEAST_HANDLER_INIT(
         HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>{
-            std::move(init.completion_handler), *this, &res, host,
-                target, decorator}();
+        HandshakeHandler, void(error_code))>(
+            std::move(init.completion_handler),
+                impl_, &res, host, target,
+                    decorator)();
     return init.result.get();
 }
 
@@ -322,38 +376,6 @@ handshake_ex(response_type& res,
         "RequestDecorator requirements not met");
     do_handshake(&res,
         host, target, decorator, ec);
-}
-
-//------------------------------------------------------------------------------
-
-template<class NextLayer, bool deflateSupported>
-template<class RequestDecorator>
-void
-stream<NextLayer, deflateSupported>::
-do_handshake(
-    response_type* res_p,
-    string_view host,
-    string_view target,
-    RequestDecorator const& decorator,
-    error_code& ec)
-{
-    response_type res;
-    impl_->reset();
-    detail::sec_ws_key_type key;
-    {
-        auto const req = build_request(
-            key, host, target, decorator);
-        this->impl_->do_pmd_config(req);
-        http::write(impl_->stream, req, ec);
-    }
-    if(ec)
-        return;
-    http::read(next_layer(), impl_->rd_buf, res, ec);
-    if(ec)
-        return;
-    on_response(res, key, ec);
-    if(res_p)
-        *res_p = std::move(res);
 }
 
 } // websocket

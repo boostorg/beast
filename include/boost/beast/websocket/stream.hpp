@@ -15,15 +15,17 @@
 #include <boost/beast/websocket/option.hpp>
 #include <boost/beast/websocket/role.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
+#include <boost/beast/websocket/stream_base.hpp>
 #include <boost/beast/websocket/stream_fwd.hpp>
-#include <boost/beast/websocket/detail/pmd_extension.hpp>
-#include <boost/beast/websocket/detail/stream_base.hpp>
 #include <boost/beast/websocket/detail/hybi13.hpp>
+#include <boost/beast/websocket/detail/impl_base.hpp>
+#include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/http/detail/type_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/error.hpp>
+#include <boost/shared_ptr.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <functional>
@@ -81,17 +83,16 @@ class frame_test;
     operations are performed within the same implicit or explicit strand.
 
     @par Example
-
-    To use the @ref stream template with an `ip::tcp::socket`,
-    you would write:
-
+    To declare the @ref stream object with a @ref tcp_stream in a
+    multi-threaded asynchronous program using a strand, you may write:
     @code
-    websocket::stream<ip::tcp::socket> ws{io_context};
+    websocket::stream<tcp_stream<
+        net::io_context::strand>> ws{net::io_context::strand(ioc)};
     @endcode
-    Alternatively, you can write:
+    Alternatively, for a single-threaded or synchronous application
+    you may write:
     @code
-    ip::tcp::socket sock{io_context};
-    websocket::stream<ip::tcp::socket&> ws{sock};
+    websocket::stream<tcp_stream<net::io_context::executor_type>> ws(ioc);
     @endcode
 
     @tparam NextLayer The type representing the next layer, to which
@@ -130,14 +131,14 @@ template<
     bool deflateSupported>
 class stream
 #if ! BOOST_BEAST_DOXYGEN
-    : private detail::stream_base
+    : private stream_base
 #endif
 {
     friend class close_test;
     friend class frame_test;
     friend class ping_test;
-    friend class read1_test;
     friend class read2_test;
+    friend class read3_test;
     friend class stream_test;
     friend class write_test;
 
@@ -153,7 +154,7 @@ class stream
 
     struct impl_type;
 
-    std::shared_ptr<impl_type> impl_;
+    boost::shared_ptr<impl_type> impl_;
 
     using time_point = typename
         std::chrono::steady_clock::time_point;
@@ -350,6 +351,20 @@ public:
     // Settings
     //
     //--------------------------------------------------------------------------
+
+#if BOOST_BEAST_DOXYGEN
+    template<class Option>
+    void
+    get_option(Option& opt);
+
+    template<class Option>
+    void
+    set_option(Option const& opt);
+#else
+
+    void get_option(timeout& opt);
+    void set_option(timeout const& opt);
+#endif
 
     /** Set the permessage-deflate extension options
 
@@ -3478,6 +3493,7 @@ private:
     template<class>         class close_op;
     template<class>         class handshake_op;
     template<class>         class ping_op;
+    template<class>         class auto_ping_op;
     template<class, class>  class read_some_op;
     template<class, class>  class read_op;
     template<class>         class response_op;
@@ -3487,55 +3503,14 @@ private:
     static void default_decorate_req(request_type&) {}
     static void default_decorate_res(response_type&) {}
 
-    template<class DynamicBuffer>
-    bool
-    parse_fh(
-        detail::frame_header& fh,
-        DynamicBuffer& b,
-        error_code& ec);
-
-    template<class DynamicBuffer>
-    void
-    write_close(DynamicBuffer& b, close_reason const& rc);
-
-    template<class DynamicBuffer>
-    void
-    write_ping(DynamicBuffer& b,
-        detail::opcode op, ping_data const& data);
-
-    //
-    // upgrade
-    //
-
-    template<class Decorator>
-    request_type
-    build_request(detail::sec_ws_key_type& key,
-        string_view host,
-            string_view target,
-                Decorator const& decorator);
-
-    template<
-        class Body, class Allocator, class Decorator>
-    response_type
-    build_response(
-        http::request<Body,
-            http::basic_fields<Allocator>> const& req,
-        Decorator const& decorator,
-        error_code& ec);
-
-    void
-    on_response(
-        response_type const& res,
-        detail::sec_ws_key_type const& key,
-        error_code& ec);
-
     //
     // accept / handshake
     //
 
-    template<class Decorator>
+    template<class Buffers, class Decorator>
     void
     do_accept(
+        Buffers const& buffers,
         Decorator const& decorator,
         error_code& ec);
 

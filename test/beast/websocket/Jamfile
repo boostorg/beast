@@ -8,8 +8,8 @@
 #
 
 local SOURCES =
+    _detail_impl_base.cpp
     _detail_prng.cpp
-    _detail_stream_base.cpp
     accept.cpp
     close.cpp
     error.cpp
@@ -19,6 +19,7 @@ local SOURCES =
     ping.cpp
     read1.cpp
     read2.cpp
+    read3.cpp
     rfc6455.cpp
     role.cpp
     stream.cpp

@@ -18,6 +18,7 @@
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/executor.hpp>
+#include <boost/asio/is_executor.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/optional.hpp>
@@ -195,6 +196,9 @@ class basic_stream
     : private detail::stream_base
 #endif
 {
+    static_assert(net::is_executor<Executor>::value,
+        "Executor requirements not met");
+
 // friend class template declaration in a class template is ignored
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88672
 #if BOOST_WORKAROUND(BOOST_GCC, > 0)

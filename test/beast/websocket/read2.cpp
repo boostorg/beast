@@ -1,5 +1,5 @@
-//
-// Copyright (w) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+// Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -12,639 +12,670 @@
 
 #include "test.hpp"
 
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/strand.hpp>
 #include <boost/asio/write.hpp>
+
+#include <boost/config/workaround.hpp>
+#if BOOST_WORKAROUND(BOOST_GCC, < 80200)
+#define BOOST_BEAST_SYMBOL_HIDDEN __attribute__ ((visibility("hidden")))
+#else
+#define BOOST_BEAST_SYMBOL_HIDDEN
+#endif
 
 namespace boost {
 namespace beast {
 namespace websocket {
 
-class read2_test : public websocket_test_suite
+class BOOST_BEAST_SYMBOL_HIDDEN read2_test
+    : public websocket_test_suite
 {
 public:
+    template<class Wrap, bool deflateSupported>
     void
-    testSuspend()
+    doReadTest(
+        Wrap const& w,
+        ws_type_t<deflateSupported>& ws,
+        close_code code)
     {
-        // suspend on read block
-        doFailLoop([&](test::fail_count& fc)
+        try
+        {
+            multi_buffer b;
+            w.read(ws, b);
+            fail("", __FILE__, __LINE__);
+        }
+        catch(system_error const& se)
+        {
+            if(se.code() != error::closed)
+                throw;
+            BEAST_EXPECT(
+                ws.reason().code == code);
+        }
+    }
+
+    template<class Wrap, bool deflateSupported>
+    void
+    doFailTest(
+        Wrap const& w,
+        ws_type_t<deflateSupported>& ws,
+        error_code ev)
+    {
+        try
+        {
+            multi_buffer b;
+            w.read(ws, b);
+            fail("", __FILE__, __LINE__);
+        }
+        catch(system_error const& se)
+        {
+            if(se.code() != ev)
+                throw;
+        }
+    }
+
+    template<bool deflateSupported = true, class Wrap>
+    void
+    doTestRead(Wrap const& w)
+    {
+        permessage_deflate pmd;
+        pmd.client_enable = false;
+        pmd.server_enable = false;
+
+        // already closed
         {
             echo_server es{log};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc, fc};
+            stream<test::stream, deflateSupported> ws{ioc_};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
-            std::size_t count = 0;
-            ws.async_close({},
-                [&](error_code ec)
-                {
-                    if(ec)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(++count == 1);
-                });
-            while(! ws.impl_->rd_block.is_locked())
-                ioc.run_one();
+            ws.close({});
+            try
+            {
+                multi_buffer b;
+                w.read(ws, b);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == net::error::operation_aborted,
+                    se.code().message());
+            }
+        }
+
+        // empty, fragmented message
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            ws.next_layer().append(
+                string_view(
+                    "\x01\x00" "\x80\x00", 4));
             multi_buffer b;
-            ws.async_read(b,
-                [&](error_code ec, std::size_t)
-                {
-                    if(ec != net::error::operation_aborted)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(++count == 2);
-                });
-            ioc.run();
-            BEAST_EXPECT(count == 2);
+            w.read(ws, b);
+            BEAST_EXPECT(b.size() == 0);
         });
 
-        // suspend on release read block
-        doFailLoop([&](test::fail_count& fc)
+        // two part message
+        // triggers "fill the read buffer first"
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
-            echo_server es{log};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc, fc};
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/");
-            std::size_t count = 0;
+            w.write_raw(ws, sbuf(
+                "\x01\x81\xff\xff\xff\xff"));
+            w.write_raw(ws, sbuf(
+                "\xd5"));
+            w.write_raw(ws, sbuf(
+                "\x80\x81\xff\xff\xff\xff\xd5"));
             multi_buffer b;
-            ws.async_read(b,
-                [&](error_code ec, std::size_t)
-                {
-                    if(ec != net::error::operation_aborted)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(++count == 2);
-                });
-            BOOST_ASSERT(ws.impl_->rd_block.is_locked());
-            ws.async_close({},
-                [&](error_code ec)
-                {
-                    if(ec)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(++count == 1);
-                });
-            ioc.run();
-            BEAST_EXPECT(count == 2);
+            w.read(ws, b);
+            BEAST_EXPECT(buffers_to_string(b.data()) == "**");
         });
 
-        // suspend on write pong
+        // ping
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            put(ws.next_layer().buffer(), cbuf(
+                0x89, 0x00));
+            bool invoked = false;
+            ws.control_callback(
+                [&](frame_type kind, string_view)
+                {
+                    BEAST_EXPECT(! invoked);
+                    BEAST_EXPECT(kind == frame_type::ping);
+                    invoked = true;
+                });
+            w.write(ws, sbuf("Hello"));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(invoked);
+            BEAST_EXPECT(ws.got_text());
+            BEAST_EXPECT(buffers_to_string(b.data()) == "Hello");
+        });
+
+        // ping
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            put(ws.next_layer().buffer(), cbuf(
+                0x88, 0x00));
+            bool invoked = false;
+            ws.control_callback(
+                [&](frame_type kind, string_view)
+                {
+                    BEAST_EXPECT(! invoked);
+                    BEAST_EXPECT(kind == frame_type::close);
+                    invoked = true;
+                });
+            w.write(ws, sbuf("Hello"));
+            doReadTest(w, ws, close_code::none);
+        });
+
+        // ping then message
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            bool once = false;
+            ws.control_callback(
+                [&](frame_type kind, string_view s)
+                {
+                    BEAST_EXPECT(kind == frame_type::pong);
+                    BEAST_EXPECT(! once);
+                    once = true;
+                    BEAST_EXPECT(s == "");
+                });
+            w.ping(ws, "");
+            ws.binary(true);
+            w.write(ws, sbuf("Hello"));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(once);
+            BEAST_EXPECT(ws.got_binary());
+            BEAST_EXPECT(buffers_to_string(b.data()) == "Hello");
+        });
+
+        // ping then fragmented message
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            bool once = false;
+            ws.control_callback(
+                [&](frame_type kind, string_view s)
+                {
+                    BEAST_EXPECT(kind == frame_type::pong);
+                    BEAST_EXPECT(! once);
+                    once = true;
+                    BEAST_EXPECT(s == "payload");
+                });
+            ws.ping("payload");
+            w.write_some(ws, false, sbuf("Hello, "));
+            w.write_some(ws, false, sbuf(""));
+            w.write_some(ws, true, sbuf("World!"));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(once);
+            BEAST_EXPECT(buffers_to_string(b.data()) == "Hello, World!");
+        });
+
+        // masked message, big
+        doStreamLoop([&](test::stream& ts)
+        {
+            echo_server es{log, kind::async_client};
+            ws_type_t<deflateSupported> ws{ts};
+            ws.next_layer().connect(es.stream());
+            ws.set_option(pmd);
+            es.async_handshake();
+            try
+            {
+                w.accept(ws);
+                std::string const s(2000, '*');
+                ws.auto_fragment(false);
+                ws.binary(false);
+                w.write(ws, net::buffer(s));
+                multi_buffer b;
+                w.read(ws, b);
+                BEAST_EXPECT(ws.got_text());
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
+                ws.next_layer().close();
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+        });
+
+        // close
         doFailLoop([&](test::fail_count& fc)
         {
-            echo_server es{log};
+            echo_server es{log, kind::async};
             net::io_context ioc;
-            stream<test::stream> ws{ioc, fc};
+            stream<test::stream, deflateSupported> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
-            // insert a ping
-            ws.next_layer().append(string_view(
-                "\x89\x00", 2));
+            // Cause close to be received
+            es.async_close();
             std::size_t count = 0;
-            std::string const s = "Hello, world";
             multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
-                    if(ec)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(buffers_to_string(b.data()) == s);
                     ++count;
-                });
-            BEAST_EXPECT(ws.impl_->rd_block.is_locked());
-            ws.async_write(net::buffer(s),
-                [&](error_code ec, std::size_t n)
-                {
-                    if(ec)
+                    if(ec != error::closed)
                         BOOST_THROW_EXCEPTION(
                             system_error{ec});
-                    BEAST_EXPECT(n == s.size());
-                    ++count;
                 });
-            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
             ioc.run();
-            BEAST_EXPECT(count == 2);
+            BEAST_EXPECT(count == 1);
         });
 
-        // Ignore ping when closing
-        doFailLoop([&](test::fail_count& fc)
+        // already closed
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
-            echo_server es{log};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc, fc};
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/");
-            std::size_t count = 0;
-            // insert fragmented message with
-            // a ping in between the frames.
-            ws.next_layer().append(string_view(
-                "\x01\x01*"
-                "\x89\x00"
-                "\x80\x01*", 8));
+            w.close(ws, {});
             multi_buffer b;
-            ws.async_read(b,
-                [&](error_code ec, std::size_t)
-                {
-                    if(ec)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(buffers_to_string(b.data()) == "**");
-                    BEAST_EXPECT(++count == 1);
-                    b.consume(b.size());
-                    ws.async_read(b,
-                        [&](error_code ec, std::size_t)
-                        {
-                            if(ec != net::error::operation_aborted)
-                                BOOST_THROW_EXCEPTION(
-                                    system_error{ec});
-                            BEAST_EXPECT(++count == 3);
-                        });
-                });
-            BEAST_EXPECT(ws.impl_->rd_block.is_locked());
-            ws.async_close({},
-                [&](error_code ec)
-                {
-                    if(ec)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(++count == 2);
-                });
-            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
-            ioc.run();
-            BEAST_EXPECT(count == 3);
+            doFailTest(w, ws,
+                net::error::operation_aborted);
         });
 
-        // See if we are already closing
-        doFailLoop([&](test::fail_count& fc)
+        // buffer overflow
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
         {
-            echo_server es{log};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc, fc};
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/");
-            std::size_t count = 0;
-            // insert fragmented message with
-            // a close in between the frames.
-            ws.next_layer().append(string_view(
-                "\x01\x01*"
-                "\x88\x00"
-                "\x80\x01*", 8));
+            std::string const s = "Hello, world!";
+            ws.auto_fragment(false);
+            ws.binary(false);
+            w.write(ws, net::buffer(s));
+            try
+            {
+                multi_buffer b(3);
+                w.read(ws, b);
+                fail("", __FILE__, __LINE__);
+            }
+            catch(system_error const& se)
+            {
+                if(se.code() != error::buffer_overflow)
+                    throw;
+            }
+        });
+
+        // bad utf8, big
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            auto const s = std::string(2000, '*') +
+                random_string();
+            ws.text(true);
+            w.write(ws, net::buffer(s));
+            doReadTest(w, ws, close_code::bad_payload);
+        });
+
+        // invalid fixed frame header
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            w.write_raw(ws, cbuf(
+                0x8f, 0x80, 0xff, 0xff, 0xff, 0xff));
+            doReadTest(w, ws, close_code::protocol_error);
+        });
+
+        // bad close
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            put(ws.next_layer().buffer(), cbuf(
+                0x88, 0x02, 0x03, 0xed));
+            doFailTest(w, ws, error::bad_close_code);
+        });
+
+        // message size above 2^64
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            w.write_some(ws, false, sbuf("*"));
+            w.write_raw(ws, cbuf(
+                0x80, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff));
+            doReadTest(w, ws, close_code::too_big);
+        });
+
+        // message size exceeds max
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            ws.read_message_max(1);
+            w.write(ws, sbuf("**"));
+            doFailTest(w, ws, error::message_too_big);
+        });
+
+        // bad utf8
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            put(ws.next_layer().buffer(), cbuf(
+                0x81, 0x06, 0x03, 0xea, 0xf0, 0x28, 0x8c, 0xbc));
+            doFailTest(w, ws, error::bad_frame_payload);
+        });
+
+        // incomplete utf8
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            std::string const s =
+                "Hello, world!" "\xc0";
+            w.write(ws, net::buffer(s));
+            doReadTest(w, ws, close_code::bad_payload);
+        });
+
+        // incomplete utf8, big
+        doTest<deflateSupported>(pmd,
+        [&](ws_type_t<deflateSupported>& ws)
+        {
+            std::string const s =
+                "\x81\x7e\x0f\xa1" +
+                std::string(4000, '*') + "\xc0";
+            ws.next_layer().append(s);
             multi_buffer b;
-            ws.async_read(b,
-                [&](error_code ec, std::size_t)
+            try
+            {
+                do
                 {
-                    if(ec != net::error::operation_aborted)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(++count == 2);
-                });
-            BEAST_EXPECT(ws.impl_->rd_block.is_locked());
-            ws.async_close({},
-                [&](error_code ec)
+                    b.commit(w.read_some(ws, b.prepare(4000)));
+                }
+                while(! ws.is_message_done());
+            }
+            catch(system_error const& se)
+            {
+                if(se.code() != error::bad_frame_payload)
+                    throw;
+            }
+        });
+
+        // close frames
+        {
+            auto const check =
+            [&](error_code ev, string_view s)
+            {
+                echo_server es{log};
+                stream<test::stream, deflateSupported> ws{ioc_};
+                ws.next_layer().connect(es.stream());
+                w.handshake(ws, "localhost", "/");
+                ws.next_layer().append(s);
+                static_buffer<1> b;
+                try
                 {
-                    if(ec)
-                        BOOST_THROW_EXCEPTION(
-                            system_error{ec});
-                    BEAST_EXPECT(++count == 1);
-                });
-            BEAST_EXPECT(ws.impl_->wr_block.is_locked());
-            ioc.run();
-            BEAST_EXPECT(count == 2);
+                    w.read(ws, b);
+                    fail("", __FILE__, __LINE__);
+                }
+                catch(system_error const& se)
+                {
+                    BEAST_EXPECTS(se.code() == ev,
+                        se.code().message());
+                }
+                ws.next_layer().close();
+            };
+
+            // payload length 1
+            check(error::bad_close_size,
+                "\x88\x01\x01");
+
+            // invalid close code 1005
+            check(error::bad_close_code,
+                "\x88\x02\x03\xed");
+
+            // invalid utf8
+            check(error::bad_close_payload,
+                "\x88\x06\xfc\x15\x0f\xd7\x73\x43");
+
+            // good utf8
+            check(error::closed,
+                "\x88\x06\xfc\x15utf8");
+        }
+    }
+
+    template<class Wrap>
+    void
+    doTestReadDeflate(Wrap const& w)
+    {
+        permessage_deflate pmd;
+        pmd.client_enable = true;
+        pmd.server_enable = true;
+        pmd.client_max_window_bits = 9;
+        pmd.server_max_window_bits = 9;
+        pmd.compLevel = 1;
+
+        // message size limit
+        doTest<true>(pmd,
+        [&](ws_type_t<true>& ws)
+        {
+            std::string const s = std::string(128, '*');
+            w.write(ws, net::buffer(s));
+            ws.read_message_max(32);
+            doFailTest(w, ws, error::message_too_big);
+        });
+
+        // invalid inflate block
+        doTest<true>(pmd,
+        [&](ws_type_t<true>& ws)
+        {
+            auto const& s = random_string();
+            ws.binary(true);
+            ws.next_layer().append(
+                "\xc2\x40" + s.substr(0, 64));
+            flat_buffer b;
+            try
+            {
+                w.read(ws, b);
+            }
+            catch(system_error const& se)
+            {
+                if(se.code() == test::error::test_failure)
+                    throw;
+                BEAST_EXPECTS(se.code().category() ==
+                    zlib::detail::get_error_category(),
+                        se.code().message());
+            }
+            catch(...)
+            {
+                throw;
+            }
+        });
+
+        // no_context_takeover
+        pmd.server_no_context_takeover = true;
+        doTest<true>(pmd,
+        [&](ws_type_t<true>& ws)
+        {
+            auto const& s = random_string();
+            ws.binary(true);
+            w.write(ws, net::buffer(s));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
+        });
+        pmd.client_no_context_takeover = false;
+    }
+
+    template<class Wrap>
+    void
+    doTestRead(
+        permessage_deflate const& pmd,
+        Wrap const& w)
+    {
+        // message
+        doTest(pmd, [&](ws_type& ws)
+        {
+            std::string const s = "Hello, world!";
+            ws.auto_fragment(false);
+            ws.binary(false);
+            w.write(ws, net::buffer(s));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(ws.got_text());
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
+        });
+
+        // masked message
+        doStreamLoop([&](test::stream& ts)
+        {
+            echo_server es{log, kind::async_client};
+            ws_type ws{ts};
+            ws.next_layer().connect(es.stream());
+            ws.set_option(pmd);
+            es.async_handshake();
+            try
+            {
+                w.accept(ws);
+                std::string const s = "Hello, world!";
+                ws.auto_fragment(false);
+                ws.binary(false);
+                w.write(ws, net::buffer(s));
+                multi_buffer b;
+                w.read(ws, b);
+                BEAST_EXPECT(ws.got_text());
+                BEAST_EXPECT(buffers_to_string(b.data()) == s);
+                ws.next_layer().close();
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+        });
+
+        // empty message
+        doTest(pmd, [&](ws_type& ws)
+        {
+            std::string const s = "";
+            ws.text(true);
+            w.write(ws, net::buffer(s));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(ws.got_text());
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
+        });
+
+        // partial message
+        doTest(pmd, [&](ws_type& ws)
+        {
+            std::string const s = "Hello";
+            w.write(ws, net::buffer(s));
+            char buf[3];
+            auto const bytes_written =
+                w.read_some(ws, net::buffer(buf, sizeof(buf)));
+            BEAST_EXPECT(bytes_written > 0);
+            BEAST_EXPECT(
+                string_view(buf, 3).substr(0, bytes_written) ==
+                    s.substr(0, bytes_written));
+        });
+
+        // partial message, dynamic buffer
+        doTest(pmd, [&](ws_type& ws)
+        {
+            std::string const s = "Hello, world!";
+            w.write(ws, net::buffer(s));
+            multi_buffer b;
+            auto bytes_written =
+                w.read_some(ws, 3, b);
+            BEAST_EXPECT(bytes_written > 0);
+            BEAST_EXPECT(buffers_to_string(b.data()) ==
+                s.substr(0, b.size()));
+            w.read_some(ws, 256, b);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
+        });
+
+        // big message
+        doTest(pmd, [&](ws_type& ws)
+        {
+            auto const& s = random_string();
+            ws.binary(true);
+            w.write(ws, net::buffer(s));
+            multi_buffer b;
+            w.read(ws, b);
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
+        });
+
+        // message, bad utf8
+        doTest(pmd, [&](ws_type& ws)
+        {
+            std::string const s = "\x03\xea\xf0\x28\x8c\xbc";
+            ws.auto_fragment(false);
+            ws.text(true);
+            w.write(ws, net::buffer(s));
+            doReadTest(w, ws, close_code::bad_payload);
         });
     }
 
     void
-    testParseFrame()
+    testRead()
     {
-        auto const bad =
-            [&](string_view s)
+        doTestRead<false>(SyncClient{});
+        doTestRead<true>(SyncClient{});
+        doTestReadDeflate(SyncClient{});
+        yield_to([&](yield_context yield)
+        {
+            doTestRead<false>(AsyncClient{yield});
+            doTestRead<true>(AsyncClient{yield});
+            doTestReadDeflate(AsyncClient{yield});
+        });
+
+        permessage_deflate pmd;
+        pmd.client_enable = false;
+        pmd.server_enable = false;
+        doTestRead(pmd, SyncClient{});
+        yield_to([&](yield_context yield)
+        {
+            doTestRead(pmd, AsyncClient{yield});
+        });
+
+        pmd.client_enable = true;
+        pmd.server_enable = true;
+        pmd.client_max_window_bits = 9;
+        pmd.server_max_window_bits = 9;
+        pmd.compLevel = 1;
+        doTestRead(pmd, SyncClient{});
+        yield_to([&](yield_context yield)
+        {
+            doTestRead(pmd, AsyncClient{yield});
+        });
+
+        // Read close frames
+        {
+            auto const check =
+            [&](error_code ev, string_view s)
             {
                 echo_server es{log};
-                net::io_context ioc;
-                stream<test::stream> ws{ioc};
+                stream<test::stream> ws{ioc_};
                 ws.next_layer().connect(es.stream());
                 ws.handshake("localhost", "/");
                 ws.next_layer().append(s);
+                static_buffer<1> b;
                 error_code ec;
-                multi_buffer b;
                 ws.read(b, ec);
-                BEAST_EXPECT(ec);
+                BEAST_EXPECTS(ec == ev, ec.message());
+                ws.next_layer().close();
             };
 
-        // chopped frame header
-        {
-            echo_server es{log};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc};
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/");
-            ws.next_layer().append(
-                "\x81\x7e\x01");
-            std::size_t count = 0;
-            std::string const s(257, '*');
-            multi_buffer b;
-            ws.async_read(b,
-                [&](error_code ec, std::size_t)
-                {
-                    ++count;
-                    BEAST_EXPECTS(! ec, ec.message());
-                    BEAST_EXPECT(buffers_to_string(b.data()) == s);
-                });
-            ioc.run_one();
-            es.stream().write_some(
-                net::buffer("\x01" + s));
-            ioc.run();
-            BEAST_EXPECT(count == 1);
-        }
+            // payload length 1
+            check(error::bad_close_size,
+                "\x88\x01\x01");
 
-        // new data frame when continuation expected
-        bad("\x01\x01*" "\x81\x01*");
+            // invalid close code 1005
+            check(error::bad_close_code,
+                "\x88\x02\x03\xed");
 
-        // reserved bits not cleared
-        bad("\xb1\x01*");
-        bad("\xc1\x01*");
-        bad("\xd1\x01*");
+            // invalid utf8
+            check(error::bad_close_payload,
+                "\x88\x06\xfc\x15\x0f\xd7\x73\x43");
 
-        // continuation without an active message
-        bad("\x80\x01*");
-
-        // reserved bits not cleared (cont)
-        bad("\x01\x01*" "\xb0\x01*");
-        bad("\x01\x01*" "\xc0\x01*");
-        bad("\x01\x01*" "\xd0\x01*");
-
-        // reserved opcode
-        bad("\x83\x01*");
-
-        // fragmented control message
-        bad("\x09\x01*");
-
-        // invalid length for control message
-        bad("\x89\x7e\x01\x01");
-
-        // reserved bits not cleared (control)
-        bad("\xb9\x01*");
-        bad("\xc9\x01*");
-        bad("\xd9\x01*");
-
-        // unmasked frame from client
-        {
-            echo_server es{log, kind::async_client};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc};
-            ws.next_layer().connect(es.stream());
-            es.async_handshake();
-            ws.accept();
-            ws.next_layer().append(
-                "\x81\x01*");
-            error_code ec;
-            multi_buffer b;
-            ws.read(b, ec);
-            BEAST_EXPECT(ec);
-        }
-
-        // masked frame from server
-        bad("\x81\x80\xff\xff\xff\xff");
-
-        // chopped control frame payload
-        {
-            echo_server es{log};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc};
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/");
-            ws.next_layer().append(
-                "\x89\x02*");
-            std::size_t count = 0;
-            multi_buffer b;
-            ws.async_read(b,
-                [&](error_code ec, std::size_t)
-                {
-                    ++count;
-                    BEAST_EXPECTS(! ec, ec.message());
-                    BEAST_EXPECT(buffers_to_string(b.data()) == "**");
-                });
-            ioc.run_one();
-            es.stream().write_some(
-                net::buffer(
-                    "*" "\x81\x02**"));
-            ioc.run();
-            BEAST_EXPECT(count == 1);
-        }
-
-        // length not canonical
-        bad(string_view("\x81\x7e\x00\x7d", 4));
-        bad(string_view("\x81\x7f\x00\x00\x00\x00\x00\x00\xff\xff", 10));
-    }
-
-    void
-    testIssue802()
-    {
-        for(std::size_t i = 0; i < 100; ++i)
-        {
-            echo_server es{log, kind::async};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc};
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/");
-            // too-big message frame indicates payload of 2^64-1
-            net::write(ws.next_layer(), sbuf(
-                "\x81\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"));
-            multi_buffer b;
-            error_code ec;
-            ws.read(b, ec);
-            BEAST_EXPECT(ec == error::closed);
-            BEAST_EXPECT(ws.reason().code == 1009);
-        }
-    }
-
-    void
-    testIssue807()
-    {
-        echo_server es{log};
-        net::io_context ioc;
-        stream<test::stream> ws{ioc};
-        ws.next_layer().connect(es.stream());
-        ws.handshake("localhost", "/");
-        ws.write(sbuf("Hello, world!"));
-        char buf[4];
-        net::mutable_buffer b{buf, 0};
-        auto const n = ws.read_some(b);
-        BEAST_EXPECT(n == 0);
-    }
-
-    /*
-        When the internal read buffer contains a control frame and
-        stream::async_read_some is called, it is possible for the control
-        callback to be invoked on the caller's stack instead of through
-        the executor associated with the final completion handler.
-    */
-    void
-    testIssue954()
-    {
-        echo_server es{log};
-        multi_buffer b;
-        net::io_context ioc;
-        stream<test::stream> ws{ioc};
-        ws.next_layer().connect(es.stream());
-        ws.handshake("localhost", "/");
-        // message followed by ping
-        ws.next_layer().append({
-            "\x81\x00"
-            "\x89\x00",
-            4});
-        bool called_cb = false;
-        bool called_handler = false;
-        ws.control_callback(
-            [&called_cb](frame_type, string_view)
-            {
-                called_cb = true;
-            });
-        ws.async_read(b,
-            [&](error_code, std::size_t)
-            {
-                called_handler = true;
-            });
-        BEAST_EXPECT(! called_cb);
-        BEAST_EXPECT(! called_handler);
-        ioc.run();
-        BEAST_EXPECT(! called_cb);
-        BEAST_EXPECT(called_handler);
-        ws.async_read(b,
-            [&](error_code, std::size_t)
-            {
-            });
-        BEAST_EXPECT(! called_cb);
-    }
-
-    /*  Bishop Fox Hybrid Assessment issue 1
-
-        Happens with permessage-deflate enabled and a
-        compressed frame with the FIN bit set ends with an
-        invalid prefix.
-    */
-    void
-    testIssueBF1()
-    {
-        permessage_deflate pmd;
-        pmd.client_enable = true;
-        pmd.server_enable = true;
-
-        // read
-#if 0
-        {
-            echo_server es{log};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc};
-            ws.set_option(pmd);
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/");
-            // invalid 1-byte deflate block in frame
-            net::write(ws.next_layer(), sbuf(
-                "\xc1\x81\x3a\xa1\x74\x3b\x49"));
-        }
-#endif
-        {
-            net::io_context ioc;
-            stream<test::stream> wsc{ioc};
-            stream<test::stream> wss{ioc};
-            wsc.set_option(pmd);
-            wss.set_option(pmd);
-            wsc.next_layer().connect(wss.next_layer());
-            wsc.async_handshake(
-                "localhost", "/", [](error_code){});
-            wss.async_accept([](error_code){});
-            ioc.run();
-            ioc.restart();
-            BEAST_EXPECT(wsc.is_open());
-            BEAST_EXPECT(wss.is_open());
-            // invalid 1-byte deflate block in frame
-            net::write(wsc.next_layer(), sbuf(
-                "\xc1\x81\x3a\xa1\x74\x3b\x49"));
-            error_code ec;
-            multi_buffer b;
-            wss.read(b, ec);
-            BEAST_EXPECTS(ec == zlib::error::end_of_stream, ec.message());
-        }
-
-        // async read
-#if 0
-        {
-            echo_server es{log, kind::async};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc};
-            ws.set_option(pmd);
-            ws.next_layer().connect(es.stream());
-            ws.handshake("localhost", "/");
-            // invalid 1-byte deflate block in frame
-            net::write(ws.next_layer(), sbuf(
-                "\xc1\x81\x3a\xa1\x74\x3b\x49"));
-        }
-#endif
-        {
-            net::io_context ioc;
-            stream<test::stream> wsc{ioc};
-            stream<test::stream> wss{ioc};
-            wsc.set_option(pmd);
-            wss.set_option(pmd);
-            wsc.next_layer().connect(wss.next_layer());
-            wsc.async_handshake(
-                "localhost", "/", [](error_code){});
-            wss.async_accept([](error_code){});
-            ioc.run();
-            ioc.restart();
-            BEAST_EXPECT(wsc.is_open());
-            BEAST_EXPECT(wss.is_open());
-            // invalid 1-byte deflate block in frame
-            net::write(wsc.next_layer(), sbuf(
-                "\xc1\x81\x3a\xa1\x74\x3b\x49"));
-            error_code ec;
-            flat_buffer b;
-            wss.async_read(b,
-                [&ec](error_code ec_, std::size_t){ ec = ec_; });
-            ioc.run();
-            BEAST_EXPECTS(ec == zlib::error::end_of_stream, ec.message());
-        }
-    }
-
-    /*  Bishop Fox Hybrid Assessment issue 2
-
-        Happens with permessage-deflate enabled,
-        and a deflate block with the BFINAL bit set
-        is encountered in a compressed payload.
-    */
-    void
-    testIssueBF2()
-    {
-        permessage_deflate pmd;
-        pmd.client_enable = true;
-        pmd.server_enable = true;
-
-        // read
-        {
-            net::io_context ioc;
-            stream<test::stream> wsc{ioc};
-            stream<test::stream> wss{ioc};
-            wsc.set_option(pmd);
-            wss.set_option(pmd);
-            wsc.next_layer().connect(wss.next_layer());
-            wsc.async_handshake(
-                "localhost", "/", [](error_code){});
-            wss.async_accept([](error_code){});
-            ioc.run();
-            ioc.restart();
-            BEAST_EXPECT(wsc.is_open());
-            BEAST_EXPECT(wss.is_open());
-            // contains a deflate block with BFINAL set
-            net::write(wsc.next_layer(), sbuf(
-                "\xc1\xf8\xd1\xe4\xcc\x3e\xda\xe4\xcc\x3e"
-                "\x2b\x1e\x36\xc4\x2b\x1e\x36\xc4\x2b\x1e"
-                "\x36\x3e\x35\xae\x4f\x54\x18\xae\x4f\x7b"
-                "\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4"
-                "\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e"
-                "\xd1\x1e\x36\xc4\x2b\x1e\x36\xc4\x2b\xe4"
-                "\x28\x74\x52\x8e\x05\x74\x52\xa1\xcc\x3e"
-                "\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4"
-                "\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e"
-                "\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4"
-                "\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4\x36\x3e"
-                "\xd1\xec\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4"
-                "\xcc\x3e\xd1\xe4\xcc\x3e"));
-            error_code ec;
-            flat_buffer b;
-            wss.read(b, ec);
-            BEAST_EXPECTS(ec == zlib::error::end_of_stream, ec.message());
-        }
-
-        // async read
-        {
-            net::io_context ioc;
-            stream<test::stream> wsc{ioc};
-            stream<test::stream> wss{ioc};
-            wsc.set_option(pmd);
-            wss.set_option(pmd);
-            wsc.next_layer().connect(wss.next_layer());
-            wsc.async_handshake(
-                "localhost", "/", [](error_code){});
-            wss.async_accept([](error_code){});
-            ioc.run();
-            ioc.restart();
-            BEAST_EXPECT(wsc.is_open());
-            BEAST_EXPECT(wss.is_open());
-            // contains a deflate block with BFINAL set
-            net::write(wsc.next_layer(), sbuf(
-                "\xc1\xf8\xd1\xe4\xcc\x3e\xda\xe4\xcc\x3e"
-                "\x2b\x1e\x36\xc4\x2b\x1e\x36\xc4\x2b\x1e"
-                "\x36\x3e\x35\xae\x4f\x54\x18\xae\x4f\x7b"
-                "\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4"
-                "\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e"
-                "\xd1\x1e\x36\xc4\x2b\x1e\x36\xc4\x2b\xe4"
-                "\x28\x74\x52\x8e\x05\x74\x52\xa1\xcc\x3e"
-                "\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4"
-                "\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e"
-                "\xd1\xe4\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4"
-                "\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4\x36\x3e"
-                "\xd1\xec\xcc\x3e\xd1\xe4\xcc\x3e\xd1\xe4"
-                "\xcc\x3e\xd1\xe4\xcc\x3e"));
-            error_code ec;
-            flat_buffer b;
-            wss.async_read(b,
-                [&ec](error_code ec_, std::size_t){ ec = ec_; });
-            ioc.run();
-            BEAST_EXPECTS(ec == zlib::error::end_of_stream, ec.message());
-        }
-    }
-
-    void
-    testMoveOnly()
-    {
-        net::io_context ioc;
-        stream<test::stream> ws{ioc};
-        ws.async_read_some(
-            net::mutable_buffer{},
-            move_only_handler{});
-    }
-
-    struct copyable_handler
-    {
-        template<class... Args>
-        void
-        operator()(Args&&...) const
-        {
-        }
-    };
-
-    void
-    testAsioHandlerInvoke()
-    {
-        // make sure things compile, also can set a
-        // breakpoint in asio_handler_invoke to make sure
-        // it is instantiated.
-        {
-            net::io_context ioc;
-            net::strand<
-                net::io_context::executor_type> s(
-                    ioc.get_executor());
-            stream<test::stream> ws{ioc};
-            flat_buffer b;
-            ws.async_read(b, net::bind_executor(
-            s, copyable_handler{}));
+            // good utf8
+            check(error::closed,
+                "\x88\x06\xfc\x15utf8");
         }
     }
 
     void
     run() override
     {
-        testParseFrame();
-        testIssue802();
-        testIssue807();
-        testIssue954();
-        testIssueBF1();
-        testIssueBF2();
-        testMoveOnly();
-        testAsioHandlerInvoke();
+        testRead();
     }
 };
 

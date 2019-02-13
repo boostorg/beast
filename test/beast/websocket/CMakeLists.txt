@@ -17,7 +17,7 @@ add_executable (tests-beast-websocket
     ${TEST_MAIN}
     Jamfile
     _detail_prng.cpp
-    _detail_stream_base.cpp
+    _detail_impl_base.cpp
     test.hpp
     _detail_prng.cpp
     accept.cpp
@@ -29,6 +29,7 @@ add_executable (tests-beast-websocket
     ping.cpp
     read1.cpp
     read2.cpp
+    read3.cpp
     rfc6455.cpp
     role.cpp
     stream.cpp

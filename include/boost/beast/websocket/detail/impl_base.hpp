@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_DETAIL_STREAM_BASE_HPP
-#define BOOST_BEAST_WEBSOCKET_DETAIL_STREAM_BASE_HPP
+#ifndef BOOST_BEAST_WEBSOCKET_DETAIL_IMPL_BASE_HPP
+#define BOOST_BEAST_WEBSOCKET_DETAIL_IMPL_BASE_HPP
 
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/http/empty_body.hpp>
@@ -17,9 +17,7 @@
 #include <boost/beast/websocket/option.hpp>
 #include <boost/beast/websocket/role.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
-#include <boost/beast/websocket/detail/prng.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
-#include <boost/beast/websocket/detail/prng.hpp>
 #include <boost/beast/zlib/deflate_stream.hpp>
 #include <boost/beast/zlib/inflate_stream.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
@@ -487,31 +485,6 @@ struct impl_base<false>
         BOOST_ASSERT(result != 0);
         return result;
     }
-};
-
-//------------------------------------------------------------------------------
-
-struct stream_base
-{
-protected:
-    enum class status
-    {
-        open,
-        closing,
-        closed,
-        failed
-    };
-
-    std::uint32_t
-    create_mask()
-    {
-        auto g = make_prng(secure_prng_);
-        for(;;)
-            if(auto key = g())
-                return key;
-    }
-
-    bool secure_prng_ = true;
 };
 
 } // detail

@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_TEST_FAIL_COUNT_HPP
 #define BOOST_BEAST_TEST_FAIL_COUNT_HPP
 
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/_experimental/test/error.hpp>
 #include <cstdlib>

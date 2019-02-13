@@ -629,6 +629,12 @@ connect(stream& to)
     return from;
 }
 
+void
+connect(stream& s1, stream& s2)
+{
+    s1.connect(s2);
+}
+
 template<class Arg1, class... ArgN>
 stream
 connect(stream& to, Arg1&& arg1, ArgN&&... argn)

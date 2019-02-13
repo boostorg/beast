@@ -24,6 +24,7 @@
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
+#include <boost/beast/websocket/impl/stream_impl.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -51,7 +52,7 @@ class stream<NextLayer, deflateSupported>::write_some_op
         do_deflate
     };
 
-    stream& ws_;
+    boost::weak_ptr<impl_type> wp_;
     buffers_suffix<Buffers> cb_;
     detail::frame_header fh_;
     detail::prepared_key key_;
@@ -69,17 +70,18 @@ public:
     template<class Handler_>
     write_some_op(
         Handler_&& h,
-        stream<NextLayer, deflateSupported>& ws,
+        boost::shared_ptr<impl_type> const& sp,
         bool fin,
         Buffers const& bs)
         : beast::async_op_base<Handler,
             beast::executor_type<stream>>(
-                std::forward<Handler_>(h), ws.get_executor())
-        , ws_(ws)
+                std::forward<Handler_>(h),
+                    sp->stream.get_executor())
+        , wp_(sp)
         , cb_(bs)
         , fin_(fin)
     {
-        auto& impl = *ws_.impl_;
+        auto& impl = *sp;
 
         // Set up the outgoing frame header
         if(! impl.wr_cont)
@@ -157,7 +159,11 @@ operator()(
     using beast::detail::clamp;
     std::size_t n;
     net::mutable_buffer b;
-    auto& impl = *ws_.impl_;
+    auto sp = wp_.lock();
+    if(! sp)
+        return this->invoke(cont,
+            net::error::operation_aborted, 0);
+    auto& impl = *sp;
     BOOST_ASIO_CORO_REENTER(*this)
     {
         // Acquire the write lock
@@ -165,7 +171,7 @@ operator()(
         {
         do_suspend:
             BOOST_ASIO_CORO_YIELD
-            impl.paused_wr.emplace(std::move(*this));
+            impl.op_wr.emplace(std::move(*this));
             impl.wr_block.lock(this);
             BOOST_ASIO_CORO_YIELD
             net::post(std::move(*this));
@@ -228,9 +234,10 @@ operator()(
                 // Give up the write lock in between each frame
                 // so that outgoing control frames might be sent.
                 impl.wr_block.unlock(this);
-                if( impl.paused_close.maybe_invoke() ||
-                    impl.paused_rd.maybe_invoke() ||
-                    impl.paused_ping.maybe_invoke())
+                if( impl.op_close.maybe_invoke()
+                    || impl.op_idle_ping.maybe_invoke()
+                    || impl.op_rd.maybe_invoke()
+                    || impl.op_ping.maybe_invoke())
                 {
                     BOOST_ASSERT(impl.wr_block.is_locked());
                     goto do_suspend;
@@ -248,7 +255,7 @@ operator()(
             remain_ = beast::buffer_size(cb_);
             fh_.fin = fin_;
             fh_.len = remain_;
-            fh_.key = ws_.create_mask();
+            fh_.key = impl.create_mask();
             detail::prepare_key(key_, fh_.key);
             impl.wr_fb.clear();
             detail::write<flat_static_buffer_base>(
@@ -302,7 +309,7 @@ operator()(
                 n = clamp(remain_, impl.wr_buf_size);
                 remain_ -= n;
                 fh_.len = n;
-                fh_.key = ws_.create_mask();
+                fh_.key = impl.create_mask();
                 fh_.fin = fin_ ? remain_ == 0 : false;
                 detail::prepare_key(key_, fh_.key);
                 net::buffer_copy(net::buffer(
@@ -330,9 +337,10 @@ operator()(
                 // Give up the write lock in between each frame
                 // so that outgoing control frames might be sent.
                 impl.wr_block.unlock(this);
-                if( impl.paused_close.maybe_invoke() ||
-                    impl.paused_rd.maybe_invoke() ||
-                    impl.paused_ping.maybe_invoke())
+                if( impl.op_close.maybe_invoke()
+                    || impl.op_idle_ping.maybe_invoke()
+                    || impl.op_rd.maybe_invoke()
+                    || impl.op_ping.maybe_invoke())
                 {
                     BOOST_ASSERT(impl.wr_block.is_locked());
                     goto do_suspend;
@@ -365,7 +373,7 @@ operator()(
                 }
                 if(fh_.mask)
                 {
-                    fh_.key = ws_.create_mask();
+                    fh_.key = impl.create_mask();
                     detail::prepared_key key;
                     detail::prepare_key(key, fh_.key);
                     detail::mask_inplace(b, key);
@@ -391,9 +399,10 @@ operator()(
                     // Give up the write lock in between each frame
                     // so that outgoing control frames might be sent.
                     impl.wr_block.unlock(this);
-                    if( impl.paused_close.maybe_invoke() ||
-                        impl.paused_rd.maybe_invoke() ||
-                        impl.paused_ping.maybe_invoke())
+                    if( impl.op_close.maybe_invoke()
+                        || impl.op_idle_ping.maybe_invoke()
+                        || impl.op_rd.maybe_invoke()
+                        || impl.op_ping.maybe_invoke())
                     {
                         BOOST_ASSERT(impl.wr_block.is_locked());
                         goto do_suspend;
@@ -413,15 +422,10 @@ operator()(
 
     upcall:
         impl.wr_block.unlock(this);
-        impl.paused_close.maybe_invoke()
-            || impl.paused_rd.maybe_invoke()
-            || impl.paused_ping.maybe_invoke();
-        if(! cont)
-        {
-            BOOST_ASIO_CORO_YIELD
-            net::post(bind_front_handler(
-                std::move(*this), ec, bytes_transferred_));
-        }
+        impl.op_close.maybe_invoke()
+            || impl.op_idle_ping.maybe_invoke()
+            || impl.op_rd.maybe_invoke()
+            || impl.op_ping.maybe_invoke();
         this->invoke(cont, ec, bytes_transferred_);
     }
 }
@@ -507,7 +511,7 @@ write_some(bool fin,
             }
             if(fh.mask)
             {
-                fh.key = this->create_mask();
+                fh.key = this->impl_->create_mask();
                 detail::prepared_key key;
                 detail::prepare_key(key, fh.key);
                 detail::mask_inplace(b, key);
@@ -581,7 +585,7 @@ write_some(bool fin,
         // mask, no autofrag
         fh.fin = fin;
         fh.len = remain;
-        fh.key = this->create_mask();
+        fh.key = this->impl_->create_mask();
         detail::prepared_key key;
         detail::prepare_key(key, fh.key);
         detail::fh_buffer fh_buf;
@@ -629,7 +633,7 @@ write_some(bool fin,
             ConstBufferSequence> cb(buffers);
         for(;;)
         {
-            fh.key = this->create_mask();
+            fh.key = this->impl_->create_mask();
             detail::prepared_key key;
             detail::prepare_key(key, fh.key);
             auto const n =
@@ -676,7 +680,7 @@ async_write_some(bool fin,
         WriteHandler, void(error_code, std::size_t));
     write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code, std::size_t))>(
-            std::move(init.completion_handler), *this, fin, bs);
+            std::move(init.completion_handler), impl_, fin, bs);
     return init.result.get();
 }
 
@@ -731,7 +735,7 @@ async_write(
         WriteHandler, void(error_code, std::size_t));
     write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
         WriteHandler, void(error_code, std::size_t))>(
-            std::move(init.completion_handler), *this, true, bs);
+            std::move(init.completion_handler), impl_, true, bs);
     return init.result.get();
 }
 

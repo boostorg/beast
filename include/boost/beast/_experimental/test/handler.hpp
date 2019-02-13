@@ -62,7 +62,7 @@ public:
 
     template<class... Args>
     void
-    operator()(error_code ec, Args&&... args)
+    operator()(error_code ec, Args&&...)
     {
         BEAST_EXPECT(! pass_); // can't call twice
         BEAST_EXPECTS(! ec_ || ec == *ec_,
