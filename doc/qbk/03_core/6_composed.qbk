@@ -18,13 +18,19 @@ informed of the asynchronous operation result. __Asio__ comes with the
 special tokens __use_future__ and __yield_context__ for using futures
 and coroutines respectively. This system of customizing the return value
 and method of completion notification is known as the
-['Extensible Asynchronous Model] described in __N3747__, and a built in
+['Universal Asynchronous Model] described in __N3747__, and a built in
 to __NetTS__. Here is an example of an initiating function which reads a
 line from the stream and echoes it back. This function is developed
 further in the next section:
 
 [example_core_echo_op_1]
 
+[tip
+    This initiating function receives the dynamic buffer by lvalue-reference,
+    instead of by rvalue-reference as specified in networking. An explanation
+    for this difference may be found in
+    [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1100r0.html [P1100R0] Efficient composition with DynamicBuffer].
+]
 Authors using Beast can reuse the library's primitives to create their
 own initiating functions for performing a series of other, intermediate
 asynchronous operations before invoking a final completion handler.
@@ -113,8 +119,6 @@ composed operations:
 This example develops an initiating function called [*echo].
 The operation will read up to the first newline on a stream, and
 then write the same line including the newline back on the stream.
-The implementation performs both reading and writing, and has a
-non-trivially-copyable state.
 First we define the input parameters and results, then declare our
 initiation function. For our echo operation the only inputs are the
 stream and the completion token. The output is the error code which
@@ -125,47 +129,25 @@ is usually included in all completion handler signatures.
 Now that we have a declaration, we will define the body of the function.
 We want to achieve the following goals: perform static type checking on
 the input parameters, set up the return value as per __N3747__, and launch
-the composed operation by constructing the object and invoking it.
-
-[example_core_echo_op_3]
+the composed operation by constructing an intermediate, stateful completion
+handler and invoking it.
 
 The initiating function contains a few relatively simple parts. There is
 the customization of the return value type, static type checking, building
 the return value type using the helper, and creating and launching the
-composed operation object. The [*`echo_op`] object does most of the work
-here, and has a somewhat non-trivial structure. This structure is necessary
-to meet the stringent requirements of composed operations (described in more
-detail in the __Asio__ documentation). We will touch on these requirements
-without explaining them in depth.
+`echo_op` composed operation object.
 
-Here is the boilerplate present in all composed operations written
-in this style:
+The implementation strategy is to make the composed object meet the
+requirements of a completion handler by being movable, and by making it
+invocable so it can be used as a continuation for the asynchronous operations
+it launches. Rather than using `std::bind` or `boost::bind`, which destroys
+the type information and therefore breaks the allocation and invocation hooks,
+we will simply pass `std::move(*this)` as the completion handler parameter for
+any operations that we initiate. For the move to work correctly, care must be
+taken to ensure that no access to data members are made after the move takes
+place. Here is the complete implementation of our composed operation:
 
-[example_core_echo_op_4]
-
-Next is to implement the function call operator. Our strategy is to make our
-composed object meet the requirements of a completion handler by being movable,
-and by providing the function call operator with the correct signature. Rather
-than using `std::bind` or `boost::bind`, which destroys the type information
-and therefore breaks the allocation and invocation hooks, we will simply pass
-`std::move(*this)` as the completion handler parameter for any operations that
-we initiate. For the move to work correctly, care must be taken to ensure that
-no access to data members are made after the move takes place. Here is the
-implementation of the function call operator for this echo operation:
-
-[example_core_echo_op_5]
-
-This is the most important element of writing a composed operation, and
-the part which is often neglected or implemented incorrectly. It is the
-forwarding of the final handler's associated allocator and associated
-executor to the composed operation.
-
-Our composed operation stores the final handler and performs its own
-intermediate asynchronous operations. To ensure that I/O objects, in this
-case the stream, are accessed safely it is important to use the same
-executor to invoke intermediate handlers as that used to invoke the final
-handler. Similarly, for memory allocations our composed operation should
-use the allocator associated with the final handler.
+[example_core_echo_op_3]
 
 There are some common mistakes that should be avoided when writing
 composed operations:
@@ -184,7 +166,8 @@ composed operations:
   if someone  calls the initiating function with a strand-wrapped
   function object, and there is more than thread running on the
   __io_context__, the underlying stream may be accessed in a fashion
-  that violates safety guarantees.
+  that violates safety guarantees. Beast provides class templates
+  to take care of this boilerplate for you.
 
 * Forgetting to create an object of type __executor_work_guard__ with the
   type of executor returned by the stream's `get_executor` member function.

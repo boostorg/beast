@@ -2,6 +2,7 @@ Version 214:
 
 * Handler binders use the associated allocator
 * Add detail::bind_continuation
+* Rewrite the echo-op example
 
 --------------------------------------------------------------------------------
 
