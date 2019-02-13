@@ -268,7 +268,7 @@ on_read(beast::error_code ec, std::size_t)
     {
         // Create a WebSocket session by transferring the socket
         boost::make_shared<websocket_session>(
-            std::move(stream_.release_socket()),
+            stream_.release_socket(),
                 state_)->run(std::move(req_));
         return;
     }
