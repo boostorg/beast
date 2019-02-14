@@ -17,6 +17,7 @@
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/core/exchange.hpp>
 #include <cstdlib>
 #include <type_traits>
@@ -118,7 +119,7 @@ struct basic_stream<
     Protocol, Executor>::timeout_handler
 {
     op_state& state;
-    std::weak_ptr<impl_type> wp;
+    boost::weak_ptr<impl_type> wp;
     tick_type tick;
 
     void
@@ -163,7 +164,7 @@ class basic_stream<Protocol, Executor>::async_op
     : public async_op_base<Handler, Executor>
     , public boost::asio::coroutine
 {
-    std::shared_ptr<impl_type> impl_;
+    boost::shared_ptr<impl_type> impl_;
     pending_guard pg_;
     Buffers b_;
 
@@ -292,7 +293,7 @@ class basic_stream_connect_op
     using timeout_handler =
         typename stream_type::timeout_handler;
 
-    std::shared_ptr<typename
+    boost::shared_ptr<typename
         stream_type::impl_type> impl_;
     typename stream_type::pending_guard pg0_;
     typename stream_type::pending_guard pg1_;
@@ -437,7 +438,7 @@ template<class Protocol, class Executor>
 template<class ExecutionContext, class... Args, class>
 basic_stream<Protocol, Executor>::
 basic_stream(ExecutionContext& ctx, Args&&... args)
-    : impl_(std::make_shared<impl_type>(
+    : impl_(boost::make_shared<impl_type>(
         ctx.get_executor(),
         ctx, std::forward<Args>(args)...))
 {
@@ -452,7 +453,7 @@ template<class... Args>
 basic_stream<Protocol, Executor>::
 basic_stream(
     executor_type const& ex, Args&&... args)
-    : impl_(std::make_shared<impl_type>(
+    : impl_(boost::make_shared<impl_type>(
         ex,
         ex.context(), std::forward<Args>(args)...))
 {
@@ -462,7 +463,7 @@ template<class Protocol, class Executor>
 template<class OtherProtocol, class>
 basic_stream<Protocol, Executor>::
 basic_stream(net::basic_stream_socket<OtherProtocol>&& socket)
-    : impl_(std::make_shared<impl_type>(
+    : impl_(boost::make_shared<impl_type>(
         std::move(socket),
         std::is_constructible<Executor,
         decltype(std::declval<net::basic_stream_socket<
@@ -473,7 +474,7 @@ basic_stream(net::basic_stream_socket<OtherProtocol>&& socket)
 template<class Protocol, class Executor>
 basic_stream<Protocol, Executor>::
 basic_stream(basic_stream&& other)
-    : impl_(std::make_shared<impl_type>(
+    : impl_(boost::make_shared<impl_type>(
         std::move(*other.impl_)))
 {
     // VFALCO I'm not sure this implementation is correct...

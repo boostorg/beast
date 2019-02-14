@@ -21,8 +21,9 @@
 #include <boost/core/empty_value.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/optional.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
 #include <chrono>
-#include <memory>
 
 namespace boost {
 namespace asio {
@@ -200,7 +201,7 @@ class basic_stream
 public:
 #endif
     struct impl_type
-        : std::enable_shared_from_this<impl_type>
+        : boost::enable_shared_from_this<impl_type>
         , boost::empty_value<Executor>
     {
         op_state read;
@@ -227,7 +228,7 @@ public:
         Executor const&
         ex() const noexcept
         {
-            return this->get();
+            return this->boost::empty_value<Executor>::get();
         }
 
         void reset();       // set timeouts to never
@@ -241,7 +242,7 @@ private:
     // outlive the destruction of the stream_socket object,
     // in the case where there is no outstanding read or write
     // but the implementation is still waiting on a timer.
-    std::shared_ptr<impl_type> impl_;
+    boost::shared_ptr<impl_type> impl_;
 
     // Restricted until P1322R0 is incorporated into Boost.Asio.
     static_assert(

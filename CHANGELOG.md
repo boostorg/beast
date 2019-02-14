@@ -1,3 +1,9 @@
+Version 215:
+
+* basic_stream uses boost::shared_ptr
+
+--------------------------------------------------------------------------------
+
 Version 214:
 
 * Handler binders use the associated allocator
