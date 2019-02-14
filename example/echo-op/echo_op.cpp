@@ -140,8 +140,13 @@ async_echo(
     // The class template `async_op_base` holds the caller's completion
     // handler for us, and provides all of the boilerplate for forwarding
     // the associated allocator and associated executor from the caller's
-    // handler to our operation. We declare this type alias to make the
-    // code easier to read.
+    // handler to our operation. It also maintains a `net::executor_work_guard`
+    // for the executor associated with the stream. This work guard is
+    // inexpensive, and prevents the execution context from running out
+    // of work. It is usually necessary although rarely it can be skipped
+    // depending on the operation (this echo example needs it because it
+    // performs more than one asynchronous operation in a row).
+    // We declare this type alias to make the code easier to read.
 
     using base_type = beast::async_op_base<
         handler_type, /*< The type of the completion handler obtained from the token >*/

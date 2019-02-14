@@ -188,7 +188,7 @@ class async_op_base
         "Executor requirements not met");
 
     Handler h_;
-    net::executor_work_guard<Executor1> wg_;
+    net::executor_work_guard<Executor1> wg1_;
 
     virtual
     void
@@ -230,7 +230,7 @@ public:
         Handler_&& handler,
         Executor1 const& ex1)
         : h_(std::forward<Handler_>(handler))
-        , wg_(ex1)
+        , wg1_(ex1)
     {
     }
 
@@ -242,7 +242,7 @@ public:
         : boost::empty_value<Allocator>(
             boost::empty_init_t{}, alloc)
         , h_(std::forward<Handler_>(handler))
-        , wg_(ex1)
+        , wg1_(ex1)
     {
     }
 #endif
@@ -291,7 +291,7 @@ public:
     get_executor() const noexcept
     {
         return net::get_associated_executor(
-            h_, wg_.get_executor());
+            h_, wg1_.get_executor());
     }
 
     /// Returns the handler associated with this object
@@ -329,7 +329,7 @@ public:
     invoke(Args&&... args)
     {
         this->before_invoke_hook();
-        wg_.reset();
+        wg1_.reset();
         h_(std::forward<Args>(args)...);
     }
 

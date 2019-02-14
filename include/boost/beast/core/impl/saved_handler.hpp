@@ -65,13 +65,13 @@ class saved_handler::impl final : public base
 
     ebo_pair v_;
     net::executor_work_guard<
-        net::associated_executor_t<Handler>> wg_;
+        net::associated_executor_t<Handler>> wg2_;
 
 public:
     template<class Handler_>
     impl(alloc_type const& a, Handler_&& h)
         : v_(a, std::forward<Handler_>(h))
-        , wg_(net::get_associated_executor(v_.h))
+        , wg2_(net::get_associated_executor(v_.h))
     {
     }
 
