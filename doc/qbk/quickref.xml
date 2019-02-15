@@ -63,7 +63,6 @@
           <member><link linkend="beast.ref.boost__beast__allocate_stable">allocate_stable</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__async_connect">async_connect</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__beast_close_socket">beast_close_socket</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
-          <member><link linkend="beast.ref.boost__beast__bind_back_handler">bind_back_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__bind_front_handler">bind_front_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>
           <member><link linkend="beast.ref.boost__beast__buffer_size">buffer_size</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>

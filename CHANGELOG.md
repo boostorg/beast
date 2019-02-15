@@ -1,6 +1,7 @@
 Version 215:
 
 * basic_stream uses boost::shared_ptr
+* Remove bind_back_handler
 
 --------------------------------------------------------------------------------
 

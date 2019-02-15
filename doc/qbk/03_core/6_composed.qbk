@@ -79,7 +79,6 @@ composed operations:
     be the same as those of the original handler.
 ]]
 [[
-    [link beast.ref.boost__beast__bind_back_handler `bind_back_handler`]
     [link beast.ref.boost__beast__bind_front_handler `bind_front_handler`]
 ][
     This function creates a new handler which, when invoked, calls

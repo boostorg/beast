@@ -240,12 +240,6 @@ public:
     {
         std::bind(bind_front_handler(test_cb{}));
     }
-
-    void
-    failStdBindBack()
-    {
-        std::bind(bind_back_handler(test_cb{}));
-    }
 #endif
 
     //--------------------------------------------------------------------------
@@ -475,92 +469,6 @@ public:
     }
 
 
-    void
-    testBindBackHandler()
-    {
-        using m1 = move_arg<1>;
-        using m2 = move_arg<2>;
-
-        // 0-ary
-        bind_back_handler(test_cb{})();
-
-        // 1-ary
-        bind_back_handler(test_cb{}, 42)(); 
-        bind_back_handler(test_cb{})(42);
-
-        // 2-ary
-        bind_back_handler(test_cb{}, 42, "s")();
-        bind_back_handler(test_cb{}, "s")(42);
-        bind_back_handler(test_cb{})(42, "s");
-
-        // 3-ary
-        bind_back_handler(test_cb{}, 42, "s", m1{})();
-        bind_back_handler(test_cb{}, m1{})(42, "s");
-        bind_back_handler(test_cb{}, "s", m1{})(42);
-        bind_back_handler(test_cb{})(42, "s", m1{});
-
-        // 4-ary
-        bind_back_handler(test_cb{}, 42, "s", m1{}, m2{})();
-        bind_back_handler(test_cb{}, "s", m1{}, m2{})(42);
-        bind_back_handler(test_cb{}, m1{}, m2{})(42, "s");
-        bind_back_handler(test_cb{}, "s", m1{}, m2{})(42);
-        bind_back_handler(test_cb{})(42, "s", m1{}, m2{});
-
-        error_code ec;
-        std::size_t n = 256;
-        
-        // void(error_code, size_t)
-        bind_back_handler(test_cb{}, ec, n)();
-
-        // void(error_code, size_t)(string_view)
-        bind_back_handler(test_cb{}, "s")(ec, n);
-
-        // perfect forwarding
-        {
-            std::shared_ptr<int> const sp =
-                std::make_shared<int>(42);
-            bind_back_handler(test_cb{}, sp)();
-            BEAST_EXPECT(sp.get() != nullptr);
-        }
-
-        // associated executor
-        {
-            net::io_context ioc;
-
-            testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{})
-                ));
-            testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{}),
-                42));
-            testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{}),
-                42, "s"));
-            testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{}),
-                42, "s", m1{}));
-            testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{}),
-                42, "s", m1{}, m2{}));
-            testHooks(ioc, bind_back_handler(net::bind_executor(
-                test_executor(*this, ioc), test_cb{}),
-                ec, n));
-        }
-
-        // legacy hooks
-        legacy_handler::test(
-            [](legacy_handler h)
-            {
-                return bind_back_handler(h);
-            });
-        legacy_handler::test(
-            [](legacy_handler h)
-            {
-                return bind_back_handler(
-                    h, error_code{}, std::size_t{});
-            });
-    }
-
     //--------------------------------------------------------------------------
 
     template <class AsyncReadStream, class ReadHandler>
@@ -583,16 +491,6 @@ public:
                 net::error::eof, 0));
     }
 
-    template <class AsyncReadStream, class ReadHandler>
-    void
-    signal_unreachable (AsyncReadStream& stream, ReadHandler&& handler)
-    {
-        net::post(
-            stream.get_executor(),
-            bind_back_handler (std::forward<ReadHandler> (handler),
-                net::error::network_unreachable, 0));
-    }
-
     void
     testJavadocs()
     {
@@ -603,10 +501,6 @@ public:
         BEAST_EXPECT((
             &bind_handler_test::signal_eof<
                 test::stream, handler<error_code, std::size_t>>));
-            
-        BEAST_EXPECT((
-            &bind_handler_test::signal_unreachable<
-                test::stream, handler<error_code, std::size_t>>));
     }
 
     //--------------------------------------------------------------------------
@@ -616,7 +510,6 @@ public:
     {
         testBindHandler();
         testBindFrontHandler();
-        testBindBackHandler();
         testJavadocs();
     }
 };

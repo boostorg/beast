@@ -56,7 +56,6 @@ Enlarged scope
   * Specify exception safety
 
 * ([issue 1384]) New functions
-  `bind_back_handler`,
   `bind_front_handler`
 
 * Better
