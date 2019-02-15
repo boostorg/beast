@@ -5,6 +5,7 @@ Version 215:
 * bind_front_handler works with member functions
 * Examples use bind_front_handler
 * Add experimental test/handler.hpp
+* Rename to async_op_base::invoke_now
 
 --------------------------------------------------------------------------------
 

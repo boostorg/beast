@@ -119,7 +119,7 @@ namespace beast {
                 }
 
                 // Call the completion handler with the result
-                this->invoke(ec, total_bytes_transferred_);
+                this->invoke_now(ec, total_bytes_transferred_);
             }
         };
 
@@ -326,7 +326,7 @@ public:
     */
     template<class... Args>
     void
-    invoke(Args&&... args)
+    invoke_now(Args&&... args)
     {
         this->before_invoke_hook();
         wg1_.reset();
@@ -522,7 +522,7 @@ public:
                 }
 
                 // The base class destroys the temporary data automatically, before invoking the final completion handler
-                this->invoke(ec);
+                this->invoke_now(ec);
             }
         };
 

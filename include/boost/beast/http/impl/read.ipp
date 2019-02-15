@@ -199,7 +199,7 @@ public:
     {
         if(! ec)
             d_.m = d_.p.release();
-        this->invoke(ec, bytes_transferred);
+        this->invoke_now(ec, bytes_transferred);
     }
 };
 

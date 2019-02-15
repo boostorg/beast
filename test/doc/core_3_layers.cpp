@@ -179,7 +179,7 @@ public:
             void operator()(error_code ec, std::size_t bytes_transferred)
             {
                 stream_.bytes_read_ += bytes_transferred;
-                this->invoke(ec, bytes_transferred);
+                this->invoke_now(ec, bytes_transferred);
             }
         };
         net::async_completion<ReadHandler, void(error_code, std::size_t)> init{handler};
@@ -214,7 +214,7 @@ public:
             void operator()(error_code ec, std::size_t bytes_transferred)
             {
                 stream_.bytes_written_ += bytes_transferred;
-                this->invoke(ec, bytes_transferred);
+                this->invoke_now(ec, bytes_transferred);
             }
         };
         net::async_completion<WriteHandler, void(error_code, std::size_t)> init{handler};

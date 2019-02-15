@@ -253,7 +253,7 @@ public:
                     d_.ws.get_executor(),
                     beast::bind_front_handler(std::move(*this), ec));
             }
-            this->invoke(ec);
+            this->invoke_now(ec);
         }
     }
 };

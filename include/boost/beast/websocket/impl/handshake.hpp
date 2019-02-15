@@ -112,7 +112,7 @@ public:
             if(d_.res_p)
                 swap(d_.res, *d_.res_p);
         upcall:
-            this->invoke(ec);
+            this->invoke_now(ec);
         }
     }
 };

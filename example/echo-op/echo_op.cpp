@@ -316,7 +316,7 @@ async_echo(
                 // The function `async_op_base::invoke` takes care of calling
                 // the final completion handler.
 
-                this->invoke(ec);
+                this->invoke_now(ec);
             }
         }
     };

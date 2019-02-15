@@ -96,7 +96,7 @@ public:
                     beast::bind_front_handler(
                         std::move(*this), ec, total_));
             }
-            this->invoke(ec, total_);
+            this->invoke_now(ec, total_);
         }
     }
 };
@@ -204,7 +204,7 @@ public:
                     beast::bind_front_handler(
                         std::move(*this), ec, total_));
             }
-            this->invoke(ec, total_);
+            this->invoke_now(ec, total_);
         }
     }
 

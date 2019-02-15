@@ -95,7 +95,7 @@ public:
             s_.buffer_.consume(bytes_transferred);
             break;
         }
-        this->invoke(ec, bytes_transferred);
+        this->invoke_now(ec, bytes_transferred);
     }
 };
 

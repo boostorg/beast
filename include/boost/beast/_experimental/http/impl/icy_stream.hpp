@@ -284,7 +284,7 @@ public:
                 }
             }
         upcall:
-            this->invoke(ec, bytes_transferred);
+            this->invoke_now(ec, bytes_transferred);
         }
     }
 };

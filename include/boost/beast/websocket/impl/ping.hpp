@@ -125,7 +125,7 @@ public:
             d_.ws.impl_->paused_close.maybe_invoke() ||
                 d_.ws.impl_->paused_rd.maybe_invoke() ||
                 d_.ws.impl_->paused_wr.maybe_invoke();
-            this->invoke(ec);
+            this->invoke_now(ec);
         }
     }
 };

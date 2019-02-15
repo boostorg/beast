@@ -617,7 +617,7 @@ public:
                     beast::bind_front_handler(std::move(*this),
                         ec, bytes_written_));
             }
-            this->invoke(ec, bytes_written_);
+            this->invoke_now(ec, bytes_written_);
         }
     }
 };
@@ -690,7 +690,7 @@ public:
             }
             while(! some_ && ! ws_.is_message_done());
         upcall:
-            this->invoke(ec, bytes_written_);
+            this->invoke_now(ec, bytes_written_);
         }
     }
 };

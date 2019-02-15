@@ -83,7 +83,7 @@ public:
                 ws_.impl_->do_pmd_config(res_);
                 ws_.impl_->open(role_type::server);
             }
-            this->invoke(ec);
+            this->invoke_now(ec);
         }
     }
 };
@@ -176,7 +176,7 @@ public:
                 #endif
                 }
             }
-            this->invoke(ec);
+            this->invoke_now(ec);
         }
     }
 };

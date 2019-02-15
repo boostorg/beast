@@ -114,7 +114,7 @@ public:
                 error_code ignored;
                 s_.non_blocking(nb_, ignored);
             }
-            this->invoke(ec);
+            this->invoke_now(ec);
         }
     }
 };

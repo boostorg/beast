@@ -431,7 +431,7 @@ operator()(
                     std::move(*this),
                     ec, bytes_transferred_));
         }
-        this->invoke(ec, bytes_transferred_);
+        this->invoke_now(ec, bytes_transferred_);
     }
 }
 
