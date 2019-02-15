@@ -217,10 +217,9 @@ public:
         timer_.async_wait(
             net::bind_executor(
                 strand_,
-                std::bind(
+                beast::bind_front_handler(
                     &worker::on_timer,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+                    shared_from_this())));
     }
 
     void
@@ -249,11 +248,9 @@ public:
             "http",
             net::bind_executor(
                 strand_,
-                std::bind(
+                beast::bind_front_handler(
                     &worker::on_resolve,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+                    shared_from_this())));
     }
 
     void
@@ -277,18 +274,16 @@ public:
         // Make the connection on the IP address we get from a lookup
         net::async_connect(
             socket_,
-            results.begin(),
-            results.end(),
+            results,
             net::bind_executor(
                 strand_,
-                std::bind(
+                beast::bind_front_handler(
                     &worker::on_connect,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+                    shared_from_this())));
     }
 
     void
-    on_connect(beast::error_code ec)
+    on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
     {
         if(ec)
         {
@@ -309,11 +304,9 @@ public:
             req_,
             net::bind_executor(
                 strand_,
-                std::bind(
+                beast::bind_front_handler(
                     &worker::on_write,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+                    shared_from_this())));
     }
 
     void
@@ -344,11 +337,9 @@ public:
             res_,
             net::bind_executor(
                 strand_,
-                std::bind(
+                beast::bind_front_handler(
                     &worker::on_read,
-                    shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2)));
+                    shared_from_this())));
     }
 
     void

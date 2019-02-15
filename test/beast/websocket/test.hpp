@@ -10,6 +10,7 @@
 #ifndef BEAST_TEST_WEBSOCKET_TEST_HPP
 #define BEAST_TEST_WEBSOCKET_TEST_HPP
 
+#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
@@ -131,10 +132,9 @@ public:
         async_handshake()
         {
             ws_.async_handshake("localhost", "/",
-                std::bind(
+                bind_front_handler(
                     &echo_server::on_handshake,
-                    this,
-                    std::placeholders::_1));
+                    this));
         }
 
         void
@@ -146,10 +146,9 @@ public:
                 if(ws_.is_open())
                 {
                     ws_.async_close({},
-                        std::bind(
+                        bind_front_handler(
                             &echo_server::on_close,
-                            this,
-                            std::placeholders::_1));
+                            this));
                 }
                 else
                 {
@@ -192,10 +191,10 @@ public:
         void
         do_accept()
         {
-            ws_.async_accept(std::bind(
-                &echo_server::on_accept,
-                this,
-                std::placeholders::_1));
+            ws_.async_accept(
+                bind_front_handler(
+                    &echo_server::on_accept,
+                    this));
         }
 
         void
@@ -216,10 +215,9 @@ public:
             if(close_)
             {
                 return ws_.async_close({},
-                    std::bind(
+                    bind_front_handler(
                         &echo_server::on_close,
-                        this,
-                        std::placeholders::_1));
+                        this));
             }
 
             do_read();
@@ -229,27 +227,25 @@ public:
         do_read()
         {
             ws_.async_read(buffer_,
-                std::bind(
+                beast::bind_front_handler(
                     &echo_server::on_read,
-                    this,
-                    std::placeholders::_1));
+                    this));
         }
 
         void
-        on_read(error_code ec)
+        on_read(error_code ec, std::size_t)
         {
             if(ec)
                 return fail(ec);
             ws_.text(ws_.got_text());
             ws_.async_write(buffer_.data(),
-                std::bind(
+                beast::bind_front_handler(
                     &echo_server::on_write,
-                    this,
-                    std::placeholders::_1));
+                    this));
         }
 
         void
-        on_write(error_code ec)
+        on_write(error_code ec, std::size_t)
         {
             if(ec)
                 return fail(ec);

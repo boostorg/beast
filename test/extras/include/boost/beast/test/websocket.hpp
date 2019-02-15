@@ -25,6 +25,7 @@ namespace boost {
 namespace beast {
 namespace test {
 
+// DEPRECATED
 class ws_echo_server
 {
     std::ostream& log_;

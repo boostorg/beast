@@ -12,8 +12,9 @@
 
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
-#include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/core/bind_handler.hpp>
+#include <boost/beast/test/yield_to.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/read.hpp>
@@ -104,11 +105,9 @@ public:
                 brs_->buffer().prepare(5), net::buffer("Hello", 5)));
             net::async_read(*brs_,
                 net::buffer(&s_[0], s_.size()),
-                    std::bind(
+                    bind_front_handler(
                         &loop::on_read,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2));
+                        shared_from_this()));
         }
     };
 

@@ -69,10 +69,9 @@ public:
         // Perform the SSL handshake
         ws_.next_layer().async_handshake(
             ssl::stream_base::server,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_handshake,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -83,10 +82,9 @@ public:
 
         // Accept the websocket handshake
         ws_.async_accept(
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_accept,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -105,11 +103,9 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -130,11 +126,9 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -220,11 +214,9 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            std::bind(
+            beast::bind_front_handler(
                 &listener::on_accept,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void

@@ -287,8 +287,8 @@ async_detect_ssl(
         AsyncReadStream,
         DynamicBuffer,
         BOOST_ASIO_HANDLER_TYPE(
-            CompletionToken, void(beast::error_code, boost::tribool))>{
-                stream, buffer, init.completion_handler}(beast::error_code{}, 0);
+            CompletionToken, void(beast::error_code, boost::tribool))>(
+                stream, buffer, std::move(init.completion_handler))(beast::error_code{}, 0);
 
     // This hook lets the caller see a return value when appropriate.
     // For example this might return std::future<error_code, boost::tribool> if

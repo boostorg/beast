@@ -131,9 +131,9 @@ do_sync_listen(
         if(ec)
             return fail(ec, "accept");
 
-        std::thread{std::bind(
+        std::thread(std::bind(
             &do_sync_session,
-            ws_type(std::move(socket)))}.detach();
+            ws_type(std::move(socket)))).detach();
     }
 }
 
@@ -165,10 +165,9 @@ public:
                 res.set(http::field::server,
                     "Boost.Beast/" + std::to_string(BOOST_BEAST_VERSION) + "-Async");
             },
-            std::bind(
+            beast::bind_front_handler(
                 &async_session::on_accept,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -187,11 +186,9 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            std::bind(
+            beast::bind_front_handler(
                 &async_session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -212,11 +209,9 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            std::bind(
+            beast::bind_front_handler(
                 &async_session::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -297,11 +292,9 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            std::bind(
+            beast::bind_front_handler(
                 &async_listener::on_accept,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -428,7 +421,7 @@ int main(int argc, char* argv[])
     net::io_context ioc{threads};
 
     // Create sync port
-    std::thread(std::bind(
+    std::thread(beast::bind_front_handler(
         &do_sync_listen,
         std::ref(ioc),
         tcp::endpoint{

@@ -389,7 +389,7 @@ public:
 
     template<class... Args>
     void
-    operator()(Args&&... args) const
+    operator()(Args&&... args)
     {
         h_(std::forward<Args>(args)...);
     }

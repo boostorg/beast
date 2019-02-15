@@ -261,21 +261,18 @@ public:
         // Set the control callback. This will be called
         // on every incoming ping, pong, and close frame.
         derived().ws().control_callback(
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_control_callback,
-                this,
-                std::placeholders::_1,
-                std::placeholders::_2));
+                this));
 
         // VFALCO What about the timer?
 
         // Accept the websocket handshake
         derived().ws().async_accept(
             req,
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_accept,
-                derived().shared_from_this(),
-                std::placeholders::_1));
+                derived().shared_from_this()));
     }
 
     void
@@ -314,10 +311,9 @@ public:
 
                 // Now send the ping
                 derived().ws().async_ping({},
-                    std::bind(
+                    beast::bind_front_handler(
                         &websocket_session::on_ping,
-                        derived().shared_from_this(),
-                        std::placeholders::_1));
+                        derived().shared_from_this()));
             }
             else
             {
@@ -334,10 +330,9 @@ public:
         timer_.async_wait(
             net::bind_executor(
                 derived().ws().get_executor(), // use the strand
-                std::bind(
+                beast::bind_front_handler(
                     &websocket_session::on_timer,
-                    derived().shared_from_this(),
-                    std::placeholders::_1)));
+                    derived().shared_from_this())));
     }
 
     // Called to indicate activity from the remote peer
@@ -393,11 +388,9 @@ public:
         // Read a message into our buffer
         derived().ws().async_read(
             buffer_,
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_read,
-                derived().shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                derived().shared_from_this()));
     }
 
     void
@@ -425,11 +418,9 @@ public:
         derived().ws().text(derived().ws().got_text());
         derived().ws().async_write(
             buffer_.data(),
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_write,
-                derived().shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                derived().shared_from_this()));
     }
 
     void
@@ -510,10 +501,9 @@ public:
         // Close the WebSocket Connection
         ws_.async_close(
             websocket::close_code::normal,
-            std::bind(
+            beast::bind_front_handler(
                 &plain_websocket_session::on_close,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -581,10 +571,9 @@ public:
 
         // Perform the SSL shutdown
         ws_.next_layer().async_shutdown(
-            std::bind(
+            beast::bind_front_handler(
                 &ssl_websocket_session::on_shutdown,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -724,10 +713,9 @@ class http_session
                     http::async_write(
                         self_.derived().stream(),
                         msg_,
-                        std::bind(
+                        beast::bind_front_handler(
                             &http_session::on_write,
                             self_.derived().shared_from_this(),
-                            std::placeholders::_1,
                             msg_.need_eof()));
                 }
             };
@@ -780,15 +768,16 @@ public:
             derived().stream(),
             buffer_,
             req_,
-            std::bind(
+            beast::bind_front_handler(
                 &http_session::on_read,
-                derived().shared_from_this(),
-                std::placeholders::_1));
+                derived().shared_from_this()));
     }
 
     void
-    on_read(beast::error_code ec)
+    on_read(beast::error_code ec, std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         // This means they closed the connection
         if(ec == http::error::end_of_stream)
             return derived().do_eof();
@@ -814,8 +803,10 @@ public:
     }
 
     void
-    on_write(beast::error_code ec, bool close)
+    on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         // Happens when the timer closes the socket
         if(ec == net::error::operation_aborted)
             return;
@@ -882,7 +873,7 @@ public:
         if(! stream_.get_executor().running_in_this_thread())
             return net::post(
                 stream_.get_executor(),
-                std::bind(
+                beast::bind_front_handler(
                     &plain_http_session::run,
                     shared_from_this()));
 
@@ -958,7 +949,7 @@ public:
         if(! stream_.get_executor().running_in_this_thread())
             return net::post(
                 stream_.get_executor(),
-                std::bind(
+                beast::bind_front_handler(
                     &ssl_http_session::run,
                     shared_from_this()));
 
@@ -970,11 +961,9 @@ public:
         stream_.async_handshake(
             ssl::stream_base::server,
             buffer_.data(),
-            std::bind(
+            beast::bind_front_handler(
                 &ssl_http_session::on_handshake,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
     void
     on_handshake(
@@ -1000,10 +989,9 @@ public:
 
         // Perform the SSL shutdown
         stream_.async_shutdown(
-            std::bind(
+            beast::bind_front_handler(
                 &ssl_http_session::on_shutdown,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -1052,11 +1040,9 @@ public:
         async_detect_ssl(
             stream_,
             buffer_,
-            std::bind(
+            beast::bind_front_handler(
                 &detect_session::on_detect,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                this->shared_from_this()));
     }
 
     void
@@ -1150,11 +1136,9 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            std::bind(
+            beast::bind_front_handler(
                 &listener::on_accept,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void

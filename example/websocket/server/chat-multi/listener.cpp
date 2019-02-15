@@ -61,11 +61,9 @@ run()
 {
     // Start accepting a connection
     acceptor_.async_accept(
-        std::bind(
+        beast::bind_front_handler(
             &listener::on_accept,
-            shared_from_this(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+            shared_from_this()));
 }
 
 // Report a failure
@@ -94,9 +92,7 @@ on_accept(beast::error_code ec, tcp::socket socket)
 
     // Accept another connection
     acceptor_.async_accept(
-        std::bind(
+        beast::bind_front_handler(
             &listener::on_accept,
-            shared_from_this(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+            shared_from_this()));
 }

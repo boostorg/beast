@@ -206,11 +206,9 @@ run()
 
     // Read a request
     http::async_read(stream_, buffer_, req_,
-        std::bind(
+        beast::bind_front_handler(
             &http_session::on_read,
-            shared_from_this(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+            shared_from_this()));
 }
 
 // Report a failure
@@ -348,9 +346,7 @@ on_write(beast::error_code ec, std::size_t, bool close)
 
     // Read another request
     http::async_read(stream_, buffer_, req_,
-        std::bind(
+        beast::bind_front_handler(
             &http_session::on_read,
-            shared_from_this(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+            shared_from_this()));
 }

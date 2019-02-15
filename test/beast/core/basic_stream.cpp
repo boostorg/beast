@@ -261,19 +261,16 @@ private:
             if(s_.empty())
                 socket_.async_wait(
                     net::socket_base::wait_read,
-                    std::bind(
+                    bind_front_handler(
                         &session::on_read,
-                        shared_from_this(),
-                        std::placeholders::_1));
+                        shared_from_this()));
             else
                 net::async_write(
                     socket_,
                     net::const_buffer(s_.data(), s_.size()),
-                    std::bind(
+                    bind_front_handler(
                         &session::on_write,
-                        shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2));
+                        shared_from_this()));
         }
 
     protected:

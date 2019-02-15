@@ -153,10 +153,9 @@ public:
     run()
     {
         ws_.next_layer().async_connect(ep_,
-            alloc_.wrap(std::bind(
+            alloc_.wrap(beast::bind_front_handler(
                 &connection::on_connect,
-                shared_from_this(),
-                std::placeholders::_1)));
+                shared_from_this())));
     }
 
 private:
@@ -169,10 +168,9 @@ private:
         ws_.async_handshake(
             ep_.address().to_string() + ":" + std::to_string(ep_.port()),
             "/",
-            alloc_.wrap(std::bind(
+            alloc_.wrap(beast::bind_front_handler(
                 &connection::on_handshake,
-                shared_from_this(),
-                std::placeholders::_1)));
+                shared_from_this())));
     }
 
     void
@@ -191,14 +189,13 @@ private:
             double(4) / beast::buffer_size(tb_)};
         ws_.async_write_some(true,
             beast::buffers_prefix(dist(rng_), tb_),
-            alloc_.wrap(std::bind(
+            alloc_.wrap(beast::bind_front_handler(
                 &connection::on_write,
-                shared_from_this(),
-                std::placeholders::_1)));
+                shared_from_this())));
     }
 
     void
-    on_write(beast::error_code ec)
+    on_write(beast::error_code ec, std::size_t)
     {
         if(ec)
             return fail(ec, "write");
@@ -207,24 +204,22 @@ private:
             return do_read();
 
         ws_.async_close({},
-            alloc_.wrap(std::bind(
+            alloc_.wrap(beast::bind_front_handler(
                 &connection::on_close,
-                shared_from_this(),
-                std::placeholders::_1)));
+                shared_from_this())));
     }
 
     void
     do_read()
     {
         ws_.async_read(buffer_,
-            alloc_.wrap(std::bind(
+            alloc_.wrap(beast::bind_front_handler(
                 &connection::on_read,
-                shared_from_this(),
-                std::placeholders::_1)));
+                shared_from_this())));
     }
 
     void
-    on_read(beast::error_code ec)
+    on_read(beast::error_code ec, std::size_t)
     {
         if(ec)
             return fail(ec, "read");

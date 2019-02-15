@@ -75,11 +75,9 @@ public:
         resolver_.async_resolve(
             host,
             port,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_resolve,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -97,14 +95,13 @@ public:
         beast::async_connect(
             beast::get_lowest_layer(ws_),
             results,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_connect,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
-    on_connect(beast::error_code ec)
+    on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
     {
         if(ec)
             return fail(ec, "connect");
@@ -115,10 +112,9 @@ public:
         // Perform the SSL handshake
         ws_.next_layer().async_handshake(
             ssl::stream_base::client,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_ssl_handshake,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -129,10 +125,9 @@ public:
 
         // Perform the websocket handshake
         ws_.async_handshake(host_, "/",
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_handshake,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -144,11 +139,9 @@ public:
         // Send the message
         ws_.async_write(
             net::buffer(text_),
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -164,11 +157,9 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -183,10 +174,9 @@ public:
 
         // Close the WebSocket connection
         ws_.async_close(websocket::close_code::normal,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_close,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void

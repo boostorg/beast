@@ -52,11 +52,9 @@ on_accept(beast::error_code ec)
     // Read a message
     ws_.async_read(
         buffer_,
-        std::bind(
+        beast::bind_front_handler(
             &websocket_session::on_read,
-            shared_from_this(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+            shared_from_this()));
 }
 
 void
@@ -76,11 +74,9 @@ on_read(beast::error_code ec, std::size_t)
     // Read another message
     ws_.async_read(
         buffer_,
-        std::bind(
+        beast::bind_front_handler(
             &websocket_session::on_read,
-            shared_from_this(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+            shared_from_this()));
 }
 
 void
@@ -93,7 +89,7 @@ send(boost::shared_ptr<std::string const> const& ss)
     if(! ws_.get_executor().running_in_this_thread())
         return net::post(
             ws_.get_executor(),
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::send,
                 shared_from_this(),
                 ss));
@@ -108,11 +104,9 @@ send(boost::shared_ptr<std::string const> const& ss)
     // We are not currently writing, so send this immediately
     ws_.async_write(
         net::buffer(*queue_.front()),
-        std::bind(
+        beast::bind_front_handler(
             &websocket_session::on_write,
-            shared_from_this(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+            shared_from_this()));
 }
 
 void
@@ -130,9 +124,7 @@ on_write(beast::error_code ec, std::size_t)
     if(! queue_.empty())
         ws_.async_write(
             net::buffer(*queue_.front()),
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
 }

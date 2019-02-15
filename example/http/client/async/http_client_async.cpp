@@ -76,11 +76,9 @@ public:
         resolver_.async_resolve(
             host,
             port,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_resolve,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -98,14 +96,13 @@ public:
         beast::async_connect(
             stream_,
             results,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_connect,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
-    on_connect(beast::error_code ec)
+    on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
     {
         if(ec)
             return fail(ec, "connect");
@@ -115,11 +112,9 @@ public:
 
         // Send the HTTP request to the remote host
         http::async_write(stream_, req_,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -134,11 +129,9 @@ public:
         
         // Receive the HTTP response
         http::async_read(stream_, buffer_, res_,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void

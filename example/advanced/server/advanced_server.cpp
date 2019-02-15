@@ -243,11 +243,9 @@ public:
         // Set the control callback. This will be called
         // on every incoming ping, pong, and close frame.
         ws_.control_callback(
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_control_callback,
-                this,
-                std::placeholders::_1,
-                std::placeholders::_2));
+                this));
 
         // Run the timer. The timer is operated
         // continuously, this simplifies the code.
@@ -259,10 +257,9 @@ public:
         // Accept the websocket handshake
         ws_.async_accept(
             req,
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_accept,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -301,10 +298,9 @@ public:
 
                 // Now send the ping
                 ws_.async_ping({},
-                    std::bind(
+                    beast::bind_front_handler(
                         &websocket_session::on_ping,
-                        shared_from_this(),
-                        std::placeholders::_1));
+                        shared_from_this()));
             }
             else
             {
@@ -324,10 +320,9 @@ public:
         timer_.async_wait(
             net::bind_executor(
                 ws_.get_executor(), // use the strand
-                std::bind(
+                beast::bind_front_handler(
                     &websocket_session::on_timer,
-                    shared_from_this(),
-                    std::placeholders::_1)));
+                    shared_from_this())));
     }
 
     // Called to indicate activity from the remote peer
@@ -383,11 +378,9 @@ public:
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -415,11 +408,9 @@ public:
         ws_.text(ws_.got_text());
         ws_.async_write(
             buffer_.data(),
-            std::bind(
+            beast::bind_front_handler(
                 &websocket_session::on_write,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -520,10 +511,9 @@ class http_session : public std::enable_shared_from_this<http_session>
                     http::async_write(
                         self_.stream_,
                         msg_,
-                        std::bind(
+                        beast::bind_front_handler(
                             &http_session::on_write,
                             self_.shared_from_this(),
-                            std::placeholders::_1,
                             msg_.need_eof()));
                 }
             };
@@ -584,15 +574,16 @@ public:
 
         // Read a request
         http::async_read(stream_, buffer_, req_,
-            std::bind(
+            beast::bind_front_handler(
                 &http_session::on_read,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
-    on_read(beast::error_code ec)
+    on_read(beast::error_code ec, std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         // This means they closed the connection
         if(ec == http::error::end_of_stream)
             return do_close();
@@ -618,8 +609,10 @@ public:
     }
 
     void
-    on_write(beast::error_code ec, bool close)
+    on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
     {
+        boost::ignore_unused(bytes_transferred);
+
         // Happens when the timer closes the socket
         if(ec == net::error::operation_aborted)
             return;
@@ -720,11 +713,9 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            std::bind(
+            beast::bind_front_handler(
                 &listener::on_accept,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void

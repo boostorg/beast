@@ -251,11 +251,9 @@ class session
             http::async_write(
                 self_.stream_,
                 *sp,
-                std::bind(
+                beast::bind_front_handler(
                     &session::loop,
                     self_.shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2,
                     sp->need_eof()));
         }
     };
@@ -283,15 +281,15 @@ public:
     void
     run()
     {
-        loop({}, 0, false);
+        loop(false, {}, 0);
     }
 
 #include <boost/asio/yield.hpp>
     void
     loop(
+        bool close,
         beast::error_code ec,
-        std::size_t bytes_transferred,
-        bool close)
+        std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
         reenter(*this)
@@ -307,11 +305,9 @@ public:
 
                 // Read a request
                 yield http::async_read(stream_, buffer_, req_,
-                    std::bind(
+                    beast::bind_front_handler(
                         &session::loop,
                         shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2,
                         false));
                 if(ec == http::error::end_of_stream)
                 {
@@ -419,10 +415,9 @@ public:
             {
                 yield acceptor_.async_accept(
                     socket_,
-                    std::bind(
+                    beast::bind_front_handler(
                         &listener::loop,
-                        shared_from_this(),
-                        std::placeholders::_1));
+                        shared_from_this()));
                 if(ec)
                 {
                     fail(ec, "accept");

@@ -60,10 +60,9 @@ run(http::request<Body, http::basic_fields<Allocator>> req)
     // Accept the websocket handshake
     ws_.async_accept(
         req,
-        std::bind(
+        beast::bind_front_handler(
             &websocket_session::on_accept,
-            shared_from_this(),
-            std::placeholders::_1));
+            shared_from_this()));
 }
 
 #endif

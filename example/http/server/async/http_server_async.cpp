@@ -244,11 +244,9 @@ class session : public std::enable_shared_from_this<session>
             http::async_write(
                 self_.stream_,
                 *sp,
-                std::bind(
+                beast::bind_front_handler(
                     &session::on_write,
                     self_.shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2,
                     sp->need_eof()));
         }
     };
@@ -290,11 +288,9 @@ public:
 
         // Read a request
         http::async_read(stream_, buffer_, req_,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_read,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -317,9 +313,9 @@ public:
 
     void
     on_write(
+        bool close,
         beast::error_code ec,
-        std::size_t bytes_transferred,
-        bool close)
+        std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
 
@@ -416,11 +412,9 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            std::bind(
+            beast::bind_front_handler(
                 &listener::on_accept,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void

@@ -266,11 +266,9 @@ class session
             http::async_write(
                 self_.derived().stream(),
                 *sp,
-                std::bind(
+                beast::bind_front_handler(
                     &session::on_write,
                     self_.derived().shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2,
                     sp->need_eof()));
         }
     };
@@ -306,11 +304,9 @@ public:
             derived().stream(),
             buffer_,
             req_,
-            std::bind(
+            beast::bind_front_handler(
                 &session::on_read,
-                derived().shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                derived().shared_from_this()));
     }
 
     void
@@ -333,9 +329,9 @@ public:
 
     void
     on_write(
+        bool close,
         beast::error_code ec,
-        std::size_t bytes_transferred,
-        bool close)
+        std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
 
@@ -442,11 +438,9 @@ public:
         stream_.async_handshake(
             ssl::stream_base::server,
             buffer_.data(),
-            std::bind(
+            beast::bind_front_handler(
                 &ssl_session::on_handshake,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
     void
     on_handshake(
@@ -470,10 +464,9 @@ public:
 
         // Perform the SSL shutdown
         stream_.async_shutdown(
-            std::bind(
+            beast::bind_front_handler(
                 &ssl_session::on_shutdown,
-                shared_from_this(),
-                std::placeholders::_1));
+                shared_from_this()));
     }
 
     void
@@ -518,11 +511,9 @@ public:
         async_detect_ssl(
             stream_,
             buffer_,
-            std::bind(
+            beast::bind_front_handler(
                 &detect_session::on_detect,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
@@ -616,11 +607,9 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
-            std::bind(
+            beast::bind_front_handler(
                 &listener::on_accept,
-                shared_from_this(),
-                std::placeholders::_1,
-                std::placeholders::_2));
+                shared_from_this()));
     }
 
     void
