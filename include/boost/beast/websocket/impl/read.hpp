@@ -609,15 +609,7 @@ public:
                 impl.paused_close.maybe_invoke() ||
                     impl.paused_ping.maybe_invoke() ||
                     impl.paused_wr.maybe_invoke();
-            if(! cont_)
-            {
-                BOOST_ASIO_CORO_YIELD
-                net::post(
-                    ws_.get_executor(),
-                    beast::bind_front_handler(std::move(*this),
-                        ec, bytes_written_));
-            }
-            this->invoke_now(ec, bytes_written_);
+            this->invoke(cont_, ec, bytes_written_);
         }
     }
 };

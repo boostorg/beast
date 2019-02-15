@@ -84,13 +84,13 @@ namespace beast {
         using handler_type = BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t));
         using base_type = async_op_base<handler_type, typename AsyncReadStream::executor_type>;
 
-        struct read_op : base_type
+        struct op : base_type
         {
             AsyncReadStream& stream_;
             net::mutable_buffer buffer_;
             std::size_t total_bytes_transferred_;
 
-            read_op(
+            op(
                 AsyncReadStream& stream,
                 net::mutable_buffer buffer,
                 handler_type& handler)
@@ -112,22 +112,17 @@ namespace beast {
                 if(! ec && buffer_.size() > 0)
                     return stream_.async_read_some(buffer_, std::move(*this));
 
-                // If this is first invocation, we have to post to the executor. Otherwise the
-                // handler would be invoked before the call to async_read returns, which is disallowed.
-                if(! is_continuation)
-                {
-                    // Issue a zero-sized read so our handler runs "as-if" posted using net::post().
-                    // This technique is used to reduce the number of function template instantiations.
-                    return stream_.async_read_some(net::mutable_buffer(buffer_.data(), 0), std::move(*this));
-                }
+                // Call the completion handler with the result. If `is_continuation` is
+                // false, which happens on the first time through this function, then
+                // `net::post` will be used to call the completion handler, otherwise
+                // the completion handler will be invoked directly.
 
-                // Call the completion handler with the result
-                this->invoke_now(ec, total_bytes_transferred_);
+                this->invoke(is_continuation, ec, total_bytes_transferred_);
             }
         };
 
         net::async_completion<ReadHandler, void(error_code, std::size_t)> init{handler};
-        read_op(stream, buffer, init.completion_handler);
+        op(stream, buffer, init.completion_handler);
         return init.result.get();
     }
 
@@ -341,15 +336,20 @@ public:
     invoke(bool is_continuation, Args&&... args)
     {
         this->before_invoke_hook();
-        wg1_.reset();
         if(! is_continuation)
+        {
             net::post(net::bind_executor(
                 wg1_.get_executor(),
                 beast::bind_front_handler(
                     std::move(h_),
                     std::forward<Args>(args)...)));
+            wg1_.reset();
+        }
         else
+        {
+            wg1_.reset();
             h_(std::forward<Args>(args)...);
+        }
     }
 
     /** Invoke the final completion handler.

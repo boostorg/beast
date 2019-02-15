@@ -615,17 +615,12 @@ public:
                 if(! ec && buffer_.size() > 0)
                     return stream_.async_read_some(buffer_, std::move(*this));
 
-                // If this is first invocation, we have to post to the executor. Otherwise the
-                // handler would be invoked before the call to async_read returns, which is disallowed.
-                if(! is_continuation)
-                {
-                    // Issue a zero-sized read so our handler runs "as-if" posted using net::post().
-                    // This technique is used to reduce the number of function template instantiations.
-                    return stream_.async_read_some(net::mutable_buffer(buffer_.data(), 0), std::move(*this));
-                }
+                // Call the completion handler with the result. If `is_continuation` is
+                // false, which happens on the first time through this function, then
+                // `net::post` will be used to call the completion handler, otherwise
+                // the completion handler will be invoked directly.
 
-                // Call the completion handler with the result
-                this->invoke_now(ec, total_bytes_transferred_);
+                this->invoke(is_continuation, ec, total_bytes_transferred_);
             }
         };
 

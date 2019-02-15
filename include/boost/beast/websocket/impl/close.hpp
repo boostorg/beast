@@ -246,14 +246,7 @@ public:
             d_.ws.impl_->paused_rd.maybe_invoke() ||
                 d_.ws.impl_->paused_ping.maybe_invoke() ||
                 d_.ws.impl_->paused_wr.maybe_invoke();
-            if(! d_.cont)
-            {
-                BOOST_ASIO_CORO_YIELD
-                net::post(
-                    d_.ws.get_executor(),
-                    beast::bind_front_handler(std::move(*this), ec));
-            }
-            this->invoke_now(ec);
+            this->invoke(d_.cont, ec);
         }
     }
 };

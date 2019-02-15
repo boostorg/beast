@@ -89,14 +89,7 @@ public:
                 b_.commit(bytes_transferred);
                 total_ += bytes_transferred;
             }
-            if(! cont)
-            {
-                BOOST_ASIO_CORO_YIELD
-                net::post(s_.get_executor(),
-                    beast::bind_front_handler(
-                        std::move(*this), ec, total_));
-            }
-            this->invoke_now(ec, total_);
+            this->invoke(cont, ec, total_);
         }
     }
 };
@@ -197,14 +190,7 @@ public:
                     limit_ = cond_(ec, total_, b_);
                 }
             }
-            if(! cont)
-            {
-                BOOST_ASIO_CORO_YIELD
-                net::post(s_.get_executor(),
-                    beast::bind_front_handler(
-                        std::move(*this), ec, total_));
-            }
-            this->invoke_now(ec, total_);
+            this->invoke(cont, ec, total_);
         }
     }
 

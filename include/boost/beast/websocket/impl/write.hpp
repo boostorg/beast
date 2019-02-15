@@ -422,16 +422,7 @@ operator()(
         ws_.impl_->paused_close.maybe_invoke() ||
             ws_.impl_->paused_rd.maybe_invoke() ||
             ws_.impl_->paused_ping.maybe_invoke();
-        if(! cont_)
-        {
-            BOOST_ASIO_CORO_YIELD
-            net::post(
-                ws_.get_executor(),
-                beast::bind_front_handler(
-                    std::move(*this),
-                    ec, bytes_transferred_));
-        }
-        this->invoke_now(ec, bytes_transferred_);
+        this->invoke(cont_, ec, bytes_transferred_);
     }
 }
 

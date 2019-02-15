@@ -302,21 +302,13 @@ async_echo(
                 // directly invoke the completion handler otherwise it could
                 // lead to unfairness, starvation, or stack overflow. Therefore,
                 // if cont == false (meaning, that the call stack still includes
-                // the frame of the initiating function) then use `net::post`
-                // to cause us to be called again after the initiating function
-                // returns. The function `bind_handler` works similarly to
-                // `std::bind`, allowing bound arguments to be passed to our
-                // completion handler during the dispatch, but also takes care
-                // of forwarding the allocator and executor customization points
-                // in the returned call wrapper.
+                // the frame of the initiating function) then we need to use
+                // `net::post` to cause us to be called again after the initiating
+                // function. The function `async_op_base::invoke` takes care of
+                // calling the final completion handler, using post if the
+                // first argument is false, otherwise invoking it directly.
 
-                if(! cont)
-                    yield net::post(beast::bind_handler(std::move(*this), ec));
-
-                // The function `async_op_base::invoke` takes care of calling
-                // the final completion handler.
-
-                this->invoke_now(ec);
+                this->invoke(cont, ec);
             }
         }
     };
