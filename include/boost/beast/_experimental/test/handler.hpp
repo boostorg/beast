@@ -19,8 +19,17 @@ namespace boost {
 namespace beast {
 namespace test {
 
-namespace detail {
+/** A CompletionHandler used for testing.
 
+    This completion handler is used by tests to ensure correctness
+    of behavior. It is designed as a single type to reduce template
+    instantiations, with configurable settings through constructor
+    arguments. Typically this type will be used in type lists and
+    not instantiated directly; instances of this class are returned
+    by the helper functions listed below.
+
+    @see @ref success_handler, @ref fail_handler, @ref any_handler
+*/
 class handler
 {
     boost::optional<error_code> ec_;
@@ -61,6 +70,14 @@ public:
         pass_ = true;
     }
 
+    void
+    operator()()
+    {
+        BEAST_EXPECT(! pass_); // can't call twice
+        BEAST_EXPECT(! ec_);
+        pass_ = true;
+    }
+
     template<class Arg0, class... Args,
         class = typename std::enable_if<
             ! std::is_convertible<Arg0, error_code>::value>::type>
@@ -73,8 +90,6 @@ public:
     }
 };
 
-} // detail
-
 /** Return a test CompletionHandler which requires success.
     
     The returned handler can be invoked with any signature whose
@@ -86,14 +101,10 @@ public:
     @li The handler is invoked with a non-successful error code.
 */
 inline
-#if BOOST_BEAST_DOXYGEN
-__implementation_defined__
-#else
-detail::handler
-#endif
+handler
 success_handler() noexcept
 {
-    return detail::handler(error_code{});
+    return handler(error_code{});
 }
 
 /** Return a test CompletionHandler which requires invocation.
@@ -104,14 +115,10 @@ success_handler() noexcept
     @li The handler is destroyed without being invoked.
 */
 inline
-#if BOOST_BEAST_DOXYGEN
-__implementation_defined__
-#else
-detail::handler
-#endif
+handler
 any_handler() noexcept
 {
-    return detail::handler(boost::none);
+    return handler(boost::none);
 }
 
 /** Return a test CompletionHandler which requires a specific error code.
@@ -127,14 +134,10 @@ any_handler() noexcept
     @param ec The error code to specify.
 */
 inline
-#if BOOST_BEAST_DOXYGEN
-__implementation_defined__
-#else
-detail::handler
-#endif
+handler
 fail_handler(error_code ec) noexcept
 {
-    return detail::handler(ec);
+    return handler(ec);
 }
 
 } // test

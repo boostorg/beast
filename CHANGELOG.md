@@ -6,6 +6,7 @@ Version 215:
 * Examples use bind_front_handler
 * Add experimental test/handler.hpp
 * Rename to async_op_base::invoke_now
+* Add async_op_base::invoke
 
 --------------------------------------------------------------------------------
 

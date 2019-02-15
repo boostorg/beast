@@ -61,8 +61,8 @@ namespace test {
     To facilitate testing, these streams support some additional
     features:
 
-    @li The input area, represented by a @ref flat_buffer, may
-    be directly accessed by the caller to inspect the contents
+    @li The input area, represented by a @ref basic_flat_buffer,
+    may be directly accessed by the caller to inspect the contents
     before or after the remote endpoint writes data. This allows
     a unit test to verify that the received data matches.
 

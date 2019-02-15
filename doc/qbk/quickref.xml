@@ -357,6 +357,7 @@
             <member><link linkend="beast.ref.boost__beast__ssl_stream">ssl_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__http__icy_stream">http::icy_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__test__fail_count">test::fail_count</link></member>
+            <member><link linkend="beast.ref.boost__beast__test__handler">test::handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
             <member><link linkend="beast.ref.boost__beast__test__stream">test::stream</link></member>
           </simplelist>
         </entry>
@@ -364,6 +365,9 @@
           <bridgehead renderas="sect3">Functions</bridgehead>
           <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__test__connect">test::connect</link></member>
+            <member><link linkend="beast.ref.boost__beast__test__any_handler">test::any_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+            <member><link linkend="beast.ref.boost__beast__test__fail_handler">test::fail_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+            <member><link linkend="beast.ref.boost__beast__test__success_handler">test::success_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           </simplelist>
         </entry>
         <entry valign="top">

@@ -11,14 +11,17 @@
 #define BOOST_BEAST_CORE_ASYNC_OP_BASE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/async_op_base.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
+#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/core/empty_value.hpp>
 #include <utility>
@@ -314,15 +317,54 @@ public:
         return std::move(h_);
     }
 
-    /** Invoke the final completion handler.
+    /** Invoke the final completion handler, maybe using post.
 
         This invokes the final completion handler with the specified
-        arguments forwarded. It is undefined to call this member
-        function more than once.
+        arguments forwarded. It is undefined to call either of
+        @ref invoke or @ref invoke_now more than once.
 
         Any temporary objects allocated with @ref allocate_stable will
         be automatically destroyed before the final completion handler
         is invoked.
+
+        @param is_continuation If this value is `false`, then the
+        handler will be submitted to the executor using `net::post`.
+        Otherwise the handler will be invoked as if by calling
+        @ref invoke_now.
+
+        @param args A list of optional parameters to invoke the handler
+        with. The completion handler must be invocable with the parameter
+        list, or else a compilation error will result.
+    */
+    template<class... Args>
+    void
+    invoke(bool is_continuation, Args&&... args)
+    {
+        this->before_invoke_hook();
+        wg1_.reset();
+        if(! is_continuation)
+            net::post(net::bind_executor(
+                wg1_.get_executor(),
+                beast::bind_front_handler(
+                    std::move(h_),
+                    std::forward<Args>(args)...)));
+        else
+            h_(std::forward<Args>(args)...);
+    }
+
+    /** Invoke the final completion handler.
+
+        This invokes the final completion handler with the specified
+        arguments forwarded. It is undefined to call either of
+        @ref invoke or @ref invoke_now more than once.
+
+        Any temporary objects allocated with @ref allocate_stable will
+        be automatically destroyed before the final completion handler
+        is invoked.
+
+        @param args A list of optional parameters to invoke the handler
+        with. The completion handler must be invocable with the parameter
+        list, or else a compilation error will result.
     */
     template<class... Args>
     void

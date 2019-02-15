@@ -38,10 +38,10 @@ namespace http {
     fields.
     The parser is optimized for the case where the input buffer
     sequence consists of a single contiguous buffer. The
-    @ref flat_buffer class is provided, which guarantees
+    @ref basic_flat_buffer class is provided, which guarantees
     that the input sequence of the stream buffer will be represented
     by exactly one contiguous buffer. To ensure the optimum performance
-    of the parser, use @ref flat_buffer with HTTP algorithms
+    of the parser, use @ref basic_flat_buffer with HTTP algorithms
     such as @ref read, @ref read_some, @ref async_read, and @ref async_read_some.
     Alternatively, the caller may use custom techniques to ensure that
     the structured portion of the HTTP message (header or chunk header)

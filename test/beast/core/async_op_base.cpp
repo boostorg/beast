@@ -13,6 +13,7 @@
 #include "test_handler.hpp"
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/test/handler.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/async_result.hpp>
@@ -419,13 +420,28 @@ public:
 
         // invocation
         {
-            bool invoked = false;
+            net::io_context ioc;
             async_op_base<
-                final_handler,
+                test::handler,
+                net::io_context::executor_type> op(
+                    test::any_handler(), ioc.get_executor());
+            op.invoke(true);
+        }
+        {
+            net::io_context ioc;
+            async_op_base<
+                test::handler,
+                net::io_context::executor_type> op(
+                    test::any_handler(), ioc.get_executor());
+            op.invoke(false);
+            ioc.run();
+        }
+        {
+            async_op_base<
+                test::handler,
                 simple_executor> op(
-                    final_handler{invoked}, {});
-            op.invoke();
-            BEAST_EXPECT(invoked);
+                    test::any_handler(), {});
+            op.invoke_now();
         }
 
         // legacy hooks
@@ -478,13 +494,28 @@ public:
 
         // invocation
         {
-            bool invoked = false;
+            net::io_context ioc;
             stable_async_op_base<
-                final_handler,
+                test::handler,
+                net::io_context::executor_type> op(
+                    test::any_handler(), ioc.get_executor());
+            op.invoke(true);
+        }
+        {
+            net::io_context ioc;
+            stable_async_op_base<
+                test::handler,
+                net::io_context::executor_type> op(
+                    test::any_handler(), ioc.get_executor());
+            op.invoke(false);
+            ioc.run();
+        }
+        {
+            stable_async_op_base<
+                test::handler,
                 simple_executor> op(
-                    final_handler{invoked}, {});
-            op.invoke();
-            BEAST_EXPECT(invoked);
+                    test::any_handler(), {});
+            op.invoke_now();
         }
 
         // legacy hooks

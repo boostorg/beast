@@ -110,7 +110,7 @@ public:
 
     @par Example
     This function reads a line of text from a stream into a
-    @ref flat_buffer, using the net function `async_read_until`. The
+    @ref basic_flat_buffer, using the net function `async_read_until`.
     @code
     template <class SyncReadStream>
     std::size_t read_line (SyncReadStream& stream, flat_buffer& buffer)
