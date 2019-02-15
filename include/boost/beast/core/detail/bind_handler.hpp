@@ -217,10 +217,23 @@ class bind_front_wrapper
     template<std::size_t... I, class... Ts>
     void
     invoke(
+        std::false_type,
         mp11::index_sequence<I...>,
         Ts&&... ts)
     {
         h_( detail::get<I>(std::move(args_))...,
+            std::forward<Ts>(ts)...);
+    }
+
+    template<std::size_t... I, class... Ts>
+    void
+    invoke(
+        std::true_type,
+        mp11::index_sequence<I...>,
+        Ts&&... ts)
+    {
+        std::mem_fn(h_)(
+            detail::get<I>(std::move(args_))...,
             std::forward<Ts>(ts)...);
     }
 
@@ -243,6 +256,7 @@ public:
     void operator()(Ts&&... ts)
     {
         invoke(
+            std::is_member_function_pointer<Handler>{},
             mp11::index_sequence_for<Args...>{},
             std::forward<Ts>(ts)...);
     }
