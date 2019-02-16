@@ -97,9 +97,7 @@ public:
 
             // VFALCO We could pre-serialize the request to
             //        a single buffer, send that instead,
-            //        and delete the buffer here. The buffer
-            //        could be a variable block at the end
-            //        of handler_ptr's allocation.
+            //        and delete the buffer here.
 
             // Read HTTP response
             BOOST_ASIO_CORO_YIELD
