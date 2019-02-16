@@ -7,6 +7,7 @@ Version 215:
 * Add experimental test/handler.hpp
 * Rename to async_op_base::invoke_now
 * Add async_op_base::invoke
+* Remove CppCon2018 example
 
 --------------------------------------------------------------------------------
 
