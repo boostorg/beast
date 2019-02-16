@@ -51,6 +51,11 @@ do_session(ws_type& ws, net::yield_context yield)
 {
     beast::error_code ec;
 
+    // Set suggested timeout settings for the websocket
+    ws.set_option(
+        websocket::stream_base::suggested_settings(
+            websocket::role_type::server));
+
     // Accept the websocket handshake
     ws.async_accept(yield[ec]);
     if(ec)

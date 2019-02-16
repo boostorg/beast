@@ -65,6 +65,15 @@ do_session(
     if(ec)
         return fail(ec, "connect");
 
+    // Turn off the timeout on the tcp_stream, because
+    // the websocket stream has its own timeout system.
+    beast::get_lowest_layer(ws).expires_never();
+
+    // Set suggested timeout settings for the websocket
+    ws.set_option(
+        websocket::stream_base::suggested_settings(
+            websocket::role_type::client));
+
     // Perform the websocket handshake
     ws.async_handshake(host, "/", yield[ec]);
     if(ec)

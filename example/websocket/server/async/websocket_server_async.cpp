@@ -52,6 +52,10 @@ public:
     session(tcp::socket socket)
         : ws_(std::move(socket))
     {
+        // Set suggested timeout settings for the websocket
+        ws_.set_option(
+            websocket::stream_base::suggested_settings(
+                websocket::role_type::server));
     }
 
     // Start the asynchronous operation

@@ -118,6 +118,7 @@ struct stream_base
             opt.keep_alive_pings = true;
             break;
         }
+        return opt;
     }
 
 protected:

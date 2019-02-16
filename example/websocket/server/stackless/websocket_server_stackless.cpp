@@ -74,6 +74,11 @@ public:
         boost::ignore_unused(bytes_transferred);
         reenter(*this)
         {
+            // Set suggested timeout settings for the websocket
+            ws_.set_option(
+                websocket::stream_base::suggested_settings(
+                    websocket::role_type::server));
+
             // Accept the websocket handshake
             yield ws_.async_accept(
                 std::bind(

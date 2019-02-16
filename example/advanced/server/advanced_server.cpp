@@ -19,7 +19,6 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/signal_set.hpp>
-#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/config.hpp>
@@ -221,7 +220,6 @@ fail(beast::error_code ec, char const* what)
 class websocket_session : public std::enable_shared_from_this<websocket_session>
 {
     websocket::stream<beast::tcp_stream<net::io_context::strand>> ws_;
-    net::steady_timer timer_;
     beast::flat_buffer buffer_;
     char ping_state_ = 0;
 
@@ -230,9 +228,11 @@ public:
     explicit
     websocket_session(tcp::socket socket)
         : ws_(std::move(socket))
-        , timer_(ws_.get_executor().context(),
-            (std::chrono::steady_clock::time_point::max)())
     {
+        // Set suggested timeout settings for the websocket
+        ws_.set_option(
+            websocket::stream_base::suggested_settings(
+                websocket::role_type::server));
     }
 
     // Start the asynchronous accept operation
@@ -240,22 +240,6 @@ public:
     void
     do_accept(http::request<Body, http::basic_fields<Allocator>> req)
     {
-        // Set the control callback. This will be called
-        // on every incoming ping, pong, and close frame.
-        ws_.control_callback(
-            std::bind(
-                &websocket_session::on_control_callback,
-                this,
-                std::placeholders::_1,
-                std::placeholders::_2));
-
-        // Run the timer. The timer is operated
-        // continuously, this simplifies the code.
-        on_timer({});
-
-        // Set the timer
-        timer_.expires_after(std::chrono::seconds(15));
-
         // Accept the websocket handshake
         ws_.async_accept(
             req,
@@ -267,111 +251,11 @@ public:
     void
     on_accept(beast::error_code ec)
     {
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
-
         if(ec)
             return fail(ec, "accept");
 
         // Read a message
         do_read();
-    }
-
-    // Called when the timer expires.
-    void
-    on_timer(beast::error_code ec)
-    {
-        if(ec && ec != net::error::operation_aborted)
-            return fail(ec, "timer");
-
-        // See if the timer really expired since the deadline may have moved.
-        if(timer_.expiry() <= std::chrono::steady_clock::now())
-        {
-            // If this is the first time the timer expired,
-            // send a ping to see if the other end is there.
-            if(ws_.is_open() && ping_state_ == 0)
-            {
-                // Note that we are sending a ping
-                ping_state_ = 1;
-
-                // Set the timer
-                timer_.expires_after(std::chrono::seconds(15));
-
-                // Now send the ping
-                ws_.async_ping({},
-                    beast::bind_front_handler(
-                        &websocket_session::on_ping,
-                        shared_from_this()));
-            }
-            else
-            {
-                // The timer expired while trying to handshake,
-                // or we sent a ping and it never completed or
-                // we never got back a control frame, so close.
-
-                // Closing the socket cancels all outstanding operations. They
-                // will complete with net::error::operation_aborted
-                beast::get_lowest_layer(ws_).socket().shutdown(tcp::socket::shutdown_both, ec);
-                beast::get_lowest_layer(ws_).socket().close(ec);
-                return;
-            }
-        }
-
-        // Wait on the timer
-        timer_.async_wait(
-            net::bind_executor(
-                ws_.get_executor(), // use the strand
-                beast::bind_front_handler(
-                    &websocket_session::on_timer,
-                    shared_from_this())));
-    }
-
-    // Called to indicate activity from the remote peer
-    void
-    activity()
-    {
-        // Note that the connection is alive
-        ping_state_ = 0;
-
-        // Set the timer
-        timer_.expires_after(std::chrono::seconds(15));
-    }
-
-    // Called after a ping is sent.
-    void
-    on_ping(beast::error_code ec)
-    {
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
-
-        if(ec)
-            return fail(ec, "ping");
-
-        // Note that the ping was sent.
-        if(ping_state_ == 1)
-        {
-            ping_state_ = 2;
-        }
-        else
-        {
-            // ping_state_ could have been set to 0
-            // if an incoming control frame was received
-            // at exactly the same time we sent a ping.
-            BOOST_ASSERT(ping_state_ == 0);
-        }
-    }
-
-    void
-    on_control_callback(
-        websocket::frame_type kind,
-        beast::string_view payload)
-    {
-        boost::ignore_unused(kind, payload);
-
-        // Note that there is activity
-        activity();
     }
 
     void
@@ -392,19 +276,12 @@ public:
     {
         boost::ignore_unused(bytes_transferred);
 
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
-
         // This indicates that the websocket_session was closed
         if(ec == websocket::error::closed)
             return;
 
         if(ec)
             fail(ec, "read");
-
-        // Note that there is activity
-        activity();
 
         // Echo the message
         ws_.text(ws_.got_text());
@@ -421,10 +298,6 @@ public:
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
-
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
 
         if(ec)
             return fail(ec, "write");
@@ -614,10 +487,6 @@ public:
     on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
-
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
 
         if(ec)
             return fail(ec, "write");

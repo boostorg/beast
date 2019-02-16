@@ -53,7 +53,7 @@ in the [source_file example] directory.
 These HTTP clients submit a GET request to a server specified on the command
 line, and prints the resulting response. The crawl client asynchronously
 fetches the document root of the 10,000 top ranked domains, this may be
-used to evaluate robustness.
+used to evaluate robustness. All asynchronous support provide timeouts.
 
 [table
 [[Description] [Source File] [Source File (using SSL)]]
@@ -77,7 +77,7 @@ used to evaluate robustness.
 
 These WebSocket clients connect to a
 server and send a message, then receive a message and print the response
-before disconnecting.
+before disconnecting. All asynchronous clients support timeouts.
 
 [table
 [[Description] [Source File] [Source File (using SSL)]]
@@ -102,7 +102,7 @@ before disconnecting.
 [section Servers]
 
 These HTTP servers deliver files from a root directory specified on the
-command line.
+command line. All asynchronous servers support timeouts.
 
 [table
 [[Description] [Source File] [Source File (using SSL)]]
@@ -137,7 +137,8 @@ command line.
 ]]
 
 These WebSocket servers echo back any message received, keeping the
-session open until the client disconnects.
+session open until the client disconnects. All asynchronous servers
+support timeouts.
 
 [table
 [[Description] [Source File] [Source File (using SSL)]]
@@ -177,20 +178,18 @@ and illustrate the implementation of advanced features.
 [
         [Advanced]
         [[itemized_list
+            [Timeouts]
             [HTTP pipelining]
-            [Asynchronous timeouts]
             [Dual protocols: HTTP and WebSocket]
-            [WebSocket use idle ping for timeout]
             [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
         ]]
         [[example_src example/advanced/server/advanced_server.cpp advanced_server.cpp]]
 ][
         [Advanced, flex (plain + SSL)]
         [[itemized_list
+            [Timeouts]
             [HTTP pipelining]
-            [Asynchronous timeouts]
             [Dual protocols: HTTP and WebSocket]
-            [WebSocket use idle ping for timeout]
             [Flexible ports: plain and SSL on the same port]
             [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
         ]]
@@ -198,8 +197,9 @@ and illustrate the implementation of advanced features.
 ][
         [Chat Server, multi-threaded]
         [[itemized_list
-            [Multi-user Chat]
             [Broadcasting Messages]
+            [Multi-user Chat Server]
+            [JavaScript Browser Client]
             [Dual protocols: HTTP and WebSocket]
             [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
         ]]

@@ -80,6 +80,15 @@ public:
         if(ec)
             return fail(ec, "handshake");
 
+        // Turn off the timeout on the tcp_stream, because
+        // the websocket stream has its own timeout system.
+        beast::get_lowest_layer(ws_).expires_never();
+
+        // Set suggested timeout settings for the websocket
+        ws_.set_option(
+            websocket::stream_base::suggested_settings(
+                websocket::role_type::server));
+
         // Accept the websocket handshake
         ws_.async_accept(
             beast::bind_front_handler(

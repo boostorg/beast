@@ -79,6 +79,9 @@ public:
 
         reenter(*this)
         {
+            // Set the timeout.
+            beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
+
             // Perform the SSL handshake
             yield ws_.next_layer().async_handshake(
                 ssl::stream_base::server,
@@ -89,6 +92,15 @@ public:
                     0));
             if(ec)
                 return fail(ec, "handshake");
+
+            // Turn off the timeout on the tcp_stream, because
+            // the websocket stream has its own timeout system.
+            beast::get_lowest_layer(ws_).expires_never();
+
+            // Set suggested timeout settings for the websocket
+            ws_.set_option(
+                websocket::stream_base::suggested_settings(
+                    websocket::role_type::server));
 
             // Accept the websocket handshake
             yield ws_.async_accept(

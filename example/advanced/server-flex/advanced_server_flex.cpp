@@ -239,35 +239,17 @@ class websocket_session
     }
 
     beast::flat_buffer buffer_;
-    char ping_state_ = 0;
-
-protected:
-    net::steady_timer timer_;
 
 public:
-    // Construct the session
-    explicit
-    websocket_session(net::io_context& ioc)
-        : timer_(ioc,
-            (std::chrono::steady_clock::time_point::max)())
-    {
-    }
-
     // Start the asynchronous operation
     template<class Body, class Allocator>
     void
     do_accept(http::request<Body, http::basic_fields<Allocator>> req)
     {
-        // Set the control callback. This will be called
-        // on every incoming ping, pong, and close frame.
-        derived().ws().control_callback(
-            std::bind(
-                &websocket_session::on_control_callback,
-                this,
-                std::placeholders::_1,
-                std::placeholders::_2));
-
-        // VFALCO What about the timer?
+        // Set suggested timeout settings for the websocket
+        derived().ws().set_option(
+            websocket::stream_base::suggested_settings(
+                websocket::role_type::server));
 
         // Accept the websocket handshake
         derived().ws().async_accept(
@@ -280,108 +262,11 @@ public:
     void
     on_accept(beast::error_code ec)
     {
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
-
         if(ec)
             return fail(ec, "accept");
 
         // Read a message
         do_read();
-    }
-
-    // Called when the timer expires.
-    void
-    on_timer(beast::error_code ec)
-    {
-        if(ec && ec != net::error::operation_aborted)
-            return fail(ec, "timer");
-
-        // See if the timer really expired since the deadline may have moved.
-        if(timer_.expiry() <= std::chrono::steady_clock::now())
-        {
-            // If this is the first time the timer expired,
-            // send a ping to see if the other end is there.
-            if(derived().ws().is_open() && ping_state_ == 0)
-            {
-                // Note that we are sending a ping
-                ping_state_ = 1;
-
-                // Set the timer
-                timer_.expires_after(std::chrono::seconds(15));
-
-                // Now send the ping
-                derived().ws().async_ping({},
-                    beast::bind_front_handler(
-                        &websocket_session::on_ping,
-                        derived().shared_from_this()));
-            }
-            else
-            {
-                // The timer expired while trying to handshake,
-                // or we sent a ping and it never completed or
-                // we never got back a control frame, so close.
-
-                derived().do_timeout();
-                return;
-            }
-        }
-
-        // Wait on the timer
-        timer_.async_wait(
-            net::bind_executor(
-                derived().ws().get_executor(), // use the strand
-                beast::bind_front_handler(
-                    &websocket_session::on_timer,
-                    derived().shared_from_this())));
-    }
-
-    // Called to indicate activity from the remote peer
-    void
-    activity()
-    {
-        // Note that the connection is alive
-        ping_state_ = 0;
-
-        // Set the timer
-        timer_.expires_after(std::chrono::seconds(15));
-    }
-
-    // Called after a ping is sent.
-    void
-    on_ping(beast::error_code ec)
-    {
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
-
-        if(ec)
-            return fail(ec, "ping");
-
-        // Note that the ping was sent.
-        if(ping_state_ == 1)
-        {
-            ping_state_ = 2;
-        }
-        else
-        {
-            // ping_state_ could have been set to 0
-            // if an incoming control frame was received
-            // at exactly the same time we sent a ping.
-            BOOST_ASSERT(ping_state_ == 0);
-        }
-    }
-
-    void
-    on_control_callback(
-        websocket::frame_type kind,
-        beast::string_view payload)
-    {
-        boost::ignore_unused(kind, payload);
-
-        // Note that there is activity
-        activity();
     }
 
     void
@@ -402,19 +287,12 @@ public:
     {
         boost::ignore_unused(bytes_transferred);
 
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
-
         // This indicates that the websocket_session was closed
         if(ec == websocket::error::closed)
             return;
 
         if(ec)
             fail(ec, "read");
-
-        // Note that there is activity
-        activity();
 
         // Echo the message
         derived().ws().text(derived().ws().got_text());
@@ -431,10 +309,6 @@ public:
         std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
-
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
 
         if(ec)
             return fail(ec, "write");
@@ -461,9 +335,7 @@ public:
     explicit
     plain_websocket_session(
         beast::tcp_stream<net::io_context::strand>&& stream)
-        : websocket_session<plain_websocket_session>(
-            stream.get_executor().context())
-        , ws_(std::move(stream))
+        : ws_(std::move(stream))
     {
     }
 
@@ -480,32 +352,8 @@ public:
     void
     run(http::request<Body, http::basic_fields<Allocator>> req)
     {
-        // Run the timer. The timer is operated
-        // continuously, this simplifies the code.
-        on_timer({});
-
         // Accept the WebSocket upgrade request
         do_accept(std::move(req));
-    }
-
-    void
-    do_timeout()
-    {
-        // This is so the close can have a timeout
-        if(close_)
-            return;
-        close_ = true;
-
-        // VFALCO This doesn't look right...
-        // Set the timer
-        timer_.expires_after(std::chrono::seconds(15));
-
-        // Close the WebSocket Connection
-        ws_.async_close(
-            websocket::close_code::normal,
-            beast::bind_front_handler(
-                &plain_websocket_session::on_close,
-                shared_from_this()));
     }
 
     void
@@ -536,9 +384,7 @@ public:
     explicit
     ssl_websocket_session(beast::ssl_stream<
             beast::tcp_stream<net::io_context::strand>>&& stream)
-        : websocket_session<ssl_websocket_session>(
-            stream.get_executor().context())
-        , ws_(std::move(stream))
+        : ws_(std::move(stream))
     {
     }
 
@@ -555,10 +401,6 @@ public:
     void
     run(http::request<Body, http::basic_fields<Allocator>> req)
     {
-        // Run the timer. The timer is operated
-        // continuously, this simplifies the code.
-        on_timer({});
-
         // Accept the WebSocket upgrade request
         do_accept(std::move(req));
     }
@@ -567,9 +409,6 @@ public:
     do_eof()
     {
         eof_ = true;
-
-        // Set the timer
-        timer_.expires_after(std::chrono::seconds(15));
 
         // Perform the SSL shutdown
         ws_.next_layer().async_shutdown(
@@ -581,28 +420,10 @@ public:
     void
     on_shutdown(beast::error_code ec)
     {
-        // Happens when the shutdown times out
-        if(ec == net::error::operation_aborted)
-            return;
-
         if(ec)
             return fail(ec, "shutdown");
 
         // At this point the connection is closed gracefully
-    }
-
-    void
-    do_timeout()
-    {
-        // If this is true it means we timed out performing the shutdown
-        if(eof_)
-            return;
-
-        // Start the timer again
-        timer_.expires_at(
-            (std::chrono::steady_clock::time_point::max)());
-        on_timer({});
-        do_eof();
     }
 };
 
