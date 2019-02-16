@@ -18,6 +18,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <cstdlib>
@@ -42,7 +43,7 @@ do_session(tcp::socket& socket, ssl::context& ctx)
     try
     {
         // Construct the websocket stream around the socket
-        websocket::stream<ssl::stream<tcp::socket&>> ws{socket, ctx};
+        websocket::stream<beast::ssl_stream<tcp::socket&>> ws{socket, ctx};
 
         // Perform the SSL handshake
         ws.next_layer().handshake(ssl::stream_base::server);

@@ -18,6 +18,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/config.hpp>
@@ -258,7 +259,7 @@ do_session(
     beast::error_code ec;
 
     // Construct the stream around the socket
-    ssl::stream<tcp::socket&> stream{socket, ctx};
+    beast::ssl_stream<tcp::socket&> stream{socket, ctx};
 
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::server, ec);
@@ -269,7 +270,7 @@ do_session(
     beast::flat_buffer buffer;
 
     // This lambda is used to send messages
-    send_lambda<ssl::stream<tcp::socket&>> lambda{stream, close, ec};
+    send_lambda<beast::ssl_stream<tcp::socket&>> lambda{stream, close, ec};
 
     for(;;)
     {

@@ -18,6 +18,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -61,7 +62,7 @@ int main(int argc, char** argv)
 
         // These objects perform our I/O
         tcp::resolver resolver{ioc};
-        websocket::stream<ssl::stream<tcp::socket>> ws{ioc, ctx};
+        websocket::stream<beast::ssl_stream<tcp::socket>> ws{ioc, ctx};
 
         // Look up the domain name
         auto const results = resolver.resolve(host, port);

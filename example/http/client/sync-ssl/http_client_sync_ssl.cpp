@@ -18,6 +18,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/error.hpp>
@@ -66,7 +67,7 @@ int main(int argc, char** argv)
 
             // These objects perform our I/O
         tcp::resolver resolver{ioc};
-        ssl::stream<tcp::socket> stream{ioc, ctx};
+        beast::ssl_stream<tcp::socket> stream{ioc, ctx};
 
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if(! SSL_set_tlsext_host_name(stream.native_handle(), host))

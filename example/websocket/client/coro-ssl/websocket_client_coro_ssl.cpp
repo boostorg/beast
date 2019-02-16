@@ -55,7 +55,7 @@ do_session(
 
     // These objects perform our I/O
     tcp::resolver resolver{ioc};
-    websocket::stream<ssl::stream<
+    websocket::stream<beast::ssl_stream<
         beast::tcp_stream<net::io_context::executor_type>>> ws(ioc, ctx);
 
     // Look up the domain name

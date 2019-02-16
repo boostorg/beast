@@ -8,6 +8,7 @@ Version 215:
 * Rename to async_op_base::invoke_now
 * Add async_op_base::invoke
 * Remove CppCon2018 example
+* Examples use ssl_stream
 
 --------------------------------------------------------------------------------
 
