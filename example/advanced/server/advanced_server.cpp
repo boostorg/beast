@@ -243,9 +243,11 @@ public:
         // Set the control callback. This will be called
         // on every incoming ping, pong, and close frame.
         ws_.control_callback(
-            beast::bind_front_handler(
+            std::bind(
                 &websocket_session::on_control_callback,
-                this));
+                this,
+                std::placeholders::_1,
+                std::placeholders::_2));
 
         // Run the timer. The timer is operated
         // continuously, this simplifies the code.

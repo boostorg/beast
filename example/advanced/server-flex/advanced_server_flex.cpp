@@ -261,9 +261,11 @@ public:
         // Set the control callback. This will be called
         // on every incoming ping, pong, and close frame.
         derived().ws().control_callback(
-            beast::bind_front_handler(
+            std::bind(
                 &websocket_session::on_control_callback,
-                this));
+                this,
+                std::placeholders::_1,
+                std::placeholders::_2));
 
         // VFALCO What about the timer?
 
