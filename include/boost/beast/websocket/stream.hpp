@@ -37,12 +37,6 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-/// The type of object holding HTTP Upgrade requests
-using request_type = http::request<http::empty_body>;
-
-/// The type of object holding HTTP Upgrade responses
-using response_type = http::response<http::string_body>;
-
 /** The type of received control frame.
 
     Values of this type are passed to the control frame

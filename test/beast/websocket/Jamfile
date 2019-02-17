@@ -8,6 +8,7 @@
 #
 
 local SOURCES =
+    _detail_decorator.cpp
     _detail_impl_base.cpp
     _detail_prng.cpp
     accept.cpp

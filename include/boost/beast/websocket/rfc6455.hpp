@@ -13,13 +13,21 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/string.hpp>
+#include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/message.hpp>
+#include <boost/beast/http/string_body.hpp>
 #include <array>
 #include <cstdint>
 
 namespace boost {
 namespace beast {
 namespace websocket {
+
+/// The type of object holding HTTP Upgrade requests
+using request_type = http::request<http::empty_body>;
+
+/// The type of object holding HTTP Upgrade responses
+using response_type = http::response<http::string_body>;
 
 /** Returns `true` if the specified HTTP request is a WebSocket Upgrade.
 
