@@ -26,6 +26,8 @@ namespace test {
     I/O context, until one of the following conditions is true:
         
     @li The I/O context runs out of work.
+
+    @param ioc The I/O context to run
 */
 inline
 void
@@ -43,6 +45,8 @@ run(net::io_context& ioc)
     @li The I/O context runs out of work.
 
     @li No completions occur and the specified amount of time has elapsed.
+
+    @param ioc The I/O context to run
 
     @param elapsed The maximum amount of time to run for.
 */

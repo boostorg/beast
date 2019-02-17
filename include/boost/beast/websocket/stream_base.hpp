@@ -64,11 +64,11 @@ struct stream_base
             amount of time, the operation will be canceled and a
             timeout error delivered to the completion handler.
         */
-        duration handshake_timeout = none();
+        duration handshake_timeout;
 
         /** The time limit after which a connection is considered idle.
         */
-        duration idle_timeout = none();
+        duration idle_timeout;
 
         /** Automatic ping setting.
 
@@ -86,7 +86,7 @@ struct stream_base
             An outstanding read operation must be pending, which will
             complete immediately the error @ref beast::error::timeout.
         */
-        bool keep_alive_pings = false;
+        bool keep_alive_pings;
     };
 
     /** Construct timeout settings with suggested values for a role.
@@ -103,7 +103,7 @@ struct stream_base
     timeout
     suggested_settings(role_type role) noexcept
     {
-        timeout opt;
+        timeout opt{};
         switch(role)
         {
         case role_type::client:

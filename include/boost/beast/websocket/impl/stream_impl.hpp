@@ -93,22 +93,21 @@ struct stream<NextLayer, deflateSupported>::impl_type
     saved_handler           op_r_close;     // paused close op (async read)
 
     bool secure_prng_ = true;
-
     bool ec_delivered = false;
     bool timed_out = false;
     int idle_counter = 0;
 
-    // settings
-
     timeout timeout_opt;
 
-    //
 
     template<class... Args>
     impl_type(Args&&... args)
         : stream(std::forward<Args>(args)...)
         , timer(stream.get_executor().context())
     {
+        timeout_opt.handshake_timeout = none();
+        timeout_opt.idle_timeout = none();
+        timeout_opt.keep_alive_pings = false;
     }
 
     void

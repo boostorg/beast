@@ -280,6 +280,7 @@
           <member><link linkend="beast.ref.boost__beast__websocket__close_reason">close_reason</link></member>
           <member><link linkend="beast.ref.boost__beast__websocket__ping_data">ping_data</link></member>
           <member><link linkend="beast.ref.boost__beast__websocket__stream">stream</link></member>
+          <member><link linkend="beast.ref.boost__beast__websocket__stream_base">stream_base</link></member>
           <member><link linkend="beast.ref.boost__beast__websocket__reason_string">reason_string</link></member>
         </simplelist>
         <bridgehead renderas="sect3">Functions</bridgehead>
@@ -292,6 +293,8 @@
         <bridgehead renderas="sect3">Options</bridgehead>
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.ref.boost__beast__websocket__permessage_deflate">permessage_deflate</link></member>
+          <member><link linkend="beast.ref.boost__beast__websocket__stream_base.suggested_settings">suggested_settings</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__websocket__stream_base__timeout">timeout</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
         </simplelist>
         <bridgehead renderas="sect3">Constants</bridgehead>
         <simplelist type="vert" columns="1">
