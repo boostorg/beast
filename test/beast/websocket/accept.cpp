@@ -10,7 +10,9 @@
 // Test that header file is self-contained.
 #include <boost/beast/websocket/stream.hpp>
 
+#include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/_experimental/test/tcp.hpp>
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 #include "test.hpp"
 
 #include <boost/asio/io_context.hpp>
@@ -20,90 +22,82 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-class accept_test : public websocket_test_suite
+class accept_test : public unit_test::suite //: public websocket_test_suite
 {
 public:
-    template<class Wrap>
-    void
-    doTestAccept(Wrap const& w)
+    class res_decorator
     {
-        class res_decorator
+        bool& b_;
+
+    public:
+        res_decorator(res_decorator const&) = default;
+
+        explicit
+        res_decorator(bool& b)
+            : b_(b)
         {
-            bool& b_;
+        }
 
-        public:
-            res_decorator(res_decorator const&) = default;
-
-            explicit
-            res_decorator(bool& b)
-                : b_(b)
-            {
-            }
-
-            void
-            operator()(response_type&) const
-            {
-                this->b_ = true;
-            }
-        };
-
-        auto const big = []
+        void
+        operator()(response_type&) const
         {
-            std::string s;
-            s += "X1: " + std::string(2000, '*') + "\r\n";
-            return s;
-        }();
+            this->b_ = true;
+        }
+    };
 
-        // request in stream
-        doStreamLoop([&](test::stream& ts)
-        {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            ts.append(
-                "GET / HTTP/1.1\r\n"
-                "Host: localhost\r\n"
-                "Upgrade: websocket\r\n"
-                "Connection: upgrade\r\n"
-                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-                "Sec-WebSocket-Version: 13\r\n"
-                "\r\n");
-            ts.read_size(20);
-            w.accept(ws);
-            // VFALCO validate contents of ws.next_layer().str?
-        });
+    template<std::size_t N>
+    static
+    net::const_buffer
+    sbuf(const char (&s)[N])
+    {
+        return net::const_buffer(&s[0], N-1);
+    }
 
-        // request in stream, oversized
+    static
+    void
+    fail_loop(
+        std::function<void(stream<test::stream>&)> f,
+        std::chrono::steady_clock::duration amount =
+            std::chrono::seconds(5))
+    {
+        using clock_type = std::chrono::steady_clock;
+        auto const expires_at =
+            clock_type::now() + amount;
+        net::io_context ioc;
+        for(std::size_t n = 0;;++n)
         {
-            stream<test::stream> ws{ioc_,
-                "GET / HTTP/1.1\r\n"
-                "Host: localhost\r\n"
-                "Upgrade: websocket\r\n"
-                "Connection: upgrade\r\n"
-                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-                "Sec-WebSocket-Version: 13\r\n"
-                + big +
-                "\r\n"};
-            auto tr = connect(ws.next_layer());
+            test::fail_count fc(n);
             try
             {
-                w.accept(ws);
-                fail("", __FILE__, __LINE__);
+                stream<test::stream> ws(ioc, fc);
+                auto tr = connect(ws.next_layer());
+                f(ws);
+                break;
             }
             catch(system_error const& se)
             {
-                // VFALCO Its the http error category...
-                BEAST_EXPECTS(
-                    se.code() == http::error::buffer_overflow,
-                    se.code().message());
+                if(! BEAST_EXPECTS(
+                    se.code() == test::error::test_failure,
+                    se.code().message()))
+                    throw;
+                if(! BEAST_EXPECTS(
+                    clock_type::now() < expires_at,
+                    "a test timeout occurred"))
+                    break;
             }
         }
+    }
 
-        // request in stream, decorator
-        doStreamLoop([&](test::stream& ts)
+    template<class Api>
+    void
+    testMatrix(Api api)
+    {
+        net::io_context ioc;
+
+        // request in stream
+        fail_loop([&](stream<test::stream>& ws)
         {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            ts.append(
+            ws.next_layer().append(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -111,45 +105,31 @@ public:
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
                 "\r\n");
-            ts.read_size(20);
+            ws.next_layer().read_size(20);
+            api.accept(ws);
+        });
+
+        // request in stream, decorator
+        fail_loop([&](stream<test::stream>& ws)
+        {
+            ws.next_layer().append(
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: upgrade\r\n"
+                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                "Sec-WebSocket-Version: 13\r\n"
+                "\r\n");
+            ws.next_layer().read_size(20);
             bool called = false;
-            w.accept_ex(ws, res_decorator{called});
+            api.accept_ex(ws, res_decorator{called});
             BEAST_EXPECT(called);
         });
 
-        // request in stream, decorator, oversized
-        {
-            stream<test::stream> ws{ioc_,
-                "GET / HTTP/1.1\r\n"
-                "Host: localhost\r\n"
-                "Upgrade: websocket\r\n"
-                "Connection: upgrade\r\n"
-                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-                "Sec-WebSocket-Version: 13\r\n"
-                + big +
-                "\r\n"};
-            auto tr = connect(ws.next_layer());
-            try
-            {
-                bool called = false;
-                w.accept_ex(ws, res_decorator{called});
-                fail("", __FILE__, __LINE__);
-            }
-            catch(system_error const& se)
-            {
-                // VFALCO Its the http error category...
-                BEAST_EXPECTS(
-                    se.code() == http::error::buffer_overflow,
-                    se.code().message());
-            }
-        }
-
         // request in buffers
-        doStreamLoop([&](test::stream& ts)
+        fail_loop([&](stream<test::stream>& ws)
         {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            w.accept(ws, sbuf(
+            api.accept(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -160,39 +140,11 @@ public:
             ));
         });
 
-        // request in buffers, oversize
-        {
-            stream<test::stream> ws{ioc_};
-            auto tr = connect(ws.next_layer());
-            try
-            {
-                w.accept(ws, net::buffer(
-                    "GET / HTTP/1.1\r\n"
-                    "Host: localhost\r\n"
-                    "Upgrade: websocket\r\n"
-                    "Connection: upgrade\r\n"
-                    "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-                    "Sec-WebSocket-Version: 13\r\n"
-                    + big +
-                    "\r\n"
-                ));
-                fail("", __FILE__, __LINE__);
-            }
-            catch(system_error const& se)
-            {
-                BEAST_EXPECTS(
-                    se.code() == error::buffer_overflow,
-                    se.code().message());
-            }
-        }
-
         // request in buffers, decorator
-        doStreamLoop([&](test::stream& ts)
+        fail_loop([&](stream<test::stream>& ws)
         {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
             bool called = false;
-            w.accept_ex(ws, sbuf(
+            api.accept_ex(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -204,14 +156,235 @@ public:
             BEAST_EXPECT(called);
         });
 
-        // request in buffers, decorator, oversized
+        // request in buffers and stream
+        fail_loop([&](stream<test::stream>& ws)
         {
-            stream<test::stream> ws{ioc_};
+            ws.next_layer().append(
+                "Connection: upgrade\r\n"
+                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                "Sec-WebSocket-Version: 13\r\n"
+                "\r\n");
+            ws.next_layer().read_size(16);
+            api.accept(ws, sbuf(
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "Upgrade: websocket\r\n"
+            ));
+            // VFALCO validate contents of ws.next_layer().str?
+        });
+
+        // request in buffers and stream, decorator
+        fail_loop([&](stream<test::stream>& ws)
+        {
+            ws.next_layer().append(
+                "Connection: upgrade\r\n"
+                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                "Sec-WebSocket-Version: 13\r\n"
+                "\r\n");
+            ws.next_layer().read_size(16);
+            bool called = false;
+            api.accept_ex(ws, sbuf(
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "Upgrade: websocket\r\n"),
+                res_decorator{called});
+            BEAST_EXPECT(called);
+        });
+
+        // request in message
+        {
+            request_type req;
+            req.method(http::verb::get);
+            req.target("/");
+            req.version(11);
+            req.insert(http::field::host, "localhost");
+            req.insert(http::field::upgrade, "websocket");
+            req.insert(http::field::connection, "upgrade");
+            req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
+            req.insert(http::field::sec_websocket_version, "13");
+
+            fail_loop([&](stream<test::stream>& ws)
+            {
+                api.accept(ws, req);
+            });
+        }
+
+        // request in message, decorator
+        {
+            request_type req;
+            req.method(http::verb::get);
+            req.target("/");
+            req.version(11);
+            req.insert(http::field::host, "localhost");
+            req.insert(http::field::upgrade, "websocket");
+            req.insert(http::field::connection, "upgrade");
+            req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
+            req.insert(http::field::sec_websocket_version, "13");
+
+            fail_loop([&](stream<test::stream>& ws)
+            {
+                bool called = false;
+                api.accept_ex(ws, req,
+                    res_decorator{called});
+                BEAST_EXPECT(called);
+            });
+        }
+
+        // request in message, close frame in stream
+        {
+            request_type req;
+            req.method(http::verb::get);
+            req.target("/");
+            req.version(11);
+            req.insert(http::field::host, "localhost");
+            req.insert(http::field::upgrade, "websocket");
+            req.insert(http::field::connection, "upgrade");
+            req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
+            req.insert(http::field::sec_websocket_version, "13");
+
+            fail_loop([&](stream<test::stream>& ws)
+            {
+                ws.next_layer().append("\x88\x82\xff\xff\xff\xff\xfc\x17");
+                api.accept(ws, req);
+                try
+                {
+                    static_buffer<1> b;
+                    api.read(ws, b);
+                    fail("success", __FILE__, __LINE__);
+                }
+                catch(system_error const& e)
+                {
+                    if(e.code() != websocket::error::closed)
+                        throw;
+                }
+            });
+        }
+
+        // failed handshake (missing Sec-WebSocket-Key)
+        fail_loop([&](stream<test::stream>& ws)
+        {
+            ws.next_layer().append(
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: upgrade\r\n"
+                "Sec-WebSocket-Version: 13\r\n"
+                "\r\n");
+            ws.next_layer().read_size(20);
+            try
+            {
+                api.accept(ws);
+                BEAST_FAIL();
+            }
+            catch(system_error const& e)
+            {
+                if( e.code() != websocket::error::no_sec_key &&
+                    e.code() != net::error::eof)
+                    throw;
+            }
+        });
+    }
+
+    template<class Api>
+    void
+    testOversized(Api const& api)
+    {
+        net::io_context ioc;
+
+        auto const big = []
+        {
+            std::string s;
+            s += "X1: " + std::string(2000, '*') + "\r\n";
+            return s;
+        }();
+
+        // request in stream
+        {
+            stream<test::stream> ws{ioc,
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: upgrade\r\n"
+                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                "Sec-WebSocket-Version: 13\r\n"
+                + big +
+                "\r\n"};
+            auto tr = connect(ws.next_layer());
+            try
+            {
+                api.accept(ws);
+                BEAST_FAIL();
+            }
+            catch(system_error const& se)
+            {
+                // VFALCO Its the http error category...
+                BEAST_EXPECTS(
+                    se.code() == http::error::buffer_overflow,
+                    se.code().message());
+            }
+        }
+
+        // request in stream, decorator
+        {
+            stream<test::stream> ws{ioc,
+                "GET / HTTP/1.1\r\n"
+                "Host: localhost\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: upgrade\r\n"
+                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                "Sec-WebSocket-Version: 13\r\n"
+                + big +
+                "\r\n"};
             auto tr = connect(ws.next_layer());
             try
             {
                 bool called = false;
-                w.accept_ex(ws, net::buffer(
+                api.accept_ex(ws, res_decorator{called});
+                BEAST_FAIL();
+            }
+            catch(system_error const& se)
+            {
+                // VFALCO Its the http error category...
+                BEAST_EXPECTS(
+                    se.code() == http::error::buffer_overflow,
+                    se.code().message());
+            }
+        }
+
+        // request in buffers
+        {
+            stream<test::stream> ws{ioc};
+            auto tr = connect(ws.next_layer());
+            try
+            {
+                api.accept(ws, net::buffer(
+                    "GET / HTTP/1.1\r\n"
+                    "Host: localhost\r\n"
+                    "Upgrade: websocket\r\n"
+                    "Connection: upgrade\r\n"
+                    "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                    "Sec-WebSocket-Version: 13\r\n"
+                    + big +
+                    "\r\n"
+                ));
+                BEAST_FAIL();
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == error::buffer_overflow,
+                    se.code().message());
+            }
+        }
+
+        // request in buffers, decorator
+        {
+            stream<test::stream> ws{ioc};
+            auto tr = connect(ws.next_layer());
+            try
+            {
+                bool called = false;
+                api.accept_ex(ws, net::buffer(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"
@@ -221,7 +394,7 @@ public:
                     + big +
                     "\r\n"),
                     res_decorator{called});
-                fail("", __FILE__, __LINE__);
+                BEAST_FAIL();
             }
             catch(system_error const& se)
             {
@@ -232,27 +405,8 @@ public:
         }
 
         // request in buffers and stream
-        doStreamLoop([&](test::stream& ts)
         {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            ts.append(
-                "Connection: upgrade\r\n"
-                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-                "Sec-WebSocket-Version: 13\r\n"
-                "\r\n");
-            ts.read_size(16);
-            w.accept(ws, sbuf(
-                "GET / HTTP/1.1\r\n"
-                "Host: localhost\r\n"
-                "Upgrade: websocket\r\n"
-            ));
-            // VFALCO validate contents of ws.next_layer().str?
-        });
-
-        // request in buffers and stream, oversized
-        {
-            stream<test::stream> ws{ioc_,
+            stream<test::stream> ws{ioc,
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
@@ -261,12 +415,12 @@ public:
             auto tr = connect(ws.next_layer());
             try
             {
-                w.accept(ws, sbuf(
+                api.accept(ws, websocket_test_suite::sbuf(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"
                 ));
-                fail("", __FILE__, __LINE__);
+                BEAST_FAIL();
             }
             catch(system_error const& se)
             {
@@ -277,28 +431,8 @@ public:
         }
 
         // request in buffers and stream, decorator
-        doStreamLoop([&](test::stream& ts)
         {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            ts.append(
-                "Connection: upgrade\r\n"
-                "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-                "Sec-WebSocket-Version: 13\r\n"
-                "\r\n");
-            ts.read_size(16);
-            bool called = false;
-            w.accept_ex(ws, sbuf(
-                "GET / HTTP/1.1\r\n"
-                "Host: localhost\r\n"
-                "Upgrade: websocket\r\n"),
-                res_decorator{called});
-            BEAST_EXPECT(called);
-        });
-
-        // request in buffers and stream, decorator, oversize
-        {
-            stream<test::stream> ws{ioc_,
+            stream<test::stream> ws{ioc,
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
@@ -308,12 +442,12 @@ public:
             try
             {
                 bool called = false;
-                w.accept_ex(ws, sbuf(
+                api.accept_ex(ws, websocket_test_suite::sbuf(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"),
                     res_decorator{called});
-                fail("", __FILE__, __LINE__);
+                BEAST_FAIL();
             }
             catch(system_error const& se)
             {
@@ -322,137 +456,15 @@ public:
                     se.code().message());
             }
         }
-
-        // request in message
-        doStreamLoop([&](test::stream& ts)
-        {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            request_type req;
-            req.method(http::verb::get);
-            req.target("/");
-            req.version(11);
-            req.insert(http::field::host, "localhost");
-            req.insert(http::field::upgrade, "websocket");
-            req.insert(http::field::connection, "upgrade");
-            req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
-            req.insert(http::field::sec_websocket_version, "13");
-            w.accept(ws, req);
-        });
-
-        // request in message, decorator
-        doStreamLoop([&](test::stream& ts)
-        {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            request_type req;
-            req.method(http::verb::get);
-            req.target("/");
-            req.version(11);
-            req.insert(http::field::host, "localhost");
-            req.insert(http::field::upgrade, "websocket");
-            req.insert(http::field::connection, "upgrade");
-            req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
-            req.insert(http::field::sec_websocket_version, "13");
-            bool called = false;
-            w.accept_ex(ws, req,
-                res_decorator{called});
-            BEAST_EXPECT(called);
-        });
-
-        // request in message, close frame in stream
-        doStreamLoop([&](test::stream& ts)
-        {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            request_type req;
-            req.method(http::verb::get);
-            req.target("/");
-            req.version(11);
-            req.insert(http::field::host, "localhost");
-            req.insert(http::field::upgrade, "websocket");
-            req.insert(http::field::connection, "upgrade");
-            req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
-            req.insert(http::field::sec_websocket_version, "13");
-            ts.append("\x88\x82\xff\xff\xff\xff\xfc\x17");
-            w.accept(ws, req);
-            try
-            {
-                static_buffer<1> b;
-                w.read(ws, b);
-                fail("success", __FILE__, __LINE__);
-            }
-            catch(system_error const& e)
-            {
-                if(e.code() != websocket::error::closed)
-                    throw;
-            }
-        });
-
-        // failed handshake (missing Sec-WebSocket-Key)
-        doStreamLoop([&](test::stream& ts)
-        {
-            stream<test::stream&> ws{ts};
-            auto tr = connect(ws.next_layer());
-            ts.append(
-                "GET / HTTP/1.1\r\n"
-                "Host: localhost\r\n"
-                "Upgrade: websocket\r\n"
-                "Connection: upgrade\r\n"
-                "Sec-WebSocket-Version: 13\r\n"
-                "\r\n");
-            ts.read_size(20);
-            try
-            {
-                w.accept(ws);
-                fail("success", __FILE__, __LINE__);
-            }
-            catch(system_error const& e)
-            {
-                if( e.code() !=
-                        websocket::error::no_sec_key &&
-                    e.code() !=
-                        net::error::eof)
-                    throw;
-            }
-        });
-
-        // Closed by client
-        {
-            stream<test::stream> ws{ioc_};
-            auto tr = connect(ws.next_layer());
-            tr.close();
-            try
-            {
-                w.accept(ws);
-                fail("success", __FILE__, __LINE__);
-            }
-            catch(system_error const& e)
-            {
-                if(! BEAST_EXPECTS(
-                    e.code() == error::closed,
-                    e.code().message()))
-                    throw;
-            }
-        }
     }
 
     void
-    testAccept()
+    testInvalidInputs()
     {
-        doTestAccept(SyncClient{});
-
-        yield_to([&](yield_context yield)
-        {
-            doTestAccept(AsyncClient{yield});
-        });
-
-        //
-        // Bad requests
-        //
+        net::io_context ioc;
 
         auto const check =
-        [&](error_code const& ev, std::string const& s)
+        [&](error_code ev, string_view s)
         {
             for(int i = 0; i < 3; ++i)
             {
@@ -470,14 +482,14 @@ public:
                     n = s.size() - 1;
                     break;
                 }
-                stream<test::stream> ws{ioc_};
+                stream<test::stream> ws(ioc);
                 auto tr = connect(ws.next_layer());
                 ws.next_layer().append(
                     s.substr(n, s.size() - n));
+                tr.close();
                 try
                 {
-                    ws.accept(
-                        net::buffer(s.data(), n));
+                    ws.accept(net::buffer(s.data(), n));
                     BEAST_EXPECTS(! ev, ev.message());
                 }
                 catch(system_error const& se)
@@ -497,6 +509,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // bad method
         check(error::bad_method,
             "POST / HTTP/1.1\r\n"
@@ -507,6 +520,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // no Host
         check(error::no_host,
             "GET / HTTP/1.1\r\n"
@@ -516,6 +530,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // no Connection
         check(error::no_connection,
             "GET / HTTP/1.1\r\n"
@@ -525,6 +540,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // no Connection upgrade
         check(error::no_connection_upgrade,
             "GET / HTTP/1.1\r\n"
@@ -535,6 +551,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // no Upgrade
         check(error::no_upgrade,
             "GET / HTTP/1.1\r\n"
@@ -544,6 +561,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // no Upgrade websocket
         check(error::no_upgrade_websocket,
             "GET / HTTP/1.1\r\n"
@@ -554,6 +572,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // no Sec-WebSocket-Key
         check(error::no_sec_key,
             "GET / HTTP/1.1\r\n"
@@ -563,6 +582,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // bad Sec-WebSocket-Key
         check(error::bad_sec_key,
             "GET / HTTP/1.1\r\n"
@@ -573,6 +593,7 @@ public:
             "Sec-WebSocket-Version: 13\r\n"
             "\r\n"
         );
+
         // no Sec-WebSocket-Version
         check(error::no_sec_version,
             "GET / HTTP/1.1\r\n"
@@ -582,6 +603,7 @@ public:
             "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
             "\r\n"
         );
+
         // bad Sec-WebSocket-Version
         check(error::bad_sec_version,
             "GET / HTTP/1.1\r\n"
@@ -592,6 +614,7 @@ public:
             "Sec-WebSocket-Version: 1\r\n"
             "\r\n"
         );
+
         // bad Sec-WebSocket-Version
         check(error::bad_sec_version,
             "GET / HTTP/1.1\r\n"
@@ -602,6 +625,7 @@ public:
             "Sec-WebSocket-Version: 12\r\n"
             "\r\n"
         );
+
         // valid request
         check({},
             "GET / HTTP/1.1\r\n"
@@ -615,13 +639,53 @@ public:
     }
 
     void
-    testTimeout()
+    testEndOfStream()
+    {
+        net::io_context ioc;
+        {
+            stream<test::stream> ws(ioc);
+            auto tr = connect(ws.next_layer());
+            tr.close();
+            try
+            {
+                test_sync_api api;
+                api.accept(ws, net::const_buffer{});
+                BEAST_FAIL();
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == error::closed,
+                    se.code().message());
+            }
+        }
+        {
+            stream<test::stream> ws(ioc);
+            auto tr = connect(ws.next_layer());
+            tr.close();
+            try
+            {
+                test_async_api api;
+                api.accept(ws, net::const_buffer{});
+                BEAST_FAIL();
+            }
+            catch(system_error const& se)
+            {
+                BEAST_EXPECTS(
+                    se.code() == error::closed,
+                    se.code().message());
+            }
+        }
+    }
+
+    void
+    testAsync()
     {
         using tcp = net::ip::tcp;
 
         net::io_context ioc;
 
-        // success
+        // success, no timeout
 
         {
             stream<tcp::socket> ws1(ioc);
@@ -700,47 +764,49 @@ public:
             ws1.async_accept(test::fail_handler(beast::error::timeout));
             test::run_for(ioc, std::chrono::seconds(1));
         }
-    }
 
-    void
-    testMoveOnly()
-    {
-        net::io_context ioc;
-        stream<test::stream> ws{ioc};
-        ws.async_accept(move_only_handler{});
-    }
+        // abandoned operation
 
-    struct copyable_handler
-    {
-        template<class... Args>
-        void
-        operator()(Args&&...) const
         {
+            {
+                stream<tcp::socket> ws1(ioc);
+                ws1.async_accept(test::fail_handler(
+                    net::error::operation_aborted));
+            }
+            test::run(ioc);
         }
-    };
 
-    void
-    testAsioHandlerInvoke()
-    {
-        // make sure things compile, also can set a
-        // breakpoint in asio_handler_invoke to make sure
-        // it is instantiated.
-        net::io_context ioc;
-        net::strand<
-            net::io_context::executor_type> s(
-                ioc.get_executor());
-        stream<test::stream> ws{ioc};
-        ws.async_accept(net::bind_executor(
-            s, copyable_handler{}));
+        {
+            {
+                stream<tcp::socket> ws1(ioc);
+                string_view s =
+                    "GET / HTTP/1.1\r\n"
+                    "Host: localhost\r\n"
+                    "Upgrade: websocket\r\n"
+                    "Connection: upgrade\r\n"
+                    "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+                    "Sec-WebSocket-Version: 13\r\n"
+                    "\r\n";
+                error_code ec;
+                http::request_parser<http::empty_body> p;
+                p.put(net::const_buffer(s.data(), s.size()), ec);
+                ws1.async_accept(p.get(), test::fail_handler(
+                    net::error::operation_aborted));
+            }
+            test::run(ioc);
+        }
     }
 
     void
     run() override
     {
-        testAccept();
-        testTimeout();
-        testMoveOnly();
-        testAsioHandlerInvoke();
+        testMatrix(test_sync_api{});
+        testMatrix(test_async_api{});
+        testOversized(test_sync_api{});
+        testOversized(test_async_api{});
+        testInvalidInputs();
+        testEndOfStream();
+        testAsync();
     }
 };
 

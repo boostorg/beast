@@ -3570,10 +3570,10 @@ seed_prng(std::seed_seq& ss)
 } // beast
 } // boost
 
+#include <boost/beast/websocket/impl/stream_impl.hpp> // must be first
 #include <boost/beast/websocket/impl/accept.hpp>
 #include <boost/beast/websocket/impl/close.hpp>
 #include <boost/beast/websocket/impl/handshake.hpp>
-#include <boost/beast/websocket/impl/stream_impl.hpp>
 #include <boost/beast/websocket/impl/ping.hpp>
 #include <boost/beast/websocket/impl/read.hpp>
 #include <boost/beast/websocket/impl/stream.hpp>

@@ -189,13 +189,7 @@ struct impl_base<true>
     build_response_pmd(
         http::response<http::string_body>& res,
         http::request<Body,
-            http::basic_fields<Allocator>> const& req)
-    {
-        pmd_offer offer;
-        pmd_offer unused;
-        pmd_read(offer, req);
-        pmd_negotiate(res, unused, offer, pmd_opts_);
-    }
+            http::basic_fields<Allocator>> const& req);
 
     void
     on_response_pmd(
@@ -399,9 +393,7 @@ struct impl_base<false>
     build_response_pmd(
         http::response<http::string_body>&,
         http::request<Body,
-            http::basic_fields<Allocator>> const&)
-    {
-    }
+            http::basic_fields<Allocator>> const&);
 
     void
     on_response_pmd(

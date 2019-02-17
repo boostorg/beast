@@ -10,7 +10,14 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_STREAM_IMPL_HPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_STREAM_IMPL_HPP
 
-#include <boost/beast/version.hpp>
+#include <boost/beast/websocket/rfc6455.hpp>
+#include <boost/beast/websocket/detail/frame.hpp>
+#include <boost/beast/websocket/detail/hybi13.hpp>
+#include <boost/beast/websocket/detail/mask.hpp>
+#include <boost/beast/websocket/detail/pmd_extension.hpp>
+#include <boost/beast/websocket/detail/prng.hpp>
+#include <boost/beast/websocket/detail/soft_mutex.hpp>
+#include <boost/beast/websocket/detail/utf8_checker.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/http/rfc7230.hpp>
@@ -23,14 +30,6 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/beast/websocket/rfc6455.hpp>
-#include <boost/beast/websocket/detail/frame.hpp>
-#include <boost/beast/websocket/detail/hybi13.hpp>
-#include <boost/beast/websocket/detail/mask.hpp>
-#include <boost/beast/websocket/detail/pmd_extension.hpp>
-#include <boost/beast/websocket/detail/prng.hpp>
-#include <boost/beast/websocket/detail/soft_mutex.hpp>
-#include <boost/beast/websocket/detail/utf8_checker.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -586,104 +585,6 @@ on_response(
     ec = {};
     this->on_response_pmd(res);
     this->open(role_type::client);
-}
-
-//--------------------------------------------------------------------------
-
-template<class NextLayer, bool deflateSupported>
-template<class Body, class Allocator, class Decorator>
-response_type
-stream<NextLayer, deflateSupported>::impl_type::
-build_response(
-    http::request<Body,
-        http::basic_fields<Allocator>> const& req,
-    Decorator const& decorator,
-    error_code& result)
-{
-    auto const decorate =
-        [&decorator](response_type& res)
-        {
-            decorator(res);
-            if(! res.count(http::field::server))
-            {
-                BOOST_STATIC_ASSERT(sizeof(BOOST_BEAST_VERSION_STRING) < 20);
-                static_string<20> s(BOOST_BEAST_VERSION_STRING);
-                res.set(http::field::server, s);
-            }
-        };
-    auto err =
-        [&](error e)
-        {
-            result = e;
-            response_type res;
-            res.version(req.version());
-            res.result(http::status::bad_request);
-            res.body() = result.message();
-            res.prepare_payload();
-            decorate(res);
-            return res;
-        };
-    if(req.version() != 11)
-        return err(error::bad_http_version);
-    if(req.method() != http::verb::get)
-        return err(error::bad_method);
-    if(! req.count(http::field::host))
-        return err(error::no_host);
-    {
-        auto const it = req.find(http::field::connection);
-        if(it == req.end())
-            return err(error::no_connection);
-        if(! http::token_list{it->value()}.exists("upgrade"))
-            return err(error::no_connection_upgrade);
-    }
-    {
-        auto const it = req.find(http::field::upgrade);
-        if(it == req.end())
-            return err(error::no_upgrade);
-        if(! http::token_list{it->value()}.exists("websocket"))
-            return err(error::no_upgrade_websocket);
-    }
-    string_view key;
-    {
-        auto const it = req.find(http::field::sec_websocket_key);
-        if(it == req.end())
-            return err(error::no_sec_key);
-        key = it->value();
-        if(key.size() > detail::sec_ws_key_type::max_size_n)
-            return err(error::bad_sec_key);
-    }
-    {
-        auto const it = req.find(http::field::sec_websocket_version);
-        if(it == req.end())
-            return err(error::no_sec_version);
-        if(it->value() != "13")
-        {
-            response_type res;
-            res.result(http::status::upgrade_required);
-            res.version(req.version());
-            res.set(http::field::sec_websocket_version, "13");
-            result = error::bad_sec_version;
-            res.body() = result.message();
-            res.prepare_payload();
-            decorate(res);
-            return res;
-        }
-    }
-
-    response_type res;
-    res.result(http::status::switching_protocols);
-    res.version(req.version());
-    res.set(http::field::upgrade, "websocket");
-    res.set(http::field::connection, "upgrade");
-    {
-        detail::sec_ws_accept_type acc;
-        detail::make_sec_ws_accept(acc, key);
-        res.set(http::field::sec_websocket_accept, acc);
-    }
-    this->build_response_pmd(res, req);
-    decorate(res);
-    result = {};
-    return res;
 }
 
 //------------------------------------------------------------------------------
