@@ -45,8 +45,8 @@ fail(beast::error_code ec, char const* what)
 class session : public std::enable_shared_from_this<session>
 {
     tcp::resolver resolver_;
-    websocket::stream<beast::ssl_stream<
-        beast::tcp_stream<net::io_context::executor_type>>> ws_;
+    websocket::stream<
+        beast::ssl_stream<beast::tcp_stream>> ws_;
     beast::multi_buffer buffer_;
     std::string host_;
     std::string text_;
@@ -55,8 +55,8 @@ public:
     // Resolver and socket require an io_context
     explicit
     session(net::io_context& ioc, ssl::context& ctx)
-        : resolver_(ioc)
-        , ws_(ioc, ctx)
+        : resolver_(beast::make_strand(ioc))
+        , ws_(beast::make_strand(ioc), ctx)
     {
     }
 

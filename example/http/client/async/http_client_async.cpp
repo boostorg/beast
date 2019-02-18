@@ -29,9 +29,6 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
-// The type of stream to use
-using stream_type = beast::tcp_stream<net::io_context::executor_type>;
-
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -43,17 +40,18 @@ fail(beast::error_code ec, char const* what)
 class session : public std::enable_shared_from_this<session>
 {
     tcp::resolver resolver_;
-    stream_type stream_;
+    beast::tcp_stream stream_;
     beast::flat_buffer buffer_; // (Must persist between reads)
     http::request<http::empty_body> req_;
     http::response<http::string_body> res_;
 
 public:
-    // Resolver and socket require an io_context
+    // Objects are constructed with a strand to
+    // ensure that handlers do not execute concurrently.
     explicit
     session(net::io_context& ioc)
-        : resolver_(ioc)
-        , stream_(ioc)
+        : resolver_(beast::make_strand(ioc))
+        , stream_(beast::make_strand(ioc))
     {
     }
 

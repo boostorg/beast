@@ -28,6 +28,7 @@ public:
     run() override
     {
         testJavadoc();
+        pass();
     }
 };
 

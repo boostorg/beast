@@ -12,20 +12,17 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/basic_stream.hpp>
+#include <boost/asio/executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 namespace boost {
 namespace beast {
 
-/** A TCP/IP stream socket with timeouts, rate limits, and executor.
-
-    @tparam Executor The type of executor to use for all completion
-    handlers which do not already have an associated executor.
+/** A TCP/IP stream socket with timeouts, rate limits, and polymorphic executor.
 
     @see basic_stream
 */
-template<class Executor>
-using tcp_stream = basic_stream<net::ip::tcp, Executor>;
+using tcp_stream = basic_stream<net::ip::tcp, net::executor>;
 
 } // beast
 } // boost

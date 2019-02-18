@@ -51,8 +51,7 @@ class session
     : public net::coroutine
     , public std::enable_shared_from_this<session>
 {
-    websocket::stream<beast::ssl_stream<
-        beast::tcp_stream<net::io_context::strand>>> ws_;
+    websocket::stream<beast::ssl_stream<beast::tcp_stream>> ws_;
     beast::multi_buffer buffer_;
 
 public:
@@ -166,6 +165,7 @@ class listener
     : public net::coroutine
     , public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
     ssl::context& ctx_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
@@ -175,7 +175,8 @@ public:
         net::io_context& ioc,
         ssl::context& ctx,
         tcp::endpoint endpoint)
-        : ctx_(ctx)
+        : ioc_(ioc)
+        , ctx_(ctx)
         , acceptor_(ioc)
         , socket_(ioc)
     {
@@ -247,6 +248,9 @@ public:
                     // Create the session and run it
                     std::make_shared<session>(std::move(socket_), ctx_)->run();
                 }
+
+                // Make sure each session gets its own strand
+                socket_ = tcp::socket(beast::make_strand(ioc_));
             }
         }
     }

@@ -43,13 +43,13 @@ fail(beast::error_code ec, char const* what)
 // Echoes back all received WebSocket messages
 class session : public std::enable_shared_from_this<session>
 {
-    websocket::stream<beast::tcp_stream<net::io_context::strand>> ws_;
+    websocket::stream<beast::tcp_stream> ws_;
     beast::multi_buffer buffer_;
 
 public:
     // Take ownership of the socket
     explicit
-    session(tcp::socket socket)
+    session(tcp::socket&& socket)
         : ws_(std::move(socket))
     {
     }
@@ -146,13 +146,17 @@ public:
 // Accepts incoming connections and launches the sessions
 class listener : public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
     tcp::acceptor acceptor_;
+    tcp::socket socket_;
 
 public:
     listener(
         net::io_context& ioc,
         tcp::endpoint endpoint)
-        : acceptor_(ioc)
+        : ioc_(ioc)
+        , acceptor_(ioc)
+        , socket_(beast::make_strand(ioc_))
     {
         beast::error_code ec;
 
@@ -203,13 +207,14 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
+            socket_,
             beast::bind_front_handler(
                 &listener::on_accept,
                 shared_from_this()));
     }
 
     void
-    on_accept(beast::error_code ec, tcp::socket socket)
+    on_accept(beast::error_code ec)
     {
         if(ec)
         {
@@ -218,8 +223,11 @@ public:
         else
         {
             // Create the session and run it
-            std::make_shared<session>(std::move(socket))->run();
+            std::make_shared<session>(std::move(socket_))->run();
         }
+
+        // Make sure each session gets its own strand
+        socket_ = tcp::socket(beast::make_strand(ioc_));
 
         // Accept another connection
         do_accept();

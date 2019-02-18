@@ -204,10 +204,6 @@ handle_request(
 
 //------------------------------------------------------------------------------
 
-// The type of stream to use.
-// Stackful coroutines are already stranded.
-using stream_type = beast::tcp_stream<net::io_context::executor_type>;
-
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -219,13 +215,13 @@ fail(beast::error_code ec, char const* what)
 // The function object is used to send an HTTP message.
 struct send_lambda
 {
-    stream_type& stream_;
+    beast::tcp_stream& stream_;
     bool& close_;
     beast::error_code& ec_;
     net::yield_context yield_;
 
     send_lambda(
-        stream_type& stream,
+        beast::tcp_stream& stream,
         bool& close,
         beast::error_code& ec,
         net::yield_context yield)
@@ -254,7 +250,7 @@ struct send_lambda
 // Handles an HTTP server connection
 void
 do_session(
-    stream_type& stream,
+    beast::tcp_stream& stream,
     std::shared_ptr<std::string const> const& doc_root,
     net::yield_context yield)
 {
@@ -339,10 +335,10 @@ do_listen(
             fail(ec, "accept");
         else
             net::spawn(
-                acceptor.get_executor().context(),
+                acceptor.get_executor(),
                 std::bind(
                     &do_session,
-                    stream_type(std::move(socket)),
+                    beast::tcp_stream(std::move(socket)),
                     doc_root,
                     std::placeholders::_1));
     }

@@ -25,14 +25,18 @@ namespace websocket {
 
 namespace detail {
 
-template<class Handler>
+template<
+    class Protocol, class Executor,
+    class Handler>
 class teardown_tcp_op
     : public beast::async_op_base<
         Handler, beast::executor_type<
-            net::ip::tcp::socket>>
+            net::basic_stream_socket<
+                Protocol, Executor>>>
     , public net::coroutine
 {
-    using socket_type = net::ip::tcp::socket;
+    using socket_type =
+        net::basic_stream_socket<Protocol, Executor>;
 
     socket_type& s_;
     role_type role_;
@@ -46,8 +50,10 @@ public:
         role_type role)
         : async_op_base<Handler,
             beast::executor_type<
-                net::ip::tcp::socket>>(
-                    std::forward<Handler_>(h), s.get_executor())
+                net::basic_stream_socket<
+                    Protocol, Executor>>>(
+            std::forward<Handler_>(h),
+            s.get_executor())
         , s_(s)
         , role_(role)
     {
@@ -60,7 +66,6 @@ public:
         std::size_t bytes_transferred = 0,
         bool cont = true)
     {
-        using tcp = net::ip::tcp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             nb_ = s_.non_blocking();
@@ -68,7 +73,7 @@ public:
             if(ec)
                 goto upcall;
             if(role_ == role_type::server)
-                s_.shutdown(tcp::socket::shutdown_send, ec);
+                s_.shutdown(net::socket_base::shutdown_send, ec);
             if(ec)
                 goto upcall;
             for(;;)
@@ -81,7 +86,7 @@ public:
                 {
                     BOOST_ASIO_CORO_YIELD
                     s_.async_wait(
-                        net::ip::tcp::socket::wait_read,
+                        net::socket_base::wait_read,
                             beast::detail::bind_continuation(std::move(*this)));
                     continue;
                 }
@@ -100,7 +105,7 @@ public:
                 }
             }
             if(role_ == role_type::client)
-                s_.shutdown(tcp::socket::shutdown_send, ec);
+                s_.shutdown(net::socket_base::shutdown_send, ec);
             if(ec)
                 goto upcall;
             s_.close(ec);
@@ -124,15 +129,17 @@ public:
 
 //------------------------------------------------------------------------------
 
+template<class Protocol, class Executor>
 void
 teardown(
     role_type role,
-    net::ip::tcp::socket& socket,
+    net::basic_stream_socket<
+        Protocol, Executor>& socket,
     error_code& ec)
 {
     if(role == role_type::server)
         socket.shutdown(
-            net::ip::tcp::socket::shutdown_send, ec);
+            net::socket_base::shutdown_send, ec);
     if(ec)
         return;
     for(;;)
@@ -156,25 +163,32 @@ teardown(
     }
     if(role == role_type::client)
         socket.shutdown(
-            net::ip::tcp::socket::shutdown_send, ec);
+            net::socket_base::shutdown_send, ec);
     if(ec)
         return;
     socket.close(ec);
 }
 
-template<class TeardownHandler>
+template<
+    class Protocol, class Executor,
+    class TeardownHandler>
 void
 async_teardown(
     role_type role,
-    net::ip::tcp::socket& socket,
+    net::basic_stream_socket<
+        Protocol, Executor>& socket,
     TeardownHandler&& handler)
 {
     static_assert(beast::detail::is_invocable<
         TeardownHandler, void(error_code)>::value,
             "TeardownHandler requirements not met");
-    detail::teardown_tcp_op<typename std::decay<
-        TeardownHandler>::type>(std::forward<
-            TeardownHandler>(handler), socket, role);
+    detail::teardown_tcp_op<
+        Protocol,
+        Executor,
+        typename std::decay<TeardownHandler>::type>(
+            std::forward<TeardownHandler>(handler),
+            socket,
+            role);
 }
 
 } // websocket

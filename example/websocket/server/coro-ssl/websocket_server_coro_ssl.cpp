@@ -38,11 +38,6 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
-// The type of websocket stream to use
-// Stackful coroutines are already stranded.
-using ws_type = websocket::stream<beast::ssl_stream<
-    beast::tcp_stream<net::io_context::executor_type>>>;
-
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -53,7 +48,8 @@ fail(beast::error_code ec, char const* what)
 // Echoes back all received WebSocket messages
 void
 do_session(
-    ws_type& ws,
+    websocket::stream<
+        beast::ssl_stream<beast::tcp_stream>>& ws,
     net::yield_context yield)
 {
     beast::error_code ec;
@@ -153,10 +149,11 @@ do_listen(
             fail(ec, "accept");
         else
             net::spawn(
-                acceptor.get_executor().context(),
+                acceptor.get_executor(),
                 std::bind(
                     &do_session,
-                    ws_type(std::move(socket), ctx),
+                    websocket::stream<beast::ssl_stream<
+                        beast::tcp_stream>>(std::move(socket), ctx),
                     std::placeholders::_1));
     }
 }

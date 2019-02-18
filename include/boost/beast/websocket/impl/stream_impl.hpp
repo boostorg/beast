@@ -103,7 +103,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
     template<class... Args>
     impl_type(Args&&... args)
         : stream(std::forward<Args>(args)...)
-        , timer(stream.get_executor().context())
+        , timer(stream.get_executor())
     {
         timeout_opt.handshake_timeout = none();
         timeout_opt.idle_timeout = none();

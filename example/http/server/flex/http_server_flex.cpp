@@ -208,13 +208,6 @@ handle_request(
 
 //------------------------------------------------------------------------------
 
-// The type of plain streams
-using plain_stream_type = beast::tcp_stream<net::io_context::strand>;
-
-// The type of TLS streams
-using ssl_stream_type =
-    beast::ssl_stream<beast::tcp_stream<net::io_context::strand>>;
-
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -358,7 +351,7 @@ class plain_session
     : public session<plain_session>
     , public std::enable_shared_from_this<plain_session>
 {
-    plain_stream_type stream_;
+    beast::tcp_stream stream_;
 
 public:
     // Create the session
@@ -374,7 +367,7 @@ public:
     }
 
     // Called by the base class
-    plain_stream_type&
+    beast::tcp_stream&
     stream()
     {
         return stream_;
@@ -403,7 +396,7 @@ class ssl_session
     : public session<ssl_session>
     , public std::enable_shared_from_this<ssl_session>
 {
-    ssl_stream_type stream_;
+    beast::ssl_stream<beast::tcp_stream> stream_;
 
 public:
     // Create the session
@@ -420,7 +413,7 @@ public:
     }
 
     // Called by the base class
-    ssl_stream_type&
+    beast::ssl_stream<beast::tcp_stream>&
     stream()
     {
         return stream_;
@@ -442,6 +435,7 @@ public:
                 &ssl_session::on_handshake,
                 shared_from_this()));
     }
+
     void
     on_handshake(
         beast::error_code ec,
@@ -484,14 +478,14 @@ public:
 // Detects SSL handshakes
 class detect_session : public std::enable_shared_from_this<detect_session>
 {
-    plain_stream_type stream_;
+    beast::tcp_stream stream_;
     ssl::context& ctx_;
     std::shared_ptr<std::string const> doc_root_;
     beast::flat_buffer buffer_;
 
 public:
     detect_session(
-        tcp::socket socket,
+        tcp::socket&& socket,
         ssl::context& ctx,
         std::shared_ptr<std::string const> const& doc_root)
         : stream_(std::move(socket))
@@ -544,8 +538,10 @@ public:
 // Accepts incoming connections and launches the sessions
 class listener : public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
     ssl::context& ctx_;
     tcp::acceptor acceptor_;
+    tcp::socket socket_;
     std::shared_ptr<std::string const> doc_root_;
 
 public:
@@ -554,8 +550,10 @@ public:
         ssl::context& ctx,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root)
-        : ctx_(ctx)
-        , acceptor_(ioc)
+        : ioc_(ioc)
+        , ctx_(ctx)
+        , acceptor_(beast::make_strand(ioc))
+        , socket_(beast::make_strand(ioc))
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -607,13 +605,14 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
+            socket_,
             beast::bind_front_handler(
                 &listener::on_accept,
                 shared_from_this()));
     }
 
     void
-    on_accept(beast::error_code ec, tcp::socket sock)
+    on_accept(beast::error_code ec)
     {
         if(ec)
         {
@@ -623,10 +622,13 @@ public:
         {
             // Create the detector session and run it
             std::make_shared<detect_session>(
-                std::move(sock),
+                std::move(socket_),
                 ctx_,
                 doc_root_)->run();
         }
+
+        // Make sure each session gets its own strand
+        socket_ = tcp::socket(beast::make_strand(ioc_));
 
         // Accept another connection
         do_accept();

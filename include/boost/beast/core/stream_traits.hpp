@@ -438,10 +438,10 @@ using is_async_stream = std::integral_constant<bool,
 
     @see close_socket
 */
-template<class Protocol BOOST_ASIO_SVC_TPARAM>
+template<class Protocol>
 void
 beast_close_socket(
-    net::basic_socket<Protocol BOOST_ASIO_SVC_TPARAM>& sock)
+    net::basic_socket<Protocol>& sock)
 {
     boost::system::error_code ec;
     sock.close(ec);

@@ -46,8 +46,7 @@ class session
     : public net::coroutine
     , public std::enable_shared_from_this<session>
 {
-    websocket::stream<
-        beast::tcp_stream<net::io_context::strand>> ws_;
+    websocket::stream<beast::tcp_stream> ws_;
     beast::multi_buffer buffer_;
 
 public:
@@ -143,6 +142,7 @@ class listener
     : public net::coroutine
     , public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
 
@@ -150,8 +150,9 @@ public:
     listener(
         net::io_context& ioc,
         tcp::endpoint endpoint)
-        : acceptor_(ioc)
-        , socket_(ioc)
+        : ioc_(ioc)
+        , acceptor_(beast::make_strand(ioc))
+        , socket_(beast::make_strand(ioc))
     {
         beast::error_code ec;
 
@@ -221,6 +222,9 @@ public:
                     // Create the session and run it
                     std::make_shared<session>(std::move(socket_))->run();
                 }
+
+                // Make sure each session gets its own strand
+                socket_ = tcp::socket(beast::make_strand(ioc_));
             }
         }
     }

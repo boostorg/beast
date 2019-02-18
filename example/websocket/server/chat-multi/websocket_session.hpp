@@ -27,7 +27,7 @@ class shared_state;
 class websocket_session : public boost::enable_shared_from_this<websocket_session>
 {
     beast::flat_buffer buffer_;
-    websocket::stream<beast::tcp_stream<net::io_context::strand>> ws_;
+    websocket::stream<beast::tcp_stream> ws_;
     boost::shared_ptr<shared_state> state_;
     std::vector<boost::shared_ptr<std::string const>> queue_;
 
@@ -50,6 +50,10 @@ public:
     // Send a message
     void
     send(boost::shared_ptr<std::string const> const& ss);
+
+private:
+    void
+    on_send(boost::shared_ptr<std::string const> const& ss);
 };
 
 template<class Body, class Allocator>

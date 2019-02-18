@@ -33,11 +33,6 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
-// The type of stream to use
-// Stackful coroutines are already stranded.
-using stream_type =
-    beast::ssl_stream<beast::tcp_stream<net::io_context::executor_type>>;
-
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -60,7 +55,7 @@ do_session(
 
     // These objects perform our I/O
     tcp::resolver resolver(ioc);
-    stream_type stream(ioc, ctx);
+    beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if(! SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))

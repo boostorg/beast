@@ -209,10 +209,6 @@ handle_request(
 
 //------------------------------------------------------------------------------
 
-// The type of TLS streams
-using ssl_stream_type =
-    beast::ssl_stream<beast::tcp_stream<net::io_context::strand>>;
-
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -264,7 +260,7 @@ class session
         }
     };
 
-    ssl_stream_type stream_;
+    beast::ssl_stream<beast::tcp_stream> stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
@@ -383,6 +379,7 @@ class listener
     : public net::coroutine
     , public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
     ssl::context& ctx_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
@@ -394,9 +391,10 @@ public:
         ssl::context& ctx,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root)
-        : ctx_(ctx)
-        , acceptor_(ioc)
-        , socket_(ioc)
+        : ioc_(ioc)
+        , ctx_(ctx)
+        , acceptor_(beast::make_strand(ioc))
+        , socket_(beast::make_strand(ioc))
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -470,6 +468,9 @@ public:
                         ctx_,
                         doc_root_)->run();
                 }
+
+                // Make sure each session gets its own strand
+                socket_ = tcp::socket(beast::make_strand(ioc_));
             }
         }
     }

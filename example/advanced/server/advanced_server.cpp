@@ -219,14 +219,13 @@ fail(beast::error_code ec, char const* what)
 // Echoes back all received WebSocket messages
 class websocket_session : public std::enable_shared_from_this<websocket_session>
 {
-    websocket::stream<beast::tcp_stream<net::io_context::strand>> ws_;
+    websocket::stream<beast::tcp_stream> ws_;
     beast::flat_buffer buffer_;
-    char ping_state_ = 0;
 
 public:
     // Take ownership of the socket
     explicit
-    websocket_session(tcp::socket socket)
+    websocket_session(tcp::socket&& socket)
         : ws_(std::move(socket))
     {
     }
@@ -258,6 +257,7 @@ public:
                 shared_from_this()));
     }
 
+private:
     void
     on_accept(beast::error_code ec)
     {
@@ -413,7 +413,7 @@ class http_session : public std::enable_shared_from_this<http_session>
         }
     };
 
-    beast::tcp_stream<net::io_context::strand> stream_;
+    beast::tcp_stream stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
@@ -421,9 +421,8 @@ class http_session : public std::enable_shared_from_this<http_session>
 
 public:
     // Take ownership of the socket
-    explicit
     http_session(
-        tcp::socket socket,
+        tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root)
         : stream_(std::move(socket))
         , doc_root_(doc_root)
@@ -431,21 +430,14 @@ public:
     {
     }
 
-    // Start the asynchronous operation
+    // Start the session
     void
     run()
     {
-        // Make sure we run on the strand
-        if(! stream_.get_executor().running_in_this_thread())
-            return net::post(
-                stream_.get_executor(),
-                std::bind(
-                    &http_session::run,
-                    shared_from_this()));
-
         do_read();
     }
 
+private:
     void
     do_read()
     {
@@ -532,6 +524,7 @@ public:
 // Accepts incoming connections and launches the sessions
 class listener : public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     std::shared_ptr<std::string const> doc_root_;
@@ -541,8 +534,9 @@ public:
         net::io_context& ioc,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root)
-        : acceptor_(ioc)
-        , socket_(ioc)
+        : ioc_(ioc)
+        , acceptor_(beast::make_strand(ioc))
+        , socket_(beast::make_strand(ioc))
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -594,13 +588,14 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
+            socket_,
             beast::bind_front_handler(
                 &listener::on_accept,
                 shared_from_this()));
     }
 
     void
-    on_accept(beast::error_code ec, tcp::socket socket)
+    on_accept(beast::error_code ec)
     {
         if(ec)
         {
@@ -610,9 +605,12 @@ public:
         {
             // Create the http session and run it
             std::make_shared<http_session>(
-                std::move(socket),
+                std::move(socket_),
                 doc_root_)->run();
         }
+
+        // Make sure each session gets its own strand
+        socket_ = tcp::socket(beast::make_strand(ioc_));
 
         // Accept another connection
         do_accept();

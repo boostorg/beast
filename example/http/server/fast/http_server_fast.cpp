@@ -99,7 +99,7 @@ private:
     std::string doc_root_;
 
     // The socket for the currently connected client.
-    tcp::socket socket_{acceptor_.get_executor().context()};
+    tcp::socket socket_{acceptor_.get_executor()};
 
     // The buffer for performing reads
     beast::flat_static_buffer<8192> buffer_;
@@ -112,7 +112,7 @@ private:
 
     // The timer putting a time limit on requests.
     net::basic_waitable_timer<std::chrono::steady_clock> request_deadline_{
-        acceptor_.get_executor().context(), (std::chrono::steady_clock::time_point::max)()};
+        acceptor_.get_executor(), (std::chrono::steady_clock::time_point::max)()};
 
     // The string-based response message.
     boost::optional<http::response<http::string_body, http::basic_fields<alloc_t>>> string_response_;

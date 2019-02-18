@@ -255,7 +255,7 @@ class session : public std::enable_shared_from_this<session>
         }
     };
 
-    beast::ssl_stream<beast::tcp_stream<net::io_context::strand>> stream_;
+    beast::ssl_stream<beast::tcp_stream> stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
@@ -387,8 +387,10 @@ public:
 // Accepts incoming connections and launches the sessions
 class listener : public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
     ssl::context& ctx_;
     tcp::acceptor acceptor_;
+    tcp::socket socket_;
     std::shared_ptr<std::string const> doc_root_;
 
 public:
@@ -397,8 +399,10 @@ public:
         ssl::context& ctx,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root)
-        : ctx_(ctx)
+        : ioc_(ioc)
+        , ctx_(ctx)
         , acceptor_(ioc)
+        , socket_(beast::make_strand(ioc))
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -450,13 +454,14 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
+            socket_,
             beast::bind_front_handler(
                 &listener::on_accept,
                 shared_from_this()));
     }
 
     void
-    on_accept(beast::error_code ec, tcp::socket socket)
+    on_accept(beast::error_code ec)
     {
         if(ec)
         {
@@ -466,10 +471,13 @@ public:
         {
             // Create the session and run it
             std::make_shared<session>(
-                std::move(socket),
+                std::move(socket_),
                 ctx_,
                 doc_root_)->run();
         }
+
+        // Make sure each session gets its own strand
+        socket_ = tcp::socket(beast::make_strand(ioc_));
 
         // Accept another connection
         do_accept();

@@ -59,8 +59,8 @@ boost::ignore_unused(ec);
 {
 //[ws_snippet_6
     std::string const host = "example.com";
-    net::ip::tcp::resolver r{ioc};
-    stream<tcp_stream<net::io_context::executor_type>> ws{ioc};
+    net::ip::tcp::resolver r(ioc);
+    stream<tcp_stream> ws(ioc);
     auto const results = r.resolve(host, "ws");
     connect(get_lowest_layer(ws), results.begin(), results.end());
 //]
@@ -69,7 +69,7 @@ boost::ignore_unused(ec);
 {
 //[ws_snippet_7
     net::ip::tcp::acceptor acceptor{ioc};
-    stream<tcp_stream<net::io_context::executor_type>> ws{acceptor.get_executor().context()};
+    stream<tcp_stream> ws{acceptor.get_executor()};
     acceptor.accept(get_lowest_layer(ws).socket());
 //]
 }

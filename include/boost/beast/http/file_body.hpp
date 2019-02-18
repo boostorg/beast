@@ -30,6 +30,8 @@ using file_body = basic_file_body<file>;
 } // beast
 } // boost
 
+#ifndef BOOST_BEAST_NO_FILE_BODY_WIN32
 #include <boost/beast/http/impl/file_body_win32.ipp>
+#endif
 
 #endif

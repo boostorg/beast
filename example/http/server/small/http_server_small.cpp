@@ -76,7 +76,7 @@ private:
 
     // The timer for putting a deadline on connection processing.
     net::basic_waitable_timer<std::chrono::steady_clock> deadline_{
-        socket_.get_executor().context(), std::chrono::seconds(60)};
+        socket_.get_executor(), std::chrono::seconds(60)};
 
     // Asynchronously receive a complete request message.
     void

@@ -11,6 +11,7 @@
 #define BOOST_BEAST_TEST_TCP_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/get_io_context.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/_experimental/test/handler.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -60,26 +61,28 @@ run_for(
     ioc.restart();
 }
 
-/** Connect two TCP/IP sockets together.
+/** Connect two TCP sockets together.
 */
-inline
+template<class Executor>
 bool
 connect(
-    net::ip::tcp::socket& s1,
-    net::ip::tcp::socket& s2)
+    net::basic_stream_socket<net::ip::tcp, Executor>& s1,
+    net::basic_stream_socket<net::ip::tcp, Executor>& s2)
 
 {
-    // Sockets must use the same I/O context
-    BOOST_ASSERT(
-        std::addressof(s1.get_executor().context()) ==
-        std::addressof(s2.get_executor().context()));
-    auto& ioc = s1.get_executor().context();
-    s1 = net::ip::tcp::socket(ioc);
-    s2 = net::ip::tcp::socket(ioc);
+    auto ioc1 = beast::detail::get_io_context(s1);
+    auto ioc2 = beast::detail::get_io_context(s2);
+    if(! BEAST_EXPECT(ioc1 != nullptr))
+        return false;
+    if(! BEAST_EXPECT(ioc2 != nullptr))
+        return false;
+    if(! BEAST_EXPECT(ioc1 == ioc2))
+        return false;
+    auto& ioc = *ioc1;
     try
     {
-        net::ip::tcp::acceptor a(
-            s1.get_executor().context());
+        net::basic_socket_acceptor<
+            net::ip::tcp, Executor> a(s1.get_executor());
         auto ep = net::ip::tcp::endpoint(
             net::ip::make_address_v4("127.0.0.1"), 0);
         a.open(ep.protocol());

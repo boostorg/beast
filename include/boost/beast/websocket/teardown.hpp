@@ -13,7 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/websocket/role.hpp>
-#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/basic_stream_socket.hpp>
 #include <type_traits>
 
 namespace boost {
@@ -125,11 +125,12 @@ namespace websocket {
 
     @param ec Set to the error if any occurred.
 */
-BOOST_BEAST_DECL
+template<class Protocol, class Executor>
 void
 teardown(
     role_type role,
-    net::ip::tcp::socket& socket,
+    net::basic_stream_socket<
+        Protocol, Executor>& socket,
     error_code& ec);
 
 /** Start tearing down a `net::ip::tcp::socket`.
@@ -159,11 +160,14 @@ teardown(
     manner equivalent to using net::io_context::post().
 
 */
-template<class TeardownHandler>
+template<
+    class Protocol, class Executor,
+    class TeardownHandler>
 void
 async_teardown(
     role_type role,
-    net::ip::tcp::socket& socket,
+    net::basic_stream_socket<
+        Protocol, Executor>& socket,
     TeardownHandler&& handler);
 
 } // websocket

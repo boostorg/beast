@@ -32,44 +32,10 @@ template<class Protocol, class Executor>
 template<class... Args>
 basic_stream<Protocol, Executor>::
 impl_type::
-impl_type(
-    Executor const& ex_,
-    Args&&... args)
-    : boost::empty_value<Executor>(
-        boost::empty_init_t{}, ex_)
-    , read(ex().context())
-    , write(ex().context())
-    , socket(std::forward<Args>(args)...)
-{
-    reset();
-}
-
-template<class Protocol, class Executor>
-template<class OtherProtocol>
-basic_stream<Protocol, Executor>::
-impl_type::
-impl_type(net::basic_stream_socket<OtherProtocol>&& socket_,
-    std::true_type)
-    : boost::empty_value<Executor>(
-        boost::empty_init_t{}, socket_.get_executor())
-    , read(ex().context())
-    , write(ex().context())
-    , socket(std::move(socket_))
-{
-    reset();
-}
-
-template<class Protocol, class Executor>
-template<class OtherProtocol>
-basic_stream<Protocol, Executor>::
-impl_type::
-impl_type(net::basic_stream_socket<OtherProtocol>&& socket_,
-    std::false_type)
-    : boost::empty_value<Executor>(boost::empty_init_t{},
-        socket_.get_executor().context())
-    , read(ex().context())
-    , write(ex().context())
-    , socket(std::move(socket_))
+impl_type(Args&&... args)
+    : socket(std::forward<Args>(args)...)
+    , read(ex())
+    , write(ex())
 {
     reset();
 }
@@ -435,39 +401,11 @@ basic_stream<Protocol, Executor>::
 }
 
 template<class Protocol, class Executor>
-template<class ExecutionContext, class... Args, class>
-basic_stream<Protocol, Executor>::
-basic_stream(ExecutionContext& ctx, Args&&... args)
-    : impl_(boost::make_shared<impl_type>(
-        ctx.get_executor(),
-        ctx, std::forward<Args>(args)...))
-{
-    // Restriction is necessary until Asio fully supports P1322R0
-    static_assert(
-        std::is_same<ExecutionContext, net::io_context>::value,
-        "Only net::io_context is currently supported for ExecutionContext");
-}
-
-template<class Protocol, class Executor>
 template<class... Args>
 basic_stream<Protocol, Executor>::
-basic_stream(
-    executor_type const& ex, Args&&... args)
+basic_stream(Args&&... args)
     : impl_(boost::make_shared<impl_type>(
-        ex,
-        ex.context(), std::forward<Args>(args)...))
-{
-}
-
-template<class Protocol, class Executor>
-template<class OtherProtocol, class>
-basic_stream<Protocol, Executor>::
-basic_stream(net::basic_stream_socket<OtherProtocol>&& socket)
-    : impl_(boost::make_shared<impl_type>(
-        std::move(socket),
-        std::is_constructible<Executor,
-        decltype(std::declval<net::basic_stream_socket<
-            Protocol>&>().get_executor())>{}))
+        std::forward<Args>(args)...))
 {
 }
 

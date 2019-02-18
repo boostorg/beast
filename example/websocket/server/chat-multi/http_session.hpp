@@ -21,7 +21,7 @@
 */
 class http_session : public boost::enable_shared_from_this<http_session>
 {
-    beast::tcp_stream<net::io_context::strand> stream_;
+    beast::tcp_stream stream_;
     beast::flat_buffer buffer_;
     boost::shared_ptr<shared_state> state_;
     http::request<http::string_body> req_;

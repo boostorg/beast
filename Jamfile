@@ -93,6 +93,14 @@ project /boost/beast
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
     <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
+
+    # workaround for asio defect
+    <define>BOOST_ASIO_DISABLE_WINDOWS_RANDOM_ACCESS_HANDLE=1
+    <define>BOOST_ASIO_DISABLE_WINDOWS_STREAM_HANDLE=1
+
+    # VFALCO FIXME Need this for recent asio changes
+    <define>BOOST_BEAST_NO_FILE_BODY_WIN32=1
+
     <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc-14.1:<cxxflags>"/permissive-"
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1

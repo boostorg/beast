@@ -205,9 +205,6 @@ handle_request(
 
 //------------------------------------------------------------------------------
 
-// The type of stream to use
-using stream_type = beast::tcp_stream<net::io_context::strand>;
-
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -258,7 +255,7 @@ class session
         }
     };
 
-    stream_type stream_;
+    beast::tcp_stream stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
@@ -269,7 +266,7 @@ public:
     // Take ownership of the socket
     explicit
     session(
-        tcp::socket socket,
+        tcp::socket&& socket,
         std::shared_ptr<std::string const> const& doc_root)
         : stream_(std::move(socket))
         , doc_root_(doc_root)
@@ -348,6 +345,7 @@ class listener
     : public net::coroutine
     , public std::enable_shared_from_this<listener>
 {
+    net::io_context& ioc_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     std::shared_ptr<std::string const> doc_root_;
@@ -357,8 +355,9 @@ public:
         net::io_context& ioc,
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root)
-        : acceptor_(ioc)
-        , socket_(ioc)
+        : ioc_(ioc)
+        , acceptor_(beast::make_strand(ioc))
+        , socket_(beast::make_strand(ioc))
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -429,6 +428,9 @@ public:
                         std::move(socket_),
                         doc_root_)->run();
                 }
+
+                // Make sure each session gets its own strand
+                socket_ = tcp::socket(beast::make_strand(ioc_));
             }
         }
     }

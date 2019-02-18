@@ -32,7 +32,7 @@ namespace beast {
 namespace http {
 
 namespace detail {
-template<class, class, bool, class>
+template<class, class, class, bool, class>
 class write_some_win32_op;
 } // detail
 
@@ -52,7 +52,7 @@ struct basic_file_body<file_win32>
         friend class reader;
         friend struct basic_file_body<file_win32>;
 
-        template<class, class, bool, class>
+        template<class, class, class, bool, class>
         friend class detail::write_some_win32_op;
         template<
             class Protocol, bool isRequest, class Fields>
@@ -101,7 +101,7 @@ struct basic_file_body<file_win32>
 
     class writer
     {
-        template<class, class, bool, class>
+        template<class, class, class, bool, class>
         friend class detail::write_some_win32_op;
         template<
             class Protocol, bool isRequest, class Fields>
@@ -276,7 +276,6 @@ reset(file_win32&& file, error_code& ec)
 namespace detail {
 
 template<class Unsigned>
-inline
 boost::winapi::DWORD_
 lowPart(Unsigned n)
 {
@@ -286,7 +285,6 @@ lowPart(Unsigned n)
 }
 
 template<class Unsigned>
-inline
 boost::winapi::DWORD_
 highPart(Unsigned n, std::true_type)
 {
@@ -296,7 +294,6 @@ highPart(Unsigned n, std::true_type)
 }
 
 template<class Unsigned>
-inline
 boost::winapi::DWORD_
 highPart(Unsigned, std::false_type)
 {
@@ -304,7 +301,6 @@ highPart(Unsigned, std::false_type)
 }
 
 template<class Unsigned>
-inline
 boost::winapi::DWORD_
 highPart(Unsigned n)
 {
@@ -329,14 +325,17 @@ public:
 #if BOOST_ASIO_HAS_WINDOWS_OVERLAPPED_PTR
 
 template<
-    class Protocol, class Handler,
-    bool isRequest, class Fields>
+    class Protocol, class Executor,
+    class Handler, bool isRequest, class Fields>
 class write_some_win32_op
-    : public beast::async_op_base<
-        Handler, typename net::basic_stream_socket<
-            Protocol>::executor_type>
+    : public beast::async_op_base<Handler, Executor>
 {
-    net::basic_stream_socket<Protocol>& sock_;
+    static_assert(
+        std::is_same<Executor, net::io_context::executor_type>::value,
+        "Executor must be net::io_context::executor_type");
+
+    net::basic_stream_socket<
+        Protocol, Executor>& sock_;
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
@@ -346,14 +345,14 @@ public:
     template<class Handler_>
     write_some_win32_op(
         Handler_&& h,
-        net::basic_stream_socket<Protocol>& s,
+        net::basic_stream_socket<
+            Protocol, Executor>& s,
         serializer<isRequest,
             basic_file_body<file_win32>,Fields>& sr)
         : async_op_base<
-            Handler, typename net::basic_stream_socket<
-                Protocol>::executor_type>(
-                    std::forward<Handler_>(h),
-                    s.get_executor())
+            Handler, Executor>(
+                std::forward<Handler_>(h),
+                s.get_executor())
         , sock_(s)
         , sr_(sr)
     {
@@ -442,10 +441,13 @@ public:
 
 //------------------------------------------------------------------------------
 
-template<class Protocol, bool isRequest, class Fields>
+template<
+    class Protocol, class Executor,
+    bool isRequest, class Fields>
 std::size_t
 write_some(
-    net::basic_stream_socket<Protocol>& sock,
+    net::basic_stream_socket<
+        Protocol, Executor>& sock,
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr,
     error_code& ec)
@@ -509,21 +511,23 @@ write_some(
 #if BOOST_ASIO_HAS_WINDOWS_OVERLAPPED_PTR
 
 template<
-    class Protocol,
+    class Protocol, class Executor,
     bool isRequest, class Fields,
     class WriteHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     WriteHandler, void(error_code, std::size_t))
 async_write_some(
-    net::basic_stream_socket<Protocol>& sock,
+    net::basic_stream_socket<
+        Protocol, Executor>& sock,
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr,
     WriteHandler&& handler)
 {
+    
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
     detail::write_some_win32_op<
-        Protocol,
+        Protocol, Executor,
         BOOST_ASIO_HANDLER_TYPE(WriteHandler,
             void(error_code, std::size_t)),
         isRequest, Fields>{

@@ -83,17 +83,22 @@ void
 websocket_session::
 send(boost::shared_ptr<std::string const> const& ss)
 {
-    // Get on the strand if we aren't already,
-    // otherwise we will concurrently access
-    // objects which are not thread-safe.
-    if(! ws_.get_executor().running_in_this_thread())
-        return net::post(
-            ws_.get_executor(),
-            beast::bind_front_handler(
-                &websocket_session::send,
-                shared_from_this(),
-                ss));
+    // Post our work to the strand, this ensures
+    // that the members of `this` will not be
+    // accessed concurrently.
 
+    net::post(
+        ws_.get_executor(),
+        beast::bind_front_handler(
+            &websocket_session::on_send,
+            shared_from_this(),
+            ss));
+}
+
+void
+websocket_session::
+on_send(boost::shared_ptr<std::string const> const& ss)
+{
     // Always add to queue
     queue_.push_back(ss);
 

@@ -29,10 +29,6 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
-// The type of stream to use.
-// Stackful coroutines are already stranded.
-using stream_type = beast::tcp_stream<net::io_context::executor_type>;
-
 // Report a failure
 void
 fail(beast::error_code ec, char const* what)
@@ -53,8 +49,8 @@ do_session(
     beast::error_code ec;
 
     // These objects perform our I/O
-    tcp::resolver resolver{ioc};
-    stream_type stream(ioc);
+    tcp::resolver resolver(ioc);
+    beast::tcp_stream stream(ioc);
 
     // Look up the domain name
     auto const results = resolver.async_resolve(host, port, yield[ec]);

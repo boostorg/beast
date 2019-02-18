@@ -78,13 +78,8 @@ setup_stream(websocket::stream<NextLayer>& ws)
 
 //------------------------------------------------------------------------------
 
-// The type of websocket stream to use
-// Stackful coroutines are already stranded.
-using ws_type = websocket::stream<
-    beast::tcp_stream<net::io_context::executor_type>>;
-
 void
-do_sync_session(ws_type& ws)
+do_sync_session(websocket::stream<beast::tcp_stream>& ws)
 {
     beast::error_code ec;
 
@@ -135,7 +130,8 @@ do_sync_listen(
 
         std::thread(std::bind(
             &do_sync_session,
-            ws_type(std::move(socket)))).detach();
+            websocket::stream<beast::tcp_stream>(
+                std::move(socket)))).detach();
     }
 }
 
@@ -144,13 +140,13 @@ do_sync_listen(
 // Echoes back all received WebSocket messages
 class async_session : public std::enable_shared_from_this<async_session>
 {
-    websocket::stream<beast::tcp_stream<net::io_context::strand>> ws_;
+    websocket::stream<beast::tcp_stream> ws_;
     beast::multi_buffer buffer_;
 
 public:
     // Take ownership of the socket
     explicit
-    async_session(tcp::socket socket)
+    async_session(tcp::socket&& socket)
         : ws_(std::move(socket))
     {
         setup_stream(ws_);
@@ -160,6 +156,11 @@ public:
     void
     run()
     {
+        // Set suggested timeout settings for the websocket
+        ws_.set_option(
+            websocket::stream_base::suggested_settings(
+                websocket::role_type::server));
+
         // Set a decorator to change the Server of the handshake
         ws_.set_option(websocket::stream_base::decorator(
             [](websocket::response_type& res)
@@ -240,13 +241,17 @@ public:
 // Accepts incoming connections and launches the sessions
 class async_listener : public std::enable_shared_from_this<async_listener>
 {
+    net::io_context& ioc_;
     tcp::acceptor acceptor_;
+    tcp::socket socket_;
 
 public:
     async_listener(
         net::io_context& ioc,
         tcp::endpoint endpoint)
-        : acceptor_(ioc)
+        : ioc_(ioc)
+        , acceptor_(beast::make_strand(ioc))
+        , socket_(beast::make_strand(ioc))
     {
         beast::error_code ec;
 
@@ -297,13 +302,14 @@ public:
     do_accept()
     {
         acceptor_.async_accept(
+            socket_,
             beast::bind_front_handler(
                 &async_listener::on_accept,
                 shared_from_this()));
     }
 
     void
-    on_accept(beast::error_code ec, tcp::socket socket)
+    on_accept(beast::error_code ec)
     {
         if(ec)
         {
@@ -312,8 +318,11 @@ public:
         else
         {
             // Create the async_session and run it
-            std::make_shared<async_session>(std::move(socket))->run();
+            std::make_shared<async_session>(std::move(socket_))->run();
         }
+
+        // Make sure each session gets its own strand
+        socket_ = tcp::socket(beast::make_strand(ioc_));
 
         // Accept another connection
         do_accept();
@@ -323,11 +332,18 @@ public:
 //------------------------------------------------------------------------------
 
 void
-do_coro_session(ws_type& ws, net::yield_context yield)
+do_coro_session(
+    websocket::stream<beast::tcp_stream>& ws,
+    net::yield_context yield)
 {
     beast::error_code ec;
 
     setup_stream(ws);
+
+    // Set suggested timeout settings for the websocket
+    ws.set_option(
+        websocket::stream_base::suggested_settings(
+            websocket::role_type::server));
 
     // Set a decorator to change the Server of the handshake
     ws.set_option(websocket::stream_base::decorator(
@@ -395,10 +411,11 @@ do_coro_listen(
         }
 
         net::spawn(
-            acceptor.get_executor().context(),
+            acceptor.get_executor(),
             std::bind(
                 &do_coro_session,
-                ws_type(std::move(socket)),
+                websocket::stream<
+                    beast::tcp_stream>(std::move(socket)),
                 std::placeholders::_1));
     }
 }

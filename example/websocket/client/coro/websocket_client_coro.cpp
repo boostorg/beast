@@ -48,9 +48,8 @@ do_session(
     beast::error_code ec;
 
     // These objects perform our I/O
-    tcp::resolver resolver{ioc};
-    websocket::stream<
-        beast::tcp_stream<net::io_context::executor_type>> ws(ioc);
+    tcp::resolver resolver(ioc);
+    websocket::stream<beast::tcp_stream> ws(ioc);
 
     // Look up the domain name
     auto const results = resolver.async_resolve(host, port, yield[ec]);

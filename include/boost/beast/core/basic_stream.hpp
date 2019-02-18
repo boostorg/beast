@@ -13,6 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/stream_base.hpp>
 #include <boost/beast/core/error.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/websocket/role.hpp> // VFALCO This is unfortunate
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
@@ -21,7 +22,6 @@
 #include <boost/asio/is_executor.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/config/workaround.hpp>
-#include <boost/optional.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
 #include <chrono>
@@ -42,14 +42,14 @@ namespace beast {
 /** A stream socket wrapper with timeouts and associated executor.
 
     This stream wraps a `net::basic_stream_socket` to provide
-    the following additional features:
+    the following features:
 
     @li Optional timeouts may be specified for each logical asynchronous
     operation performing any reading, writing, or connecting.
 
     @li An <em>Executor</em> may be associated with the stream, which will
     be used to invoke any completion handlers which do not already have
-    an associated executor. This achieves partial support for
+    an associated executor. This achieves support for
     <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html">[P1322R0] Networking TS enhancement to enable custom I/O executors</a>.
 
     Although the stream supports multiple concurrent outstanding asynchronous
@@ -109,7 +109,7 @@ namespace beast {
     HTTP response with a different timeout.
 
     @code
-    void process_http_1 (tcp_stream<net::io_context::executor_type>& stream, net::yield_context yield)
+    void process_http_1 (tcp_stream& stream, net::yield_context yield)
     {
         flat_buffer buffer;
         http::request<http::empty_body> req;
@@ -133,7 +133,7 @@ namespace beast {
     applies to the entire combined operation of reading and writing:
 
     @code
-    void process_http_2 (tcp_stream<net::io_context::executor_type>& stream, net::yield_context yield)
+    void process_http_2 (tcp_stream& stream, net::yield_context yield)
     {
         flat_buffer buffer;
         http::request<http::empty_body> req;
@@ -155,7 +155,7 @@ namespace beast {
     thusly:
 
     @code
-    void do_ssl_handshake (net::ssl::stream<tcp_stream<net::io_context::executor_type>>& stream, net::yield_context yield)
+    void do_ssl_handshake (net::ssl::stream<tcp_stream>& stream, net::yield_context yield)
     {
         // Require that the SSL handshake take no longer than 10 seconds
         stream.expires_after(std::chrono::seconds(10));
@@ -176,7 +176,8 @@ namespace beast {
 
     @tparam Executor A type meeting the requirements of <em>Executor</em> to
     be used for submitting all completion handlers which do not already have an
-    associated executor.
+    associated executor. If this type is omitted, the default of `net::executor`
+    will be used.
 
     @par Thread Safety
     <em>Distinct objects</em>: Safe.@n
@@ -190,12 +191,33 @@ namespace beast {
 
     @li <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html">[P1322R0] Networking TS enhancement to enable custom I/O executors</a>.
 */
-template<class Protocol, class Executor>
+template<
+    class Protocol,
+    class Executor = net::executor>
 class basic_stream
 #if ! BOOST_BEAST_DOXYGEN
     : private detail::stream_base
 #endif
 {
+public:
+    /// The type of the underlying socket.
+    using socket_type =
+        net::basic_stream_socket<Protocol, Executor>;
+
+    /** The type of the executor associated with the stream.
+
+        This will be the type of executor used to invoke completion
+        handlers which do not have an explicit associated executor.
+    */
+    using executor_type = beast::executor_type<socket_type>;
+
+    /// The protocol type.
+    using protocol_type = Protocol;
+
+    /// The endpoint type.
+    using endpoint_type = typename Protocol::endpoint;
+
+private:
     static_assert(net::is_executor<Executor>::value,
         "Executor requirements not met");
 
@@ -206,33 +228,26 @@ public:
 #endif
     struct impl_type
         : boost::enable_shared_from_this<impl_type>
-        , boost::empty_value<Executor>
     {
+        // must come first
+        net::basic_stream_socket<
+            Protocol, Executor> socket;
+
         op_state read;
         op_state write;
-
-        net::basic_stream_socket<Protocol> socket;
 
         impl_type(impl_type&&) = default;
 
         template<class... Args>
         explicit
-        impl_type(Executor const&, Args&&...);
-
-        template<class OtherProtocol>
-        impl_type(net::basic_stream_socket<OtherProtocol>&& socket_,
-            std::true_type);
-
-        template<class OtherProtocol>
-        impl_type(net::basic_stream_socket<OtherProtocol>&& socket_,
-            std::false_type);
+        impl_type(Args&&...);
 
         impl_type& operator=(impl_type&&) = delete;
 
-        Executor const&
-        ex() const noexcept
+        beast::executor_type<socket_type>
+        ex() noexcept
         {
-            return this->boost::empty_value<Executor>::get();
+            return this->socket.get_executor();
         }
 
         void reset();       // set timeouts to never
@@ -247,13 +262,6 @@ private:
     // in the case where there is no outstanding read or write
     // but the implementation is still waiting on a timer.
     boost::shared_ptr<impl_type> impl_;
-
-    // Restricted until P1322R0 is incorporated into Boost.Asio.
-    static_assert(
-        std::is_convertible<
-            decltype(std::declval<Executor const&>().context()),
-            net::io_context&>::value,
-        "Only net::io_context is currently supported for executor_type::context()");
 
     template<bool, class, class> class async_op;
 
@@ -287,22 +295,6 @@ private:
 #endif
 
 public:
-    /** The type of the executor associated with the stream.
-
-        This will be the type of executor used to invoke completion
-        handlers which do not have an explicit associated executor.
-    */
-    using executor_type = Executor;
-
-    /// The type of the underlying socket.
-    using socket_type = net::basic_stream_socket<Protocol>;
-
-    /// The protocol type.
-    using protocol_type = Protocol;
-
-    /// The endpoint type.
-    using endpoint_type = typename Protocol::endpoint;
-
     /** Destructor
 
         This function destroys the stream, cancelling any outstanding
@@ -311,106 +303,20 @@ public:
     */
     ~basic_stream();
 
-    /** Construct the stream from an execution context.
+    /** Constructor
 
-        This constructor creates the stream from an execution context.
-        The underlying socket needs to be open and connected or accepted
-        before data can be sent or received on it.
-
-        @param ctx An object whose type meets the requirements of
-        <em>ExecutionContext</em>, which the stream will use to dispatch
-        handlers that do not have an explicit associated executor.
-        Currently, the only supported type for `ctx` is `net::io_context`.
+        This constructor creates the stream by forwarding all arguments
+        to the underlying socket. The socket then needs to be open and
+        connected or accepted before data can be sent or received on it.
 
         @param args A list of parameters forwarded to the constructor of
         the underlying socket.
-
-        @note This function does not participate in overload resolution unless:
-        
-        @li `std::is_convertible<ExecutionContext&, net::execution_context&>::value` is `true`, and
-        
-        @li `std::is_constructible<executor_type, typename ExecutionContext::executor_type>::value` is `true`.
-
-        @see <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html">[P1322R0] Networking TS enhancement to enable custom I/O executors</a>
-    */
-    template<
-        class ExecutionContext,
-        class... Args
-    #if ! BOOST_BEAST_DOXYGEN
-        , class = typename std::enable_if<
-        std::is_convertible<
-            ExecutionContext&,
-            net::execution_context&>::value &&
-        std::is_constructible<
-            executor_type,
-            typename ExecutionContext::executor_type>::value
-        >::type
-    #endif
-    >
-    explicit
-    basic_stream(ExecutionContext& ctx, Args&&... args);
-
-    /** Construct the stream from an executor.
-
-        This constructor creates the stream from an executor.
-        The underlying socket needs to be open and connected or accepted
-        before data can be sent or received on it.
-
-        @param ex The executor to use when dispatching handlers that do
-        not have an explicit associated executor.
-        Currently, only executors that return a `net::io_context&` from
-        `ex.context()` are supported.
-
-        @param args A list of parameters forwarded to the constructor of
-        the underlying socket.
-
-        @see <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html">[P1322R0] Networking TS enhancement to enable custom I/O executors</a>
     */
     template<class... Args>
     explicit
-    basic_stream(
-        executor_type const& ex, Args&&... args);
+    basic_stream(Args&&... args);
 
-    /** Construct the stream from an existing socket.
-
-        This constructor creates the stream from an existing socket.
-        The underlying socket needs to be open and connected or accepted
-        before data can be sent or received on it.
-
-        @param socket The socket to construct from. Ownership of the
-        socket will be transferred by move-construction.
-
-        @param args A list of parameters forwarded to the constructor of
-        the underlying socket.
-
-        @note This function does not participate in overload resolution unless:
-
-        @li `OtherProtocol` is convertible to `Protocol`, and one of:
-
-        @li `executor_type` of the stream is constructible from the type of
-        context returned by calling `socket.get_executor().context()`, or
-
-        @li `executor_type` of the stream is constructible from the type of
-        executor returned by calling `socket.get_executor()`.
-    */
-    template<
-        class OtherProtocol
-#if ! BOOST_BEAST_DOXYGEN
-        ,class = typename std::enable_if<
-            std::is_convertible<OtherProtocol, Protocol>::value && (
-            std::is_constructible<Executor,
-                decltype(std::declval<net::basic_stream_socket<
-                Protocol>&>().get_executor().context())>::value ||
-            std::is_constructible<Executor,
-                decltype(std::declval<net::basic_stream_socket<
-                Protocol>&>().get_executor())>::value)
-        >::type
-#endif
-    >
-    explicit
-    basic_stream(net::basic_stream_socket<OtherProtocol>&& socket);
-
-    /** Move constructor.
+    /** Move constructor
 
         @param other The other object from which the move will occur. 
 

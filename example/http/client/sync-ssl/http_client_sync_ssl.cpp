@@ -57,7 +57,7 @@ int main(int argc, char** argv)
         net::io_context ioc;
 
         // The SSL context is required, and holds certificates
-        ssl::context ctx{ssl::context::sslv23_client};
+        ssl::context ctx(ssl::context::sslv23_client);
 
         // This holds the root certificate used for verification
         load_root_certificates(ctx);
@@ -66,8 +66,8 @@ int main(int argc, char** argv)
         ctx.set_verify_mode(ssl::verify_peer);
 
             // These objects perform our I/O
-        tcp::resolver resolver{ioc};
-        beast::ssl_stream<tcp::socket> stream{ioc, ctx};
+        tcp::resolver resolver(ioc);
+        beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
 
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if(! SSL_set_tlsext_host_name(stream.native_handle(), host))
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
         auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        net::connect(stream.next_layer(), results.begin(), results.end());
+        beast::connect(beast::get_lowest_layer(stream), results);
 
         // Perform the SSL handshake
         stream.handshake(ssl::stream_base::client);

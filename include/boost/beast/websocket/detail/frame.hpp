@@ -19,7 +19,15 @@
 #include <boost/beast/core/static_string.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
+// This is for <boost/endian/buffers.hpp>
+#if BOOST_WORKAROUND(BOOST_MSVC, > 0)
+# pragma warning (push)
+# pragma warning (disable: 4127) // conditional expression is constant
+#endif
 #include <boost/endian/buffers.hpp>
+#if BOOST_WORKAROUND(BOOST_MSVC, > 0)
+# pragma warning (pop)
+#endif
 #include <cstdint>
 
 namespace boost {

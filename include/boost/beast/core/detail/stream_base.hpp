@@ -15,6 +15,7 @@
 #include <boost/core/exchange.hpp>
 #include <chrono>
 #include <cstdint>
+#include <utility>
 
 namespace boost {
 namespace beast {
@@ -48,9 +49,10 @@ struct stream_base
         bool pending = false;       // if op is pending
         bool timeout = false;       // if timed out
 
+        template<class... Args>
         explicit
-        op_state(net::io_context& ioc)
-            : timer(ioc)
+        op_state(Args&&... args)
+            : timer(std::forward<Args>(args)...)
         {
         }
     };
