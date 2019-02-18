@@ -60,96 +60,20 @@ boost::ignore_unused(ec);
 //[ws_snippet_6
     std::string const host = "example.com";
     net::ip::tcp::resolver r{ioc};
-    stream<net::ip::tcp::socket> ws{ioc};
+    stream<tcp_stream<net::io_context::executor_type>> ws{ioc};
     auto const results = r.resolve(host, "ws");
-    net::connect(ws.next_layer(), results.begin(), results.end());
+    connect(get_lowest_layer(ws), results.begin(), results.end());
 //]
 }
 
 {
 //[ws_snippet_7
     net::ip::tcp::acceptor acceptor{ioc};
-    stream<net::ip::tcp::socket> ws{acceptor.get_executor().context()};
-    acceptor.accept(ws.next_layer());
+    stream<tcp_stream<net::io_context::executor_type>> ws{acceptor.get_executor().context()};
+    acceptor.accept(get_lowest_layer(ws).socket());
 //]
 }
 
-{
-    stream<net::ip::tcp::socket> ws{ioc};
-//[ws_snippet_8
-    ws.handshake("localhost", "/");
-//]
-
-//[ws_snippet_9
-    ws.handshake_ex("localhost", "/",
-        [](request_type& m)
-        {
-            m.insert(http::field::sec_websocket_protocol, "xmpp;ws-chat");
-        });
-//]
-
-//[ws_snippet_10
-    response_type res;
-    ws.handshake(res, "localhost", "/");
-    if(! res.count(http::field::sec_websocket_protocol))
-        throw std::invalid_argument("missing subprotocols");
-//]
-
-//[ws_snippet_11
-    ws.accept();
-//]
-
-//[ws_snippet_12
-    ws.accept_ex(
-        [](response_type& m)
-        {
-            m.insert(http::field::server, "MyServer");
-        });
-//]
-}
-
-{
-//[ws_snippet_13]
-    // Buffer required for reading HTTP messages
-    flat_buffer buffer;
-
-    // Read the HTTP request ourselves
-    http::request<http::string_body> req;
-    http::read(sock, buffer, req);
-
-    // See if its a WebSocket upgrade request
-    if(websocket::is_upgrade(req))
-    {
-        // Construct the stream, transferring ownership of the socket
-        stream<net::ip::tcp::socket> ws{std::move(sock)};
-
-        // Clients SHOULD NOT begin sending WebSocket
-        // frames until the server has provided a response.
-        BOOST_ASSERT(buffer.size() == 0);
-
-        // Accept the upgrade request
-        ws.accept(req);
-    }
-    else
-    {
-        // Its not a WebSocket upgrade, so
-        // handle it like a normal HTTP request.
-    }
-//]
-}
-
-{
-    stream<net::ip::tcp::socket> ws{ioc};
-//[ws_snippet_14
-    // Read into our buffer until we reach the end of the HTTP request.
-    // No parsing takes place here, we are just accumulating data.
-    net::streambuf buffer;
-    net::read_until(sock, buffer, "\r\n\r\n");
-
-    // Now accept the connection, using the buffered data.
-    ws.accept(buffer.data());
-//]
-}
 {
     stream<net::ip::tcp::socket> ws{ioc};
 //[ws_snippet_15

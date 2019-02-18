@@ -34,6 +34,7 @@ add_executable (tests-beast-websocket
     rfc6455.cpp
     role.cpp
     stream.cpp
+    stream_base.cpp
     stream_explicit.cpp
     stream_fwd.cpp
     teardown.cpp

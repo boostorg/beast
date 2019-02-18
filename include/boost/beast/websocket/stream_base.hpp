@@ -116,6 +116,12 @@ struct stream_base
         values are selected upon construction, regardless of the
         current or actual role in use on the stream.
 
+        @par Example
+        This statement sets the timeout settings of the stream to
+        the suggested values for the server role:
+        @code
+        @endcode
+
         @param role The role of the websocket stream
         (@ref role_type::client or @ref role_type::server).
     */

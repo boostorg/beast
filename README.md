@@ -69,7 +69,7 @@ create concurrent network programs using callbacks or coroutines.
 
 * **C++11:** Robust support for most language features.
 * **Boost:** Boost.Asio and some other parts of Boost.
-* **OpenSSL:** Optional, for using TLS/Secure sockets.
+* **OpenSSL:** Required for using TLS/Secure sockets and examples/tests
 
 When using Microsoft Visual C++, Visual Studio 2015 Update 3 or later is required.
 
@@ -78,7 +78,26 @@ One of these components is required in order to build the tests and examples:
 * Properly configured bjam/b2
 * CMake 3.5.1 or later (Windows only)
 
-## Branches
+## Building
+
+Beast is header-only. To use it just add the necessary `#include` line
+to your source files, like this:
+```C++
+#include <boost/beast.hpp>
+```
+
+If you use coroutines you'll need to link with the Boost.Coroutine
+library. Please visit the Boost documentation for instructions
+on how to do this for your particular build system.
+
+## GitHub
+
+To use the latest official release of Beast, simply obtain the latest
+Boost distribution and follow the instructions for integrating it
+into your development environment. If you wish to build the examples
+and tests, or if you wish to preview upcoming changes and features,
+it is suggested to clone the "Boost superproject" and work with Beast
+"in-tree" (meaning, the libs/beast subdirectory of the superproject).
 
 The official repository contains the following branches:
 
@@ -94,42 +113,44 @@ branch version of Beast, you should clone the Boost superproject,
 switch to the **master** branch in the superproject and acquire
 all the Boost libraries corresponding to that branch including Beast.
 
-Or, to use the latest shipping version of Beast, simply use it
-from the corresponding distribution of Boost.
-
-## Building
-
-Beast is header-only. To use it just add the necessary `#include` line
-to your source files, like this:
-```C++
-#include <boost/beast.hpp>
+To clone the superproject locally, and switch into the main project's
+directory use:
+```
+git clone --recursive https://github.com/boostorg/boost.git
+cd boost
 ```
 
-If you use coroutines you'll need to link with the Boost.Coroutine
-library. Please visit the Boost documentation for instructions
-on how to do this for your particular build system.
-
-To build the documentation, examples, tests, and benchmarks it is
-necessary to first obtain the Boost "superproject" along with sources of
-all of the Boost libraries, then run the `b2` command to build the Boost
-libraries.
-Instructions for doing so may be found on
-the [Boost Wiki](https://github.com/boostorg/boost/wiki/Getting-Started).
-These commands will build the programs and documentation that come
-with Beast:
-
+"bjam" is used to build Beast and the Boost libraries. On a non-Windows
+system use this command to build bjam:
 ```
-cd boost   # The directory containing the Boost superproject and libraries
-b2 libs/beast/test cxxstd=11    # bjam must be in your $PATH
-b2 libs/beast/example cxxstd=11
-b2 libs/beast/doc
+./bootstrap.sh
 ```
 
-On Windows platforms only, CMake may be used to generate a Visual Studio
-solution and a set of Visual Studio project files using these commands:
+From a Windows command line, build bjam using this command:
+```
+.\BOOTSTRAP.BAT
+```
+
+Make sure the bjam tool (also called "b2") is available in the path
+your shell uses to find executables. The Beast project is located in
+"libs/beast" relative to the directory containing the Boot superproject.
+To build the Beast tests, examples, and documentation use these commands:
+```
+b2 -j2 libs/beast/test cxxstd=11      # bjam must be in your $PATH
+b2 -j2 libs/beast/example cxxstd=11   # "-j2" means use two processors
+b2 libs/beast/doc                     # Doxygen and Saxon are required for this
+```
+
+Additional instructions for configuring, using, and building libraries
+in superproject may be found in the
+[Boost Wiki](https://github.com/boostorg/boost/wiki/Getting-Started).
+
+## Visual Studio
+
+CMake may be used to generate a very nice Visual Studio solution and
+a set of Visual Studio project files using these commands:
 
 ```
-cd boost   # The directory containing the Boost superproject and libraries
 cd libs/beast
 mkdir bin
 cd bin
@@ -145,12 +166,11 @@ The files in the repository are laid out thusly:
     bin/            Create this to hold executables and project files
     bin64/          Create this to hold 64-bit Windows executables and project files
     doc/            Source code and scripts for the documentation
-    include/        Where the header files live
-    extras/         Additional APIs, may change
+    include/        Where the header files are located
     example/        Self contained example programs
     meta/           Metadata for Boost integration
-    scripts/        Small scripts used with CI systems
-    test/           Unit tests
+    test/           The unit tests for Beast
+    tools/          Scripts used for CI testing
 ```
 
 ## Usage
