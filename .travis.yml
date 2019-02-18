@@ -93,14 +93,14 @@ matrix:
             - llvm-toolchain-precise-3.8
             - *base_sources
 
-    # GCC 8, Release
+    # GCC 8, C++14, libstdc++, release
     - os: linux
       compiler: g++-8
       env:
         - VARIANT=release
         - TOOLSET=gcc
         - COMPILER=g++-8
-        - CXXSTD=11
+        - CXXSTD=14
       addons:
         apt:
           packages:
@@ -109,7 +109,7 @@ matrix:
           sources:
             - *base_sources
 
-    # OSX Clang, C++14, Debug
+    # OSX Clang, C++11, libc++, debug, 
   # - if: branch != master
     - os: osx
       compiler: clang++
