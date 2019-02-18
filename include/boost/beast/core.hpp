@@ -35,6 +35,7 @@
 #include <boost/beast/core/flat_stream.hpp>
 #include <boost/beast/core/handler_ptr.hpp>
 #include <boost/beast/core/make_printable.hpp>
+#include <boost/beast/core/make_strand.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>

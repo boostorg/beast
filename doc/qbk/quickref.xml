@@ -65,12 +65,12 @@
           <member><link linkend="beast.ref.boost__beast__beast_close_socket">beast_close_socket</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__bind_front_handler">bind_front_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>
-          <member><link linkend="beast.ref.boost__beast__buffer_size">buffer_size</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__close_socket">close_socket</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__connect">connect</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__generic_category">generic_category</link></member>
           <member><link linkend="beast.ref.boost__beast__get_lowest_layer">get_lowest_layer</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__iequals">iequals</link></member>
+          <member><link linkend="beast.ref.boost__beast__make_strand">make_strand</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__to_static_string">to_static_string</link></member>
         </simplelist>
       </entry>
@@ -123,6 +123,7 @@
         <simplelist type="vert" columns="1">
             <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
             <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
+            <member><link linkend="beast.ref.boost__beast__buffer_size">buffer_size</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
             <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_adaptor">buffers_adaptor</link></member>
             <member><link linkend="beast.ref.boost__beast__buffers_cat_view">buffers_cat_view</link></member>

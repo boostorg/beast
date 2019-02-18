@@ -3,6 +3,7 @@ Version 216:
 * Refactor websocket::stream operations
 * Add websocket::stream timeouts
 * Use suggested timeouts in Websocket examples
+* Add make_strand
 
 --------------------------------------------------------------------------------
 
