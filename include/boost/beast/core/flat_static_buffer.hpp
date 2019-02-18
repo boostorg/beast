@@ -104,7 +104,7 @@ public:
     void
     reset() noexcept
     {
-        static_assert(sizeof(I) != 0,
+        static_assert(I != 0,
             BOOST_BEAST_DEPRECATION_STRING);
     }
 #endif

@@ -23,6 +23,7 @@ alias run-tests :
     [ run core_1_refresher.cpp $(TEST_MAIN) ]
     [ run core_3_layers.cpp $(TEST_MAIN) ]
     [ run http_examples.cpp $(TEST_MAIN) ]
+    [ run websocket_3_handshake.cpp $(TEST_MAIN) ]
     ;
 
 exe fat-tests :
@@ -31,6 +32,7 @@ exe fat-tests :
     core_1_refresher.cpp
     core_3_layers.cpp
     http_examples.cpp
+    websocket_3_handshake.cpp
     ;
 
 explicit fat-tests ;

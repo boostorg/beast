@@ -74,6 +74,15 @@ do_session(
     // Set a timeout on the operation
     beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(30));
 
+    // Set a decorator to change the User-Agent of the handshake
+    ws.set_option(websocket::stream_base::decorator(
+        [](websocket::request_type& req)
+        {
+            req.set(http::field::user_agent,
+                std::string(BOOST_BEAST_VERSION_STRING) +
+                    " websocket-client-coro");
+        }));
+
     // Perform the SSL handshake
     ws.next_layer().async_handshake(ssl::stream_base::client, yield[ec]);
     if(ec)

@@ -90,13 +90,15 @@ do_sync_session(ws_type& ws)
 
     setup_stream(ws);
 
-    ws.accept_ex(
+    // Set a decorator to change the Server of the handshake
+    ws.set_option(websocket::stream_base::decorator(
         [](websocket::response_type& res)
         {
-            res.set(http::field::server,
-                "Boost.Beast/" + std::to_string(BOOST_BEAST_VERSION) + "-Sync");
-        },
-        ec);
+            res.set(http::field::server, std::string(
+                BOOST_BEAST_VERSION_STRING) + "-Sync");
+        }));
+
+    ws.accept(ec);
     if(ec)
         return fail(ec, "accept");
 
@@ -158,13 +160,16 @@ public:
     void
     run()
     {
-        // Accept the websocket handshake
-        ws_.async_accept_ex(
+        // Set a decorator to change the Server of the handshake
+        ws_.set_option(websocket::stream_base::decorator(
             [](websocket::response_type& res)
             {
-                res.set(http::field::server,
-                    "Boost.Beast/" + std::to_string(BOOST_BEAST_VERSION) + "-Async");
-            },
+                res.set(http::field::server, std::string(
+                    BOOST_BEAST_VERSION_STRING) + "-Async");
+            }));
+
+        // Accept the websocket handshake
+        ws_.async_accept(
             beast::bind_front_handler(
                 &async_session::on_accept,
                 shared_from_this()));
@@ -324,13 +329,15 @@ do_coro_session(ws_type& ws, net::yield_context yield)
 
     setup_stream(ws);
 
-    ws.async_accept_ex(
-        [&](websocket::response_type& res)
+    // Set a decorator to change the Server of the handshake
+    ws.set_option(websocket::stream_base::decorator(
+        [](websocket::response_type& res)
         {
-            res.set(http::field::server,
-                "Boost.Beast/" + std::to_string(BOOST_BEAST_VERSION) + "-Coro");
-        },
-        yield[ec]);
+            res.set(http::field::server, std::string(
+                BOOST_BEAST_VERSION_STRING) + "-Fiber");
+        }));
+
+    ws.async_accept(yield[ec]);
     if(ec)
         return fail(ec, "accept");
 

@@ -57,6 +57,20 @@ void
 websocket_session::
 run(http::request<Body, http::basic_fields<Allocator>> req)
 {
+    // Set suggested timeout settings for the websocket
+    ws_.set_option(
+        websocket::stream_base::suggested_settings(
+            websocket::role_type::server));
+
+    // Set a decorator to change the Server of the handshake
+    ws_.set_option(websocket::stream_base::decorator(
+        [](websocket::response_type& res)
+        {
+            res.set(http::field::server,
+                std::string(BOOST_BEAST_VERSION_STRING) +
+                    " websocket-chat-multi");
+        }));
+
     // Accept the websocket handshake
     ws_.async_accept(
         req,

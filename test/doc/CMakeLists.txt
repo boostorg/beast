@@ -25,6 +25,7 @@ add_executable (tests-doc
     core_3_layers.cpp
     http_examples.cpp
     http_snippets.cpp
+    websocket_3_handshake.cpp
     websocket_snippets.cpp
     exemplars.cpp
 )

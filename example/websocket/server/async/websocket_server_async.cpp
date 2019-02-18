@@ -52,16 +52,26 @@ public:
     session(tcp::socket socket)
         : ws_(std::move(socket))
     {
-        // Set suggested timeout settings for the websocket
-        ws_.set_option(
-            websocket::stream_base::suggested_settings(
-                websocket::role_type::server));
     }
 
     // Start the asynchronous operation
     void
     run()
     {
+        // Set suggested timeout settings for the websocket
+        ws_.set_option(
+            websocket::stream_base::suggested_settings(
+                websocket::role_type::server));
+
+        // Set a decorator to change the Server of the handshake
+        ws_.set_option(websocket::stream_base::decorator(
+            [](websocket::response_type& res)
+            {
+                res.set(http::field::server,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " websocket-server-async");
+            }));
+
         // Accept the websocket handshake
         ws_.async_accept(
             beast::bind_front_handler(

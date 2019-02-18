@@ -96,7 +96,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
     bool timed_out = false;
     int idle_counter = 0;
 
-    timeout timeout_opt;
+    detail::decorator       decorator_opt;  // Decorator for HTTP messages
+    timeout                 timeout_opt;    // Timeout/idle settings
 
 
     template<class... Args>
@@ -532,6 +533,7 @@ build_request(
     req.set(http::field::sec_websocket_key, key);
     req.set(http::field::sec_websocket_version, "13");
     this->build_request_pmd(req);
+    decorator_opt(req);
     decorator(req);
     if(! req.count(http::field::user_agent))
         req.set(http::field::user_agent,

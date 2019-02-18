@@ -147,6 +147,16 @@ read_size_hint(DynamicBuffer& buffer) const
 //
 //------------------------------------------------------------------------------
 
+// decorator
+
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+set_option(decorator opt)
+{
+    impl_->decorator_opt = std::move(opt.d_);
+}
+
 // timeout
 
 template<class NextLayer, bool deflateSupported>

@@ -70,10 +70,13 @@ public:
 
     struct both_t : res_t , req_t
     {
+        using req_t::operator();
+        using res_t::operator();
     };
 
     struct big_t : both_t
     {
+        using both_t::operator();
         char buf[2048];
     };
 
@@ -109,11 +112,15 @@ public:
             decorator d1{req_t{}};
             decorator d2{std::move(d1)};
             d2(req);
+            decorator d3;
+            d3 = std::move(d2);
         }
 
         {
+            // this would be leaner with bind_front
             decorator d(std::bind(
-                &decorator_test::dec_req, this));
+                &decorator_test::dec_req, this,
+                    std::placeholders::_1));
             BEAST_EXPECT(d.is_inline());
         }
     }
@@ -121,6 +128,7 @@ public:
     void
     run() override
     {
+        log << "sizeof(decorator)==" << sizeof(decorator) << "\n";
         testDecorator();
     }
 };

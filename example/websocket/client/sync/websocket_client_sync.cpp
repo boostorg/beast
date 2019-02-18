@@ -60,6 +60,15 @@ int main(int argc, char** argv)
         // Make the connection on the IP address we get from a lookup
         net::connect(ws.next_layer(), results.begin(), results.end());
 
+        // Set a decorator to change the User-Agent of the handshake
+        ws.set_option(websocket::stream_base::decorator(
+            [](websocket::request_type& req)
+            {
+                req.set(http::field::user_agent,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " websocket-client-coro");
+            }));
+
         // Perform the websocket handshake
         ws.handshake(host, "/");
 

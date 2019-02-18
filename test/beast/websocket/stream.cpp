@@ -30,6 +30,20 @@ public:
 
         {
             ws.set_option(
+                stream_base::decorator(
+                    [](request_type&)
+                    {
+                    }));
+
+            ws.set_option(
+                stream_base::decorator(
+                    [](response_type&)
+                    {
+                    }));
+        }
+
+        {
+            ws.set_option(
                 stream_base::suggested_settings(
                     role_type::client));
 

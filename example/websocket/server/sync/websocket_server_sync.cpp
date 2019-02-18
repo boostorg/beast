@@ -39,6 +39,15 @@ do_session(tcp::socket& socket)
         // Construct the stream by moving in the socket
         websocket::stream<tcp::socket> ws{std::move(socket)};
 
+        // Set a decorator to change the Server of the handshake
+        ws.set_option(websocket::stream_base::decorator(
+            [](websocket::response_type& res)
+            {
+                res.set(http::field::server,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " websocket-server-sync");
+            }));
+
         // Accept the websocket handshake
         ws.accept();
 

@@ -251,6 +251,16 @@ public:
             websocket::stream_base::suggested_settings(
                 websocket::role_type::server));
 
+        // Set a decorator to change the Server of the handshake
+        derived().ws().set_option(
+            websocket::stream_base::decorator(
+            [](websocket::response_type& res)
+            {
+                res.set(http::field::server,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " advanced-server-flex");
+            }));
+
         // Accept the websocket handshake
         derived().ws().async_accept(
             req,

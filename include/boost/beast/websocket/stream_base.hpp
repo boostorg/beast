@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/websocket/role.hpp>
+#include <boost/beast/websocket/detail/decorator.hpp>
 #include <chrono>
 
 namespace boost {
@@ -47,6 +48,25 @@ struct stream_base
     {
         return (duration::max)();
     }
+
+    /** Stream option used to adjust HTTP fields of WebSocket upgrade request and responses.
+    */
+    class decorator
+    {
+        detail::decorator d_;
+
+        template<class, bool>
+        friend class stream;
+
+    public:
+        decorator(decorator&&) = default;
+
+        template<class Decorator>
+        decorator(Decorator&& f)
+            : d_(f)
+        {
+        }
+    };
 
     /** Stream option to control the behavior of websocket timeouts.
 

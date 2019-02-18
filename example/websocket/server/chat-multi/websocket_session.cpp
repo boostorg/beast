@@ -17,10 +17,6 @@ websocket_session(
     : ws_(std::move(socket))
     , state_(state)
 {
-    // Set suggested timeout settings for the websocket
-    ws_.set_option(
-        websocket::stream_base::suggested_settings(
-            websocket::role_type::server));
 }
 
 websocket_session::

@@ -75,6 +75,15 @@ do_session(
         websocket::stream_base::suggested_settings(
             websocket::role_type::server));
 
+    // Set a decorator to change the Server of the handshake
+    ws.set_option(websocket::stream_base::decorator(
+        [](websocket::response_type& res)
+        {
+            res.set(http::field::server,
+                std::string(BOOST_BEAST_VERSION_STRING) +
+                    " websocket-server-coro-ssl");
+        }));
+
     // Accept the websocket handshake
     ws.async_accept(yield[ec]);
     if(ec)

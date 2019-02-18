@@ -48,6 +48,15 @@ do_session(tcp::socket& socket, ssl::context& ctx)
         // Perform the SSL handshake
         ws.next_layer().handshake(ssl::stream_base::server);
 
+        // Set a decorator to change the Server of the handshake
+        ws.set_option(websocket::stream_base::decorator(
+            [](websocket::response_type& res)
+            {
+                res.set(http::field::server,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " websocket-server-sync-ssl");
+            }));
+
         // Accept the websocket handshake
         ws.accept();
 

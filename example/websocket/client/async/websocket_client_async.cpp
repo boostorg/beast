@@ -110,6 +110,15 @@ public:
             websocket::stream_base::suggested_settings(
                 websocket::role_type::client));
 
+        // Set a decorator to change the User-Agent of the handshake
+        ws_.set_option(websocket::stream_base::decorator(
+            [](websocket::request_type& req)
+            {
+                req.set(http::field::user_agent,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " websocket-client-async");
+            }));
+
         // Perform the websocket handshake
         ws_.async_handshake(host_, "/",
             beast::bind_front_handler(

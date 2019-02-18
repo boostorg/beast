@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <new>
+#include <type_traits>
 #include <utility>
 
 namespace boost {
@@ -37,13 +38,11 @@ class decorator
             void(*)(),
             void(incomplete::*)(),
             decltype(std::bind(
-                std::declval<void(incomplete::*)()>(),
-                std::declval<std::shared_ptr<incomplete>>()))
+                std::declval<
+                    void(incomplete::*)(request_type&)>(),
+                std::shared_ptr<incomplete>{},
+                std::placeholders::_1))
         >();
-
-    struct none
-    {
-    };
 
     struct base
     {
@@ -60,6 +59,16 @@ class decorator
         virtual
         void
         invoke(response_type&) = 0;
+    };
+
+    using type = typename
+        std::aligned_storage<Bytes>::type;
+
+    type buf_;
+    base* base_;
+
+    struct none
+    {
     };
 
     template<class T, class = void>
@@ -143,13 +152,42 @@ class decorator
         }
     };
 
-    using type = typename
-        std::aligned_storage<Bytes>::type;
+    void
+    destroy()
+    {
+        if(is_inline())
+            base_->~base();
+        else if(base_)
+            delete base_;
+    }
 
-    type buf_;
-    base* base_;
+    template<class F>
+    base*
+    construct(F&& f, std::true_type)
+    {
+        return ::new(&buf_) impl<
+            typename std::decay<F>::type>(
+                std::forward<F>(f));
+    }
+
+    template<class F>
+    base*
+    construct(F&& f, std::false_type)
+    {
+        return new impl<
+            typename std::decay<F>::type>(
+                std::forward<F>(f));
+    }
 
 public:
+    decorator(decorator const&) = delete;
+    decorator& operator=(decorator const&) = delete;
+
+    ~decorator()
+    {
+        destroy();
+    }
+
     decorator()
         : decorator(none{})
     {
@@ -171,25 +209,34 @@ public:
             impl<none>(none{});
     }
 
-    template<class F>
+    template<class F,
+        class = typename std::enable_if<
+        ! std::is_convertible<F, decorator>::value>::type>
     explicit
     decorator(F&& f)
-        : base_(sizeof(F) <= sizeof(buf_) ?
-            ::new(&buf_) impl<
-                typename std::decay<F>::type>(
-                    std::forward<F>(f)) :
-            new impl<
-                typename std::decay<F>::type>(
-                    std::forward<F>(f)))
+        : base_(construct(std::forward<F>(f),
+            std::integral_constant<bool,
+                sizeof(F) <= sizeof(buf_)>{}))
     {
     }
 
-    ~decorator()
+    decorator&
+    operator=(decorator&& other)
     {
-        if(is_inline())
-            base_->~base();
+        this->destroy();
+        base_ = nullptr;
+        if(other.is_inline())
+        {
+            base_ = other.base_->move(&buf_);
+            other.base_->~base();
+        }
         else
-            delete base_;
+        {
+            base_ = other.base_;
+        }
+        other.base_ = ::new(&other.buf_)
+            impl<none>(none{});
+        return *this;
     }
 
     bool

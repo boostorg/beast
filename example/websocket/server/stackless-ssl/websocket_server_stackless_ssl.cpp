@@ -102,6 +102,15 @@ public:
                 websocket::stream_base::suggested_settings(
                     websocket::role_type::server));
 
+            // Set a decorator to change the Server of the handshake
+            ws_.set_option(websocket::stream_base::decorator(
+                [](websocket::response_type& res)
+                {
+                    res.set(http::field::server,
+                        std::string(BOOST_BEAST_VERSION_STRING) +
+                            " websocket-server-stackless-ssl");
+                }));
+
             // Accept the websocket handshake
             yield ws_.async_accept(
                 std::bind(

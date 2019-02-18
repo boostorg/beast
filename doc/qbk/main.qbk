@@ -132,6 +132,7 @@
 
 [import ../../test/doc/core_1_refresher.cpp]
 [import ../../test/doc/core_3_layers.cpp]
+[import ../../test/doc/websocket_3_handshake.cpp]
 
 [section:quickref Reference]
 '''
