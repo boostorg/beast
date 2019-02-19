@@ -184,7 +184,7 @@ struct basic_stream<Protocol, Executor, RatePolicy>::ops
 {
 
 template<bool isRead, class Buffers, class Handler>
-class async_op
+class transfer_op
     : public async_op_base<Handler, Executor>
     , public boost::asio::coroutine
 {
@@ -273,7 +273,7 @@ class async_op
 
 public:
     template<class Handler_>
-    async_op(
+    transfer_op(
         Handler_&& h,
         basic_stream& s,
         Buffers const& b)
@@ -532,7 +532,7 @@ struct run_read_op
             detail::is_invocable<ReadHandler,
                 void(error_code, std::size_t)>::value,
             "ReadHandler type requirements not met");
-        async_op<
+        transfer_op<
             true,
             Buffers,
             typename std::decay<ReadHandler>::type>(
@@ -556,11 +556,82 @@ struct run_write_op
             detail::is_invocable<WriteHandler,
                 void(error_code, std::size_t)>::value,
             "WriteHandler type requirements not met");
-        async_op<
+        transfer_op<
             false,
             Buffers,
             typename std::decay<WriteHandler>::type>(
                 std::forward<WriteHandler>(h), s, b);
+    }
+};
+
+struct run_connect_op
+{
+    template<class ConnectHandler>
+    void
+    operator()(
+        ConnectHandler&& h,
+        basic_stream& s,
+        endpoint_type const& ep)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for a ConnectHandler.
+        static_assert(
+            detail::is_invocable<ConnectHandler,
+                void(error_code)>::value,
+            "ConnectHandler type requirements not met");
+        connect_op<typename std::decay<ConnectHandler>::type>(
+            std::forward<ConnectHandler>(h), s, ep);
+    }
+};
+
+struct run_connect_range_op
+{
+    template<
+        class RangeConnectHandler,
+        class EndpointSequence,
+        class Condition>
+    void
+    operator()(
+        RangeConnectHandler&& h,
+        basic_stream& s,
+        EndpointSequence const& eps,
+        Condition const& cond)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for a RangeConnectHandler.
+        static_assert(
+            detail::is_invocable<RangeConnectHandler,
+                void(error_code, typename Protocol::endpoint)>::value,
+            "RangeConnectHandler type requirements not met");
+        connect_op<typename std::decay<RangeConnectHandler>::type>(
+            std::forward<RangeConnectHandler>(h), s, eps, cond);
+    }
+};
+
+struct run_connect_iter_op
+{
+    template<
+        class IteratorConnectHandler,
+        class Iterator,
+        class Condition>
+    void
+    operator()(
+        IteratorConnectHandler&& h,
+        basic_stream& s,
+        Iterator begin, Iterator end,
+        Condition const& cond)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for a IteratorConnectHandler.
+        static_assert(
+            detail::is_invocable<IteratorConnectHandler,
+                void(error_code, Iterator)>::value,
+            "IteratorConnectHandler type requirements not met");
+        connect_op<typename std::decay<IteratorConnectHandler>::type>(
+            std::forward<IteratorConnectHandler>(h), s, begin, end, cond);
     }
 };
 
@@ -696,14 +767,13 @@ async_connect(
     endpoint_type const& ep,
     ConnectHandler&& handler)
 {
-    BOOST_BEAST_HANDLER_INIT(
-        ConnectHandler, void(error_code));
-    ops::template connect_op<
-        BOOST_ASIO_HANDLER_TYPE(
-            ConnectHandler, void(error_code))>(
-                std::forward<ConnectHandler>(handler),
-                *this, ep);
-    return init.result.get();
+    return net::async_initiate<
+        ConnectHandler,
+        void(error_code)>(
+            typename ops::run_connect_op{},
+            handler,
+            *this,
+            ep);
 }
 
 template<class Protocol, class Executor, class RatePolicy>
@@ -718,14 +788,14 @@ async_connect(
     EndpointSequence const& endpoints,
     RangeConnectHandler&& handler)
 {
-    BOOST_BEAST_HANDLER_INIT(RangeConnectHandler,
-        void(error_code, typename Protocol::endpoint));
-    ops::template connect_op<
-        BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
-            void(error_code, typename Protocol::endpoint))>(
-        std::move(init.completion_handler), *this, 
-            endpoints, detail::any_endpoint{});
-    return init.result.get();
+    return net::async_initiate<
+        RangeConnectHandler,
+        void(error_code, typename Protocol::endpoint)>(
+            typename ops::run_connect_range_op{},
+            handler,
+            *this,
+            endpoints,
+            detail::any_endpoint{});
 }
 
 template<class Protocol, class Executor, class RatePolicy>
@@ -742,14 +812,14 @@ async_connect(
     ConnectCondition connect_condition,
     RangeConnectHandler&& handler)
 {
-    BOOST_BEAST_HANDLER_INIT(RangeConnectHandler,
-        void(error_code, typename Protocol::endpoint));
-    ops::template connect_op<
-        BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
-            void(error_code, typename Protocol::endpoint))>(
-        std::move(init.completion_handler), *this, 
-            endpoints, connect_condition);
-    return init.result.get();
+    return net::async_initiate<
+        RangeConnectHandler,
+        void(error_code, typename Protocol::endpoint)>(
+            typename ops::run_connect_range_op{},
+            handler,
+            *this,
+            endpoints,
+            connect_condition);
 }
 
 template<class Protocol, class Executor, class RatePolicy>
@@ -763,14 +833,14 @@ async_connect(
     Iterator begin, Iterator end,
     IteratorConnectHandler&& handler)
 {
-    BOOST_BEAST_HANDLER_INIT(IteratorConnectHandler,
-        void(error_code, Iterator));
-    ops::template connect_op<
-        BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
-            void(error_code, Iterator))>(
-        std::move(init.completion_handler), *this, 
-            begin, end, detail::any_endpoint{});
-    return init.result.get();
+    return net::async_initiate<
+        IteratorConnectHandler,
+        void(error_code, Iterator)>(
+            typename ops::run_connect_iter_op{},
+            handler,
+            *this,
+            begin, end,
+            detail::any_endpoint{});
 }
 
 template<class Protocol, class Executor, class RatePolicy>
@@ -786,14 +856,14 @@ async_connect(
     ConnectCondition connect_condition,
     IteratorConnectHandler&& handler)
 {
-    BOOST_BEAST_HANDLER_INIT(IteratorConnectHandler,
-        void(error_code, Iterator));
-    ops::template connect_op<
-        BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
-            void(error_code, Iterator))>(
-        std::move(init.completion_handler), *this, 
-            begin, end, connect_condition);
-    return init.result.get();
+    return net::async_initiate<
+        IteratorConnectHandler,
+        void(error_code, Iterator)>(
+            typename ops::run_connect_iter_op{},
+            handler,
+            *this,
+            begin, end,
+            connect_condition);
 }
 
 //------------------------------------------------------------------------------
@@ -813,7 +883,7 @@ async_read_some(
     return net::async_initiate<
         ReadHandler,
         void(error_code, std::size_t)>(
-            ops::run_read_op{},
+            typename ops::run_read_op{},
             handler,
             *this,
             buffers);
@@ -834,13 +904,11 @@ async_write_some(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            ops::run_write_op{},
+            typename ops::run_write_op{},
             handler,
             *this,
             buffers);
 }
-
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 //
