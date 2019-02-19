@@ -49,7 +49,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,websocket,error);
+BEAST_DEFINE_TESTSUITE(beast,core,error);
 
 } // beast
 } // boost

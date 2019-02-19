@@ -292,7 +292,11 @@ private:
     template<class, class, class>
     friend class basic_stream;
 
+    struct run_async_op;
+
     struct timeout_handler;
+
+    struct ops;
 
 #if ! BOOST_BEAST_DOXYGEN
     // boost::asio::ssl::stream needs these

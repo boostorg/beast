@@ -157,7 +157,7 @@ struct test_acceptor
         a.set_option(
             net::socket_base::reuse_address(true));
         a.bind(ep);
-        a.listen(0);
+        a.listen(1);
         ep = a.local_endpoint();
         a.async_accept(
             [](error_code, net::ip::tcp::socket)
