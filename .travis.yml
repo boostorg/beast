@@ -39,7 +39,7 @@ matrix:
     - os: linux
       compiler: g++-6
       env:
-        - VARIANT=coverage
+        - VARIANT=beast_coverage
         - TOOLSET=gcc
         - COMPILER=g++-6
         - CXXSTD=11
@@ -59,7 +59,7 @@ matrix:
     - os: linux
       compiler: g++-5
       env:
-        - VARIANT=valgrind
+        - VARIANT=beast_valgrind
         - TOOLSET=gcc
         - COMPILER=g++-5
         - CXXSTD=11
@@ -77,7 +77,7 @@ matrix:
     - os: linux
       compiler: clang++-3.8
       env:
-        - VARIANT=ubasan
+        - VARIANT=beast_ubasan
         - TOOLSET=clang
         - COMPILER=clang++-3.8
         - CXXSTD=11

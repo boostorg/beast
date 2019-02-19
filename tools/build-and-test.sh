@@ -99,9 +99,9 @@ INC_DIR="$BOOST_ROOT/boost/beast"
 
 function build_bjam ()
 {
-  if [[ $VARIANT == "coverage" ]] || \
-     [[ $VARIANT == "valgrind" ]] || \
-     [[ $VARIANT == "ubasan" ]]; then
+  if [[ $VARIANT == "beast_coverage" ]] || \
+     [[ $VARIANT == "beast_valgrind" ]] || \
+     [[ $VARIANT == "beast_ubasan" ]]; then
     b2 \
       define=BOOST_COROUTINES_NO_DEPRECATION_WARNING=1 \
       cxxstd=$CXXSTD \
@@ -126,7 +126,7 @@ function build_bjam ()
 
 build_bjam
 
-if [[ $VARIANT == "coverage" ]]; then
+if [[ $VARIANT == "beast_coverage" ]]; then
   # for lcov to work effectively, the paths and includes
   # passed to the compiler should not contain "." or "..".
   # (this runs in $BOOST_ROOT)
@@ -143,7 +143,7 @@ if [[ $VARIANT == "coverage" ]]; then
   ~/.local/bin/codecov -X gcov -f lcov.info
   find "$BOOST_ROOT" -name "*.gcda" | xargs rm -f
 
-elif [[ $VARIANT == "valgrind" ]]; then
+elif [[ $VARIANT == "beast_valgrind" ]]; then
   run_tests_with_valgrind "$BIN_DIR" fat-tests
 
 else

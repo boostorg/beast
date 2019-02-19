@@ -31,18 +31,18 @@ lib crypt32 ;
 lib ssl : : <target-os>windows <name>ssleay32 ;
 lib crypto : : <target-os>windows <name>libeay32 ;
 
-variant coverage
+variant beast_coverage
   : debug
   : <cxxflags>"-msse4.2 --coverage"
     <linkflags>"--coverage"
   ;
 
-variant valgrind
+variant beast_valgrind
   : release
   : <valgrind>on # Boost.Context uses this property
   ;
 
-variant ubasan
+variant beast_ubasan
   : release
   : <cxxflags>"-msse4.2 -funsigned-char -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined -fsanitize-blacklist=libs/beast/tools/blacklist.supp"
     <linkflags>"-fsanitize=address,undefined"
