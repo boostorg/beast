@@ -179,151 +179,6 @@ struct basic_stream<Protocol, Executor, RatePolicy>::
 
 //------------------------------------------------------------------------------
 
-namespace detail {
-
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class Handler>
-class basic_stream_connect_op
-    : public async_op_base<Handler, Executor>
-{
-    using stream_type = beast::basic_stream<
-        Protocol, Executor, RatePolicy>;
-
-    using timeout_handler =
-        typename stream_type::timeout_handler;
-
-    boost::shared_ptr<typename
-        stream_type::impl_type> impl_;
-    typename stream_type::pending_guard pg0_;
-    typename stream_type::pending_guard pg1_;
-
-    typename stream_type::op_state&
-    state() noexcept
-    {
-        return impl_->write;
-    }
-
-public:
-    template<class Handler_>
-    basic_stream_connect_op(
-        Handler_&& h,
-        stream_type& s,
-        typename stream_type::endpoint_type ep)
-        : async_op_base<Handler, Executor>(
-            std::forward<Handler_>(h), s.get_executor())
-        , impl_(s.impl_)
-        , pg0_(impl_->read.pending)
-        , pg1_(impl_->write.pending)
-    {
-        if(state().timer.expiry() != stream_base::never())
-            impl_->write.timer.async_wait(
-                net::bind_executor(
-                    this->get_executor(),
-                    timeout_handler{
-                        state(),
-                        impl_,
-                        state().tick}));
-
-        impl_->socket.async_connect(
-            ep, std::move(*this));
-        // *this is now moved-from
-    }
-
-    template<
-        class Endpoints, class Condition,
-        class Handler_>
-    basic_stream_connect_op(
-        Handler_&& h,
-        stream_type& s,
-        Endpoints const& eps,
-        Condition const& cond)
-        : async_op_base<Handler, Executor>(
-            std::forward<Handler_>(h), s.get_executor())
-        , impl_(s.impl_)
-        , pg0_(impl_->read.pending)
-        , pg1_(impl_->write.pending)
-    {
-        if(state().timer.expiry() != stream_base::never())
-            impl_->write.timer.async_wait(
-                net::bind_executor(
-                    this->get_executor(),
-                    timeout_handler{
-                        state(),
-                        impl_,
-                        state().tick}));
-
-        net::async_connect(impl_->socket,
-            eps, cond, std::move(*this));
-        // *this is now moved-from
-    }
-
-    template<
-        class Iterator, class Condition,
-        class Handler_>
-    basic_stream_connect_op(
-        Handler_&& h,
-        stream_type& s,
-        Iterator begin, Iterator end,
-        Condition const& cond)
-        : async_op_base<Handler, Executor>(
-            std::forward<Handler_>(h), s.get_executor())
-        , impl_(s.impl_)
-        , pg0_(impl_->read.pending)
-        , pg1_(impl_->write.pending)
-    {
-        if(state().timer.expiry() != stream_base::never())
-            impl_->write.timer.async_wait(
-                net::bind_executor(
-                    this->get_executor(),
-                    timeout_handler{
-                        state(),
-                        impl_,
-                        state().tick}));
-
-        net::async_connect(impl_->socket,
-            begin, end, cond, std::move(*this));
-        // *this is now moved-from
-    }
-
-    template<class... Args>
-    void
-    operator()(error_code ec, Args&&... args)
-    {
-        if(state().timer.expiry() != stream_base::never())
-        {
-            ++state().tick;
-
-            // try cancelling timer
-            auto const n =
-                impl_->write.timer.cancel();
-            if(n == 0)
-            {
-                // timeout handler invoked?
-                if(state().timeout)
-                {
-                    // yes, socket already closed
-                    ec = beast::error::timeout;
-                    state().timeout = false;
-                }
-            }
-            else
-            {
-                BOOST_ASSERT(n == 1);
-                BOOST_ASSERT(! state().timeout);
-            }
-        }
-
-        pg0_.reset();
-        pg1_.reset();
-        this->invoke_now(ec, std::forward<Args>(args)...);
-    }
-};
-
-} // detail
-
-//------------------------------------------------------------------------------
-
 template<class Protocol, class Executor, class RatePolicy>
 struct basic_stream<Protocol, Executor, RatePolicy>::ops
 {
@@ -530,6 +385,136 @@ public:
     }
 };
 
+template<class Handler>
+class connect_op
+    : public async_op_base<Handler, Executor>
+{
+    boost::shared_ptr<impl_type> impl_;
+    pending_guard pg0_;
+    pending_guard pg1_;
+
+    op_state&
+    state() noexcept
+    {
+        return impl_->write;
+    }
+
+public:
+    template<class Handler_>
+    connect_op(
+        Handler_&& h,
+        basic_stream& s,
+        endpoint_type ep)
+        : async_op_base<Handler, Executor>(
+            std::forward<Handler_>(h), s.get_executor())
+        , impl_(s.impl_)
+        , pg0_(impl_->read.pending)
+        , pg1_(impl_->write.pending)
+    {
+        if(state().timer.expiry() != stream_base::never())
+            impl_->write.timer.async_wait(
+                net::bind_executor(
+                    this->get_executor(),
+                    timeout_handler{
+                        state(),
+                        impl_,
+                        state().tick}));
+
+        impl_->socket.async_connect(
+            ep, std::move(*this));
+        // *this is now moved-from
+    }
+
+    template<
+        class Endpoints, class Condition,
+        class Handler_>
+    connect_op(
+        Handler_&& h,
+        basic_stream& s,
+        Endpoints const& eps,
+        Condition const& cond)
+        : async_op_base<Handler, Executor>(
+            std::forward<Handler_>(h), s.get_executor())
+        , impl_(s.impl_)
+        , pg0_(impl_->read.pending)
+        , pg1_(impl_->write.pending)
+    {
+        if(state().timer.expiry() != stream_base::never())
+            impl_->write.timer.async_wait(
+                net::bind_executor(
+                    this->get_executor(),
+                    timeout_handler{
+                        state(),
+                        impl_,
+                        state().tick}));
+
+        net::async_connect(impl_->socket,
+            eps, cond, std::move(*this));
+        // *this is now moved-from
+    }
+
+    template<
+        class Iterator, class Condition,
+        class Handler_>
+    connect_op(
+        Handler_&& h,
+        basic_stream& s,
+        Iterator begin, Iterator end,
+        Condition const& cond)
+        : async_op_base<Handler, Executor>(
+            std::forward<Handler_>(h), s.get_executor())
+        , impl_(s.impl_)
+        , pg0_(impl_->read.pending)
+        , pg1_(impl_->write.pending)
+    {
+        if(state().timer.expiry() != stream_base::never())
+            impl_->write.timer.async_wait(
+                net::bind_executor(
+                    this->get_executor(),
+                    timeout_handler{
+                        state(),
+                        impl_,
+                        state().tick}));
+
+        net::async_connect(impl_->socket,
+            begin, end, cond, std::move(*this));
+        // *this is now moved-from
+    }
+
+    template<class... Args>
+    void
+    operator()(error_code ec, Args&&... args)
+    {
+        if(state().timer.expiry() != stream_base::never())
+        {
+            ++state().tick;
+
+            // try cancelling timer
+            auto const n =
+                impl_->write.timer.cancel();
+            if(n == 0)
+            {
+                // timeout handler invoked?
+                if(state().timeout)
+                {
+                    // yes, socket already closed
+                    ec = beast::error::timeout;
+                    state().timeout = false;
+                }
+            }
+            else
+            {
+                BOOST_ASSERT(n == 1);
+                BOOST_ASSERT(! state().timeout);
+            }
+        }
+
+        pg0_.reset();
+        pg1_.reset();
+        this->invoke_now(ec, std::forward<Args>(args)...);
+    }
+};
+
 struct run_read_op
 {
     template<class ReadHandler, class Buffers>
@@ -700,6 +685,8 @@ close()
     impl_->close();
 }
 
+//------------------------------------------------------------------------------
+
 template<class Protocol, class Executor, class RatePolicy>
 template<class ConnectHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(ConnectHandler,
@@ -711,14 +698,105 @@ async_connect(
 {
     BOOST_BEAST_HANDLER_INIT(
         ConnectHandler, void(error_code));
-    detail::basic_stream_connect_op<
-        Protocol, Executor, RatePolicy,
+    ops::template connect_op<
         BOOST_ASIO_HANDLER_TYPE(
             ConnectHandler, void(error_code))>(
                 std::forward<ConnectHandler>(handler),
                 *this, ep);
     return init.result.get();
 }
+
+template<class Protocol, class Executor, class RatePolicy>
+template<
+    class EndpointSequence,
+    class RangeConnectHandler,
+    class>
+BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
+    void(error_code, typename Protocol::endpoint))
+basic_stream<Protocol, Executor, RatePolicy>::
+async_connect(
+    EndpointSequence const& endpoints,
+    RangeConnectHandler&& handler)
+{
+    BOOST_BEAST_HANDLER_INIT(RangeConnectHandler,
+        void(error_code, typename Protocol::endpoint));
+    ops::template connect_op<
+        BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
+            void(error_code, typename Protocol::endpoint))>(
+        std::move(init.completion_handler), *this, 
+            endpoints, detail::any_endpoint{});
+    return init.result.get();
+}
+
+template<class Protocol, class Executor, class RatePolicy>
+template<
+    class EndpointSequence,
+    class ConnectCondition,
+    class RangeConnectHandler,
+    class>
+BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
+    void (error_code, typename Protocol::endpoint))
+basic_stream<Protocol, Executor, RatePolicy>::
+async_connect(
+    EndpointSequence const& endpoints,
+    ConnectCondition connect_condition,
+    RangeConnectHandler&& handler)
+{
+    BOOST_BEAST_HANDLER_INIT(RangeConnectHandler,
+        void(error_code, typename Protocol::endpoint));
+    ops::template connect_op<
+        BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
+            void(error_code, typename Protocol::endpoint))>(
+        std::move(init.completion_handler), *this, 
+            endpoints, connect_condition);
+    return init.result.get();
+}
+
+template<class Protocol, class Executor, class RatePolicy>
+template<
+    class Iterator,
+    class IteratorConnectHandler>
+BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
+    void (error_code, Iterator))
+basic_stream<Protocol, Executor, RatePolicy>::
+async_connect(
+    Iterator begin, Iterator end,
+    IteratorConnectHandler&& handler)
+{
+    BOOST_BEAST_HANDLER_INIT(IteratorConnectHandler,
+        void(error_code, Iterator));
+    ops::template connect_op<
+        BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
+            void(error_code, Iterator))>(
+        std::move(init.completion_handler), *this, 
+            begin, end, detail::any_endpoint{});
+    return init.result.get();
+}
+
+template<class Protocol, class Executor, class RatePolicy>
+template<
+    class Iterator,
+    class ConnectCondition,
+    class IteratorConnectHandler>
+BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
+    void (error_code, Iterator))
+basic_stream<Protocol, Executor, RatePolicy>::
+async_connect(
+    Iterator begin, Iterator end,
+    ConnectCondition connect_condition,
+    IteratorConnectHandler&& handler)
+{
+    BOOST_BEAST_HANDLER_INIT(IteratorConnectHandler,
+        void(error_code, Iterator));
+    ops::template connect_op<
+        BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
+            void(error_code, Iterator))>(
+        std::move(init.completion_handler), *this, 
+            begin, end, connect_condition);
+    return init.result.get();
+}
+
+//------------------------------------------------------------------------------
 
 template<class Protocol, class Executor, class RatePolicy>
 template<class MutableBufferSequence, class ReadHandler>
@@ -763,100 +841,6 @@ async_write_some(
 }
 
 //------------------------------------------------------------------------------
-
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class EndpointSequence,
-    class RangeConnectHandler,
-    class>
-BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-    void(error_code, typename Protocol::endpoint))
-async_connect(
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
-    EndpointSequence const& endpoints,
-    RangeConnectHandler&& handler)
-{
-    BOOST_BEAST_HANDLER_INIT(RangeConnectHandler,
-        void(error_code, typename Protocol::endpoint));
-    detail::basic_stream_connect_op<
-        Protocol, Executor, RatePolicy,
-        BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
-            void(error_code, typename Protocol::endpoint))>(
-        std::move(init.completion_handler), stream, 
-            endpoints, detail::any_endpoint{});
-    return init.result.get();
-}
-
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class EndpointSequence,
-    class ConnectCondition,
-    class RangeConnectHandler,
-    class>
-BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-    void (error_code, typename Protocol::endpoint))
-async_connect(
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
-    EndpointSequence const& endpoints,
-    ConnectCondition connect_condition,
-    RangeConnectHandler&& handler)
-{
-    BOOST_BEAST_HANDLER_INIT(RangeConnectHandler,
-        void(error_code, typename Protocol::endpoint));
-    detail::basic_stream_connect_op<
-        Protocol, Executor, RatePolicy,
-        BOOST_ASIO_HANDLER_TYPE(RangeConnectHandler,
-            void(error_code, typename Protocol::endpoint))>(
-        std::move(init.completion_handler), stream, 
-            endpoints, connect_condition);
-    return init.result.get();
-}
-
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class Iterator,
-    class IteratorConnectHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-    void (error_code, Iterator))
-async_connect(
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
-    Iterator begin, Iterator end,
-    IteratorConnectHandler&& handler)
-{
-    BOOST_BEAST_HANDLER_INIT(IteratorConnectHandler,
-        void(error_code, Iterator));
-    detail::basic_stream_connect_op<
-        Protocol, Executor, RatePolicy,
-        BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
-            void(error_code, Iterator))>(
-        std::move(init.completion_handler), stream, 
-            begin, end, detail::any_endpoint{});
-    return init.result.get();
-}
-
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class Iterator,
-    class ConnectCondition,
-    class IteratorConnectHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-    void (error_code, Iterator))
-async_connect(
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
-    Iterator begin, Iterator end,
-    ConnectCondition connect_condition,
-    IteratorConnectHandler&& handler)
-{
-    BOOST_BEAST_HANDLER_INIT(IteratorConnectHandler,
-        void(error_code, Iterator));
-    detail::basic_stream_connect_op<
-        Protocol, Executor, RatePolicy,
-        BOOST_ASIO_HANDLER_TYPE(IteratorConnectHandler,
-            void(error_code, Iterator))>(
-        std::move(init.completion_handler), stream, 
-            begin, end, connect_condition);
-    return init.result.get();
-}
 
 //------------------------------------------------------------------------------
 //

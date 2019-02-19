@@ -61,7 +61,7 @@ do_session(
     stream.expires_after(std::chrono::seconds(30));
 
     // Make the connection on the IP address we get from a lookup
-    beast::async_connect(stream, results, yield[ec]);
+    stream.async_connect(results, yield[ec]);
     if(ec)
         return fail(ec, "connect");
 

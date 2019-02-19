@@ -62,7 +62,7 @@ boost::ignore_unused(ec);
     net::ip::tcp::resolver r(ioc);
     stream<tcp_stream> ws(ioc);
     auto const results = r.resolve(host, "ws");
-    connect(get_lowest_layer(ws), results.begin(), results.end());
+    get_lowest_layer(ws).connect(results.begin(), results.end());
 //]
 }
 

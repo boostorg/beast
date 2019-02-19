@@ -188,8 +188,6 @@ namespace beast {
 
     @see
 
-    @li @ref beast::connect, @ref beast::async_connect
-
     @li <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html">[P1322R0] Networking TS enhancement to enable custom I/O executors</a>.
 */
 template<
@@ -224,11 +222,6 @@ private:
     static_assert(net::is_executor<Executor>::value,
         "Executor requirements not met");
 
-// friend class template declaration in a class template is ignored
-// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88672
-#if BOOST_WORKAROUND(BOOST_GCC, > 0)
-public:
-#endif
     struct impl_type
         : boost::enable_shared_from_this<impl_type>
         , boost::empty_value<RatePolicy>
@@ -274,25 +267,12 @@ public:
         void reset();       // set timeouts to never
         void close();       // cancel everything
     };
-#if BOOST_WORKAROUND(BOOST_GCC, > 0)
-private:
-#endif
 
     // We use shared ownership for the state so it can
     // outlive the destruction of the stream_socket object,
     // in the case where there is no outstanding read or write
     // but the implementation is still waiting on a timer.
     boost::shared_ptr<impl_type> impl_;
-
-    template<bool, class, class> class async_op;
-
-    template<class, class, class, class>
-    friend class detail::basic_stream_connect_op;
-
-    template<class, class, class>
-    friend class basic_stream;
-
-    struct run_async_op;
 
     struct timeout_handler;
 
@@ -406,7 +386,7 @@ public:
 
         The timer applies collectively to any asynchronous reads
         or writes initiated after the expiration is set, until the
-        expiration is set again. A call to @ref beast::async_connect
+        expiration is set again. A call to @ref async_connect
         counts as both a read and a write.
 
         @param expiry_time The amount of time after which a logical
@@ -429,7 +409,7 @@ public:
 
         The timer applies collectively to any asynchronous reads
         or writes initiated after the expiration is set, until the
-        expiration is set again. A call to @ref beast::async_connect
+        expiration is set again. A call to @ref async_connect
         counts as both a read and a write.
 
         @param expiry_time The time point after which a logical
@@ -484,7 +464,6 @@ public:
         This function is used to connect the underlying socket to the
         specified remote endpoint. The function call will block until
         the connection is successfully made or an error occurs.
-        
         The underlying socket is automatically opened if needed.
         An automatically opened socket is not returned to the
         closed state upon failure.
@@ -498,7 +477,7 @@ public:
     void
     connect(endpoint_type const& ep)
     {
-        impl_->socket.connect(ep);
+        socket().connect(ep);
     }
 
     /** Connect the stream to the specified endpoint.
@@ -506,7 +485,6 @@ public:
         This function is used to connect the underlying socket to the
         specified remote endpoint. The function call will block until
         the connection is successfully made or an error occurs.
-        
         The underlying socket is automatically opened if needed.
         An automatically opened socket is not returned to the
         closed state upon failure.
@@ -520,7 +498,332 @@ public:
     void
     connect(endpoint_type const& ep, error_code& ec)
     {
-        impl_->socket.connect(ep, ec);
+        socket().connect(ep, ec);
+    }
+
+    /** Establishes a connection by trying each endpoint in a sequence.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed operation</em>, is implemented
+        in terms of calls to the underlying socket's `connect` function.
+    
+        @param endpoints A sequence of endpoints.
+    
+        @returns The successfully connected endpoint.
+    
+        @throws system_error Thrown on failure. If the sequence is
+        empty, the associated error code is `net::error::not_found`.
+        Otherwise, contains the error from the last connection attempt.
+    */
+    template<class EndpointSequence
+    #if ! BOOST_BEAST_DOXYGEN
+        ,class = typename std::enable_if<
+            net::is_endpoint_sequence<
+                EndpointSequence>::value>::type
+    #endif
+    >
+    typename Protocol::endpoint
+    connect(EndpointSequence const& endpoints)
+    {
+        return net::connect(socket(), endpoints);
+    }
+
+    /** Establishes a connection by trying each endpoint in a sequence.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed operation</em>, is implemented
+        in terms of calls to the underlying socket's `connect` function.
+        
+        @param endpoints A sequence of endpoints.
+    
+        @param ec Set to indicate what error occurred, if any. If the sequence is
+        empty, set to `net::error::not_found`. Otherwise, contains the error
+        from the last connection attempt.
+    
+        @returns On success, the successfully connected endpoint. Otherwise, a
+        default-constructed endpoint.
+    */    
+    template<class EndpointSequence
+    #if ! BOOST_BEAST_DOXYGEN
+        ,class = typename std::enable_if<
+            net::is_endpoint_sequence<
+                EndpointSequence>::value>::type
+    #endif
+    >
+    typename Protocol::endpoint
+    connect(
+        EndpointSequence const& endpoints,
+        error_code& ec
+    )
+    {
+        return net::connect(socket(), endpoints, ec);
+    }
+
+    /** Establishes a connection by trying each endpoint in a sequence.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+    
+        The algorithm, known as a <em>composed operation</em>, is implemented
+        in terms of calls to the underlying socket's `connect` function.
+    
+        @param begin An iterator pointing to the start of a sequence of endpoints.
+    
+        @param end An iterator pointing to the end of a sequence of endpoints.
+    
+        @returns An iterator denoting the successfully connected endpoint.
+    
+        @throws system_error Thrown on failure. If the sequence is
+        empty, the associated error code is `net::error::not_found`.
+        Otherwise, contains the error from the last connection attempt.
+    */    
+    template<class Iterator>
+    Iterator
+    connect(
+        Iterator begin, Iterator end)
+    {
+        return net::connect(socket(), begin, end);
+    }
+
+    /** Establishes a connection by trying each endpoint in a sequence.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+    
+        The algorithm, known as a <em>composed operation</em>, is implemented
+        in terms of calls to the underlying socket's `connect` function.
+        
+        @param begin An iterator pointing to the start of a sequence of endpoints.
+    
+        @param end An iterator pointing to the end of a sequence of endpoints.
+    
+        @param ec Set to indicate what error occurred, if any. If the sequence is
+        empty, set to boost::asio::error::not_found. Otherwise, contains the error
+        from the last connection attempt.
+    
+        @returns On success, an iterator denoting the successfully connected
+        endpoint. Otherwise, the end iterator.
+    */
+    template<class Iterator>
+    Iterator
+    connect(
+        Iterator begin, Iterator end,
+        error_code& ec)
+    {
+        return net::connect(socket(), begin, end, ec);
+    }
+
+    /** Establishes a connection by trying each endpoint in a sequence.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed operation</em>, is implemented
+        in terms of calls to the underlying socket's `connect` function.
+        
+        @param endpoints A sequence of endpoints.
+    
+        @param connect_condition A function object that is called prior to each
+        connection attempt. The signature of the function object must be:
+        @code
+        bool connect_condition(
+            error_code const& ec,
+            typename Protocol::endpoint const& next);
+        @endcode
+        The @c ec parameter contains the result from the most recent connect
+        operation. Before the first connection attempt, @c ec is always set to
+        indicate success. The @c next parameter is the next endpoint to be tried.
+        The function object should return true if the next endpoint should be tried,
+        and false if it should be skipped.
+    
+        @returns The successfully connected endpoint.
+    
+        @throws boost::system::system_error Thrown on failure. If the sequence is
+        empty, the associated error code is `net::error::not_found`.
+        Otherwise, contains the error from the last connection attempt.
+    */
+    template<
+        class EndpointSequence, class ConnectCondition
+    #if ! BOOST_BEAST_DOXYGEN
+        ,class = typename std::enable_if<
+            net::is_endpoint_sequence<
+                EndpointSequence>::value>::type
+    #endif
+    >
+    typename Protocol::endpoint
+    connect(
+        EndpointSequence const& endpoints,
+        ConnectCondition connect_condition
+    )
+    {
+        return net::connect(socket(), endpoints, connect_condition);
+    }
+
+    /** Establishes a connection by trying each endpoint in a sequence.
+
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed operation</em>, is implemented
+        in terms of calls to the underlying socket's `connect` function.
+
+        @param endpoints A sequence of endpoints.
+
+        @param connect_condition A function object that is called prior to each
+        connection attempt. The signature of the function object must be:
+        @code
+        bool connect_condition(
+            error_code const& ec,
+            typename Protocol::endpoint const& next);
+        @endcode
+        The @c ec parameter contains the result from the most recent connect
+        operation. Before the first connection attempt, @c ec is always set to
+        indicate success. The @c next parameter is the next endpoint to be tried.
+        The function object should return true if the next endpoint should be tried,
+        and false if it should be skipped.
+
+        @param ec Set to indicate what error occurred, if any. If the sequence is
+        empty, set to `net::error::not_found`. Otherwise, contains the error
+        from the last connection attempt.
+
+        @returns On success, the successfully connected endpoint. Otherwise, a
+        default-constructed endpoint.
+    */
+    template<
+        class EndpointSequence, class ConnectCondition
+    #if ! BOOST_BEAST_DOXYGEN
+        ,class = typename std::enable_if<
+            net::is_endpoint_sequence<
+                EndpointSequence>::value>::type
+    #endif
+    >
+    typename Protocol::endpoint
+    connect(
+        EndpointSequence const& endpoints,
+        ConnectCondition connect_condition,
+        error_code& ec)
+    {
+        return net::connect(socket(), endpoints, connect_condition, ec);
+    }
+
+    /** Establishes a connection by trying each endpoint in a sequence.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed operation</em>, is implemented
+        in terms of calls to the underlying socket's `connect` function.
+        
+        @param begin An iterator pointing to the start of a sequence of endpoints.
+    
+        @param end An iterator pointing to the end of a sequence of endpoints.
+    
+        @param connect_condition A function object that is called prior to each
+        connection attempt. The signature of the function object must be:
+        @code
+        bool connect_condition(
+            error_code const& ec,
+            typename Protocol::endpoint const& next);
+        @endcode
+        The @c ec parameter contains the result from the most recent connect
+        operation. Before the first connection attempt, @c ec is always set to
+        indicate success. The @c next parameter is the next endpoint to be tried.
+        The function object should return true if the next endpoint should be tried,
+        and false if it should be skipped.
+    
+        @returns An iterator denoting the successfully connected endpoint.
+    
+        @throws boost::system::system_error Thrown on failure. If the sequence is
+        empty, the associated @c error_code is `net::error::not_found`.
+        Otherwise, contains the error from the last connection attempt.
+    */  
+    template<
+        class Iterator, class ConnectCondition>
+    Iterator
+    connect(
+        Iterator begin, Iterator end,
+        ConnectCondition connect_condition)
+    {
+        return net::connect(socket(), begin, end, connect_condition);
+    }
+
+    /** Establishes a connection by trying each endpoint in a sequence.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed operation</em>, is implemented
+        in terms of calls to the underlying socket's `connect` function.
+        
+        @param begin An iterator pointing to the start of a sequence of endpoints.
+    
+        @param end An iterator pointing to the end of a sequence of endpoints.
+    
+        @param connect_condition A function object that is called prior to each
+        connection attempt. The signature of the function object must be:
+        @code
+        bool connect_condition(
+            error_code const& ec,
+            typename Protocol::endpoint const& next);
+        @endcode
+        The @c ec parameter contains the result from the most recent connect
+        operation. Before the first connection attempt, @c ec is always set to
+        indicate success. The @c next parameter is the next endpoint to be tried.
+        The function object should return true if the next endpoint should be tried,
+        and false if it should be skipped.
+    
+        @param ec Set to indicate what error occurred, if any. If the sequence is
+        empty, set to `net::error::not_found`. Otherwise, contains the error
+        from the last connection attempt.
+    
+        @returns On success, an iterator denoting the successfully connected
+        endpoint. Otherwise, the end iterator.
+    */
+    template<
+        class Iterator, class ConnectCondition>
+    Iterator
+    connect(
+        Iterator begin, Iterator end,
+        ConnectCondition connect_condition,
+        error_code& ec)
+    {
+        return net::connect(socket(), begin, end, connect_condition, ec);
     }
 
     /** Connect the stream to the specified endpoint asynchronously.
@@ -528,7 +831,6 @@ public:
         This function is used to asynchronously connect the underlying
         socket to the specified remote endpoint. The function call always
         returns immediately.
-
         The underlying socket is automatically opened if needed.
         An automatically opened socket is not returned to the
         closed state upon failure.
@@ -561,6 +863,254 @@ public:
     async_connect(
         endpoint_type const& ep,
         ConnectHandler&& handler);
+
+    /** Establishes a connection by trying each endpoint in a sequence asynchronously.
+   
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed asynchronous operation</em>, is
+        implemented in terms of calls to the underlying socket's `async_connect`
+        function.
+
+        If the timeout timer expires while the operation is outstanding,
+        the current connection attempt will be canceled and the completion
+        handler will be invoked with the error @ref error::timeout.
+    
+        @param endpoints A sequence of endpoints. This this object must meet
+        the requirements of <em>EndpointSequence</em>.
+    
+        @param handler The handler to be called when the connect operation
+        completes. Ownership of the handler may be transferred. The function
+        signature of the handler must be:
+        @code
+        void handler(
+            // Result of operation. if the sequence is empty, set to
+            // net::error::not_found. Otherwise, contains the
+            // error from the last connection attempt.
+            error_code const& error,
+    
+            // On success, the successfully connected endpoint.
+            // Otherwise, a default-constructed endpoint.
+            typename Protocol::endpoint const& endpoint
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes immediately
+        or not, the handler will not be invoked from within this function.
+        Invocation of the handler will be performed in a manner equivalent
+        to using `net::post`.
+    */
+    template<
+        class EndpointSequence,
+        class RangeConnectHandler
+    #if ! BOOST_BEAST_DOXYGEN
+        ,class = typename std::enable_if<
+            net::is_endpoint_sequence<
+                EndpointSequence>::value>::type
+    #endif
+    >
+    BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
+        void (error_code, typename Protocol::endpoint))
+    async_connect(
+        EndpointSequence const& endpoints,
+        RangeConnectHandler&& handler);
+
+    /** Establishes a connection by trying each endpoint in a sequence asynchronously.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed asynchronous operation</em>, is
+        implemented in terms of calls to the underlying socket's `async_connect`
+        function.
+
+        If the timeout timer expires while the operation is outstanding,
+        the current connection attempt will be canceled and the completion
+        handler will be invoked with the error @ref error::timeout.
+
+        @param endpoints A sequence of endpoints. This this object must meet
+        the requirements of <em>EndpointSequence</em>.
+    
+        @param connect_condition A function object that is called prior to each
+        connection attempt. The signature of the function object must be:
+        @code
+        bool connect_condition(
+            error_code const& ec,
+            typename Protocol::endpoint const& next);
+        @endcode
+        The @c ec parameter contains the result from the most recent connect
+        operation. Before the first connection attempt, @c ec is always set to
+        indicate success. The @c next parameter is the next endpoint to be tried.
+        The function object should return true if the next endpoint should be tried,
+        and false if it should be skipped.
+
+        @param handler The handler to be called when the connect operation
+        completes. Ownership of the handler may be transferred. The function
+        signature of the handler must be:
+        @code
+        void handler(
+            // Result of operation. if the sequence is empty, set to
+            // net::error::not_found. Otherwise, contains the
+            // error from the last connection attempt.
+            error_code const& error,
+    
+            // On success, the successfully connected endpoint.
+            // Otherwise, a default-constructed endpoint.
+            typename Protocol::endpoint const& endpoint
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes immediately
+        or not, the handler will not be invoked from within this function.
+        Invocation of the handler will be performed in a manner equivalent
+        to using `net::post`.
+
+        @par Example
+        The following connect condition function object can be used to output
+        information about the individual connection attempts:
+        @code
+        struct my_connect_condition
+        {
+            bool operator()(
+                error_code const& ec,
+                net::ip::tcp::endpoint const& next)
+            {
+                if (ec)
+                    std::cout << "Error: " << ec.message() << std::endl;
+                std::cout << "Trying: " << next << std::endl;
+                return true;
+            }
+        };
+        @endcode
+    */
+    template<
+        class EndpointSequence,
+        class ConnectCondition,
+        class RangeConnectHandler
+    #if ! BOOST_BEAST_DOXYGEN
+        ,class = typename std::enable_if<
+            net::is_endpoint_sequence<
+                EndpointSequence>::value>::type
+    #endif
+    >
+    BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
+        void (error_code, typename Protocol::endpoint))
+    async_connect(
+        EndpointSequence const& endpoints,
+        ConnectCondition connect_condition,
+        RangeConnectHandler&& handler);
+
+    /** Establishes a connection by trying each endpoint in a sequence asynchronously.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The underlying socket is automatically opened if needed.
+        An automatically opened socket is not returned to the
+        closed state upon failure.
+
+        The algorithm, known as a <em>composed asynchronous operation</em>, is
+        implemented in terms of calls to the underlying socket's `async_connect`
+        function.
+
+        If the timeout timer expires while the operation is outstanding,
+        the current connection attempt will be canceled and the completion
+        handler will be invoked with the error @ref error::timeout.
+    
+        @param begin An iterator pointing to the start of a sequence of endpoints.
+    
+        @param end An iterator pointing to the end of a sequence of endpoints.
+
+        @param handler The handler to be called when the connect operation
+        completes. Ownership of the handler may be transferred. The function
+        signature of the handler must be:
+        @code
+        void handler(
+            // Result of operation. if the sequence is empty, set to
+            // net::error::not_found. Otherwise, contains the
+            // error from the last connection attempt.
+            error_code const& error,
+    
+            // On success, an iterator denoting the successfully
+            // connected endpoint. Otherwise, the end iterator.
+            Iterator iterator
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes immediately
+        or not, the handler will not be invoked from within this function.
+        Invocation of the handler will be performed in a manner equivalent
+        to using `net::post`.
+    */
+    template<
+        class Iterator,
+        class IteratorConnectHandler>
+    BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
+        void (error_code, Iterator))
+    async_connect(
+        Iterator begin, Iterator end,
+        IteratorConnectHandler&& handler);
+
+    /** Establishes a connection by trying each endpoint in a sequence asynchronously.
+    
+        This function attempts to connect the stream to one of a sequence of
+        endpoints by trying each endpoint until a connection is successfully
+        established.
+        The algorithm, known as a <em>composed asynchronous operation</em>, is
+        implemented in terms of calls to the underlying socket's `async_connect`
+        function.
+
+        If the timeout timer expires while the operation is outstanding,
+        the current connection attempt will be canceled and the completion
+        handler will be invoked with the error @ref error::timeout.
+    
+        @param begin An iterator pointing to the start of a sequence of endpoints.
+
+        @param end An iterator pointing to the end of a sequence of endpoints.
+    
+        @param connect_condition A function object that is called prior to each
+        connection attempt. The signature of the function object must be:
+        @code
+        bool connect_condition(
+            error_code const& ec,
+            Iterator next);
+        @endcode
+        @param handler The handler to be called when the connect operation
+        completes. Ownership of the handler may be transferred. The function
+        signature of the handler must be:
+        @code
+        void handler(
+            // Result of operation. if the sequence is empty, set to
+            // net::error::not_found. Otherwise, contains the
+            // error from the last connection attempt.
+            error_code const& error,
+    
+            // On success, an iterator denoting the successfully
+            // connected endpoint. Otherwise, the end iterator.
+            Iterator iterator
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes immediately
+        or not, the handler will not be invoked from within this function.
+        Invocation of the handler will be performed in a manner equivalent
+        to using `net::post`.
+    */
+    template<
+        class Iterator,
+        class ConnectCondition,
+        class IteratorConnectHandler>
+    BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
+        void (error_code, Iterator))
+    async_connect(
+        Iterator begin, Iterator end,
+        ConnectCondition connect_condition,
+        IteratorConnectHandler&& handler);
 
     //--------------------------------------------------------------------------
 
@@ -796,615 +1346,6 @@ public:
         ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 };
-
-//------------------------------------------------------------------------------
-
-/** Establishes a connection by trying each endpoint in a sequence.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-
-    The algorithm, known as a <em>composed operation</em>, is implemented
-    in terms of calls to the underlying socket's `connect` function.
-
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param endpoints A sequence of endpoints.
-    
-    @returns The successfully connected endpoint.
-    
-    @throws system_error Thrown on failure. If the sequence is
-    empty, the associated error code is `net::error::not_found`.
-    Otherwise, contains the error from the last connection attempt.
-*/
-template<
-    class Protocol, class Executor,
-    class EndpointSequence
-#if ! BOOST_BEAST_DOXYGEN
-    ,class = typename std::enable_if<
-        net::is_endpoint_sequence<
-            EndpointSequence>::value>::type
-#endif
->
-typename Protocol::endpoint
-connect(
-    basic_stream<Protocol, Executor>& stream,
-    EndpointSequence const& endpoints
-)
-{
-    return net::connect(stream.socket(), endpoints);
-}
-
-/** Establishes a connection by trying each endpoint in a sequence.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-    
-    The algorithm, known as a <em>composed operation</em>, is implemented
-    in terms of calls to the underlying socket's `connect` function.
-    
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param endpoints A sequence of endpoints.
-    
-    @param ec Set to indicate what error occurred, if any. If the sequence is
-    empty, set to `net::error::not_found`. Otherwise, contains the error
-    from the last connection attempt.
-    
-    @returns On success, the successfully connected endpoint. Otherwise, a
-    default-constructed endpoint.
-*/    
-template<
-    class Protocol, class Executor,
-    class EndpointSequence
-#if ! BOOST_BEAST_DOXYGEN
-    ,class = typename std::enable_if<
-        net::is_endpoint_sequence<
-            EndpointSequence>::value>::type
-#endif
->
-typename Protocol::endpoint
-connect(
-    basic_stream<Protocol, Executor>& stream,
-    EndpointSequence const& endpoints,
-    error_code& ec
-)
-{
-    return net::connect(stream.socket(), endpoints, ec);
-}
-
-/** Establishes a connection by trying each endpoint in a sequence.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-    
-    The algorithm, known as a <em>composed operation</em>, is implemented
-    in terms of calls to the underlying socket's `connect` function.
-    
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param begin An iterator pointing to the start of a sequence of endpoints.
-    
-    @param end An iterator pointing to the end of a sequence of endpoints.
-    
-    @returns An iterator denoting the successfully connected endpoint.
-    
-    @throws system_error Thrown on failure. If the sequence is
-    empty, the associated error code is `net::error::not_found`.
-    Otherwise, contains the error from the last connection attempt.
-*/    
-template<
-    class Protocol, class Executor,
-    class Iterator>
-Iterator
-connect(
-    basic_stream<Protocol, Executor>& stream,
-    Iterator begin, Iterator end)
-{
-    return net::connect(stream.socket(), begin, end);
-}
-
-/** Establishes a connection by trying each endpoint in a sequence.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-    
-    The algorithm, known as a <em>composed operation</em>, is implemented
-    in terms of calls to the underlying socket's `connect` function.
-    
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param begin An iterator pointing to the start of a sequence of endpoints.
-    
-    @param end An iterator pointing to the end of a sequence of endpoints.
-    
-    @param ec Set to indicate what error occurred, if any. If the sequence is
-    empty, set to boost::asio::error::not_found. Otherwise, contains the error
-    from the last connection attempt.
-    
-    @returns On success, an iterator denoting the successfully connected
-    endpoint. Otherwise, the end iterator.
-*/
-template<
-    class Protocol, class Executor,
-    class Iterator>
-Iterator
-connect(
-    basic_stream<Protocol, Executor>& stream,
-    Iterator begin, Iterator end,
-    error_code& ec)
-{
-    return net::connect(stream.socket(), begin, end, ec);
-}
-
-/** Establishes a connection by trying each endpoint in a sequence.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-    
-    The algorithm, known as a <em>composed operation</em>, is implemented
-    in terms of calls to the underlying socket's `connect` function.
-    
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param endpoints A sequence of endpoints.
-    
-    @param connect_condition A function object that is called prior to each
-    connection attempt. The signature of the function object must be:
-    @code
-    bool connect_condition(
-        error_code const& ec,
-        typename Protocol::endpoint const& next);
-    @endcode
-    The @c ec parameter contains the result from the most recent connect
-    operation. Before the first connection attempt, @c ec is always set to
-    indicate success. The @c next parameter is the next endpoint to be tried.
-    The function object should return true if the next endpoint should be tried,
-    and false if it should be skipped.
-    
-    @returns The successfully connected endpoint.
-    
-    @throws boost::system::system_error Thrown on failure. If the sequence is
-    empty, the associated error code is `net::error::not_found`.
-    Otherwise, contains the error from the last connection attempt.
-*/
-template<
-    class Protocol, class Executor,
-    class EndpointSequence, class ConnectCondition
-#if ! BOOST_BEAST_DOXYGEN
-    ,class = typename std::enable_if<
-        net::is_endpoint_sequence<
-            EndpointSequence>::value>::type
-#endif
->
-typename Protocol::endpoint
-connect(
-    basic_stream<Protocol, Executor>& stream,
-    EndpointSequence const& endpoints,
-    ConnectCondition connect_condition
-)
-{
-    return net::connect(stream.socket(), endpoints, connect_condition);
-}
-
-/** Establishes a connection by trying each endpoint in a sequence.
-
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-    
-    The algorithm, known as a <em>composed operation</em>, is implemented
-    in terms of calls to the underlying socket's `connect` function.
-
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-
-    @param endpoints A sequence of endpoints.
-
-    @param connect_condition A function object that is called prior to each
-    connection attempt. The signature of the function object must be:
-    @code
-    bool connect_condition(
-        error_code const& ec,
-        typename Protocol::endpoint const& next);
-    @endcode
-    The @c ec parameter contains the result from the most recent connect
-    operation. Before the first connection attempt, @c ec is always set to
-    indicate success. The @c next parameter is the next endpoint to be tried.
-    The function object should return true if the next endpoint should be tried,
-    and false if it should be skipped.
-
-    @param ec Set to indicate what error occurred, if any. If the sequence is
-    empty, set to `net::error::not_found`. Otherwise, contains the error
-    from the last connection attempt.
-
-    @returns On success, the successfully connected endpoint. Otherwise, a
-    default-constructed endpoint.
-*/
-template<
-    class Protocol, class Executor,
-    class EndpointSequence, class ConnectCondition
-#if ! BOOST_BEAST_DOXYGEN
-    ,class = typename std::enable_if<
-        net::is_endpoint_sequence<
-            EndpointSequence>::value>::type
-#endif
->
-typename Protocol::endpoint
-connect(
-    basic_stream<Protocol, Executor>& stream,
-    EndpointSequence const& endpoints,
-    ConnectCondition connect_condition,
-    error_code& ec)
-{
-    return net::connect(stream.socket(), endpoints, connect_condition, ec);
-}
-
-/** Establishes a connection by trying each endpoint in a sequence.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-    
-    The algorithm, known as a <em>composed operation</em>, is implemented
-    in terms of calls to the underlying socket's `connect` function.
-    
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param begin An iterator pointing to the start of a sequence of endpoints.
-    
-    @param end An iterator pointing to the end of a sequence of endpoints.
-    
-    @param connect_condition A function object that is called prior to each
-    connection attempt. The signature of the function object must be:
-    @code
-    bool connect_condition(
-        error_code const& ec,
-        typename Protocol::endpoint const& next);
-    @endcode
-    The @c ec parameter contains the result from the most recent connect
-    operation. Before the first connection attempt, @c ec is always set to
-    indicate success. The @c next parameter is the next endpoint to be tried.
-    The function object should return true if the next endpoint should be tried,
-    and false if it should be skipped.
-    
-    @returns An iterator denoting the successfully connected endpoint.
-    
-    @throws boost::system::system_error Thrown on failure. If the sequence is
-    empty, the associated @c error_code is `net::error::not_found`.
-    Otherwise, contains the error from the last connection attempt.
-*/  
-template<
-    class Protocol, class Executor,
-    class Iterator, class ConnectCondition>
-Iterator
-connect(
-    basic_stream<Protocol, Executor>& stream,
-    Iterator begin, Iterator end,
-    ConnectCondition connect_condition)
-{
-    return net::connect(stream.socket(), begin, end, connect_condition);
-}
-
-/** Establishes a connection by trying each endpoint in a sequence.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-    
-    The algorithm, known as a <em>composed operation</em>, is implemented
-    in terms of calls to the underlying socket's `connect` function.
-    
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param begin An iterator pointing to the start of a sequence of endpoints.
-    
-    @param end An iterator pointing to the end of a sequence of endpoints.
-    
-    @param connect_condition A function object that is called prior to each
-    connection attempt. The signature of the function object must be:
-    @code
-    bool connect_condition(
-        error_code const& ec,
-        typename Protocol::endpoint const& next);
-    @endcode
-    The @c ec parameter contains the result from the most recent connect
-    operation. Before the first connection attempt, @c ec is always set to
-    indicate success. The @c next parameter is the next endpoint to be tried.
-    The function object should return true if the next endpoint should be tried,
-    and false if it should be skipped.
-    
-    @param ec Set to indicate what error occurred, if any. If the sequence is
-    empty, set to `net::error::not_found`. Otherwise, contains the error
-    from the last connection attempt.
-    
-    @returns On success, an iterator denoting the successfully connected
-    endpoint. Otherwise, the end iterator.
-*/
-template<
-    class Protocol, class Executor,
-    class Iterator, class ConnectCondition>
-Iterator
-connect(
-    basic_stream<Protocol, Executor>& stream,
-    Iterator begin, Iterator end,
-    ConnectCondition connect_condition,
-    error_code& ec)
-{
-    return net::connect(stream.socket(), begin, end, connect_condition, ec);
-}
-
-/** Establishes a connection by trying each endpoint in a sequence asynchronously.
-   
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-
-    The algorithm, known as a <em>composed asynchronous operation</em>, is
-    implemented in terms of calls to the underlying socket's `async_connect`
-    function.
-
-    If the timeout timer expires while the operation is outstanding,
-    the current connection attempt will be canceled and the completion
-    handler will be invoked with the error @ref error::timeout.
-
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param endpoints A sequence of endpoints. This this object must meet
-    the requirements of <em>EndpointSequence</em>.
-    
-    @param handler The handler to be called when the connect operation
-    completes. Ownership of the handler may be transferred. The function
-    signature of the handler must be:
-    @code
-    void handler(
-        // Result of operation. if the sequence is empty, set to
-        // net::error::not_found. Otherwise, contains the
-        // error from the last connection attempt.
-        error_code const& error,
-    
-        // On success, the successfully connected endpoint.
-        // Otherwise, a default-constructed endpoint.
-        typename Protocol::endpoint const& endpoint
-    );
-    @endcode
-    Regardless of whether the asynchronous operation completes immediately
-    or not, the handler will not be invoked from within this function.
-    Invocation of the handler will be performed in a manner equivalent
-    to using `net::post`.
-*/
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class EndpointSequence,
-    class RangeConnectHandler
-#if ! BOOST_BEAST_DOXYGEN
-    ,class = typename std::enable_if<
-        net::is_endpoint_sequence<
-            EndpointSequence>::value>::type
-#endif
->
-BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-    void (error_code, typename Protocol::endpoint))
-async_connect(
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
-    EndpointSequence const& endpoints,
-    RangeConnectHandler&& handler);
-
-/** Establishes a connection by trying each endpoint in a sequence asynchronously.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-
-    The algorithm, known as a <em>composed asynchronous operation</em>, is
-    implemented in terms of calls to the underlying socket's `async_connect`
-    function.
-
-    If the timeout timer expires while the operation is outstanding,
-    the current connection attempt will be canceled and the completion
-    handler will be invoked with the error @ref error::timeout.
-
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-
-    @param endpoints A sequence of endpoints. This this object must meet
-    the requirements of <em>EndpointSequence</em>.
-    
-    @param connect_condition A function object that is called prior to each
-    connection attempt. The signature of the function object must be:
-    @code
-    bool connect_condition(
-        error_code const& ec,
-        typename Protocol::endpoint const& next);
-    @endcode
-    The @c ec parameter contains the result from the most recent connect
-    operation. Before the first connection attempt, @c ec is always set to
-    indicate success. The @c next parameter is the next endpoint to be tried.
-    The function object should return true if the next endpoint should be tried,
-    and false if it should be skipped.
-
-    @param handler The handler to be called when the connect operation
-    completes. Ownership of the handler may be transferred. The function
-    signature of the handler must be:
-    @code
-    void handler(
-        // Result of operation. if the sequence is empty, set to
-        // net::error::not_found. Otherwise, contains the
-        // error from the last connection attempt.
-        error_code const& error,
-    
-        // On success, the successfully connected endpoint.
-        // Otherwise, a default-constructed endpoint.
-        typename Protocol::endpoint const& endpoint
-    );
-    @endcode
-    Regardless of whether the asynchronous operation completes immediately
-    or not, the handler will not be invoked from within this function.
-    Invocation of the handler will be performed in a manner equivalent
-    to using `net::post`.
-
-    @par Example
-    The following connect condition function object can be used to output
-    information about the individual connection attempts:
-    @code
-    struct my_connect_condition
-    {
-        bool operator()(
-            error_code const& ec,
-            net::ip::tcp::endpoint const& next)
-        {
-            if (ec)
-                std::cout << "Error: " << ec.message() << std::endl;
-            std::cout << "Trying: " << next << std::endl;
-            return true;
-        }
-    };
-    @endcode
-*/
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class EndpointSequence,
-    class ConnectCondition,
-    class RangeConnectHandler
-#if ! BOOST_BEAST_DOXYGEN
-    ,class = typename std::enable_if<
-        net::is_endpoint_sequence<
-            EndpointSequence>::value>::type
-#endif
->
-BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-    void (error_code, typename Protocol::endpoint))
-async_connect(
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
-    EndpointSequence const& endpoints,
-    ConnectCondition connect_condition,
-    RangeConnectHandler&& handler);
-
-/** Establishes a connection by trying each endpoint in a sequence asynchronously.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-
-    The algorithm, known as a <em>composed asynchronous operation</em>, is
-    implemented in terms of calls to the underlying socket's `async_connect`
-    function.
-
-    If the timeout timer expires while the operation is outstanding,
-    the current connection attempt will be canceled and the completion
-    handler will be invoked with the error @ref error::timeout.
-
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param begin An iterator pointing to the start of a sequence of endpoints.
-    
-    @param end An iterator pointing to the end of a sequence of endpoints.
-
-    @param handler The handler to be called when the connect operation
-    completes. Ownership of the handler may be transferred. The function
-    signature of the handler must be:
-    @code
-    void handler(
-        // Result of operation. if the sequence is empty, set to
-        // net::error::not_found. Otherwise, contains the
-        // error from the last connection attempt.
-        error_code const& error,
-    
-        // On success, an iterator denoting the successfully
-        // connected endpoint. Otherwise, the end iterator.
-        Iterator iterator
-    );
-    @endcode
-    Regardless of whether the asynchronous operation completes immediately
-    or not, the handler will not be invoked from within this function.
-    Invocation of the handler will be performed in a manner equivalent
-    to using `net::post`.
-*/
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class Iterator,
-    class IteratorConnectHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-    void (error_code, Iterator))
-async_connect(
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
-    Iterator begin, Iterator end,
-    IteratorConnectHandler&& handler);
-
-/** Establishes a connection by trying each endpoint in a sequence asynchronously.
-    
-    This function attempts to connect the stream to one of a sequence of
-    endpoints by trying each endpoint until a connection is successfully
-    established.
-
-    The algorithm, known as a <em>composed asynchronous operation</em>, is
-    implemented in terms of calls to the underlying socket's `async_connect`
-    function.
-
-    If the timeout timer expires while the operation is outstanding,
-    the current connection attempt will be canceled and the completion
-    handler will be invoked with the error @ref error::timeout.
-
-    @param stream The stream to be connected.
-    If the underlying socket is already open, it will be closed.
-    
-    @param begin An iterator pointing to the start of a sequence of endpoints.
-
-    @param end An iterator pointing to the end of a sequence of endpoints.
-    
-    @param connect_condition A function object that is called prior to each
-    connection attempt. The signature of the function object must be:
-    @code
-    bool connect_condition(
-        error_code const& ec,
-        Iterator next);
-    @endcode
-    @param handler The handler to be called when the connect operation
-    completes. Ownership of the handler may be transferred. The function
-    signature of the handler must be:
-    @code
-    void handler(
-        // Result of operation. if the sequence is empty, set to
-        // net::error::not_found. Otherwise, contains the
-        // error from the last connection attempt.
-        error_code const& error,
-    
-        // On success, an iterator denoting the successfully
-        // connected endpoint. Otherwise, the end iterator.
-        Iterator iterator
-    );
-    @endcode
-    Regardless of whether the asynchronous operation completes immediately
-    or not, the handler will not be invoked from within this function.
-    Invocation of the handler will be performed in a manner equivalent
-    to using `net::post`.
-*/
-template<
-    class Protocol, class Executor, class RatePolicy,
-    class Iterator,
-    class ConnectCondition,
-    class IteratorConnectHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-    void (error_code, Iterator))
-async_connect(
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
-    Iterator begin, Iterator end,
-    ConnectCondition connect_condition,
-    IteratorConnectHandler&& handler);
 
 } // beast
 } // boost

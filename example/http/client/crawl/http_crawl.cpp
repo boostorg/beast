@@ -223,8 +223,7 @@ public:
         stream_.expires_after(std::chrono::seconds(10));
 
         // Make the connection on the IP address we get from a lookup
-        beast::async_connect(
-            stream_,
+        stream_.async_connect(
             results,
             beast::bind_front_handler(
                 &worker::on_connect,

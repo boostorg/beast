@@ -64,12 +64,10 @@
         <bridgehead renderas="sect3">Functions</bridgehead>
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.ref.boost__beast__allocate_stable">allocate_stable</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
-          <member><link linkend="beast.ref.boost__beast__async_connect">async_connect</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__beast_close_socket">beast_close_socket</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__bind_front_handler">bind_front_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__bind_handler">bind_handler</link></member>
           <member><link linkend="beast.ref.boost__beast__close_socket">close_socket</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
-          <member><link linkend="beast.ref.boost__beast__connect">connect</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__generic_category">generic_category</link></member>
           <member><link linkend="beast.ref.boost__beast__get_lowest_layer">get_lowest_layer</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__iequals">iequals</link></member>

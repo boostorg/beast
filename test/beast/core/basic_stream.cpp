@@ -819,9 +819,9 @@ public:
             stream_type s(ioc);
             error_code ec;
             r.ep = a.ep;
-            connect(s, r);
+            s.connect(r);
             s.socket().close();
-            connect(s, r, ec);
+            s.connect(r, ec);
             BEAST_EXPECTS(! ec, ec.message());
         }
 
@@ -830,9 +830,9 @@ public:
             stream_type s(ioc);
             error_code ec;
             r.ep = a.ep;
-            connect(s, r, cond);
+            s.connect(r, cond);
             s.socket().close();
-            connect(s, r, cond, ec);
+            s.connect(r, cond, ec);
             BEAST_EXPECTS(! ec, ec.message());
         }
 
@@ -841,9 +841,9 @@ public:
             stream_type s(ioc);
             error_code ec;
             r.ep = a.ep;
-            connect(s, r.begin(), r.end());
+            s.connect(r.begin(), r.end());
             s.socket().close();
-            connect(s, r.begin(), r.end(), ec);
+            s.connect(r.begin(), r.end(), ec);
             BEAST_EXPECTS(! ec, ec.message());
         }
 
@@ -852,9 +852,9 @@ public:
             stream_type s(ioc);
             error_code ec;
             r.ep = a.ep;
-            connect(s, r.begin(), r.end(), cond);
+            s.connect(r.begin(), r.end(), cond);
             s.socket().close();
-            connect(s, r.begin(), r.end(), cond, ec);
+            s.connect(r.begin(), r.end(), cond, ec);
             BEAST_EXPECTS(! ec, ec.message());
         }
 
@@ -881,12 +881,12 @@ public:
             stream_type s(ioc);
             r.ep = a.ep;
             s.expires_never();
-            async_connect(s, r, range_handler{});
+            s.async_connect(r, range_handler{});
             ioc.run();
             ioc.restart();
             s.socket().close();
             s.expires_after(std::chrono::seconds(30));
-            async_connect(s, r, range_handler{});
+            s.async_connect(r, range_handler{});
             ioc.run();
             ioc.restart();
         }
@@ -896,12 +896,12 @@ public:
             stream_type s(ioc);
             r.ep = a.ep;
             s.expires_never();
-            async_connect(s, r, cond, range_handler{});
+            s.async_connect(r, cond, range_handler{});
             ioc.run();
             ioc.restart();
             s.socket().close();
             s.expires_after(std::chrono::seconds(30));
-            async_connect(s, r, cond, range_handler{});
+            s.async_connect(r, cond, range_handler{});
             ioc.run();
             ioc.restart();
         }
@@ -911,13 +911,13 @@ public:
             stream_type s(ioc);
             r.ep = a.ep;
             s.expires_never();
-            async_connect(s, r.begin(), r.end(),
+            s.async_connect(r.begin(), r.end(),
                 iterator_handler{});
             ioc.run();
             ioc.restart();
             s.socket().close();
             s.expires_after(std::chrono::seconds(30));
-            async_connect(s, r.begin(), r.end(),
+            s.async_connect(r.begin(), r.end(),
                 iterator_handler{});
             ioc.run();
             ioc.restart();
@@ -928,18 +928,18 @@ public:
             stream_type s(ioc);
             r.ep = a.ep;
             s.expires_never();
-            async_connect(s, r.begin(), r.end(), cond,
+            s.async_connect(r.begin(), r.end(), cond,
                 iterator_handler{});
             ioc.run();
             ioc.restart();
             s.socket().close();
             s.expires_after(std::chrono::seconds(30));
-            async_connect(s, r.begin(), r.end(), cond,
+            s.async_connect(r.begin(), r.end(), cond,
                 iterator_handler{});
             ioc.run();
             ioc.restart();
         }
-
+#if 0
         // use_future
 
         BEAST_EXPECT(static_cast<std::future<
@@ -999,6 +999,7 @@ public:
                 connect_condition const&,
                 net::yield_context&&)>(
                     &beast::async_connect));
+#endif
 
         //
         // async_connect timeout

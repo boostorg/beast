@@ -60,7 +60,7 @@ int main(int argc, char** argv)
         auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        beast::connect(stream, results);
+        stream.connect(results);
 
         // Set up an HTTP GET request message
         http::request<http::string_body> req{http::verb::get, target, version};

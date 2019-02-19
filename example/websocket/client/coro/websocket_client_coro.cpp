@@ -60,7 +60,7 @@ do_session(
     beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(30));
 
     // Make the connection on the IP address we get from a lookup
-    beast::async_connect(ws.next_layer(), results, yield[ec]);
+    beast::get_lowest_layer(ws).async_connect(results, yield[ec]);
     if(ec)
         return fail(ec, "connect");
 

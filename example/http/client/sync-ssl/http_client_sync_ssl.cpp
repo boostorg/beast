@@ -80,7 +80,7 @@ int main(int argc, char** argv)
         auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        beast::connect(beast::get_lowest_layer(stream), results);
+        beast::get_lowest_layer(stream).connect(results);
 
         // Perform the SSL handshake
         stream.handshake(ssl::stream_base::client);
