@@ -131,6 +131,47 @@ From a Windows command line, build bjam using this command:
 .\BOOTSTRAP.BAT
 ```
 
+## Building tests and examples
+Building tests and examples requires OpenSSL installed. If OpenSSL is installed
+in a non-system location, you will need to copy the
+[user-config.jam](tools/user-config.jam) file into your home directory and set
+the `OPENSSL_ROOT` environment variable to the path that contains an installation
+of OpenSSL.
+
+### Ubuntu/Debian
+If installed into a system directory, OpenSSL will be automatically found and used.
+```bash
+sudo apt install libssl-dev
+```
+### Windows
+Replace `path` in the following code snippets with the path you installed vcpkg
+to. Examples assume a 32-bit build, if you build a 64-bit version replace
+`x32-windows` with `x64-windows` in the path.
+- Using [vcpkg](https://github.com/Microsoft/vcpkg) and CMD:
+```bat
+vcpkg install openssl --triplet x32-windows
+SET OPENSSL_ROOT=path\installed\x32-windows
+```
+
+- Using [vcpkg](https://github.com/Microsoft/vcpkg) and PowerShell:
+```powershell
+vcpkg install openssl --triplet x32-windows
+$env:OPENSSL_ROOT = "path\x32-windows"
+```
+
+- Using [vcpkg](https://github.com/Microsoft/vcpkg) and bash:
+```bash
+vcpkg.exe install openssl --triplet x32-windows
+export OPENSSL_ROOT=path/x32-windows
+```
+
+### Mac OS
+Using [brew](https://github.com/Homebrew/brew):
+```bash
+brew install openssl
+export OPENSSL_ROOT=$(brew --prefix openssl)
+```
+
 Make sure the bjam tool (also called "b2") is available in the path
 your shell uses to find executables. The Beast project is located in
 "libs/beast" relative to the directory containing the Boot superproject.
@@ -140,6 +181,8 @@ b2 -j2 libs/beast/test cxxstd=11      # bjam must be in your $PATH
 b2 -j2 libs/beast/example cxxstd=11   # "-j2" means use two processors
 b2 libs/beast/doc                     # Doxygen and Saxon are required for this
 ```
+
+
 
 Additional instructions for configuring, using, and building libraries
 in superproject may be found in the
