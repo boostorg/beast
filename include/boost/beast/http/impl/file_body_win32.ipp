@@ -55,11 +55,12 @@ struct basic_file_body<file_win32>
         template<class, class, class, bool, class>
         friend class detail::write_some_win32_op;
         template<
-            class Protocol, bool isRequest, class Fields>
+            class Protocol, class Executor,
+            bool isRequest, class Fields>
         friend
         std::size_t
         write_some(
-            net::basic_stream_socket<Protocol>& sock,
+            net::basic_stream_socket<Protocol, Executor>& sock,
             serializer<isRequest,
                 basic_file_body<file_win32>, Fields>& sr,
             error_code& ec);
@@ -104,11 +105,12 @@ struct basic_file_body<file_win32>
         template<class, class, class, bool, class>
         friend class detail::write_some_win32_op;
         template<
-            class Protocol, bool isRequest, class Fields>
+            class Protocol, class Executor,
+            bool isRequest, class Fields>
         friend
         std::size_t
         write_some(
-            net::basic_stream_socket<Protocol>& sock,
+            net::basic_stream_socket<Protocol, Executor>& sock,
             serializer<isRequest,
                 basic_file_body<file_win32>, Fields>& sr,
             error_code& ec);
@@ -330,10 +332,6 @@ template<
 class write_some_win32_op
     : public beast::async_op_base<Handler, Executor>
 {
-    static_assert(
-        std::is_same<Executor, net::io_context::executor_type>::value,
-        "Executor must be net::io_context::executor_type");
-
     net::basic_stream_socket<
         Protocol, Executor>& sock_;
     serializer<isRequest,
@@ -380,7 +378,7 @@ public:
                 (std::min<std::uint64_t>)(w.body_.last_ - w.pos_, sr_.limit()),
                 (std::numeric_limits<boost::winapi::DWORD_>::max)()));
         net::windows::overlapped_ptr overlapped{
-            sock_.get_executor().context(), std::move(*this)};
+            sock_.get_executor(), std::move(*this)};
         // Note that we have moved *this, so we cannot access
         // the handler since it is now moved-from. We can still
         // access simple things like references and built-in types.

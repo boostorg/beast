@@ -180,7 +180,7 @@ endif()
 include_directories (.)
 
 # VFALCO FIXME Need this for recent asio changes
-add_definitions (-DBOOST_BEAST_NO_FILE_BODY_WIN32=1)
+#add_definitions (-DBOOST_BEAST_NO_FILE_BODY_WIN32=1)
 
 if (OPENSSL_FOUND)
     include_directories (${OPENSSL_INCLUDE_DIR})
