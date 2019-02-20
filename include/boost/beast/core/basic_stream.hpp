@@ -29,6 +29,7 @@
 #include <limits>
 #include <memory>
 
+#if ! BOOST_BEAST_DOXYGEN
 namespace boost {
 namespace asio {
 namespace ssl {
@@ -36,6 +37,7 @@ template<typename> class stream;
 } // ssl
 } // asio
 } // boost
+#endif
 
 namespace boost {
 namespace beast {

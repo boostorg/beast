@@ -11,27 +11,67 @@
 
 [/-----------------------------------------------------------------------------]
 
-[heading Boost 1.70]
-[/ includes up to version 209]
-[/
-
 * [phrase library..[@/libs/beast/ Beast]:]
-  * Example websocket-chat-multi
-  * New CppCon 2018 [@https://www.boost.org/doc/libs/master/libs/beast/doc/html/beast/examples.html#beast.examples.cppcon_2018 websocket chat example] and [@https://www.youtube.com/watch?v=7FQwAjELMek presentation video].
-  * For a complete list of changes, please view the official
-    [@/libs/beast/doc/html/beast/release_notes.html Release Notes].
+  [*YUUUGE Update!] The
+    [link beast.quickref [*reference]] shows a star
+    '''
+    <emphasis role="green">&#128946;</emphasis>
+    '''
+    next to each new item.
+  * [role red [*Beast needs your help!]]
+    * [@https://github.com/boostorg/beast/wiki/Companies-and-Individuals-Using-Beast [*Tell Us]]
+      how you or your company use Beast.
+    * Please
+      [@https://github.com/boostorg/beast/issues/new report]
+      any bugs, feature requests, or general feedback.
+    * Don't forget to
+      '''
+      &#11088;&#11088;&#11088;
+      '''
+      [@https://github.com/boostorg/beast [*star the repository]]
+      '''
+      &#11088;&#11088;&#11088;
+      '''
+      !
+    * Chat with us at the [*#beast] and [*#boost] channels in the
+      [@https://cppalliance.org/slack/ C++ Slack Workspace].
+  * [link beast.ref.boost__beast__basic_stream `basic_stream`] and
+    [link beast.ref.boost__beast__basic_stream `tcp_stream`] offer:
+    * Timeouts:
+      [link beast.ref.boost__beast__basic_stream.async_read_some `async_read_some`],
+      [link beast.ref.boost__beast__basic_stream.async_write_some `async_write_some`]
+      complete with
+      [link beast.ref.boost__beast__error `error::timeout`] on expiration!     
+    * Traffic-shaping policies
+      [link beast.ref.boost__beast__simple_rate_policy `simple`] and
+      [link beast.ref.boost__beast__unlimited_rate_policy `unlimited`],
+      or a user-defined
+      [link beast.concepts.RatePolicy ['RatePolicy]]!
+    * [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html [P1322R0]]
+      Put the strand on the socket itself, no more `bind_executor` at call sites!
+  * Base classes
+    [link beast.ref.boost__beast__async_op_base `async_op_base`] and
+    [link beast.ref.boost__beast__stable_async_op_base `stable_async_op_base`]
+    handle all composed operation boilerplate for you.
+  * All asynchronous operations use Asio's
+    [@boost:/doc/html/boost_asio/reference/async_initiate.html `async_initiate`]
+    for efficient integration with Coroutines TS.
+  * New [@boost:/doc/html/beast/example/websocket/server/chat-multi websocket-chat-multi]
+    multi-threaded websocket chat server with a JavaScript browser client.
+  * New [link beast.using_io.asio_refresher Networking Refresher] explains basic concepts.
+  * OpenSSL is required to build tests and examples
+  * See the full [link beast.release_notes [*Release Notes]] for a complete list
+    of changes.
 
+[/-----------------------------------------------------------------------------]
 
-* Use `beast::tcp_stream` instead of `boost::asio::ip::tcp::socket`!
-* subscribe to this GitHub issue to be informed!
-* we need testers!
-* star the repo!
+[heading Boost 1.70]
+
+[/
 
 Exposition:
 Enlarged scope
 - `net` is a namespace alias for `boost::asio`
-- New quality of life features:
-  tcp_socket
   async_op_base, stable_async_op_base
 - New Networking refresher
 - New websocket-chat-multi example
@@ -42,6 +82,10 @@ Enlarged scope
 [tip
   The namespace alias `net` is used throughout for `boost::asio`.
 ]
+
+
+[/ includes up to version 209]
+
 
 [*New Features]
 

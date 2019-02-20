@@ -159,4 +159,11 @@
 [include 07_concepts/0_concepts.qbk]
 [include 08_design/0_design.qbk]
 
+[section:moved1 Release Notes (Moved)]
+The Release Notes have been moved to the top of the table of contents.
+[endsect]
+[section:moved2 Reference (Moved)]
+The Reference has been moved to the top of the table of contents.
+[endsect]
+
 [xinclude index.xml]

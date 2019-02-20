@@ -3,6 +3,7 @@ Version 217:
 * websocket idle pings
 * RatePolicy documentation
 * Pass strand to async_accept
+* Fix file_body_win32
 
 --------------------------------------------------------------------------------
 
