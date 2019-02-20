@@ -25,16 +25,6 @@ addons:
 
 matrix:
   include:
-    # Default g++
-    - os: linux
-      compiler: g++
-      script: b2 -j3 libs/beast/test toolset=gcc cxxstd=11
-
-    # Default clang++
-    - os: linux
-      compiler: clang++
-      script: b2 -j3 libs/beast/test toolset=clang cxxstd=11
-
     # GCC 6.0, Debug + Coverage
     - os: linux
       compiler: g++-6
@@ -51,6 +41,45 @@ matrix:
             - g++-6
             - lcov
             - libssl-dev
+            - *base_packages
+          sources:
+            - *base_sources
+
+    # Default clang++
+    - os: linux
+      compiler: clang++
+      script: b2 -j3 libs/beast/test toolset=clang cxxstd=11
+
+    # OSX Clang, C++11, libc++, debug, 
+  # - if: branch != master
+    - os: osx
+      compiler: clang++
+      env:
+        - VARIANT=debug
+        - TOOLSET=clang
+        - COMPILER=clang++
+        - CXXSTD=14
+      before_install:
+        - brew install openssl
+        - export OPENSSL_ROOT=$(brew --prefix openssl)
+
+    # Default g++
+    - os: linux
+      compiler: g++
+      script: b2 -j3 libs/beast/test toolset=gcc cxxstd=11
+
+    # GCC 8, C++14, libstdc++, release
+    - os: linux
+      compiler: g++-8
+      env:
+        - VARIANT=release
+        - TOOLSET=gcc
+        - COMPILER=g++-8
+        - CXXSTD=14
+      addons:
+        apt:
+          packages:
+            - g++-8
             - *base_packages
           sources:
             - *base_sources
@@ -92,35 +121,6 @@ matrix:
           sources:
             - llvm-toolchain-precise-3.8
             - *base_sources
-
-    # GCC 8, C++14, libstdc++, release
-    - os: linux
-      compiler: g++-8
-      env:
-        - VARIANT=release
-        - TOOLSET=gcc
-        - COMPILER=g++-8
-        - CXXSTD=14
-      addons:
-        apt:
-          packages:
-            - g++-8
-            - *base_packages
-          sources:
-            - *base_sources
-
-    # OSX Clang, C++11, libc++, debug, 
-  # - if: branch != master
-    - os: osx
-      compiler: clang++
-      env:
-        - VARIANT=debug
-        - TOOLSET=clang
-        - COMPILER=clang++
-        - CXXSTD=14
-      before_install:
-        - brew install openssl
-        - export OPENSSL_ROOT=$(brew --prefix openssl)
 
 install:
   - export BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
