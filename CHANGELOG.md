@@ -5,6 +5,26 @@ Version 216:
 * Use suggested timeouts in Websocket examples
 * Add make_strand
 * Add RatePolicy to basic_stream
+* Use async_initiate in basic_stream
+* basic_stream connects are members
+* Beast supports latest Asio changes (API Change)
+* WebSocket Decorator is a socket option (API Change)
+* Overloads of the following functions which accept a Decorator
+  are deprecated:
+  - accept, accept_ex
+  - handshake, handshake_ex
+  - async_accept, async_accept_ex
+  - async_handshake, async_handshake_ex
+
+Actions Required:
+
+* Code which passes decorator to any `websocket::stream` member
+  function should call `stream::set_option` instead with a newly
+  constructed `stream_base::decorator` object containing the
+  decorator. Alternatively, the macro `BOOST_BEAST_ALLOW_DEPRECATED`
+  may be defined to 1.
+
+* Fix compilation errors required by Asio changes
 
 --------------------------------------------------------------------------------
 
