@@ -1,3 +1,9 @@
+Version 217:
+
+* websocket idle pings
+
+--------------------------------------------------------------------------------
+
 Version 216:
 
 * Refactor websocket::stream operations

@@ -238,96 +238,6 @@ public:
         );
     }
 
-    void
-    testTimeout()
-    {
-        using tcp = net::ip::tcp;
-
-        net::io_context ioc;
-
-        // success
-
-        {
-            stream<tcp::socket> ws1(ioc);
-            stream<tcp::socket> ws2(ioc);
-            test::connect(ws1.next_layer(), ws2.next_layer());
-
-            ws1.async_handshake("test", "/", test::success_handler());
-            ws2.async_accept(test::success_handler());
-            test::run_for(ioc, std::chrono::seconds(1));
-        }
-
-        {
-            stream<test::stream> ws1(ioc);
-            stream<test::stream> ws2(ioc);
-            test::connect(ws1.next_layer(), ws2.next_layer());
-
-            ws1.async_handshake("test", "/", test::success_handler());
-            ws2.async_accept(test::success_handler());
-            test::run_for(ioc, std::chrono::seconds(1));
-        }
-
-        // success, timeout enabled
-
-        {
-            stream<tcp::socket> ws1(ioc);
-            stream<tcp::socket> ws2(ioc);
-            test::connect(ws1.next_layer(), ws2.next_layer());
-
-            ws1.set_option(stream_base::timeout{
-                std::chrono::milliseconds(50),
-                stream_base::none(),
-                false});
-            ws1.async_handshake("test", "/", test::success_handler());
-            ws2.async_accept(test::success_handler());
-            test::run_for(ioc, std::chrono::seconds(1));
-        }
-
-        {
-            stream<test::stream> ws1(ioc);
-            stream<test::stream> ws2(ioc);
-            test::connect(ws1.next_layer(), ws2.next_layer());
-
-            ws1.set_option(stream_base::timeout{
-                std::chrono::milliseconds(50),
-                stream_base::none(),
-                false});
-            ws1.async_handshake("test", "/", test::success_handler());
-            ws2.async_accept(test::success_handler());
-            test::run_for(ioc, std::chrono::seconds(1));
-        }
-
-        // timeout
-
-        {
-            stream<tcp::socket> ws1(ioc);
-            stream<tcp::socket> ws2(ioc);
-            test::connect(ws1.next_layer(), ws2.next_layer());
-
-            ws1.set_option(stream_base::timeout{
-                std::chrono::milliseconds(50),
-                stream_base::none(),
-                false});
-            ws1.async_handshake("test", "/",
-                test::fail_handler(beast::error::timeout));
-            test::run_for(ioc, std::chrono::seconds(1));
-        }
-
-        {
-            stream<test::stream> ws1(ioc);
-            stream<test::stream> ws2(ioc);
-            test::connect(ws1.next_layer(), ws2.next_layer());
-
-            ws1.set_option(stream_base::timeout{
-                std::chrono::milliseconds(50),
-                stream_base::none(),
-                false});
-            ws1.async_handshake("test", "/",
-                test::fail_handler(beast::error::timeout));
-            test::run_for(ioc, std::chrono::seconds(1));
-        }
-    }
-
     // Compression Extensions for WebSocket
     //
     // https://tools.ietf.org/html/rfc7692
@@ -598,14 +508,116 @@ public:
     };
 
     void
+    testAsync()
+    {
+        using tcp = net::ip::tcp;
+
+        net::io_context ioc;
+
+        // success, no timeout
+
+        {
+            stream<tcp::socket> ws1(ioc);
+            stream<tcp::socket> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+
+            ws1.async_handshake("test", "/", test::success_handler());
+            ws2.async_accept(test::success_handler());
+            test::run_for(ioc, std::chrono::seconds(1));
+        }
+
+        {
+            stream<test::stream> ws1(ioc);
+            stream<test::stream> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+
+            ws1.async_handshake("test", "/", test::success_handler());
+            ws2.async_accept(test::success_handler());
+            test::run_for(ioc, std::chrono::seconds(1));
+        }
+
+        // success, timeout enabled
+
+        {
+            stream<tcp::socket> ws1(ioc);
+            stream<tcp::socket> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+
+            ws1.set_option(stream_base::timeout{
+                std::chrono::milliseconds(50),
+                stream_base::none(),
+                false});
+            ws1.async_handshake("test", "/", test::success_handler());
+            ws2.async_accept(test::success_handler());
+            test::run_for(ioc, std::chrono::seconds(1));
+        }
+
+        {
+            stream<test::stream> ws1(ioc);
+            stream<test::stream> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+
+            ws1.set_option(stream_base::timeout{
+                std::chrono::milliseconds(50),
+                stream_base::none(),
+                false});
+            ws1.async_handshake("test", "/", test::success_handler());
+            ws2.async_accept(test::success_handler());
+            test::run_for(ioc, std::chrono::seconds(1));
+        }
+
+        // timeout
+
+        {
+            stream<tcp::socket> ws1(ioc);
+            stream<tcp::socket> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+
+            ws1.set_option(stream_base::timeout{
+                std::chrono::milliseconds(50),
+                stream_base::none(),
+                false});
+            ws1.async_handshake("test", "/",
+                test::fail_handler(beast::error::timeout));
+            test::run_for(ioc, std::chrono::seconds(1));
+        }
+
+        {
+            stream<test::stream> ws1(ioc);
+            stream<test::stream> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+
+            ws1.set_option(stream_base::timeout{
+                std::chrono::milliseconds(50),
+                stream_base::none(),
+                false});
+            ws1.async_handshake("test", "/",
+                test::fail_handler(beast::error::timeout));
+            test::run_for(ioc, std::chrono::seconds(1));
+        }
+
+        // abandoned operation
+
+        {
+            {
+                stream<tcp::socket> ws1(ioc);
+                ws1.async_handshake("test", "/",
+                    test::fail_handler(
+                        net::error::operation_aborted));
+            }
+            test::run(ioc);
+        }
+    }
+
+    void
     run() override
     {
         testHandshake();
-        testTimeout();
         testExtRead();
         testExtWrite();
         testExtNegotiate();
         testMoveOnly();
+        testAsync();
     }
 };
 

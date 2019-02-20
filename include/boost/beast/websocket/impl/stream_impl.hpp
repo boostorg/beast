@@ -91,6 +91,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
     saved_handler           op_r_rd;        // paused read op (async read)
     saved_handler           op_r_close;     // paused close op (async read)
 
+    bool idle_pinging = false;
     bool secure_prng_ = true;
     bool ec_delivered = false;
     bool timed_out = false;
@@ -335,6 +336,9 @@ struct stream<NextLayer, deflateSupported>::impl_type
         case status::handshake:
             break;
 
+        case status::open:
+            break;
+
         case status::closing:
             //BOOST_ASSERT(status_ == status::open);
             break;
@@ -445,7 +449,7 @@ private:
         using executor_type = Executor;
 
         executor_type
-        get_executor() const
+        get_executor() const noexcept
         {
             return this->get();
         }
@@ -479,7 +483,7 @@ private:
                 if( impl.timeout_opt.keep_alive_pings &&
                     impl.idle_counter < 1)
                 {
-                    // <- send ping
+                    idle_ping_op<Executor>(sp, get_executor());
 
                     ++impl.idle_counter;
                     impl.timer.expires_after(

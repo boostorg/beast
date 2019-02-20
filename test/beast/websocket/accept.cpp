@@ -15,9 +15,6 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include "test.hpp"
 
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/strand.hpp>
-
 namespace boost {
 namespace beast {
 namespace websocket {

@@ -2603,7 +2603,7 @@ private:
     template<class>         class close_op;
     template<class>         class handshake_op;
     template<class>         class ping_op;
-    template<class>         class auto_ping_op;
+    template<class>         class idle_ping_op;
     template<class, class>  class read_some_op;
     template<class, class>  class read_op;
     template<class>         class response_op;

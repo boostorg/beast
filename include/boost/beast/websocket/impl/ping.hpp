@@ -109,100 +109,96 @@ public:
 
 //------------------------------------------------------------------------------
 
-#if 0
-template<
-    class NextLayer,
-    bool deflateSupported,
-    class Handler>
-void
-async_auto_ping(
-    stream<NextLayer, deflateSupported>& ws,
-    Handler&& handler)
+// sends the idle ping
+template<class NextLayer, bool deflateSupported>
+template<class Executor>
+class stream<NextLayer, deflateSupported>::idle_ping_op
+    : public net::coroutine
+    , public boost::empty_value<Executor>
 {
-    using handler_type =
-        typename std::decay<Handler>::type;
+    boost::weak_ptr<impl_type> wp_;
+    std::unique_ptr<detail::frame_buffer> fb_;
 
-    using base_type =
-        beast::stable_async_op_base<
-            handler_type, beast::executor_type<
-                stream<NextLayer, deflateSupported>>>;
+public:
+    static constexpr int id = 4; // for soft_mutex
 
-    struct async_op : base_type, net::coroutine
+    using executor_type = Executor;
+
+    executor_type
+    get_executor() const noexcept
     {
-        boost::weak_ptr<impl_type> impl_;
-        detail::frame_buffer& fb_;
+        return this->get();
+    }
 
-    public:
-        static constexpr int id = 4; // for soft_mutex
-
-        async_op(
-            Handler&& h,
-            stream<NextLayer, deflateSupported>& ws)
-            : base_type(std::move(h), ws.get_executor())
-            , impl_(ws.impl_)
-            , fb_(beast::allocate_stable<
-                detail::frame_buffer>(*this))
+    idle_ping_op(
+        boost::shared_ptr<impl_type> const& sp,
+        Executor const& ex)
+        : boost::empty_value<Executor>(
+            boost::empty_init_t{}, ex)
+        , wp_(sp)
+        , fb_(new detail::frame_buffer)
+    {
+        if(! sp->idle_pinging)
         {
-            // Serialize the ping or pong frame
-            ping_data payload;
-            ws.template write_ping<
-                flat_static_buffer_base>(fb_, op, payload);
-            (*this)({}, 0, false);
+            // Create the ping frame
+            ping_data payload; // empty for now
+            sp->template write_ping<
+                flat_static_buffer_base>(*fb_,
+                    detail::opcode::ping, payload);
+
+            sp->idle_pinging = true;
+            (*this)({}, 0);
         }
-
-        void operator()(
-            error_code ec = {},
-            std::size_t bytes_transferred = 0,
-            bool cont = true)
+        else
         {
-            boost::ignore_unused(bytes_transferred);
-            auto sp = impl_.lock();
-            if(! sp)
-                return;
+            // if we are already in the middle of sending
+            // an idle ping, don't bother sending another.
+        }
+    }
 
-            auto& impl = *ws_.impl_;
-            BOOST_ASIO_CORO_REENTER(*this)
+    void operator()(
+        error_code ec = {},
+        std::size_t bytes_transferred = 0)
+    {
+        boost::ignore_unused(bytes_transferred);
+        auto sp = wp_.lock();
+        if(! sp)
+            return;
+        auto& impl = *sp;
+        BOOST_ASIO_CORO_REENTER(*this)
+        {
+            // Acquire the write lock
+            if(! impl.wr_block.try_lock(this))
             {
-                // Acquire the write lock
-                if(! impl.wr_block.try_lock(this))
-                {
-                    BOOST_ASIO_CORO_YIELD
-                    impl.op_idle_ping.emplace(std::move(*this));
-                    impl.wr_block.lock(this);
-                    BOOST_ASIO_CORO_YIELD
-                    net::post(std::move(*this));
-                    BOOST_ASSERT(impl.wr_block.is_locked(this));
-                }
-                if(impl.check_stop_now(ec))
-                    goto upcall;
-
-                // Send ping frame
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(impl.stream, fb_.data(),
-                    beast::detail::bind_continuation(std::move(*this)));
-                if(impl.check_stop_now(ec))
-                    goto upcall;
-
-            upcall:
-                impl.wr_block.unlock(this);
-                impl.op_close.maybe_invoke()
-                    || impl.op_ping.maybe_invoke()
-                    || impl.op_rd.maybe_invoke()
-                    || impl.op_wr.maybe_invoke();
-                if(! cont)
-                {
-                    BOOST_ASIO_CORO_YIELD
-                    net::post(bind_front_handler(
-                        std::move(*this), ec));
-                }
-                this->invoke(ec);
+                impl.op_idle_ping.emplace(std::move(*this));
+                impl.wr_block.lock(this);
+                BOOST_ASIO_CORO_YIELD
+                net::post(this->get(), std::move(*this));
+                BOOST_ASSERT(impl.wr_block.is_locked(this));
             }
-        }
-    };
+            if(impl.check_stop_now(ec))
+                goto upcall;
 
-    async_op op(ws, std::forward<Handler>(handler));
-}
-#endif
+            // Send ping frame
+            BOOST_ASIO_CORO_YIELD
+            net::async_write(impl.stream, fb_->data(),
+                //beast::detail::bind_continuation(std::move(*this)));
+                std::move(*this));
+            if(impl.check_stop_now(ec))
+                goto upcall;
+
+        upcall:
+            BOOST_ASSERT(sp->idle_pinging);
+            sp->idle_pinging = false;
+            impl.wr_block.unlock(this);
+            impl.op_close.maybe_invoke()
+                || impl.op_ping.maybe_invoke()
+                || impl.op_rd.maybe_invoke()
+                || impl.op_wr.maybe_invoke();
+        }
+    }
+};
 
 //------------------------------------------------------------------------------
 
