@@ -104,6 +104,7 @@
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.concepts.streams.AsyncStream">AsyncStream</link></member>
           <member><link linkend="beast.concepts.File">File</link></member>
+          <member><link linkend="beast.concepts.RatePolicy">RatePolicy</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.concepts.streams.Stream">Stream</link></member>
           <member><link linkend="beast.concepts.streams.SyncStream">SyncStream</link></member>
         </simplelist>

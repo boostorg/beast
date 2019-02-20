@@ -1,6 +1,7 @@
 Version 217:
 
 * websocket idle pings
+* RatePolicy documentation
 
 --------------------------------------------------------------------------------
 

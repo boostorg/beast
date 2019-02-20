@@ -19,6 +19,7 @@ This section describes all of the concepts defined by the library.
 [include Fields.qbk]
 [include FieldsWriter.qbk]
 [include File.qbk]
+[include RatePolicy.qbk]
 [include Streams.qbk]
 
 [endsect]

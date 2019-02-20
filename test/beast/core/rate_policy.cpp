@@ -13,6 +13,31 @@
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 
+//[concept_RatePolicy
+class RatePolicy
+{
+    friend class rate_policy_access;
+
+    static std::size_t constexpr all =
+        (std::numeric_limits<std::size_t>::max)();
+
+    std::size_t
+    available_read_bytes();
+
+    std::size_t
+    available_write_bytes();
+    
+    void
+    transfer_read_bytes(std::size_t);
+    
+    void
+    transfer_write_bytes(std::size_t);
+
+    void
+    on_timer();
+};
+//]
+
 namespace boost {
 namespace beast {
 

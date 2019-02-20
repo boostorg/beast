@@ -63,6 +63,9 @@
     <xsl:when test="type = 'class RangeConnectHandler'">
       <xsl:text>class __RangeConnectHandler__</xsl:text>
     </xsl:when>
+    <xsl:when test="type = 'class RatePolicy'">
+      <xsl:text>class ``[link beast.concepts.RatePolicy [*RatePolicy]]``</xsl:text>
+    </xsl:when>
     <xsl:when test="declname = 'ReadHandler' or type = 'class ReadHandler'">
       <xsl:text>class __ReadHandler__</xsl:text>
     </xsl:when>

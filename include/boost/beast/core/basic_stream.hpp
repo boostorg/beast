@@ -239,7 +239,12 @@ private:
 
         template<class... Args>
         explicit
-        impl_type(Args&&...);
+        impl_type(std::false_type, Args&&...);
+
+        template<class RatePolicy_, class... Args>
+        explicit
+        impl_type(std::true_type,
+            RatePolicy_&& policy, Args&&...);
 
         impl_type& operator=(impl_type&&) = delete;
 
@@ -317,9 +322,43 @@ public:
         @param args A list of parameters forwarded to the constructor of
         the underlying socket.
     */
+#if BOOST_BEAST_DOXYGEN
     template<class... Args>
     explicit
     basic_stream(Args&&... args);
+#else
+    template<class Arg0, class... Args,
+        class = typename std::enable_if<
+        ! std::is_constructible<RatePolicy, Arg0>::value>::type>
+    explicit
+    basic_stream(Arg0&& argo, Args&&... args);
+#endif
+
+    /** Constructor
+
+        This constructor creates the stream with the specified rate
+        policy, and forwards all remaining arguments to the underlying
+        socket. The socket then needs to be open and connected or
+        accepted before data can be sent or received on it.
+
+        @param policy The rate policy object to use. The stream will
+        take ownership of this object by decay-copy.
+
+        @param args A list of parameters forwarded to the constructor of
+        the underlying socket.
+    */
+#if BOOST_BEAST_DOXYGEN
+    template<class RatePolicy_, class... Args>
+    explicit
+    basic_stream(RatePolicy_&& policy, Args&&... args);
+#else
+    template<class RatePolicy_, class Arg0, class... Args,
+        class = typename std::enable_if<
+            std::is_constructible<
+                RatePolicy, RatePolicy_>::value>::type>
+    basic_stream(
+        RatePolicy_&& policy, Arg0&& arg, Args&&... args);
+#endif
 
     /** Move constructor
 

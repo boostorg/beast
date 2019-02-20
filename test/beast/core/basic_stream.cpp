@@ -417,6 +417,34 @@ public:
             opt = false;
             BEAST_EXPECT(! opt.value());
         }
+
+        // rate policies
+
+        {
+            basic_stream<tcp,
+                net::io_context::executor_type,
+                simple_rate_policy> s(ioc);
+        }
+
+        {
+            basic_stream<tcp,
+                net::io_context::executor_type,
+                simple_rate_policy> s(
+                    simple_rate_policy{}, ioc);
+        }
+
+        {
+            basic_stream<tcp,
+                net::io_context::executor_type,
+                unlimited_rate_policy> s(ioc);
+        }
+
+        {
+            basic_stream<tcp,
+                net::io_context::executor_type,
+                unlimited_rate_policy> s(
+                    unlimited_rate_policy{}, ioc);
+        }
     }
 
     class handler

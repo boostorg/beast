@@ -134,6 +134,8 @@
 [import ../../test/doc/core_3_layers.cpp]
 [import ../../test/doc/websocket_3_handshake.cpp]
 
+[import ../../test/beast/core/rate_policy.cpp]
+
 [section:quickref Reference]
 '''
 <emphasis role="green">&#128946;</emphasis> indicates an item that is new in this version.

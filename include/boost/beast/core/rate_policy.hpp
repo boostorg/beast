@@ -102,36 +102,35 @@ private:
 */
 class unlimited_rate_policy
 {
+    friend class rate_policy_access;
+
     static std::size_t constexpr all =
         (std::numeric_limits<std::size_t>::max)();
 
-private:
-    friend class rate_policy_access;
-
     std::size_t
-    available_read_bytes()
+    available_read_bytes() const noexcept
     {
         return all;
     }
 
     std::size_t
-    available_write_bytes()
+    available_write_bytes() const noexcept
     {
         return all;
     }
 
     void
-    transfer_read_bytes(std::size_t)
+    transfer_read_bytes(std::size_t) const noexcept
     {
     }
 
     void
-    transfer_write_bytes(std::size_t)
+    transfer_write_bytes(std::size_t) const noexcept
     {
     }
 
     void
-    on_timer()
+    on_timer() const noexcept
     {
     }
 };
@@ -162,13 +161,13 @@ class simple_rate_policy
     std::size_t wr_limit_ = all;
 
     std::size_t
-    available_read_bytes()
+    available_read_bytes() const noexcept
     {
         return rd_remain_;
     }
 
     std::size_t
-    available_write_bytes()
+    available_write_bytes() const noexcept
     {
         return wr_remain_;
     }

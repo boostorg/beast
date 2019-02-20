@@ -33,8 +33,25 @@ template<class Protocol, class Executor, class RatePolicy>
 template<class... Args>
 basic_stream<Protocol, Executor, RatePolicy>::
 impl_type::
-impl_type(Args&&... args)
+impl_type(std::false_type, Args&&... args)
     : socket(std::forward<Args>(args)...)
+    , read(ex())
+    , write(ex())
+    , timer(ex())
+{
+    reset();
+}
+
+template<class Protocol, class Executor, class RatePolicy>
+template<class RatePolicy_, class... Args>
+basic_stream<Protocol, Executor, RatePolicy>::
+impl_type::
+impl_type(std::true_type,
+    RatePolicy_&& policy, Args&&... args)
+    : boost::empty_value<RatePolicy>(
+        boost::empty_init_t{},
+        std::forward<RatePolicy_>(policy))
+    , socket(std::forward<Args>(args)...)
     , read(ex())
     , write(ex())
     , timer(ex())
@@ -650,10 +667,25 @@ basic_stream<Protocol, Executor, RatePolicy>::
 }
 
 template<class Protocol, class Executor, class RatePolicy>
-template<class... Args>
+template<class Arg0, class... Args, class>
 basic_stream<Protocol, Executor, RatePolicy>::
-basic_stream(Args&&... args)
+basic_stream(Arg0&& arg0, Args&&... args)
     : impl_(boost::make_shared<impl_type>(
+        std::false_type{},
+        std::forward<Arg0>(arg0),
+        std::forward<Args>(args)...))
+{
+}
+
+template<class Protocol, class Executor, class RatePolicy>
+template<class RatePolicy_, class Arg0, class... Args, class>
+basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream(
+    RatePolicy_&& policy, Arg0&& arg0, Args&&... args)
+    : impl_(boost::make_shared<impl_type>(
+        std::true_type{},
+        std::forward<RatePolicy_>(policy),
+        std::forward<Arg0>(arg0),
         std::forward<Args>(args)...))
 {
 }
