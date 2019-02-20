@@ -175,7 +175,6 @@ class listener : public std::enable_shared_from_this<listener>
     net::io_context& ioc_;
     ssl::context& ctx_;
     tcp::acceptor acceptor_;
-    tcp::socket socket_;
 
 public:
     listener(
@@ -185,7 +184,6 @@ public:
         : ioc_(ioc)
         , ctx_(ctx)
         , acceptor_(beast::make_strand(ioc))
-        , socket_(beast::make_strand(ioc))
     {
         beast::error_code ec;
 
@@ -235,15 +233,16 @@ public:
     void
     do_accept()
     {
+        // The new connection gets its own strand
         acceptor_.async_accept(
-            socket_,
+            beast::make_strand(ioc_),
             beast::bind_front_handler(
                 &listener::on_accept,
                 shared_from_this()));
     }
 
     void
-    on_accept(beast::error_code ec)
+    on_accept(beast::error_code ec, tcp::socket socket)
     {
         if(ec)
         {
@@ -252,11 +251,8 @@ public:
         else
         {
             // Create the session and run it
-            std::make_shared<session>(std::move(socket_), ctx_)->run();
+            std::make_shared<session>(std::move(socket), ctx_)->run();
         }
-
-        // Make sure each session gets its own strand
-        socket_ = tcp::socket(beast::make_strand(ioc_));
 
         // Accept another connection
         do_accept();

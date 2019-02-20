@@ -354,7 +354,6 @@ class listener : public std::enable_shared_from_this<listener>
 {
     net::io_context& ioc_;
     tcp::acceptor acceptor_;
-    tcp::socket socket_;
     std::shared_ptr<std::string const> doc_root_;
 
 public:
@@ -364,7 +363,6 @@ public:
         std::shared_ptr<std::string const> const& doc_root)
         : ioc_(ioc)
         , acceptor_(beast::make_strand(ioc))
-        , socket_(beast::make_strand(ioc))
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -415,15 +413,16 @@ public:
     void
     do_accept()
     {
+        // The new connection gets its own strand
         acceptor_.async_accept(
-            socket_,
+            beast::make_strand(ioc_),
             beast::bind_front_handler(
                 &listener::on_accept,
                 shared_from_this()));
     }
 
     void
-    on_accept(beast::error_code ec)
+    on_accept(beast::error_code ec, tcp::socket socket)
     {
         if(ec)
         {
@@ -433,12 +432,9 @@ public:
         {
             // Create the session and run it
             std::make_shared<session>(
-                std::move(socket_),
+                std::move(socket),
                 doc_root_)->run();
         }
-
-        // Make sure each session gets its own strand
-        socket_ = tcp::socket(beast::make_strand(ioc_));
 
         // Accept another connection
         do_accept();

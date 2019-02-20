@@ -38,6 +38,7 @@
 #include <boost/beast/core/make_strand.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/rate_policy.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/span.hpp>
 #include <boost/beast/core/static_buffer.hpp>

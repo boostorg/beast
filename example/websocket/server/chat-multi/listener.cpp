@@ -18,7 +18,6 @@ listener(
     boost::shared_ptr<shared_state> const& state)
     : ioc_(ioc)
     , acceptor_(ioc)
-    , socket_(beast::make_strand(ioc))
     , state_(state)
 {
     beast::error_code ec;
@@ -61,9 +60,9 @@ void
 listener::
 run()
 {
-    // Start accepting a connection
+    // The new connection gets its own strand
     acceptor_.async_accept(
-        socket_,
+        beast::make_strand(ioc_),
         beast::bind_front_handler(
             &listener::on_accept,
             shared_from_this()));
@@ -83,22 +82,19 @@ fail(beast::error_code ec, char const* what)
 // Handle a connection
 void
 listener::
-on_accept(beast::error_code ec)
+on_accept(beast::error_code ec, tcp::socket socket)
 {
     if(ec)
         return fail(ec, "accept");
     else
         // Launch a new session for this connection
         boost::make_shared<http_session>(
-            std::move(socket_),
+            std::move(socket),
             state_)->run();
 
-    // Make sure each session gets its own strand
-    socket_ = tcp::socket(beast::make_strand(ioc_));
-
-    // Accept another connection
+    // The new connection gets its own strand
     acceptor_.async_accept(
-        socket_,
+        beast::make_strand(ioc_),
         beast::bind_front_handler(
             &listener::on_accept,
             shared_from_this()));
