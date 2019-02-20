@@ -21,6 +21,7 @@ namespace boost {
 namespace beast {
 namespace detail {
 
+#if 0
 /** Mark a completion handler as a continuation.
 
     This function wraps a completion handler to associate it with an
@@ -86,6 +87,19 @@ bind_continuation(
         detail::remap_post_to_defer<Executor>(ex),
         std::forward<CompletionHandler>(handler));
 }
+#else
+// VFALCO I turned these off at the last minute because they cause
+//        the completion handler to be moved before the initiating
+//        function is invoked rather than after, which is a foot-gun.
+//
+// REMINDER: Uncomment the tests when this is put back
+template<class F>
+F&&
+bind_continuation(F&& f)
+{
+    return std::forward<F>(f);
+}
+#endif
 
 } // detail
 } // beast

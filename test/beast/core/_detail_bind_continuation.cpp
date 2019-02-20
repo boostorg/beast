@@ -10,6 +10,8 @@
 // Test that header file is self-contained.
 #include <boost/beast/core/detail/bind_continuation.hpp>
 
+#if 0
+
 #include "test_executor.hpp"
 #include "test_handler.hpp"
 
@@ -186,3 +188,5 @@ BEAST_DEFINE_TESTSUITE(beast,core,bind_continuation);
 } // detail
 } // beast
 } // boost
+
+#endif

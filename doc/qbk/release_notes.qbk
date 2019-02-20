@@ -14,7 +14,15 @@
 [heading Boost 1.70]
 [/ includes up to version 209]
 [/
-* Use `beast::tcp_socket` instead of `boost::asio::ip::tcp::socket`!
+
+* [phrase library..[@/libs/beast/ Beast]:]
+  * Example websocket-chat-multi
+  * New CppCon 2018 [@https://www.boost.org/doc/libs/master/libs/beast/doc/html/beast/examples.html#beast.examples.cppcon_2018 websocket chat example] and [@https://www.youtube.com/watch?v=7FQwAjELMek presentation video].
+  * For a complete list of changes, please view the official
+    [@/libs/beast/doc/html/beast/release_notes.html Release Notes].
+
+
+* Use `beast::tcp_stream` instead of `boost::asio::ip::tcp::socket`!
 * subscribe to this GitHub issue to be informed!
 * we need testers!
 * star the repo!
@@ -28,6 +36,8 @@ Enlarged scope
 - New Networking refresher
 - New websocket-chat-multi example
 ]
+
+[/-----------------------------------------------------------------------------]
 
 [tip
   The namespace alias `net` is used throughout for `boost::asio`.
