@@ -361,7 +361,6 @@ int main(int argc, char** argv)
     auto const address{net::ip::make_address(argv[1])};
     auto const port{static_cast<unsigned short>(std::atoi(argv[2]))};
 
-    using socket_type = net::ip::tcp::socket;
     using endpoint_type = net::ip::tcp::endpoint;
 
     // Create a listening socket, accept a connection, perform

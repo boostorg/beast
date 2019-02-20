@@ -9,6 +9,7 @@
 
 // Test that header file is self-contained.
 #include <boost/beast/core/rate_policy.hpp>
+#include <boost/core/ignore_unused.hpp>
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 
@@ -21,8 +22,8 @@ public:
     void
     run() override
     {
-        unlimited_rate_policy{};
-        simple_rate_policy{};
+        boost::ignore_unused(unlimited_rate_policy{});
+        boost::ignore_unused(simple_rate_policy{});
 
         pass();
     }
