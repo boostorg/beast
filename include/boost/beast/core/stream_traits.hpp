@@ -190,7 +190,7 @@ struct has_get_executor<T, boost::void_t<decltype(
     void f(SyncReadStream& stream)
     {
         static_assert(is_sync_read_stream<SyncReadStream>::value,
-            "SyncReadStream requirements not met");
+            "SyncReadStream type requirements not met");
     ...
     @endcode
 
@@ -234,7 +234,7 @@ struct is_sync_read_stream<T, boost::void_t<decltype(
     void f(SyncReadStream& stream)
     {
         static_assert(is_sync_read_stream<SyncReadStream>::value,
-            "SyncReadStream requirements not met");
+            "SyncReadStream type requirements not met");
     ...
     @endcode
 
@@ -279,7 +279,7 @@ struct is_sync_write_stream<T, boost::void_t<decltype(
     void f(SyncStream& stream)
     {
         static_assert(is_sync_stream<SyncStream>::value,
-            "SyncStream requirements not met");
+            "SyncStream type requirements not met");
     ...
     @endcode
 
@@ -317,7 +317,7 @@ using is_sync_stream = std::integral_constant<bool,
     void f(AsyncReadStream& stream)
     {
         static_assert(is_async_read_stream<AsyncReadStream>::value,
-            "AsyncReadStream requirements not met");
+            "AsyncReadStream type requirements not met");
     ...
     @endcode
     
@@ -361,7 +361,7 @@ struct is_async_read_stream<T, boost::void_t<decltype(
     void f(AsyncWriteStream& stream)
     {
         static_assert(is_async_write_stream<AsyncWriteStream>::value,
-            "AsyncWriteStream requirements not met");
+            "AsyncWriteStream type requirements not met");
     ...
     @endcode
 
@@ -405,7 +405,7 @@ struct is_async_write_stream<T, boost::void_t<decltype(
     void f(AsyncStream& stream)
     {
         static_assert(is_async_stream<AsyncStream>::value,
-            "AsyncStream requirements not met");
+            "AsyncStream type requirements not met");
     ...
     @endcode
 

@@ -169,7 +169,7 @@ buffers_prefix(
 {
     static_assert(
         net::is_const_buffer_sequence<BufferSequence>::value,
-            "BufferSequence requirements not met");
+            "BufferSequence type requirements not met");
     return buffers_prefix_view<BufferSequence>(size, buffers);
 }
 

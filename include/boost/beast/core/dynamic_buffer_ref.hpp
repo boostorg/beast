@@ -30,7 +30,7 @@ class dynamic_buffer_ref_wrapper
 #if ! BOOST_BEAST_DOXYGEN
 {
     static_assert(net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
 
     DynamicBuffer& b_;
 
@@ -133,7 +133,7 @@ dynamic_buffer_ref_wrapper<DynamicBuffer>
 dynamic_buffer_ref(DynamicBuffer& buffer) noexcept
 {
     static_assert(net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     return dynamic_buffer_ref_wrapper<DynamicBuffer>(buffer);
 }
 

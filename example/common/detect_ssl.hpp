@@ -65,7 +65,7 @@ is_ssl_handshake(
     // Make sure buffers meets the requirements
     static_assert(
         boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+        "ConstBufferSequence type requirements not met");
 
     // Extract the first byte, which holds the
     // "message" type for the Handshake protocol.
@@ -137,10 +137,10 @@ detect_ssl(
 
     // Make sure arguments meet the requirements
     static_assert(beast::is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
 
     // Loop until an error occurs or we get a definitive answer
     for(;;)
@@ -267,10 +267,10 @@ async_detect_ssl(
 
     // Make sure arguments meet the requirements
     static_assert(beast::is_async_read_stream<AsyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         boost::asio::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
 
     // This helper manages some of the handler's lifetime and
     // uses the result and handler specializations associated with

@@ -183,7 +183,7 @@ class async_op_base
 {
     static_assert(
         net::is_executor<Executor1>::value,
-        "Executor requirements not met");
+        "Executor type requirements not met");
 
     Handler h_;
     net::executor_work_guard<Executor1> wg1_;

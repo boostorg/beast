@@ -120,10 +120,10 @@ async_echo(
     // with more friendly error messages when passing the wrong types.
     static_assert(
         beast::is_async_stream<AsyncStream>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
 
     // This class template deduces the actual handler type from a
     // CompletionToken, captures a local reference to the handler,

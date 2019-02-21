@@ -391,7 +391,7 @@ stream<NextLayer, deflateSupported>::
 accept()
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     error_code ec;
     accept(ec);
     if(ec)
@@ -404,7 +404,7 @@ stream<NextLayer, deflateSupported>::
 accept(error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     do_accept(
         net::const_buffer{},
         &default_decorate_res, ec);
@@ -418,10 +418,10 @@ stream<NextLayer, deflateSupported>::
 accept(ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     error_code ec;
     accept(buffers, ec);
     if(ec)
@@ -436,10 +436,10 @@ accept(
     ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     do_accept(buffers, &default_decorate_res, ec);
 }
 
@@ -453,7 +453,7 @@ accept(
         http::basic_fields<Allocator>> const& req)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     error_code ec;
     accept(req, ec);
     if(ec)
@@ -470,7 +470,7 @@ accept(
     error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     impl_->reset();
     do_accept(req, &default_decorate_res, ec);
 }
@@ -487,7 +487,7 @@ async_accept(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
     impl_->reset();
@@ -513,7 +513,7 @@ async_accept_ex(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
@@ -544,10 +544,10 @@ async_accept(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
     impl_->reset();
@@ -576,10 +576,10 @@ async_accept_ex(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
@@ -607,7 +607,7 @@ async_accept(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         AcceptHandler, void(error_code));
     impl_->reset();
@@ -633,7 +633,7 @@ async_accept_ex(
     AcceptHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
@@ -661,7 +661,7 @@ accept_ex(ResponseDecorator const& decorator)
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
@@ -682,7 +682,7 @@ accept_ex(ResponseDecorator const& decorator, error_code& ec)
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
@@ -707,10 +707,10 @@ accept_ex(
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
@@ -737,13 +737,13 @@ accept_ex(
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     do_accept(buffers, decorator, ec);
 }
 
@@ -763,7 +763,7 @@ accept_ex(
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");
@@ -790,7 +790,7 @@ accept_ex(
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(detail::is_response_decorator<
         ResponseDecorator>::value,
             "ResponseDecorator requirements not met");

@@ -93,7 +93,7 @@ put(ConstBufferSequence const& buffers,
 {
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     auto const p = net::buffer_sequence_begin(buffers);
     auto const last = net::buffer_sequence_end(buffers);
     if(p == last)

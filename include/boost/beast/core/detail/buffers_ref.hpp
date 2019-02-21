@@ -60,7 +60,7 @@ make_buffers_ref(BufferSequence const& buffers)
 {
     static_assert(
         is_const_buffer_sequence<BufferSequence>::value,
-        "BufferSequence requirements not met");
+        "BufferSequence type requirements not met");
     return buffers_ref<BufferSequence>(buffers);
 }
 

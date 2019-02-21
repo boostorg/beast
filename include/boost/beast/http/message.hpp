@@ -59,7 +59,7 @@ class header<true, Fields> : public Fields
 {
 public:
     static_assert(is_fields<Fields>::value,
-        "Fields requirements not met");
+        "Fields type requirements not met");
 
     /// Indicates if the header is a request or response.
 #if BOOST_BEAST_DOXYGEN
@@ -263,7 +263,7 @@ class header<false, Fields> : public Fields
 {
 public:
     static_assert(is_fields<Fields>::value,
-        "Fields requirements not met");
+        "Fields type requirements not met");
 
     /// Indicates if the header is a request or response.
     using is_request = std::false_type;
@@ -896,7 +896,7 @@ public:
 
 private:
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
 
     template<
         class... BodyArgs,

@@ -311,9 +311,9 @@ send(
 {
     // Check the template types
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
 
     // Create the instance of serializer for the message
     serializer<isRequest, Body, Fields> sr{m};
@@ -337,7 +337,7 @@ void
 print_response(SyncReadStream& stream)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
 
     // Declare a parser for an HTTP response
     response_parser<string_body> parser;

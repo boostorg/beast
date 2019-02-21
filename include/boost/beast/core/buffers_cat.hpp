@@ -99,7 +99,7 @@ buffers_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
 {
     static_assert(
         is_const_buffer_sequence<B1, B2, Bn...>::value,
-        "BufferSequence requirements not met");
+        "BufferSequence type requirements not met");
     return buffers_cat_view<B1, B2, Bn...>{b1, b2, bn...};
 }
 

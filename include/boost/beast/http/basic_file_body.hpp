@@ -45,7 +45,7 @@ struct basic_file_body
 {
     // Make sure the type meets the requirements
     static_assert(is_file<File>::value,
-        "File requirements not met");
+        "File type requirements not met");
 
     /// The type of File this body uses
     using file_type = File;

@@ -132,7 +132,7 @@ read_size_hint(DynamicBuffer& buffer) const
 {
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     auto const initial_size = (std::min)(
         +tcp_frame_size,
         buffer.max_size() - buffer.size());

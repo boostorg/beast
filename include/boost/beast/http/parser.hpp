@@ -51,10 +51,10 @@ class parser
         parser<isRequest, Body, Allocator>>
 {
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
 
     static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+        "BodyReader type requirements not met");
 
     template<bool, class, class>
     friend class parser;

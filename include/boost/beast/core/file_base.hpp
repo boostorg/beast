@@ -110,7 +110,7 @@ enum class file_mode
     void f(File& file)
     {
         static_assert(is_file<File>::value,
-            "File requirements not met");
+            "File type requirements not met");
     ...
     @endcode
 

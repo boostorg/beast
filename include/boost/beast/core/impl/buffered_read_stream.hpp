@@ -119,13 +119,13 @@ async_write_some(
     WriteHandler&& handler)
 {
     static_assert(is_async_write_stream<next_layer_type>::value,
-        "AsyncWriteStream requirements not met");
+        "AsyncWriteStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     static_assert(detail::is_invocable<WriteHandler,
         void(error_code, std::size_t)>::value,
-            "WriteHandler requirements not met");
+            "WriteHandler type requirements not met");
     return next_layer_.async_write_some(buffers,
         std::forward<WriteHandler>(handler));
 }
@@ -138,10 +138,10 @@ read_some(
     MutableBufferSequence const& buffers)
 {
     static_assert(is_sync_read_stream<next_layer_type>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
-            "MutableBufferSequence requirements not met");
+            "MutableBufferSequence type requirements not met");
     error_code ec;
     auto n = read_some(buffers, ec);
     if(ec)
@@ -157,10 +157,10 @@ read_some(MutableBufferSequence const& buffers,
     error_code& ec)
 {
     static_assert(is_sync_read_stream<next_layer_type>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
-            "MutableBufferSequence requirements not met");
+            "MutableBufferSequence type requirements not met");
     if(buffer_.size() == 0)
     {
         if(capacity_ == 0)
@@ -191,10 +191,10 @@ async_read_some(
     ReadHandler&& handler)
 {
     static_assert(is_async_read_stream<next_layer_type>::value,
-        "AsyncReadStream requirements not met");
+        "AsyncReadStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
-            "MutableBufferSequence requirements not met");
+            "MutableBufferSequence type requirements not met");
     if(buffer_.size() == 0 && capacity_ == 0)
         return next_layer_.async_read_some(buffers,
             std::forward<ReadHandler>(handler));

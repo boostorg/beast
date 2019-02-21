@@ -181,7 +181,7 @@ async_teardown(
 {
     static_assert(beast::detail::is_invocable<
         TeardownHandler, void(error_code)>::value,
-            "TeardownHandler requirements not met");
+            "TeardownHandler type requirements not met");
     detail::teardown_tcp_op<
         Protocol,
         Executor,

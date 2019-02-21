@@ -35,7 +35,7 @@ struct basic_dynamic_body
 {
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
 
     /** The type of container used for the body
 

@@ -308,7 +308,7 @@ read_some(MutableBufferSequence const& buffers)
 {
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
     error_code ec;
     auto const n = read_some(buffers, ec);
     if(ec)
@@ -324,7 +324,7 @@ read_some(MutableBufferSequence const& buffers,
 {
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
 
     ++in_->nread;
 
@@ -374,7 +374,7 @@ async_read_some(
 {
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
 
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
@@ -453,7 +453,7 @@ write_some(ConstBufferSequence const& buffers)
 {
     static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+        "ConstBufferSequence type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write_some(buffers, ec);
@@ -470,7 +470,7 @@ write_some(
 {
     static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+        "ConstBufferSequence type requirements not met");
 
     ++in_->nwrite;
 
@@ -514,7 +514,7 @@ async_write_some(ConstBufferSequence const& buffers,
 {
     static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+        "ConstBufferSequence type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
 

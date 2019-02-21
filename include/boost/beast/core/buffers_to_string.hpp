@@ -47,7 +47,7 @@ buffers_to_string(ConstBufferSequence const& buffers)
 {
     static_assert(
         net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+        "ConstBufferSequence type requirements not met");
     std::string result;
     result.reserve(buffer_size(buffers));
     for(auto const buffer : buffers_range_ref(buffers))

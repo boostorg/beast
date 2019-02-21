@@ -93,7 +93,7 @@ class buffered_read_stream
 {
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
 
     template<class Buffers, class Handler>
     class read_some_op;
@@ -286,7 +286,7 @@ public:
     write_some(ConstBufferSequence const& buffers)
     {
         static_assert(is_sync_write_stream<next_layer_type>::value,
-            "SyncWriteStream requirements not met");
+            "SyncWriteStream type requirements not met");
         return next_layer_.write_some(buffers);
     }
 
@@ -308,7 +308,7 @@ public:
         error_code& ec)
     {
         static_assert(is_sync_write_stream<next_layer_type>::value,
-            "SyncWriteStream requirements not met");
+            "SyncWriteStream type requirements not met");
         return next_layer_.write_some(buffers, ec);
     }
 

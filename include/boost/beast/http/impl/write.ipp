@@ -365,11 +365,11 @@ write_some(
     serializer<isRequest, Body, Fields>& sr)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write_some(stream, sr, ec);
@@ -388,11 +388,11 @@ write_some(
     error_code& ec)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     return detail::write_some_impl(stream, sr, ec);
 }
 
@@ -409,11 +409,11 @@ async_write_some(
 {
     static_assert(is_async_write_stream<
             AsyncWriteStream>::value,
-        "AsyncWriteStream requirements not met");
+        "AsyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     return detail::async_write_some_impl(stream, sr,
         std::forward<WriteHandler>(handler));
 }
@@ -428,11 +428,11 @@ write_header(SyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write_header(stream, sr, ec);
@@ -451,11 +451,11 @@ write_header(
     error_code& ec)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     sr.split(true);
     std::size_t bytes_transferred = 0;
     if(! sr.is_header_done())
@@ -492,11 +492,11 @@ async_write_header(
 {
     static_assert(is_async_write_stream<
             AsyncWriteStream>::value,
-        "AsyncWriteStream requirements not met");
+        "AsyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     sr.split(true);
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
@@ -521,7 +521,7 @@ write(
     serializer<isRequest, Body, Fields>& sr)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write(stream, sr, ec);
@@ -540,7 +540,7 @@ write(
     error_code& ec)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     std::size_t bytes_transferred = 0;
     sr.split(false);
     for(;;)
@@ -568,11 +568,11 @@ async_write(
 {
     static_assert(is_async_write_stream<
             AsyncWriteStream>::value,
-        "AsyncWriteStream requirements not met");
+        "AsyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     sr.split(false);
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
@@ -599,11 +599,11 @@ write(
     message<isRequest, Body, Fields>& msg)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write(stream, msg, ec);
@@ -623,11 +623,11 @@ write(
     message<isRequest, Body, Fields> const& msg)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write(stream, msg, ec);
@@ -648,11 +648,11 @@ write(
     error_code& ec)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     serializer<isRequest, Body, Fields> sr{msg};
     return write(stream, sr, ec);
 }
@@ -669,11 +669,11 @@ write(
     error_code& ec)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     serializer<isRequest, Body, Fields> sr{msg};
     return write(stream, sr, ec);
 }
@@ -693,11 +693,11 @@ async_write(
 {
     static_assert(
         is_async_write_stream<AsyncWriteStream>::value,
-        "AsyncWriteStream requirements not met");
+        "AsyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
     detail::write_msg_op<
@@ -724,11 +724,11 @@ async_write(
 {
     static_assert(
         is_async_write_stream<AsyncWriteStream>::value,
-        "AsyncWriteStream requirements not met");
+        "AsyncWriteStream type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
     detail::write_msg_op<
@@ -807,9 +807,9 @@ operator<<(std::ostream& os,
     message<isRequest, Body, Fields> const& msg)
 {
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
     serializer<isRequest, Body, Fields> sr{msg};
     error_code ec;
     detail::write_ostream_lambda<decltype(sr)> f{os, sr};

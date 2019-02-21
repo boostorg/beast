@@ -911,7 +911,7 @@ async_read_some(
 {
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
     return net::async_initiate<
         ReadHandler,
         void(error_code, std::size_t)>(
@@ -932,7 +932,7 @@ async_write_some(
 {
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+        "ConstBufferSequence type requirements not met");
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(

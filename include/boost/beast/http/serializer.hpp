@@ -57,10 +57,10 @@ class serializer
 {
 public:
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
 
     static_assert(is_body_writer<Body>::value,
-        "BodyWriter requirements not met");
+        "BodyWriter type requirements not met");
 
     /** The type of message this serializer uses
 

@@ -215,14 +215,14 @@ async_read(
     ReadHandler&& handler)
 {
     static_assert(is_async_read_stream<AsyncReadStream>::value,
-        "AsyncReadStream requirements not met");
+        "AsyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
             void(error_code&, std::size_t, DynamicBuffer&)>::value,
-        "CompletionCondition requirements not met");
+        "CompletionCondition type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     detail::read_op<
@@ -252,11 +252,11 @@ async_read(
 {
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
             void(error_code&, std::size_t, DynamicBuffer&)>::value,
-        "CompletionCondition requirements not met");
+        "CompletionCondition type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     if(socket.non_blocking())
@@ -299,14 +299,14 @@ read(
     CompletionCondition cond)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
             void(error_code&, std::size_t, DynamicBuffer&)>::value,
-        "CompletionCondition requirements not met");
+        "CompletionCondition type requirements not met");
     error_code ec;
     auto const bytes_transferred = detail::read(
         stream, buffer, std::move(cond), ec);
@@ -328,14 +328,14 @@ read(
     error_code& ec)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
             void(error_code&, std::size_t, DynamicBuffer&)>::value,
-        "CompletionCondition requirements not met");
+        "CompletionCondition type requirements not met");
     ec = {};
     std::size_t total = 0;
     std::size_t max_size;
@@ -372,11 +372,11 @@ read(
 {
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
             void(error_code&, std::size_t, DynamicBuffer&)>::value,
-        "CompletionCondition requirements not met");
+        "CompletionCondition type requirements not met");
     ec = {};
     std::size_t n;
     std::size_t limit;

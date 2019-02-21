@@ -269,7 +269,7 @@ protected:
 };
 
 static_assert(is_fields<Fields>::value,
-    "Fields requirements not met");
+    "Fields type requirements not met");
 
 //]
 

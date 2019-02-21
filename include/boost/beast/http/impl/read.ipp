@@ -219,10 +219,10 @@ read_some(
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         read_some(stream, buffer, parser, ec);
@@ -244,10 +244,10 @@ read_some(
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     return beast::detail::read(stream, buffer,
         detail::read_some_condition<
             isRequest, Derived>{parser}, ec);
@@ -268,10 +268,10 @@ async_read_some(
 {
     static_assert(
         is_async_read_stream<AsyncReadStream>::value,
-        "AsyncReadStream requirements not met");
+        "AsyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     beast::detail::async_read(stream, buffer,
@@ -295,10 +295,10 @@ read_header(
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         read_header(stream, buffer, parser, ec);
@@ -320,10 +320,10 @@ read_header(
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     parser.eager(false);
     return beast::detail::read(stream, buffer,
         detail::read_header_condition<
@@ -345,10 +345,10 @@ async_read_header(
 {
     static_assert(
         is_async_read_stream<AsyncReadStream>::value,
-        "AsyncReadStream requirements not met");
+        "AsyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     parser.eager(false);
@@ -373,10 +373,10 @@ read(
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         read(stream, buffer, parser, ec);
@@ -398,10 +398,10 @@ read(
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     parser.eager(true);
     return beast::detail::read(stream, buffer,
         detail::read_all_condition<
@@ -423,10 +423,10 @@ async_read(
 {
     static_assert(
         is_async_read_stream<AsyncReadStream>::value,
-        "AsyncReadStream requirements not met");
+        "AsyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     parser.eager(true);
@@ -451,14 +451,14 @@ read(
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+        "BodyReader type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         read(stream, buffer, msg, ec);
@@ -480,14 +480,14 @@ read(
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+        "BodyReader type requirements not met");
     parser<isRequest, Body, Allocator> p(std::move(msg));
     p.eager(true);
     auto const bytes_transferred =
@@ -513,14 +513,14 @@ async_read(
 {
     static_assert(
         is_async_read_stream<AsyncReadStream>::value,
-        "AsyncReadStream requirements not met");
+        "AsyncReadStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     static_assert(is_body<Body>::value,
-        "Body requirements not met");
+        "Body type requirements not met");
     static_assert(is_body_reader<Body>::value,
-        "BodyReader requirements not met");
+        "BodyReader type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     detail::read_msg_op<

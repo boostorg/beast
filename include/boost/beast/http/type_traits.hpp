@@ -39,7 +39,7 @@ class message;
     void check_body(message<isRequest, Body, Fields> const&)
     {
         static_assert(is_body<Body>::value,
-            "Body requirements not met");
+            "Body type requirements not met");
     }
     @endcode
 */
@@ -199,7 +199,7 @@ struct is_body_reader<T, beast::detail::void_t<decltype(
     void f(message<isRequest, Body, Fields> const&)
     {
         static_assert(is_fields<Fields>::value,
-            "Fields requirements not met");
+            "Fields type requirements not met");
     ...
     @endcode
 

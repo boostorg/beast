@@ -75,7 +75,7 @@ template<class SyncWriteStream>
 void write_string(SyncWriteStream& stream, string_view s)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     net::write(stream, net::const_buffer(s.data(), s.size()));
 }
 

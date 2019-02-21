@@ -240,7 +240,7 @@ async_handshake(string_view host,
         HandshakeHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
@@ -262,7 +262,7 @@ async_handshake(response_type& res,
             HandshakeHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         HandshakeHandler, void(error_code));
     handshake_op<BOOST_ASIO_HANDLER_TYPE(
@@ -280,7 +280,7 @@ handshake(string_view host,
     string_view target)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     error_code ec;
     handshake(
         host, target, ec);
@@ -296,7 +296,7 @@ handshake(response_type& res,
         string_view target)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     error_code ec;
     handshake(res, host, target, ec);
     if(ec)
@@ -310,7 +310,7 @@ handshake(string_view host,
     string_view target, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     do_handshake(nullptr,
         host, target, &default_decorate_req, ec);
 }
@@ -324,7 +324,7 @@ handshake(response_type& res,
             error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     do_handshake(&res,
         host, target, &default_decorate_req, ec);
 }
@@ -344,7 +344,7 @@ handshake_ex(string_view host,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
@@ -368,7 +368,7 @@ handshake_ex(response_type& res,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
@@ -392,7 +392,7 @@ handshake_ex(string_view host,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
@@ -415,7 +415,7 @@ handshake_ex(response_type& res,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
@@ -438,7 +438,7 @@ async_handshake_ex(string_view host,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
@@ -468,7 +468,7 @@ async_handshake_ex(response_type& res,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");

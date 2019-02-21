@@ -266,7 +266,7 @@ nodejs_basic_parser<Derived>::write(
 {
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     std::size_t bytes_used = 0;
     for(auto buffer : beast::buffers_range_ref(buffers))
     {

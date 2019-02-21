@@ -91,7 +91,7 @@ std::string string_from_buffers (ConstBufferSequence const& buffers)
     // check that the type meets the requirements using the provided type traits
     static_assert(
         net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+        "ConstBufferSequence type requirements not met");
 
     // optimization: reserve all the space for the string first
     std::string result;

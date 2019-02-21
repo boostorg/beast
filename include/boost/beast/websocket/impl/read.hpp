@@ -698,10 +698,10 @@ stream<NextLayer, deflateSupported>::
 read(DynamicBuffer& buffer)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_written = read(buffer, ec);
     if(ec)
@@ -716,10 +716,10 @@ stream<NextLayer, deflateSupported>::
 read(DynamicBuffer& buffer, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     std::size_t bytes_written = 0;
     do
     {
@@ -739,10 +739,10 @@ stream<NextLayer, deflateSupported>::
 async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     read_op<DynamicBuffer, BOOST_ASIO_HANDLER_TYPE(
@@ -763,10 +763,10 @@ read_some(
     std::size_t limit)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_written =
         read_some(buffer, limit, ec);
@@ -785,10 +785,10 @@ read_some(
     error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     using beast::detail::clamp;
     if(! limit)
         limit = (std::numeric_limits<std::size_t>::max)();
@@ -815,10 +815,10 @@ async_read_some(
     ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     read_op<DynamicBuffer, BOOST_ASIO_HANDLER_TYPE(
@@ -838,10 +838,10 @@ read_some(
     MutableBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
     error_code ec;
     auto const bytes_written = read_some(buffers, ec);
     if(ec)
@@ -858,10 +858,10 @@ read_some(
     error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
     using beast::detail::clamp;
     auto& impl = *impl_;
     close_code code{};
@@ -1196,10 +1196,10 @@ async_read_some(
     ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(

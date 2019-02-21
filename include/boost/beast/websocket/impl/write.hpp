@@ -439,10 +439,10 @@ stream<NextLayer, deflateSupported>::
 write_some(bool fin, ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     error_code ec;
     auto const bytes_transferred =
         write_some(fin, buffers, ec);
@@ -459,10 +459,10 @@ write_some(bool fin,
     ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     using beast::detail::clamp;
     auto& impl = *impl_;
     std::size_t bytes_transferred = 0;
@@ -672,10 +672,10 @@ async_write_some(bool fin,
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
     write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
@@ -693,10 +693,10 @@ stream<NextLayer, deflateSupported>::
 write(ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     error_code ec;
     auto const bytes_transferred = write(buffers, ec);
     if(ec)
@@ -711,10 +711,10 @@ stream<NextLayer, deflateSupported>::
 write(ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
-        "SyncStream requirements not met");
+        "SyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     return write_some(true, buffers, ec);
 }
 
@@ -727,10 +727,10 @@ async_write(
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream requirements not met");
+        "AsyncStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         WriteHandler, void(error_code, std::size_t));
     write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(

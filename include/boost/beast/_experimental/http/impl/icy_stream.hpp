@@ -306,10 +306,10 @@ icy_stream<NextLayer>::
 read_some(MutableBufferSequence const& buffers)
 {
     static_assert(is_sync_read_stream<next_layer_type>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
-            "MutableBufferSequence requirements not met");
+            "MutableBufferSequence type requirements not met");
     error_code ec;
     auto n = read_some(buffers, ec);
     if(ec)
@@ -324,10 +324,10 @@ icy_stream<NextLayer>::
 read_some(MutableBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_read_stream<next_layer_type>::value,
-        "SyncReadStream requirements not met");
+        "SyncReadStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
-            "MutableBufferSequence requirements not met");
+            "MutableBufferSequence type requirements not met");
     using iterator = net::buffers_iterator<
         typename beast::dynamic_buffer_ref_wrapper<
             buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
@@ -445,10 +445,10 @@ async_read_some(
     ReadHandler&& handler)
 {
     static_assert(is_async_read_stream<next_layer_type>::value,
-        "AsyncReadStream requirements not met");
+        "AsyncReadStream type requirements not met");
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence >::value,
-        "MutableBufferSequence  requirements not met");
+        "MutableBufferSequence type requirements not met");
     BOOST_BEAST_HANDLER_INIT(
         ReadHandler, void(error_code, std::size_t));
     read_op<
@@ -466,10 +466,10 @@ icy_stream<NextLayer>::
 write_some(MutableBufferSequence const& buffers)
 {
     static_assert(is_sync_write_stream<next_layer_type>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         MutableBufferSequence>::value,
-            "MutableBufferSequence requirements not met");
+            "MutableBufferSequence type requirements not met");
     return stream_.write_some(buffers);
 }
 
@@ -480,10 +480,10 @@ icy_stream<NextLayer>::
 write_some(MutableBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_write_stream<next_layer_type>::value,
-        "SyncWriteStream requirements not met");
+        "SyncWriteStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
         MutableBufferSequence>::value,
-            "MutableBufferSequence requirements not met");
+            "MutableBufferSequence type requirements not met");
     return stream_.write_some(buffers, ec);
 }
 
@@ -499,10 +499,10 @@ async_write_some(
     WriteHandler&& handler)
 {
     static_assert(is_async_write_stream<next_layer_type>::value,
-        "AsyncWriteStream requirements not met");
+        "AsyncWriteStream type requirements not met");
     static_assert(net::is_const_buffer_sequence<
             MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
     return stream_.async_write_some(
         buffers, std::forward<WriteHandler>(handler));
 }

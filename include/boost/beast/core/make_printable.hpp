@@ -96,7 +96,7 @@ make_printable(ConstBufferSequence const& buffers)
 {
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
-            "ConstBufferSequence requirements not met");
+            "ConstBufferSequence type requirements not met");
     return detail::make_printable_adaptor<
         ConstBufferSequence>{buffers};
 }

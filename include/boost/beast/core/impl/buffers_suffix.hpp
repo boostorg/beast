@@ -146,7 +146,7 @@ buffers_suffix(Buffers const& bs)
     static_assert(
         net::is_const_buffer_sequence<Buffers>::value ||
         net::is_mutable_buffer_sequence<Buffers>::value,
-            "BufferSequence requirements not met");
+            "BufferSequence type requirements not met");
 }
 
 template<class Buffers>

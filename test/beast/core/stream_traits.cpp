@@ -124,7 +124,7 @@ public:
 
     public:
         static_assert(is_sync_write_stream<NextLayer>::value,
-            "SyncWriteStream requirements not met");
+            "SyncWriteStream type requirements not met");
 
         template<class... Args>
         explicit

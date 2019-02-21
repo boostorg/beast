@@ -37,7 +37,7 @@ class buffers_adaptor
 {
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
-        "MutableBufferSequence requirements not met");
+        "MutableBufferSequence type requirements not met");
 
     using iter_type =
         buffers_iterator_type<MutableBufferSequence>;

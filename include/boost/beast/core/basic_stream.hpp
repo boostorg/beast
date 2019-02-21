@@ -222,7 +222,7 @@ public:
 
 private:
     static_assert(net::is_executor<Executor>::value,
-        "Executor requirements not met");
+        "Executor type requirements not met");
 
     struct impl_type
         : boost::enable_shared_from_this<impl_type>

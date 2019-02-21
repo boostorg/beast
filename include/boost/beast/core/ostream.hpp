@@ -59,7 +59,7 @@ ostream(DynamicBuffer& buffer)
 {
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer requirements not met");
+        "DynamicBuffer type requirements not met");
     return detail::ostream_helper<
         DynamicBuffer, char, std::char_traits<char>,
             detail::basic_streambuf_movable::value>{buffer};

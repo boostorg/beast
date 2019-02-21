@@ -99,11 +99,11 @@ class basic_multi_buffer
 
     static_assert(std::is_base_of<std::bidirectional_iterator_tag,
         typename std::iterator_traits<iter>::iterator_category>::value,
-            "BidirectionalIterator requirements not met");
+            "BidirectionalIterator type requirements not met");
 
     static_assert(std::is_base_of<std::bidirectional_iterator_tag,
         typename std::iterator_traits<const_iter>::iterator_category>::value,
-            "BidirectionalIterator requirements not met");
+            "BidirectionalIterator type requirements not met");
 
     std::size_t max_;
     list_type list_;        // list of allocated buffers
