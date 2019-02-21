@@ -106,8 +106,8 @@ public:
         @par Exception Safety
         Strong guarantee.
 
-        @param handler The handler to associate with the owned
-        object. The argument will be moved if it is an xvalue.
+        @param handler The handler to associate with the owned object.
+        The implementation takes ownership of the handler by performing a decay-copy.
 
         @param args Optional arguments forwarded to
         the owned object's constructor.

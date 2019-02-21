@@ -48,6 +48,7 @@ namespace beast {
     @endcode
 
     @param handler The handler to wrap.
+    The implementation takes ownership of the handler by performing a decay-copy.
 
     @param args A list of arguments to bind to the handler.
     The arguments are forwarded into the returned object. These
@@ -100,6 +101,7 @@ bind_handler(Handler&& handler, Args&&... args)
     @endcode
 
     @param handler The handler to wrap.
+    The implementation takes ownership of the handler by performing a decay-copy.
 
     @param args A list of arguments to bind to the handler.
     The arguments are forwarded into the returned object.

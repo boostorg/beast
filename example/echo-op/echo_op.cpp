@@ -69,8 +69,8 @@ async_echo (AsyncStream& stream, DynamicBuffer& buffer, CompletionToken&& token)
     extended least until the completion handler is invoked.
 
     @param token The handler to be called when the operation completes.
-    The implementation will take ownership of the handler by move
-    construction. The handler must be invocable with this signature:
+    The implementation takes ownership of the handler by performing a decay-copy.
+    The handler must be invocable with this signature:
     @code
     void handler(
         beast::error_code error      // Result of operation.

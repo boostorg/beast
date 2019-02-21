@@ -32,6 +32,7 @@ namespace detail {
     flow of control.
 
     @param handler The handler to wrap.
+    The implementation takes ownership of the handler by performing a decay-copy.
 
     @see
 
@@ -67,6 +68,7 @@ bind_continuation(CompletionHandler&& handler)
     @param ex The executor to use
 
     @param handler The handler to wrap
+    The implementation takes ownership of the handler by performing a decay-copy.
 
     @see
 

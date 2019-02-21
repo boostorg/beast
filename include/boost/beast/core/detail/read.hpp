@@ -194,9 +194,11 @@ read(
     in this case the optionally modifiable error passed to the completion
     condition will be delivered to the completion handler.
 
-    @param handler The handler to be called when the read operation completes.
-    The handler will be moved as needed. The handler must be invocable with
-    this function signature:
+    @param handler The completion handler to invoke when the operation
+    completes. The implementation takes ownership of the handler by
+    performing a decay-copy. The equivalent function signature of
+    the handler must be:
+
     @code
     void
     handler(
@@ -209,10 +211,10 @@ read(
                                             // prior to the error.
     );
     @endcode
-    Regardless of whether the asynchronous operation completes immediately or
-    not, the handler will not be invoked from within this function. Invocation
-    of the handler will be performed in a manner equivalent to using
-    `net::io_context::post()`.
+    Regardless of whether the asynchronous operation completes
+    immediately or not, the handler will not be invoked from within
+    this function. Invocation of the handler will be performed in a
+    manner equivalent to using `net::post`.
 */
 template<
     class AsyncReadStream,

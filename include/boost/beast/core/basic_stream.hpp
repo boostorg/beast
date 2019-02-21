@@ -883,9 +883,11 @@ public:
         @param ep The remote endpoint to which the underlying socket will be
         connected. Copies will be made of the endpoint object as required.
         
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code ec         // Result of operation
@@ -925,9 +927,11 @@ public:
         @param endpoints A sequence of endpoints. This this object must meet
         the requirements of <em>EndpointSequence</em>.
     
-        @param handler The handler to be called when the connect operation
-        completes. Ownership of the handler may be transferred. The function
-        signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             // Result of operation. if the sequence is empty, set to
@@ -940,10 +944,10 @@ public:
             typename Protocol::endpoint const& endpoint
         );
         @endcode
-        Regardless of whether the asynchronous operation completes immediately
-        or not, the handler will not be invoked from within this function.
-        Invocation of the handler will be performed in a manner equivalent
-        to using `net::post`.
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
     */
     template<
         class EndpointSequence,
@@ -993,9 +997,11 @@ public:
         The function object should return true if the next endpoint should be tried,
         and false if it should be skipped.
 
-        @param handler The handler to be called when the connect operation
-        completes. Ownership of the handler may be transferred. The function
-        signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             // Result of operation. if the sequence is empty, set to
@@ -1008,10 +1014,10 @@ public:
             typename Protocol::endpoint const& endpoint
         );
         @endcode
-        Regardless of whether the asynchronous operation completes immediately
-        or not, the handler will not be invoked from within this function.
-        Invocation of the handler will be performed in a manner equivalent
-        to using `net::post`.
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
 
         @par Example
         The following connect condition function object can be used to output
@@ -1069,9 +1075,11 @@ public:
     
         @param end An iterator pointing to the end of a sequence of endpoints.
 
-        @param handler The handler to be called when the connect operation
-        completes. Ownership of the handler may be transferred. The function
-        signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             // Result of operation. if the sequence is empty, set to
@@ -1084,10 +1092,10 @@ public:
             Iterator iterator
         );
         @endcode
-        Regardless of whether the asynchronous operation completes immediately
-        or not, the handler will not be invoked from within this function.
-        Invocation of the handler will be performed in a manner equivalent
-        to using `net::post`.
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
     */
     template<
         class Iterator,
@@ -1122,9 +1130,12 @@ public:
             error_code const& ec,
             Iterator next);
         @endcode
-        @param handler The handler to be called when the connect operation
-        completes. Ownership of the handler may be transferred. The function
-        signature of the handler must be:
+
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             // Result of operation. if the sequence is empty, set to
@@ -1137,10 +1148,10 @@ public:
             Iterator iterator
         );
         @endcode
-        Regardless of whether the asynchronous operation completes immediately
-        or not, the handler will not be invoked from within this function.
-        Invocation of the handler will be performed in a manner equivalent
-        to using `net::post`.
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
     */
     template<
         class Iterator,
@@ -1244,19 +1255,21 @@ public:
         underlying memory blocks is retained by the caller, which must guarantee
         that they remain valid until the handler is called.
         
-        @param handler The handler to be called when the operation completes.
-        The implementation will take ownership of the handler by move construction.
-        The handler must be invocable with this signature:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code error,               // Result of operation.
             std::size_t bytes_transferred   // Number of bytes read.
         );
         @endcode
-        Regardless of whether the asynchronous operation completes immediately or
-        not, the handler will not be invoked from within this function. Invocation
-        of the handler will be performed in a manner equivalent to using
-        `net::post`.
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
 
         @note The `async_read_some` operation may not receive all of the requested
         number of bytes. Consider using the function `net::async_read` if you need
@@ -1361,19 +1374,21 @@ public:
         underlying memory blocks is retained by the caller, which must guarantee
         that they remain valid until the handler is called.
         
-        @param handler The handler to be called when the operation completes.
-        The implementation will take ownership of the handler by move construction.
-        The handler must be invocable with this signature:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code error,               // Result of operation.
             std::size_t bytes_transferred   // Number of bytes written.
         );
         @endcode
-        Regardless of whether the asynchronous operation completes immediately or
-        not, the handler will not be invoked from within this function. Invocation
-        of the handler will be performed in a manner equivalent to using
-        `net::post`.
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
 
         @note The `async_write_some` operation may not transmit all of the requested
         number of bytes. Consider using the function `net::async_write` if you need

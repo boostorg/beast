@@ -69,6 +69,7 @@ public:
         Requires `this->has_value() == false`.
 
         @param handler The completion handler to store.
+        The implementation takes ownership of the handler by performing a decay-copy.
 
         @param alloc The allocator to use.
     */
@@ -83,6 +84,7 @@ public:
         allocator to obtian storage.
 
         @param handler The completion handler to store.
+        The implementation takes ownership of the handler by performing a decay-copy.
     */
     template<class Handler>
     void

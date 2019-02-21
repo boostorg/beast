@@ -197,8 +197,9 @@ class async_op_base
 public:
     /** Constructor
 
-        @param handler The final completion handler. The type of this
-        object must meet the requirements of <em>CompletionHandler</em>.
+        @param handler The final completion handler.
+        The type of this object must meet the requirements of <em>CompletionHandler</em>.
+        The implementation takes ownership of the handler by performing a decay-copy.
 
         @param ex1 The executor associated with the implied I/O object
         target of the operation. The implementation shall maintain an
@@ -613,8 +614,9 @@ class stable_async_op_base
 public:
     /** Constructor
 
-        @param handler The final completion handler. The type of this
-        object must meet the requirements of <em>CompletionHandler</em>.
+        @param handler The final completion handler.
+        The type of this object must meet the requirements of <em>CompletionHandler</em>.
+        The implementation takes ownership of the handler by performing a decay-copy.
 
         @param ex1 The executor associated with the implied I/O object
         target of the operation. The implementation shall maintain an

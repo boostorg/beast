@@ -67,22 +67,9 @@
 
 [heading Boost 1.70]
 
-[/
-
-Exposition:
-Enlarged scope
-- `net` is a namespace alias for `boost::asio`
-  async_op_base, stable_async_op_base
-- New Networking refresher
-- New websocket-chat-multi example
-]
-
-[/-----------------------------------------------------------------------------]
-
 [tip
   The namespace alias `net` is used throughout for `boost::asio`.
 ]
-
 
 [/ includes up to version 209]
 

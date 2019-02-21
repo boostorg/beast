@@ -231,13 +231,21 @@ public:
         buffers is retained by the caller, which must guarantee that they remain
         valid until the handler is called.
         
-        @param handler The handler to be called when the read operation completes.
-        Copies will be made of the handler as required. The equivalent function
-        signature of the handler must be:
-        @code void handler(
-          const boost::system::error_code& error, // Result of operation.
-          std::size_t bytes_transferred           // Number of bytes read.
-        ); @endcode
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
+        @code
+        void handler(
+            error_code const& error,        // Result of operation.
+          std::size_t bytes_transferred     // Number of bytes read.
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
         
         @note The `read_some` operation may not read all of the requested number of
         bytes. Consider using the function `net::async_read` if you need
@@ -305,13 +313,21 @@ public:
         retained by the caller, which must guarantee that they remain valid until
         the handler is called.
         
-        @param handler The handler to be called when the write operation completes.
-        Copies will be made of the handler as required. The equivalent function
-        signature of the handler must be:
-        @code void handler(
-          const boost::system::error_code& error, // Result of operation.
-          std::size_t bytes_transferred           // Number of bytes written.
-        ); @endcode
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
+        @code
+        void handler(
+          error_code const& ec,             // Result of operation.
+          std::size_t bytes_transferred     // Number of bytes written.
+        );
+        @endcode
+        Regardless of whether the asynchronous operation completes
+        immediately or not, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed in a
+        manner equivalent to using `net::post`.
         
         @note The `async_write_some` operation may not transmit all of the data to
         the peer. Consider using the function `net::async_write` if you need

@@ -211,9 +211,11 @@ detect_ssl(
     @param buffer The dynamic buffer to use. This type must meet the
     requirements of @b DynamicBuffer.
 
-    @param handler Invoked when the operation completes.
-    The handler may be moved or copied as needed.
-    The equivalent function signature of the handler must be:
+    @param handler The completion handler to invoke when the operation
+    completes. The implementation takes ownership of the handler by
+    performing a decay-copy. The equivalent function signature of
+    the handler must be:
+
     @code
     void handler(
         error_code const& error,    // Set to the error, if any
@@ -223,7 +225,7 @@ detect_ssl(
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
-    manner equivalent to using `boost::asio::io_context::post`.
+    manner equivalent to using `net::post`.
 */
 template<
     class AsyncReadStream,

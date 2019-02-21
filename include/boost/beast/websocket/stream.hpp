@@ -849,9 +849,11 @@ public:
         The implementation will not access the string data after the
         initiating function returns.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec    // Result of operation
@@ -861,7 +863,7 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
-
+    
         @par Example
         @code
         ws.async_handshake("localhost", "/",
@@ -926,9 +928,11 @@ public:
         The implementation will not access the string data after the
         initiating function returns.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec    // Result of operation
@@ -1262,9 +1266,11 @@ public:
         pass the request to the appropriate overload of @ref accept or
         @ref async_accept
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec    // Result of operation
@@ -1323,9 +1329,11 @@ public:
         then to received WebSocket frames. The implementation will
         copy the caller provided data before the function returns.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec    // Result of operation
@@ -1384,9 +1392,11 @@ public:
         Ownership is not transferred, the implementation will not access
         this object from other threads.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec    // Result of operation
@@ -1516,9 +1526,11 @@ public:
         sent with the close code and optional reason string. Otherwise,
         the close frame is sent with no payload.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -1614,9 +1626,11 @@ public:
         The implementation will not access the contents of this object after
         the initiating function returns.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -1715,9 +1729,11 @@ public:
         The implementation will not access the contents of this object after
         the initiating function returns.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec     // Result of operation
@@ -1868,9 +1884,11 @@ public:
 
         @param buffer A dynamic buffer to append message data to.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec,       // Result of operation
@@ -2041,9 +2059,11 @@ public:
         will append into the buffer. If this value is zero, then a reasonable
         size will be chosen automatically.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec,       // Result of operation
@@ -2210,9 +2230,11 @@ public:
         pointed to by the buffer sequence remain valid until the
         completion handler is called.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec,       // Result of operation
@@ -2325,9 +2347,11 @@ public:
         the memory locations pointed to by buffers remains valid
         until the completion handler is called.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec,           // Result of operation
@@ -2444,9 +2468,11 @@ public:
         the memory locations pointed to by buffers remains valid
         until the completion handler is called.
 
-        @param handler Invoked when the operation completes. Ownership
-        of the handler will be transferred by move-construction as needed.
-        The equivalent function signature of the handler must be:
+        @param handler The completion handler to invoke when the operation
+        completes. The implementation takes ownership of the handler by
+        performing a decay-copy. The equivalent function signature of
+        the handler must be:
+
         @code
         void handler(
             error_code const& ec,           // Result of operation
