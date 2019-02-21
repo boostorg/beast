@@ -43,9 +43,7 @@ namespace websocket {
     Also reads and handles control frames.
 */
 template<class NextLayer, bool deflateSupported>
-template<
-    class MutableBufferSequence,
-    class Handler>
+template<class Handler, class MutableBufferSequence>
 class stream<NextLayer, deflateSupported>::read_some_op
     : public beast::async_op_base<
         Handler, beast::executor_type<stream>>
@@ -613,9 +611,7 @@ public:
 //------------------------------------------------------------------------------
 
 template<class NextLayer, bool deflateSupported>
-template<
-    class DynamicBuffer,
-    class Handler>
+template<class Handler,  class DynamicBuffer>
 class stream<NextLayer, deflateSupported>::read_op
     : public beast::async_op_base<
         Handler, beast::executor_type<stream>>
@@ -674,7 +670,7 @@ public:
 
                 // VFALCO TODO use boost::beast::bind_continuation
                 BOOST_ASIO_CORO_YIELD
-                read_some_op<mutable_buffers_type, read_op>(
+                read_some_op<read_op, mutable_buffers_type>(
                     std::move(*this), sp, *mb);
                 b_.commit(bytes_transferred);
                 bytes_written_ += bytes_transferred;
@@ -686,6 +682,72 @@ public:
         upcall:
             this->invoke(cont, ec, bytes_written_);
         }
+    }
+};
+
+template<class NextLayer, bool deflateSupported>
+struct stream<NextLayer, deflateSupported>::
+    run_read_some_op
+{
+    template<
+        class ReadHandler,
+        class MutableBufferSequence>
+    void
+    operator()(
+        ReadHandler&& h,
+        boost::shared_ptr<impl_type> const& sp,
+        MutableBufferSequence const& b)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<ReadHandler,
+                void(error_code, std::size_t)>::value,
+            "ReadHandler type requirements not met");
+
+        read_some_op<
+            typename std::decay<ReadHandler>::type,
+            MutableBufferSequence>(
+                std::forward<ReadHandler>(h),
+                sp,
+                b);
+    }
+};
+
+template<class NextLayer, bool deflateSupported>
+struct stream<NextLayer, deflateSupported>::
+    run_read_op
+{
+    template<
+        class ReadHandler,
+        class DynamicBuffer>
+    void
+    operator()(
+        ReadHandler&& h,
+        boost::shared_ptr<impl_type> const& sp,
+        DynamicBuffer& b,
+        std::size_t limit,
+        bool some)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<ReadHandler,
+                void(error_code, std::size_t)>::value,
+            "ReadHandler type requirements not met");
+
+        read_op<
+            typename std::decay<ReadHandler>::type,
+            DynamicBuffer>(
+                std::forward<ReadHandler>(h),
+                sp,
+                b,
+                limit,
+                some);
     }
 };
 
@@ -743,13 +805,15 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    read_op<DynamicBuffer, BOOST_ASIO_HANDLER_TYPE(
-        ReadHandler, void(error_code, std::size_t))>(
-            std::move(init.completion_handler),
-                impl_, buffer, 0, false);
-    return init.result.get();
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            run_read_op{},
+            handler,
+            impl_,
+            buffer,
+            0,
+            false);
 }
 
 //------------------------------------------------------------------------------
@@ -819,13 +883,15 @@ async_read_some(
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    read_op<DynamicBuffer, BOOST_ASIO_HANDLER_TYPE(
-        ReadHandler, void(error_code, std::size_t))>(
-            std::move(init.completion_handler),
-                impl_, buffer, limit, true);
-    return init.result.get();
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            run_read_op{},
+            handler,
+            impl_,
+            buffer,
+            limit,
+            true);
 }
 
 //------------------------------------------------------------------------------
@@ -1200,12 +1266,13 @@ async_read_some(
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
-        ReadHandler, void(error_code, std::size_t))>(
-            std::move(init.completion_handler), impl_, buffers);
-    return init.result.get();
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            run_read_some_op{},
+            handler,
+            impl_,
+            buffers);
 }
 
 } // websocket

@@ -179,10 +179,10 @@ class read_msg_op
 public:
     template<class Handler_>
     read_msg_op(
+        Handler_&& h,
         Stream& s,
         DynamicBuffer& b,
-        message_type& m,
-        Handler_&& h)
+        message_type& m)
         : stable_async_op_base<
             Handler, beast::executor_type<Stream>>(
                 std::forward<Handler_>(h), s.get_executor())
@@ -200,6 +200,42 @@ public:
         if(! ec)
             d_.m = d_.p.release();
         this->invoke_now(ec, bytes_transferred);
+    }
+};
+
+struct run_read_msg_op
+{
+    template<
+        class ReadHandler,
+        class AsyncReadStream,
+        class DynamicBuffer,
+        bool isRequest, class Body, class Allocator>
+    void
+    operator()(
+        ReadHandler&& h,
+        AsyncReadStream& s,
+        DynamicBuffer& b,
+        message<isRequest, Body,
+            basic_fields<Allocator>>& m)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<ReadHandler,
+            void(error_code, std::size_t)>::value,
+            "ReadHandler type requirements not met");
+
+        read_msg_op<
+            AsyncReadStream,
+            DynamicBuffer,
+            isRequest, Body, Allocator,
+            typename std::decay<ReadHandler>::type>(
+                std::forward<ReadHandler>(h),
+                s,
+                b,
+                m);
     }
 };
 
@@ -266,19 +302,12 @@ async_read_some(
     basic_parser<isRequest, Derived>& parser,
     ReadHandler&& handler)
 {
-    static_assert(
-        is_async_read_stream<AsyncReadStream>::value,
-        "AsyncReadStream type requirements not met");
-    static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    beast::detail::async_read(stream, buffer,
+    return beast::detail::async_read(
+        stream,
+        buffer,
         detail::read_some_condition<
-            isRequest, Derived>{parser}, std::move(
-                init.completion_handler));
-    return init.result.get();
+            isRequest, Derived>{parser},
+        std::forward<ReadHandler>(handler));
 }
 
 //------------------------------------------------------------------------------
@@ -343,20 +372,13 @@ async_read_header(
     basic_parser<isRequest, Derived>& parser,
     ReadHandler&& handler)
 {
-    static_assert(
-        is_async_read_stream<AsyncReadStream>::value,
-        "AsyncReadStream type requirements not met");
-    static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
     parser.eager(false);
-    beast::detail::async_read(stream, buffer,
+    return beast::detail::async_read(
+        stream,
+        buffer,
         detail::read_header_condition<
-            isRequest, Derived>{parser}, std::move(
-                init.completion_handler));
-    return init.result.get();
+            isRequest, Derived>{parser},
+        std::forward<ReadHandler>(handler));
 }
 
 //------------------------------------------------------------------------------
@@ -427,14 +449,13 @@ async_read(
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
     parser.eager(true);
-    beast::detail::async_read(stream, buffer,
+    return beast::detail::async_read(
+        stream,
+        buffer,
         detail::read_all_condition<
-            isRequest, Derived>{parser}, std::move(
-                init.completion_handler));
-    return init.result.get();
+            isRequest, Derived>{parser},
+        std::forward<ReadHandler>(handler));
 }
 
 //------------------------------------------------------------------------------
@@ -521,17 +542,14 @@ async_read(
         "Body type requirements not met");
     static_assert(is_body_reader<Body>::value,
         "BodyReader type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    detail::read_msg_op<
-        AsyncReadStream,
-        DynamicBuffer,
-        isRequest, Body, Allocator,
-        BOOST_ASIO_HANDLER_TYPE(
-            ReadHandler, void(error_code, std::size_t))>(
-                stream, buffer, msg, std::move(
-                    init.completion_handler));
-    return init.result.get();
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            detail::run_read_msg_op{},
+            handler,
+            stream,
+            buffer,
+            msg);
 }
 
 } // http

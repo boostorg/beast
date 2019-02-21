@@ -22,23 +22,26 @@
 namespace boost {
 namespace beast {
 
+
 template<class Stream, class DynamicBuffer>
+struct buffered_read_stream<Stream, DynamicBuffer>::ops
+{
+
 template<class MutableBufferSequence, class Handler>
-class buffered_read_stream<
-    Stream, DynamicBuffer>::read_some_op
-    : public async_op_base<
-        Handler, beast::executor_type<buffered_read_stream>>
+class read_op
+    : public async_op_base<Handler,
+    beast::executor_type<buffered_read_stream>>
 {
     buffered_read_stream& s_;
     MutableBufferSequence b_;
     int step_ = 0;
 
 public:
-    read_some_op(read_some_op&&) = default;
-    read_some_op(read_some_op const&) = delete;
+    read_op(read_op&&) = default;
+    read_op(read_op const&) = delete;
 
     template<class Handler_>
-    read_some_op(
+    read_op(
         Handler_&& h,
         buffered_read_stream& s,
         MutableBufferSequence const& b)
@@ -56,6 +59,7 @@ public:
         error_code ec,
         std::size_t bytes_transferred)
     {
+        // VFALCO TODO Rewrite this using reenter/yield
         switch(step_)
         {
         case 0:
@@ -97,6 +101,35 @@ public:
         }
         this->invoke_now(ec, bytes_transferred);
     }
+};
+
+struct run_read_op
+{
+    template<class ReadHandler, class Buffers>
+    void
+    operator()(
+        ReadHandler&& h,
+        buffered_read_stream& s,
+        Buffers const& b)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<ReadHandler,
+            void(error_code, std::size_t)>::value,
+            "ReadHandler type requirements not met");
+
+        read_op<
+            Buffers,
+            typename std::decay<ReadHandler>::type>(
+                std::forward<ReadHandler>(h),
+                s,
+                b);
+    }
+};
+
 };
 
 //------------------------------------------------------------------------------
@@ -198,12 +231,13 @@ async_read_some(
     if(buffer_.size() == 0 && capacity_ == 0)
         return next_layer_.async_read_some(buffers,
             std::forward<ReadHandler>(handler));
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    read_some_op<MutableBufferSequence, BOOST_ASIO_HANDLER_TYPE(
-        ReadHandler, void(error_code, std::size_t))>(
-            std::move(init.completion_handler), *this, buffers);
-    return init.result.get();
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            typename ops::run_read_op{},
+            handler,
+            *this,
+            buffers);
 }
 
 } // beast

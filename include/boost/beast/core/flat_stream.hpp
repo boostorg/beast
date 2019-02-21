@@ -90,12 +90,12 @@ class flat_stream
     : private detail::flat_stream_base
 #endif
 {
-    template<class> class write_op;
-
     NextLayer stream_;
     flat_buffer buffer_;
 
     BOOST_STATIC_ASSERT(has_get_executor<NextLayer>::value);
+
+    struct ops;
 
     template<class ConstBufferSequence>
     std::size_t

@@ -31,20 +31,23 @@ class stream::read_op : public stream::read_op_base
 
     class lambda
     {
+        Handler h_;
         state& s_;
         Buffers b_;
-        Handler h_;
         net::executor_work_guard<ex2_type> wg2_;
 
     public:
         lambda(lambda&&) = default;
         lambda(lambda const&) = default;
 
-        template<class DeducedHandler>
-        lambda(state& s, Buffers const& b, DeducedHandler&& h)
-            : s_(s)
+        template<class Handler_>
+        lambda(
+            Handler_&& h,
+            state& s,
+            Buffers const& b)
+            : h_(std::forward<Handler_>(h))
+            , s_(s)
             , b_(b)
-            , h_(std::forward<DeducedHandler>(h))
             , wg2_(net::get_associated_executor(
                 h_, s_.ioc.get_executor()))
         {
@@ -88,9 +91,11 @@ class stream::read_op : public stream::read_op_base
 
 public:
     template<class Handler_>
-    read_op(state& s,
-        Buffers const& b, Handler_&& h)
-        : fn_(s, b, std::forward<Handler_>(h))
+    read_op(
+        Handler_&& h,
+        state& s,
+        Buffers const& b)
+        : fn_(std::forward<Handler_>(h), s, b)
         , wg1_(s.ioc.get_executor())
     {
     }
@@ -104,6 +109,172 @@ public:
                 std::move(fn_),
                 cancel));
         wg1_.reset();
+    }
+};
+
+struct stream::run_read_op
+{
+    template<
+        class ReadHandler,
+        class MutableBufferSequence>
+    void
+    operator()(
+        ReadHandler&& h,
+        std::shared_ptr<state> in_,
+        MutableBufferSequence const& buffers)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<ReadHandler,
+                void(error_code, std::size_t)>::value,
+            "ReadHandler type requirements not met");
+
+        ++in_->nread;
+
+        std::unique_lock<std::mutex> lock(in_->m);
+        if(in_->op != nullptr)
+            throw std::logic_error(
+                "in_->op != nullptr");
+
+        // test failure
+        error_code ec;
+        if(in_->fc && in_->fc->fail(ec))
+        {
+            net::post(
+                in_->ioc.get_executor(),
+                beast::bind_front_handler(
+                    std::move(h),
+                    ec, std::size_t{0}));
+            return;
+        }
+
+        // A request to read 0 bytes from a stream is a no-op.
+        if(buffer_size(buffers) == 0)
+        {
+            lock.unlock();
+            net::post(
+                in_->ioc.get_executor(),
+                beast::bind_front_handler(
+                    std::move(h),
+                    ec, std::size_t{0}));
+            return;
+        }
+
+        // deliver bytes before eof
+        if(buffer_size(in_->b.data()) > 0)
+        {
+            auto n = net::buffer_copy(
+                buffers, in_->b.data(), in_->read_max);
+            in_->b.consume(n);
+            lock.unlock();
+            net::post(
+                in_->ioc.get_executor(),
+                beast::bind_front_handler(
+                    std::move(h),
+                    ec, n));
+            return;
+        }
+
+        // deliver error
+        if(in_->code != status::ok)
+        {
+            lock.unlock();
+            ec = net::error::eof;
+            net::post(
+                in_->ioc.get_executor(),
+                beast::bind_front_handler(
+                    std::move(h),
+                    ec, std::size_t{0}));
+            return;
+        }
+
+        // complete when bytes available or closed
+        in_->op.reset(
+            new read_op<
+                ReadHandler,
+                MutableBufferSequence>(
+                    std::move(h), *in_, buffers));
+    }
+};
+
+struct stream::run_write_op
+{
+    template<
+        class WriteHandler,
+        class ConstBufferSequence>
+    void
+    operator()(
+        WriteHandler&& h,
+        std::shared_ptr<state> in_,
+        std::weak_ptr<state> out_,
+        ConstBufferSequence const& buffers)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+                void(error_code, std::size_t)>::value,
+            "WriteHandler type requirements not met");
+
+        ++in_->nwrite;
+
+        // test failure
+        error_code ec;
+        if(in_->fc && in_->fc->fail(ec))
+        {
+            net::post(
+                in_->ioc.get_executor(),
+                beast::bind_front_handler(
+                    std::move(h),
+                    ec,
+                    std::size_t{0}));
+            return;
+        }
+
+        // A request to read 0 bytes from a stream is a no-op.
+        if(buffer_size(buffers) == 0)
+        {
+            net::post(
+                in_->ioc.get_executor(),
+                beast::bind_front_handler(
+                    std::move(h),
+                    ec, std::size_t{0}));
+            return;
+        }
+
+        // connection closed
+        auto out = out_.lock();
+        if(! out)
+        {
+            net::post(
+                in_->ioc.get_executor(),
+                beast::bind_front_handler(
+                    std::move(h),
+                    net::error::connection_reset,
+                    std::size_t{0}));
+            return;
+        }
+
+        // copy buffers
+        auto n = std::min<std::size_t>(
+            buffer_size(buffers), in_->write_max);
+        {
+            std::lock_guard<std::mutex> lock(out->m);
+            n = net::buffer_copy(out->b.prepare(n), buffers);
+            out->b.commit(n);
+            out->notify_read();
+        }
+        net::post(
+            in_->ioc.get_executor(),
+            beast::bind_front_handler(
+                std::move(h),
+                error_code{},
+                n));
     }
 };
 
@@ -376,74 +547,13 @@ async_read_some(
             MutableBufferSequence>::value,
         "MutableBufferSequence type requirements not met");
 
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-
-    ++in_->nread;
-
-    std::unique_lock<std::mutex> lock(in_->m);
-    if(in_->op != nullptr)
-        throw std::logic_error(
-            "in_->op != nullptr");
-
-    // test failure
-    error_code ec;
-    if(in_->fc && in_->fc->fail(ec))
-    {
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(init.completion_handler),
-                ec, std::size_t{0}));
-        return init.result.get();
-    }
-
-    // A request to read 0 bytes from a stream is a no-op.
-    if(buffer_size(buffers) == 0)
-    {
-        lock.unlock();
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(init.completion_handler),
-                ec, std::size_t{0}));
-        return init.result.get();
-    }
-
-    // deliver bytes before eof
-    if(buffer_size(in_->b.data()) > 0)
-    {
-        auto n = net::buffer_copy(
-            buffers, in_->b.data(), in_->read_max);
-        in_->b.consume(n);
-        lock.unlock();
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(init.completion_handler),
-                ec, n));
-        return init.result.get();
-    }
-
-    // deliver error
-    if(in_->code != status::ok)
-    {
-        lock.unlock();
-        ec = net::error::eof;
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(init.completion_handler),
-                ec, std::size_t{0}));
-        return init.result.get();
-    }
-
-    // complete when bytes available or closed
-    in_->op.reset(new read_op<BOOST_ASIO_HANDLER_TYPE(
-        ReadHandler, void(error_code, std::size_t)),
-            MutableBufferSequence>{*in_, buffers,
-                std::move(init.completion_handler)});
-    return init.result.get();
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            run_read_op{},
+            handler,
+            in_,
+            buffers);
 }
 
 template<class ConstBufferSequence>
@@ -509,70 +619,22 @@ template<class ConstBufferSequence, class WriteHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     WriteHandler, void(error_code, std::size_t))
 stream::
-async_write_some(ConstBufferSequence const& buffers,
+async_write_some(
+    ConstBufferSequence const& buffers,
     WriteHandler&& handler)
 {
     static_assert(net::is_const_buffer_sequence<
             ConstBufferSequence>::value,
         "ConstBufferSequence type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
 
-    ++in_->nwrite;
-
-    // test failure
-    error_code ec;
-    if(in_->fc && in_->fc->fail(ec))
-    {
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(init.completion_handler),
-                ec,
-                std::size_t{0}));
-        return init.result.get();
-    }
-
-    // A request to read 0 bytes from a stream is a no-op.
-    if(buffer_size(buffers) == 0)
-    {
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(init.completion_handler),
-                ec, std::size_t{0}));
-        return init.result.get();
-    }
-
-    // connection closed
-    auto out = out_.lock();
-    if(! out)
-    {
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(init.completion_handler),
-                net::error::connection_reset,
-                std::size_t{0}));
-        return init.result.get();
-    }
-
-    // copy buffers
-    auto n = std::min<std::size_t>(
-        buffer_size(buffers), in_->write_max);
-    {
-        std::lock_guard<std::mutex> lock(out->m);
-        n = net::buffer_copy(out->b.prepare(n), buffers);
-        out->b.commit(n);
-        out->notify_read();
-    }
-    net::post(
-        in_->ioc.get_executor(),
-        beast::bind_front_handler(
-            std::move(init.completion_handler),
-            error_code{}, n));
-
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            run_write_op{},
+            handler,
+            in_,
+            out_,
+            buffers);
 }
 
 void

@@ -235,7 +235,7 @@ BOOST_ASIO_INITFN_RESULT_TYPE(
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    CompletionCondition completion_condition,
+    CompletionCondition&& completion_condition,
     ReadHandler&& handler);
 
 } // detail

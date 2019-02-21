@@ -26,6 +26,9 @@ static std::size_t constexpr default_max_stack_buffer = 16384;
 
 //------------------------------------------------------------------------------
 
+struct dynamic_read_ops
+{
+
 // read into a dynamic buffer until the
 // condition is met or an error occurs
 template<
@@ -46,19 +49,19 @@ class read_op
 public:
     read_op(read_op&&) = default;
 
-    template<class Handler_>
+    template<class Handler_, class Condition_>
     read_op(
+        Handler_&& h,
         Stream& s,
         DynamicBuffer& b,
-        Condition cond,
-        Handler_&& h)
+        Condition_&& cond)
         : async_op_base<Handler,
             beast::executor_type<Stream>>(
                 std::forward<Handler_>(h),
                     s.get_executor())
         , s_(s)
         , b_(b)
-        , cond_(cond)
+        , cond_(std::forward<Condition_>(cond))
     {
         (*this)({}, 0, false);
     }
@@ -100,16 +103,16 @@ public:
 // EXPERIMENTAL
 // optimized non-blocking read algorithm
 template<
-    class Protocol,
+    class Protocol, class Executor,
     class DynamicBuffer,
     class Condition,
     class Handler>
 class read_non_blocking_op
     : public net::coroutine
-    , public async_op_base<Handler,
-        beast::executor_type<net::basic_stream_socket<Protocol>>>
+    , public async_op_base<Handler, Executor>
 {
-    net::basic_stream_socket<Protocol>& s_;
+    net::basic_stream_socket<
+        Protocol, Executor>& s_;
     DynamicBuffer& b_;
     Condition cond_;
     std::size_t limit_;
@@ -119,18 +122,18 @@ public:
     read_non_blocking_op(read_non_blocking_op&&) = default;
     read_non_blocking_op(read_non_blocking_op const&) = delete;
 
-    template<class Handler_>
+    template<class Handler_, class Condition_>
     read_non_blocking_op(
-        net::basic_stream_socket<Protocol>& s,
+        Handler_&& h,
+        net::basic_stream_socket<
+            Protocol, Executor>& s,
         DynamicBuffer& b,
-        Condition cond,
-        Handler_&& h)
-        : async_op_base<Handler, beast::executor_type<
-            net::basic_stream_socket<Protocol>>>(
-                s.get_executor(), std::forward<Handler_>(h))
+        Condition cond)
+        : async_op_base<Handler, Executor>(
+            s.get_executor(), std::forward<Handler_>(h))
         , s_(s)
         , b_(b)
-        , cond_(cond)
+        , cond_(std::forward<Condition_>(cond))
     {
         (*this)({}, false);
     }
@@ -198,92 +201,91 @@ public:
 
 #endif
 
-//------------------------------------------------------------------------------
-
-template<
-    class AsyncReadStream,
-    class DynamicBuffer,
-    class CompletionCondition,
-    class ReadHandler,
-    class>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
-async_read(
-    AsyncReadStream& stream,
-    DynamicBuffer& buffer,
-    CompletionCondition cond,
-    ReadHandler&& handler)
+struct run_read_op
 {
-    static_assert(is_async_read_stream<AsyncReadStream>::value,
-        "AsyncReadStream type requirements not met");
-    static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer type requirements not met");
-    static_assert(
-        detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value,
-        "CompletionCondition type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    detail::read_op<
-        AsyncReadStream,
-        DynamicBuffer,
-        CompletionCondition,
-        BOOST_ASIO_HANDLER_TYPE(
-            ReadHandler, void(error_code, std::size_t))>(
-        stream, buffer, std::move(cond),
-            std::move(init.completion_handler));
-    return init.result.get();
-}
+    template<
+        class AsyncReadStream,
+        class DynamicBuffer,
+        class Condition,
+        class ReadHandler>
+    void
+    operator()(
+        ReadHandler&& h,
+        AsyncReadStream& s,
+        DynamicBuffer& b,
+        Condition&& c)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
 
-#ifdef BOOST_BEAST_ENABLE_NON_BLOCKING
-template<
-    class Protocol,
-    class DynamicBuffer,
-    class CompletionCondition,
-    class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
-async_read(
-    net::basic_stream_socket<Protocol>& socket,
-    DynamicBuffer& buffer,
-    CompletionCondition cond,
-    ReadHandler&& handler)
-{
-    static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
-        "DynamicBuffer type requirements not met");
-    static_assert(
-        detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value,
-        "CompletionCondition type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    if(socket.non_blocking())
-    {
-        detail::read_non_blocking_op<
-            Protocol,
+        static_assert(
+            beast::detail::is_invocable<ReadHandler,
+            void(error_code, std::size_t)>::value,
+            "ReadHandler type requirements not met");
+
+        read_op<
+            AsyncReadStream,
             DynamicBuffer,
-            CompletionCondition,
-            BOOST_ASIO_HANDLER_TYPE(
-                ReadHandler, void(error_code, std::size_t))>(
-            socket, buffer, std::move(cond),
-                std::move(init.completion_handler));
+            typename std::decay<Condition>::type,
+            typename std::decay<ReadHandler>::type>(
+                std::forward<ReadHandler>(h),
+                s,
+                b,
+                std::forward<Condition>(c));
     }
-    else
+
+#if BOOST_BEAST_ENABLE_NON_BLOCKING
+    template<
+        class Protocol, class Executor,
+        class DynamicBuffer,
+        class Condition,
+        class ReadHandler>
+    void
+    operator()(
+        net::basic_stream_socket<Protocol, Executor>& s,
+        DynamicBuffer& b,
+        Condition&& c,
+        ReadHandler&& h)
     {
-        detail::read_op<
-            decltype(socket),
-            DynamicBuffer,
-            CompletionCondition,
-            BOOST_ASIO_HANDLER_TYPE(
-                ReadHandler, void(error_code, std::size_t))>(
-            socket, buffer, std::move(cond),
-                std::move(init.completion_handler));
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<ReadHandler,
+            void(error_code, std::size_t)>::value,
+            "ReadHandler type requirements not met");
+
+        if(s.non_blocking())
+        {
+            read_non_blocking_op<
+                Protocol, Executor,
+                DynamicBuffer,
+                typename std::decay<Condition>::type,
+                typename std::decay<ReadHandler>::type>(
+                    std::forward<ReadHandler>(h),
+                    s,
+                    b,
+                    std::forward<Condition>(c));
+        }
+        else
+        {
+            read_op<
+                net::basic_stream_socket<Protocol, Executor>,
+                DynamicBuffer,
+                typename std::decay<Condition>::type,
+                typename std::decay<ReadHandler>::type>(
+                    std::forward<ReadHandler>(h),
+                    s,
+                    b,
+                    std::forward<Condition>(c));
+        }
     }
-    return init.result.get();
-}
 #endif
+};
+
+};
 
 //------------------------------------------------------------------------------
 
@@ -443,6 +445,39 @@ read(
     return total;
 }
 #endif
+
+template<
+    class AsyncReadStream,
+    class DynamicBuffer,
+    class CompletionCondition,
+    class ReadHandler,
+    class>
+BOOST_ASIO_INITFN_RESULT_TYPE(
+    ReadHandler, void(error_code, std::size_t))
+async_read(
+    AsyncReadStream& stream,
+    DynamicBuffer& buffer,
+    CompletionCondition&& cond,
+    ReadHandler&& handler)
+{
+    static_assert(is_async_read_stream<AsyncReadStream>::value,
+        "AsyncReadStream type requirements not met");
+    static_assert(
+        net::is_dynamic_buffer<DynamicBuffer>::value,
+        "DynamicBuffer type requirements not met");
+    static_assert(
+        detail::is_invocable<CompletionCondition,
+            void(error_code&, std::size_t, DynamicBuffer&)>::value,
+        "CompletionCondition type requirements not met");
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            typename dynamic_read_ops::run_read_op{},
+            handler,
+            stream,
+            buffer,
+            std::forward<CompletionCondition>(cond));
+}
 
 } // detail
 } // beast

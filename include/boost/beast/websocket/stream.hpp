@@ -20,6 +20,7 @@
 #include <boost/beast/websocket/detail/hybi13.hpp>
 #include <boost/beast/websocket/detail/impl_base.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/http/detail/type_traits.hpp>
@@ -127,6 +128,16 @@ class stream
     : private stream_base
 #endif
 {
+    struct impl_type;
+
+    boost::shared_ptr<impl_type> impl_;
+
+    using time_point = typename
+        std::chrono::steady_clock::time_point;
+
+    using control_cb_type =
+        std::function<void(frame_type, string_view)>;
+
     friend class close_test;
     friend class frame_test;
     friend class ping_test;
@@ -141,16 +152,6 @@ class stream
     */
     static std::size_t constexpr max_control_frame_size = 2 + 8 + 4 + 125;
     static std::size_t constexpr tcp_frame_size = 1536;
-
-    using control_cb_type =
-        std::function<void(frame_type, string_view)>;
-
-    struct impl_type;
-
-    boost::shared_ptr<impl_type> impl_;
-
-    using time_point = typename
-        std::chrono::steady_clock::time_point;
 
     static time_point never() noexcept
     {
@@ -167,7 +168,8 @@ public:
         typename std::remove_reference<NextLayer>::type;
 
     /// The type of the executor associated with the object.
-    using executor_type = typename next_layer_type::executor_type;
+    using executor_type =
+        beast::executor_type<next_layer_type>;
 
     /** Destructor
 
@@ -2635,6 +2637,17 @@ private:
     template<class>         class response_op;
     template<class, class>  class write_some_op;
     template<class, class>  class write_op;
+
+    struct run_accept_op;
+    struct run_close_op;
+    struct run_handshake_op;
+    struct run_ping_op;
+    struct run_idle_ping_op;
+    struct run_read_some_op;
+    struct run_read_op;
+    struct run_response_op;
+    struct run_write_some_op;
+    struct run_write_op;
 
     static void default_decorate_req(request_type&) {}
     static void default_decorate_res(response_type&) {}

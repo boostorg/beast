@@ -211,33 +211,16 @@ public:
         }
     };
 
-    void
-    testAsioHandlerInvoke()
-    {
-        // make sure things compile, also can set a
-        // breakpoint in asio_handler_invoke to make sure
-        // it is instantiated.
-        net::io_context ioc;
-        net::strand<
-            net::io_context::executor_type> s(
-                ioc.get_executor());
-        test::stream ts{ioc};
-        buffered_read_stream<
-            test::stream&, multi_buffer> brs(ts);
-        brs.async_read_some(net::mutable_buffer{},
-            net::bind_executor(
-                s, copyable_handler{}));
-    }
-
     void run() override
     {
         testSpecialMembers();
 
-        yield_to([&](yield_context yield){
-            testRead(yield);});
+        yield_to([&](yield_context yield)
+        {
+            testRead(yield);
+        });
 
         testAsyncLoop();
-        testAsioHandlerInvoke();
     }
 };
 

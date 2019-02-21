@@ -230,6 +230,34 @@ public:
     }
 };
 
+template<class NextLayer, bool deflateSupported>
+struct stream<NextLayer, deflateSupported>::
+    run_close_op
+{
+    template<class CloseHandler>
+    void
+    operator()(
+        CloseHandler&& h,
+        boost::shared_ptr<impl_type> const& sp,
+        close_reason const& cr)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<CloseHandler,
+                void(error_code)>::value,
+            "CloseHandler type requirements not met");
+
+        close_op<
+            typename std::decay<CloseHandler>::type>(
+                std::forward<CloseHandler>(h),
+                sp,
+                cr);
+    }
+};
+
 //------------------------------------------------------------------------------
 
 template<class NextLayer, bool deflateSupported>
@@ -360,12 +388,13 @@ async_close(close_reason const& cr, CloseHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        CloseHandler, void(error_code));
-    close_op<BOOST_ASIO_HANDLER_TYPE(
-        CloseHandler, void(error_code))>(
-            std::move(init.completion_handler), impl_, cr);
-    return init.result.get();
+    return net::async_initiate<
+        CloseHandler,
+        void(error_code)>(
+            run_close_op{},
+            handler,
+            impl_,
+            cr);
 }
 
 } // websocket

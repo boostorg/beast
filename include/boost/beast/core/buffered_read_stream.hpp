@@ -95,8 +95,7 @@ class buffered_read_stream
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
 
-    template<class Buffers, class Handler>
-    class read_some_op;
+    struct ops;
 
     DynamicBuffer buffer_;
     std::size_t capacity_ = 0;

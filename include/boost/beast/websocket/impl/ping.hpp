@@ -200,6 +200,36 @@ public:
     }
 };
 
+template<class NextLayer, bool deflateSupported>
+struct stream<NextLayer, deflateSupported>::
+    run_ping_op
+{
+    template<class WriteHandler>
+    void
+    operator()(
+        WriteHandler&& h,
+        boost::shared_ptr<impl_type> const& sp,
+        detail::opcode op,
+        ping_data const& p)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+                void(error_code)>::value,
+            "WriteHandler type requirements not met");
+
+        ping_op<
+            typename std::decay<WriteHandler>::type>(
+                std::forward<WriteHandler>(h),
+                sp,
+                op,
+                p);
+    }
+};
+
 //------------------------------------------------------------------------------
 
 template<class NextLayer, bool deflateSupported>
@@ -263,13 +293,14 @@ async_ping(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code));
-    ping_op<BOOST_ASIO_HANDLER_TYPE(
-        WriteHandler, void(error_code))>(
-            std::move(init.completion_handler), impl_,
-                detail::opcode::ping, payload);
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code)>(
+            run_ping_op{},
+            handler,
+            impl_,
+            detail::opcode::ping,
+            payload);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -281,13 +312,14 @@ async_pong(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code));
-    ping_op<BOOST_ASIO_HANDLER_TYPE(
-        WriteHandler, void(error_code))>(
-            std::move(init.completion_handler), impl_,
-                detail::opcode::pong, payload);
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code)>(
+            run_ping_op{},
+            handler,
+            impl_,
+            detail::opcode::pong,
+            payload);
 }
 
 } // websocket

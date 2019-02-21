@@ -539,16 +539,17 @@ struct run_read_op
     operator()(
         ReadHandler&& h,
         basic_stream& s,
-        Buffers const& b
-        )
+        Buffers const& b)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
-        // requirements for a ReadHandler.
+        // requirements for the handler.
+
         static_assert(
             detail::is_invocable<ReadHandler,
                 void(error_code, std::size_t)>::value,
             "ReadHandler type requirements not met");
+
         transfer_op<
             true,
             Buffers,
@@ -568,11 +569,13 @@ struct run_write_op
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
-        // requirements for a WriteHandler.
+        // requirements for the handler.
+
         static_assert(
             detail::is_invocable<WriteHandler,
                 void(error_code, std::size_t)>::value,
             "WriteHandler type requirements not met");
+
         transfer_op<
             false,
             Buffers,
@@ -592,11 +595,13 @@ struct run_connect_op
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
-        // requirements for a ConnectHandler.
+        // requirements for the handler.
+
         static_assert(
             detail::is_invocable<ConnectHandler,
                 void(error_code)>::value,
             "ConnectHandler type requirements not met");
+
         connect_op<typename std::decay<ConnectHandler>::type>(
             std::forward<ConnectHandler>(h), s, ep);
     }
@@ -617,11 +622,13 @@ struct run_connect_range_op
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
-        // requirements for a RangeConnectHandler.
+        // requirements for the handler.
+
         static_assert(
             detail::is_invocable<RangeConnectHandler,
                 void(error_code, typename Protocol::endpoint)>::value,
             "RangeConnectHandler type requirements not met");
+
         connect_op<typename std::decay<RangeConnectHandler>::type>(
             std::forward<RangeConnectHandler>(h), s, eps, cond);
     }
@@ -642,11 +649,13 @@ struct run_connect_iter_op
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
-        // requirements for a IteratorConnectHandler.
+        // requirements for the handler.
+
         static_assert(
             detail::is_invocable<IteratorConnectHandler,
                 void(error_code, Iterator)>::value,
             "IteratorConnectHandler type requirements not met");
+
         connect_op<typename std::decay<IteratorConnectHandler>::type>(
             std::forward<IteratorConnectHandler>(h), s, begin, end, cond);
     }

@@ -37,7 +37,7 @@ namespace beast {
 namespace websocket {
 
 template<class NextLayer, bool deflateSupported>
-template<class Buffers, class Handler>
+template<class Handler, class Buffers>
 class stream<NextLayer, deflateSupported>::write_some_op
     : public beast::async_op_base<
         Handler, beast::executor_type<stream>>
@@ -430,6 +430,39 @@ operator()(
     }
 }
 
+template<class NextLayer, bool deflateSupported>
+struct stream<NextLayer, deflateSupported>::
+    run_write_some_op
+{
+    template<
+        class WriteHandler,
+        class ConstBufferSequence>
+    void
+    operator()(
+        WriteHandler&& h,
+        boost::shared_ptr<impl_type> const& sp,
+        bool fin,
+        ConstBufferSequence const& b)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+                void(error_code, std::size_t)>::value,
+            "WriteHandler type requirements not met");
+
+        write_some_op<
+            typename std::decay<WriteHandler>::type,
+            ConstBufferSequence>(
+                std::forward<WriteHandler>(h),
+                sp,
+                fin,
+                b);
+    }
+};
+
 //------------------------------------------------------------------------------
 
 template<class NextLayer, bool deflateSupported>
@@ -676,12 +709,14 @@ async_write_some(bool fin,
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
-        WriteHandler, void(error_code, std::size_t))>(
-            std::move(init.completion_handler), impl_, fin, bs);
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            run_write_some_op{},
+            handler,
+            impl_,
+            fin,
+            bs);
 }
 
 //------------------------------------------------------------------------------
@@ -731,12 +766,14 @@ async_write(
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    write_some_op<ConstBufferSequence, BOOST_ASIO_HANDLER_TYPE(
-        WriteHandler, void(error_code, std::size_t))>(
-            std::move(init.completion_handler), impl_, true, bs);
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            run_write_some_op{},
+            handler,
+            impl_,
+            true,
+            bs);
 }
 
 } // websocket

@@ -74,6 +74,7 @@ public:
         d_.req = sp->build_request(
             key_, host, target, decorator);
         sp->reset(); // VFALCO I don't like this
+        (*this)({}, 0, false);
     }
 
     void
@@ -154,6 +155,37 @@ public:
         upcall:
             this->invoke(cont ,ec);
         }
+    }
+};
+
+template<class NextLayer, bool deflateSupported>
+struct stream<NextLayer, deflateSupported>::
+    run_handshake_op
+{
+    template<class HandshakeHandler, class Decorator>
+    void operator()(
+        HandshakeHandler&& h,
+        boost::shared_ptr<impl_type> const& sp,
+        response_type* r,
+        string_view host, string_view target,
+        Decorator const& d)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<HandshakeHandler,
+                void(error_code)>::value,
+            "HandshakeHandler type requirements not met");
+
+        handshake_op<
+            typename std::decay<HandshakeHandler>::type>(
+                std::forward<HandshakeHandler>(h),
+                sp,
+                r,
+                host, target,
+                d);
     }
 };
 
@@ -241,14 +273,15 @@ async_handshake(string_view host,
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        HandshakeHandler, void(error_code));
-    handshake_op<BOOST_ASIO_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>(
-            std::move(init.completion_handler),
-                impl_, nullptr, host, target,
-                    &default_decorate_req)();
-    return init.result.get();
+    return net::async_initiate<
+        HandshakeHandler,
+        void(error_code)>(
+            run_handshake_op{},
+            handler,
+            impl_,
+            nullptr,
+            host, target,
+            &default_decorate_req);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -263,14 +296,15 @@ async_handshake(response_type& res,
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        HandshakeHandler, void(error_code));
-    handshake_op<BOOST_ASIO_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>(
-            std::move(init.completion_handler),
-                impl_, &res, host, target,
-                    &default_decorate_req)();
-    return init.result.get();
+    return net::async_initiate<
+        HandshakeHandler,
+        void(error_code)>(
+            run_handshake_op{},
+            handler,
+            impl_,
+            &res,
+            host, target,
+            &default_decorate_req);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -442,14 +476,15 @@ async_handshake_ex(string_view host,
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        HandshakeHandler, void(error_code));
-    handshake_op<BOOST_ASIO_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>(
-            std::move(init.completion_handler),
-                impl_, nullptr, host, target,
-                    decorator)();
-    return init.result.get();
+    return net::async_initiate<
+        HandshakeHandler,
+        void(error_code)>(
+            run_handshake_op{},
+            handler,
+            impl_,
+            nullptr,
+            host, target,
+            decorator);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -472,18 +507,16 @@ async_handshake_ex(response_type& res,
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        HandshakeHandler, void(error_code));
-    handshake_op<BOOST_ASIO_HANDLER_TYPE(
-        HandshakeHandler, void(error_code))>(
-            std::move(init.completion_handler),
-                impl_, &res, host, target,
-                    decorator)();
-    return init.result.get();
+    return net::async_initiate<
+        HandshakeHandler,
+        void(error_code)>(
+            run_handshake_op{},
+            handler,
+            impl_,
+            &res,
+            host, target,
+            decorator);
 }
-
-
-
 
 } // websocket
 } // beast

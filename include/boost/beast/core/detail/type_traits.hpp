@@ -124,20 +124,6 @@ struct is_contiguous_container<T, E, void_t<
     >::type>>: std::true_type
 {};
 
-//------------------------------------------------------------------------------
-
-/*  If this static assert goes off, it means that the completion
-    handler you provided to an asynchronous initiating function did
-    not have the right signature. Check the parameter types for your
-    completion handler and make sure they match the list of types
-    expected by the initiating function,
-*/
-#define BOOST_BEAST_HANDLER_INIT(type, sig) \
-    static_assert(::boost::beast::detail::is_invocable< \
-    BOOST_ASIO_HANDLER_TYPE(type, sig), sig>::value, \
-    "CompletionHandler type requirements not met"); \
-    ::boost::beast::net::async_completion<type, sig> init{handler}
-
 } // detail
 } // beast
 } // boost

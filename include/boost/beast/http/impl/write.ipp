@@ -30,7 +30,8 @@ namespace http {
 namespace detail {
 
 template<
-    class Stream, class Handler,
+    class Handler,
+    class Stream,
     bool isRequest, class Body, class Fields>
 class write_some_op
     : public beast::async_op_base<
@@ -150,7 +151,9 @@ struct serializer_is_done
 //------------------------------------------------------------------------------
 
 template<
-    class Stream, class Handler, class Predicate,
+    class Handler,
+    class Stream,
+    class Predicate,
     bool isRequest, class Body, class Fields>
 class write_op
     : public beast::async_op_base<
@@ -211,7 +214,8 @@ public:
 //------------------------------------------------------------------------------
 
 template<
-    class Stream, class Handler,
+    class Handler,
+    class Stream,
     bool isRequest, class Body, class Fields>
 class write_msg_op
     : public beast::stable_async_op_base<
@@ -225,8 +229,8 @@ public:
         class Handler_,
         class... Args>
     write_msg_op(
-        Stream& s,
         Handler_&& h,
+        Stream& s,
         Args&&... args)
         : stable_async_op_base<
             Handler, beast::executor_type<Stream>>(
@@ -250,6 +254,138 @@ public:
         error_code ec, std::size_t bytes_transferred)
     {
         this->invoke_now(ec, bytes_transferred);
+    }
+};
+
+struct run_write_some_op
+{
+    template<
+        class WriteHandler,
+        class Stream, 
+        bool isRequest, class Body, class Fields>
+    void
+    operator()(
+        WriteHandler&& h,
+        Stream& s,
+        serializer<isRequest, Body, Fields>& sr)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+            void(error_code, std::size_t)>::value,
+            "WriteHandler type requirements not met");
+
+        write_some_op<
+            typename std::decay<WriteHandler>::type,
+            Stream,
+            isRequest, Body, Fields>(
+                std::forward<WriteHandler>(h),
+                s,
+                sr);
+    }
+};
+
+struct run_write_op
+{
+    template<
+        class WriteHandler,
+        class Stream,
+        class Predicate,
+        bool isRequest, class Body, class Fields>
+    void
+    operator()(
+        WriteHandler&& h,
+        Stream& s,
+        Predicate const&,
+        serializer<isRequest, Body, Fields>& sr)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+            void(error_code, std::size_t)>::value,
+            "WriteHandler type requirements not met");
+
+        write_op<
+            typename std::decay<WriteHandler>::type,
+            Stream,
+            Predicate,
+            isRequest, Body, Fields>(
+                std::forward<WriteHandler>(h),
+                s,
+                sr);
+    }
+};
+
+struct run_write_msg_op
+{
+    template<
+        class WriteHandler,
+        class Stream,
+        bool isRequest, class Body, class Fields,
+        class... Args>
+    void
+    operator()(
+        WriteHandler&& h,
+        Stream& s,
+        message<isRequest, Body, Fields>& m,
+        std::false_type,
+        Args&&... args)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+            void(error_code, std::size_t)>::value,
+            "WriteHandler type requirements not met");
+
+        write_msg_op<
+            typename std::decay<WriteHandler>::type,
+            Stream,
+            isRequest, Body, Fields>(
+                std::forward<WriteHandler>(h),
+                s,
+                m,
+                std::forward<Args>(args)...);
+    }
+
+    template<
+        class WriteHandler,
+        class Stream,
+        bool isRequest, class Body, class Fields,
+        class... Args>
+    void
+    operator()(
+        WriteHandler&& h,
+        Stream& s,
+        message<isRequest, Body, Fields> const& m,
+        std::true_type,
+        Args&&... args)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+            void(error_code, std::size_t)>::value,
+            "WriteHandler type requirements not met");
+
+        write_msg_op<
+            typename std::decay<WriteHandler>::type,
+            Stream,
+            isRequest, Body, Fields>(
+                std::forward<WriteHandler>(h),
+                s,
+                m,
+                std::forward<Args>(args)...);
     }
 };
 
@@ -341,15 +477,13 @@ async_write_some_impl(
     serializer<isRequest, Body, Fields>& sr,
     WriteHandler&& handler)
 {
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    detail::write_some_op<
-        AsyncWriteStream,
-        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
-            void(error_code, std::size_t)),
-        isRequest, Body, Fields>(
-            std::move(init.completion_handler), stream, sr);
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            run_write_some_op{},
+            handler,
+            stream,
+            sr);
 }
 
 } // detail
@@ -498,16 +632,14 @@ async_write_header(
     static_assert(is_body_writer<Body>::value,
         "BodyWriter type requirements not met");
     sr.split(true);
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    detail::write_op<
-        AsyncWriteStream,
-        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
-            void(error_code, std::size_t)),
-        detail::serializer_is_header_done,
-        isRequest, Body, Fields>{
-        std::move(init.completion_handler), stream, sr};
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            detail::run_write_op{},
+            handler,
+            stream,
+            detail::serializer_is_header_done{},
+            sr);
 }
 
 //------------------------------------------------------------------------------
@@ -574,16 +706,14 @@ async_write(
     static_assert(is_body_writer<Body>::value,
         "BodyWriter type requirements not met");
     sr.split(false);
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    detail::write_op<
-        AsyncWriteStream,
-        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
-            void(error_code, std::size_t)),
-        detail::serializer_is_done,
-        isRequest, Body, Fields>{
-            std::move(init.completion_handler), stream, sr};
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            detail::run_write_op{},
+            handler,
+            stream,
+            detail::serializer_is_done{},
+            sr);
 }
 
 //------------------------------------------------------------------------------
@@ -698,15 +828,14 @@ async_write(
         "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    detail::write_msg_op<
-        AsyncWriteStream,
-        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
-            void(error_code, std::size_t)),
-        isRequest, Body, Fields>(stream,
-            std::move(init.completion_handler), msg);
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            detail::run_write_msg_op{},
+            handler,
+            stream,
+            msg,
+            std::false_type{});
 }
 
 template<
@@ -729,15 +858,14 @@ async_write(
         "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    detail::write_msg_op<
-        AsyncWriteStream,
-        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
-            void(error_code, std::size_t)),
-        isRequest, Body, Fields>(stream,
-            std::move(init.completion_handler), msg);
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            detail::run_write_msg_op{},
+            handler,
+            stream,
+            msg,
+            std::true_type{});
 }
 
 //------------------------------------------------------------------------------

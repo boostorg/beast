@@ -4,6 +4,7 @@ Version 217:
 * RatePolicy documentation
 * Pass strand to async_accept
 * Fix file_body_win32
+* Use async_initiate
 
 --------------------------------------------------------------------------------
 

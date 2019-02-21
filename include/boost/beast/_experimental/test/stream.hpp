@@ -105,6 +105,9 @@ class stream
     template<class Handler, class Buffers>
     class read_op;
 
+    struct run_read_op;
+    struct run_write_op;
+
     enum class status
     {
         ok,

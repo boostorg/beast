@@ -118,8 +118,11 @@ public:
 } // detail
 
 template<class NextLayer>
-template<class MutableBufferSequence, class Handler>
-class icy_stream<NextLayer>::read_op
+struct icy_stream<NextLayer>::ops
+{
+
+template<class Buffers, class Handler>
+class read_op
     : public beast::stable_async_op_base<Handler,
         beast::executor_type<icy_stream>>
     , public net::coroutine
@@ -127,15 +130,21 @@ class icy_stream<NextLayer>::read_op
     // VFALCO We need a stable reference to `b`
     //        to pass to asio's read functions.
     //
+    // VFALCO Why did I do all this rigamarole?
+    //        we only need 6 or 8 bytes at most,
+    //        this should all just be tucked
+    //        away into the icy_stream. We can
+    //        simulate a dynamic buffer adaptor
+    //        with one or two simple ints.
     struct data
     {
         icy_stream& s;
-        buffers_adaptor<MutableBufferSequence> b;
+        buffers_adaptor<Buffers> b;
         bool match = false;
 
         data(
             icy_stream& s_,
-            MutableBufferSequence const& b_)
+            Buffers const& b_)
             : s(s_)
             , b(b_)
         {
@@ -149,7 +158,7 @@ public:
     read_op(
         Handler_&& h,
         icy_stream& s,
-        MutableBufferSequence const& b)
+        Buffers const& b)
         : stable_async_op_base<Handler,
             beast::executor_type<icy_stream>>(
                 std::forward<Handler_>(h), s.get_executor())
@@ -165,7 +174,7 @@ public:
     {
         using iterator = net::buffers_iterator<
             typename beast::dynamic_buffer_ref_wrapper<
-                buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
+                buffers_adaptor<Buffers>>::const_buffers_type>;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             if(d_.b.max_size() == 0)
@@ -272,7 +281,7 @@ public:
                 }
                 {
                     buffers_suffix<beast::detail::buffers_ref<
-                        MutableBufferSequence>> dest(
+                        Buffers>> dest(
                             boost::in_place_init, d_.b.value());
                     dest.consume(5);
                     detail::buffer_shift(
@@ -287,6 +296,33 @@ public:
             this->invoke_now(ec, bytes_transferred);
         }
     }
+};
+
+struct run_read_op
+{
+    template<class ReadHandler, class Buffers>
+    void
+    operator()(
+        ReadHandler&& h,
+        icy_stream& s,
+        Buffers const& b)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<ReadHandler,
+            void(error_code, std::size_t)>::value,
+            "ReadHandler type requirements not met");
+
+        read_op<
+            Buffers,
+            typename std::decay<ReadHandler>::type>(
+                std::forward<ReadHandler>(h), s, b);
+    }
+};
+
 };
 
 //------------------------------------------------------------------------------
@@ -449,14 +485,13 @@ async_read_some(
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence >::value,
         "MutableBufferSequence type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        ReadHandler, void(error_code, std::size_t));
-    read_op<
-        MutableBufferSequence,
-        BOOST_ASIO_HANDLER_TYPE(
-            ReadHandler, void(error_code, std::size_t))>(
-                std::move(init.completion_handler), *this, buffers);
-    return init.result.get();
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            typename ops::run_read_op{},
+            handler,
+            *this,
+            buffers);
 }
 
 template<class NextLayer>

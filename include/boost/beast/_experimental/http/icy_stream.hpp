@@ -68,7 +68,7 @@ namespace http {
 template<class NextLayer>
 class icy_stream
 {
-    template<class, class> class read_op;
+    struct ops;
 
     NextLayer stream_;
     bool detect_ = true;

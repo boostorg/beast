@@ -23,8 +23,11 @@ namespace boost {
 namespace beast {
 
 template<class NextLayer>
+struct flat_stream<NextLayer>::ops
+{
+
 template<class Handler>
-class flat_stream<NextLayer>::write_op
+class write_op
     : public async_op_base<Handler,
         beast::executor_type<flat_stream>>
     , public net::coroutine
@@ -34,9 +37,9 @@ public:
         class ConstBufferSequence,
         class Handler_>
     write_op(
+        Handler_&& h,
         flat_stream<NextLayer>& s,
-        ConstBufferSequence const& b,
-        Handler_&& h)
+        ConstBufferSequence const& b)
         : async_op_base<Handler,
             beast::executor_type<flat_stream>>(
                 std::forward<Handler_>(h),
@@ -70,6 +73,34 @@ public:
     {
         this->invoke_now(ec, bytes_transferred);
     }
+};
+
+struct run_write_op
+{
+    template<class WriteHandler, class Buffers>
+    void
+    operator()(
+        WriteHandler&& h,
+        flat_stream& s,
+        Buffers const& b)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+            void(error_code, std::size_t)>::value,
+            "WriteHandler type requirements not met");
+
+        write_op<
+            typename std::decay<WriteHandler>::type>(
+                std::forward<WriteHandler>(h),
+                s,
+                b);
+    }
+};
+
 };
 
 //------------------------------------------------------------------------------
@@ -212,12 +243,13 @@ async_write_some(
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
         "ConstBufferSequence type requirements not met");
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    write_op<BOOST_ASIO_HANDLER_TYPE(
-        WriteHandler, void(error_code, std::size_t))>(
-            *this, buffers, std::move(init.completion_handler));
-    return init.result.get();
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            typename ops::run_write_op{},
+            handler,
+            *this,
+            buffers);
 }
 
 template<class NextLayer>

@@ -32,7 +32,7 @@ namespace beast {
 namespace http {
 
 namespace detail {
-template<class, class, class, bool, class>
+template<class, class, bool, class, class>
 class write_some_win32_op;
 } // detail
 
@@ -52,7 +52,7 @@ struct basic_file_body<file_win32>
         friend class reader;
         friend struct basic_file_body<file_win32>;
 
-        template<class, class, class, bool, class>
+        template<class, class, bool, class, class>
         friend class detail::write_some_win32_op;
         template<
             class Protocol, class Executor,
@@ -102,7 +102,7 @@ struct basic_file_body<file_win32>
 
     class writer
     {
-        template<class, class, class, bool, class>
+        template<class, class, bool, class, class>
         friend class detail::write_some_win32_op;
         template<
             class Protocol, class Executor,
@@ -328,7 +328,8 @@ public:
 
 template<
     class Protocol, class Executor,
-    class Handler, bool isRequest, class Fields>
+    bool isRequest, class Fields,
+    class Handler>
 class write_some_win32_op
     : public beast::async_op_base<Handler, Executor>
 {
@@ -433,6 +434,39 @@ public:
     }
 };
 
+struct run_write_some_win32_op
+{
+    template<
+        class Protocol, class Executor,
+        bool isRequest, class Fields,
+        class WriteHandler>
+    void
+    operator()(
+        WriteHandler&& h,
+        net::basic_stream_socket<
+            Protocol, Executor>& s,
+        serializer<isRequest,
+            basic_file_body<file_win32>, Fields>& sr)
+    {
+        // If you get an error on the following line it means
+        // that your handler does not meet the documented type
+        // requirements for the handler.
+
+        static_assert(
+            beast::detail::is_invocable<WriteHandler,
+            void(error_code, std::size_t)>::value,
+            "WriteHandler type requirements not met");
+
+        write_some_win32_op<
+            Protocol, Executor,
+            isRequest, Fields,
+            typename std::decay<WriteHandler>::type>(
+                std::forward<WriteHandler>(h),
+                s,
+                sr);
+    }
+};
+
 #endif
 
 } // detail
@@ -520,17 +554,14 @@ async_write_some(
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr,
     WriteHandler&& handler)
-{
-    
-    BOOST_BEAST_HANDLER_INIT(
-        WriteHandler, void(error_code, std::size_t));
-    detail::write_some_win32_op<
-        Protocol, Executor,
-        BOOST_ASIO_HANDLER_TYPE(WriteHandler,
-            void(error_code, std::size_t)),
-        isRequest, Fields>{
-            std::move(init.completion_handler), sock, sr}();
-    return init.result.get();
+{  
+    return net::async_initiate<
+        WriteHandler,
+        void(error_code, std::size_t)>(
+            detail::run_write_some_win32_op{},
+            handler,
+            sock,
+            sr);
 }
 
 #endif

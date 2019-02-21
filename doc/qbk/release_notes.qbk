@@ -47,7 +47,7 @@
       [link beast.ref.boost__beast__unlimited_rate_policy `unlimited`],
       or a user-defined
       [link beast.concepts.RatePolicy ['RatePolicy]]!
-    * [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html [P1322R0]]
+    * [[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html P1322R0]]
       Put the strand on the socket itself, no more `bind_executor` at call sites!
   * Base classes
     [link beast.ref.boost__beast__async_op_base `async_op_base`] and
