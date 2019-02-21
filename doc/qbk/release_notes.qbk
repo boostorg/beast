@@ -34,7 +34,7 @@
       '''
       !
     * Chat with us at the [*#beast] and [*#boost] channels in the
-      [@https://cppalliance.org/slack/ C++ Slack Workspace].
+      [@https://cppalliance.org/slack/ [*C++ Slack Workspace]].
   * [link beast.ref.boost__beast__basic_stream `basic_stream`] and
     [link beast.ref.boost__beast__basic_stream `tcp_stream`] offer:
     * Timeouts:

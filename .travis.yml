@@ -32,7 +32,7 @@ matrix:
         - VARIANT=beast_coverage
         - TOOLSET=gcc
         - COMPILER=g++-6
-        - CXXSTD=11
+        - CXXSTD=14
       before_install:
         - pip install --user https://github.com/codecov/codecov-python/archive/master.zip
       addons:
@@ -45,37 +45,28 @@ matrix:
           sources:
             - *base_sources
 
-    # Default clang++
+    # Default clang++ with libc++
     - os: linux
-      compiler: clang++
-      script: b2 -j3 libs/beast/test toolset=clang cxxstd=11
-
-    # OSX Clang, C++11, libc++, debug, 
-  # - if: branch != master
-    - os: osx
-      compiler: clang++
-      env:
-        - VARIANT=debug
-        - TOOLSET=clang
-        - COMPILER=clang++
-        - CXXSTD=14
-      before_install:
-        - brew install openssl
-        - export OPENSSL_ROOT=$(brew --prefix openssl)
+      compiler: clang++-libc++
+      script: b2 -j3 libs/beast/test toolset=clang cxxstd=11 cxxflags=-stdlib=libc++ linkflags=-stdlib=libc++
+      addons:
+        apt:
+          packages:
+            - libc++-dev
 
     # Default g++
     - os: linux
       compiler: g++
       script: b2 -j3 libs/beast/test toolset=gcc cxxstd=11
 
-    # GCC 8, C++14, libstdc++, release
+    # GCC 8, C++17, libstdc++, release
     - os: linux
       compiler: g++-8
       env:
         - VARIANT=release
         - TOOLSET=gcc
         - COMPILER=g++-8
-        - CXXSTD=14
+        - CXXSTD=17
       addons:
         apt:
           packages:
@@ -121,6 +112,19 @@ matrix:
           sources:
             - llvm-toolchain-precise-3.8
             - *base_sources
+
+    # OSX Clang, C++11, libc++, debug, 
+  # - if: branch != master
+    - os: osx
+      compiler: clang++
+      env:
+        - VARIANT=debug
+        - TOOLSET=clang
+        - COMPILER=clang++
+        - CXXSTD=11,14,17
+      before_install:
+        - brew install openssl
+        - export OPENSSL_ROOT=$(brew --prefix openssl)
 
 install:
   - export BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
