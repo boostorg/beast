@@ -56,7 +56,7 @@
   * All asynchronous operations use Asio's
     [@boost:/doc/html/boost_asio/reference/async_initiate.html `async_initiate`]
     for efficient integration with Coroutines TS.
-  * New [@boost:/doc/html/beast/example/websocket/server/chat-multi websocket-chat-multi]
+  * New [@../../example/websocket/server/chat-multi websocket-chat-multi]
     multi-threaded websocket chat server with a JavaScript browser client.
   * New [link beast.using_io.asio_refresher Networking Refresher] explains basic concepts.
   * OpenSSL is required to build tests and examples
@@ -261,6 +261,8 @@ Enlarged scope
 
 * ([issue 1418]) `test::stream`
   maintains a handler work guard
+
+* ([issue 1460]) Large WebSocket Upgrade response no longer overflows
 
 * `buffers_cat`
   correctly skips empty buffers when iterated

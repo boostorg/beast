@@ -17,6 +17,7 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
@@ -43,7 +44,10 @@ class stream<NextLayer, deflateSupported>::handshake_op
         // VFALCO This really should be two separate
         //        composed operations, to save on memory
         http::request<http::empty_body> req;
-        response_type res;
+        http::response_parser<
+            typename response_type::body_type> p;
+        flat_buffer fb;
+        bool overflow;
     };
 
     boost::weak_ptr<impl_type> wp_;
@@ -100,16 +104,52 @@ public:
             // read HTTP response
             BOOST_ASIO_CORO_YIELD
             http::async_read(impl.stream,
-                impl.rd_buf, d_.res,
+                impl.rd_buf, d_.p,
                     std::move(*this));
+            if(ec == http::error::buffer_overflow)
+            {
+                // If the response overflows the internal
+                // read buffer, switch to a dynamically
+                // allocated flat buffer.
+
+                d_.fb.commit(net::buffer_copy(
+                    d_.fb.prepare(impl.rd_buf.size()),
+                    impl.rd_buf.data()));
+                impl.rd_buf.clear();
+
+                BOOST_ASIO_CORO_YIELD
+                http::async_read(impl.stream,
+                    d_.fb, d_.p, std::move(*this));
+
+                if(! ec)
+                {
+                    // Copy any leftovers back into the read
+                    // buffer, since this represents websocket
+                    // frame data.
+
+                    if(d_.fb.size() <= impl.rd_buf.capacity())
+                    {
+                        impl.rd_buf.commit(net::buffer_copy(
+                            impl.rd_buf.prepare(d_.fb.size()),
+                            d_.fb.data()));
+                    }
+                    else
+                    {
+                        ec = http::error::buffer_overflow;
+                    }
+                }
+
+                // Do this before the upcall
+                d_.fb.clear();
+            }
             if(impl.check_stop_now(ec))
                 goto upcall;
 
             // success
             impl.reset_idle();
-            impl.on_response(d_.res, key_, ec);
+            impl.on_response(d_.p.get(), key_, ec);
             if(res_p_)
-                swap(d_.res, *res_p_);
+                swap(d_.p.get(), *res_p_);
 
         upcall:
             this->invoke(cont ,ec);
@@ -130,24 +170,62 @@ do_handshake(
     RequestDecorator const& decorator,
     error_code& ec)
 {
-    response_type res;
-    impl_->change_status(status::handshake);
-    impl_->reset();
+    auto& impl = *impl_;
+    impl.change_status(status::handshake);
+    impl.reset();
     detail::sec_ws_key_type key;
     {
-        auto const req = impl_->build_request(
+        auto const req = impl.build_request(
             key, host, target, decorator);
-        this->impl_->do_pmd_config(req);
-        http::write(impl_->stream, req, ec);
+        impl.do_pmd_config(req);
+        http::write(impl.stream, req, ec);
     }
-    if(ec)
+    if(impl.check_stop_now(ec))
         return;
-    http::read(next_layer(), impl_->rd_buf, res, ec);
-    if(ec)
+    http::response_parser<
+        typename response_type::body_type> p;
+    http::read(next_layer(), impl.rd_buf, p, ec);
+    if(ec == http::error::buffer_overflow)
+    {
+        // If the response overflows the internal
+        // read buffer, switch to a dynamically
+        // allocated flat buffer.
+
+        flat_buffer fb;
+        fb.commit(net::buffer_copy(
+            fb.prepare(impl.rd_buf.size()),
+            impl.rd_buf.data()));
+        impl.rd_buf.clear();
+
+        http::read(next_layer(), fb, p, ec);;
+
+        if(! ec)
+        {
+            // Copy any leftovers back into the read
+            // buffer, since this represents websocket
+            // frame data.
+
+            if(fb.size() <= impl.rd_buf.capacity())
+            {
+                impl.rd_buf.commit(net::buffer_copy(
+                    impl.rd_buf.prepare(fb.size()),
+                    fb.data()));
+            }
+            else
+            {
+                ec = http::error::buffer_overflow;
+            }
+        }
+    }
+    if(impl.check_stop_now(ec))
         return;
-    impl_->on_response(res, key, ec);
+
+    impl.on_response(p.get(), key, ec);
+    if(impl.check_stop_now(ec))
+        return;
+
     if(res_p)
-        *res_p = std::move(res);
+        *res_p = p.release();
 }
 
 //------------------------------------------------------------------------------
