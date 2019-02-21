@@ -5,6 +5,7 @@ Version 217:
 * Pass strand to async_accept
 * Fix file_body_win32
 * Use async_initiate
+* Check BOOST_NO_CXX11_THREAD_LOCAL
 
 --------------------------------------------------------------------------------
 

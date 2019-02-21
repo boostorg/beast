@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -98,7 +98,7 @@ make_prng_no_tls(bool secure);
 
 // Acquire a PRNG using the TLS implementation
 //
-#if ! BOOST_BEAST_NO_THREAD_LOCAL
+#ifndef BOOST_NO_CXX11_THREAD_LOCAL
 BOOST_BEAST_DECL
 prng::ref
 make_prng_tls(bool secure);

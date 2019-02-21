@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -208,7 +208,8 @@ make_prng_no_tls(bool secure)
 
 //------------------------------------------------------------------------------
 
-#if ! BOOST_BEAST_NO_THREAD_LOCAL
+#ifndef BOOST_NO_CXX11_THREAD_LOCAL
+
 prng::ref
 make_prng_tls(bool secure)
 {
@@ -293,6 +294,7 @@ make_prng_tls(bool secure)
     thread_local fast_prng fp;
     return prng::ref(fp);
 }
+
 #endif
 
 //------------------------------------------------------------------------------
@@ -300,7 +302,7 @@ make_prng_tls(bool secure)
 prng::ref
 make_prng(bool secure)
 {
-#if BOOST_BEAST_NO_THREAD_LOCAL
+#ifdef BOOST_NO_CXX11_THREAD_LOCAL
     return make_prng_no_tls(secure);
 #else
     return make_prng_tls(secure);

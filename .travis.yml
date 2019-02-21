@@ -49,6 +49,7 @@ matrix:
     - os: linux
       compiler: clang++-libc++
       script: b2 -j3 libs/beast/test toolset=clang cxxstd=11 cxxflags=-stdlib=libc++ linkflags=-stdlib=libc++
+      #script: b2 -j3 libs/beast/test toolset=clang cxxstd=11 cxxflags=-stdlib=libc++ linkflags="-stdlib=libc++ -lc++abi"
       addons:
         apt:
           packages:
