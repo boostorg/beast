@@ -6,6 +6,7 @@ Version 217:
 * Fix file_body_win32
 * Use async_initiate
 * Check BOOST_NO_CXX11_THREAD_LOCAL
+* Fast prng is pcg
 
 --------------------------------------------------------------------------------
 

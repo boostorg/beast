@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_IMPL_PRNG_IPP
 
 #include <boost/beast/core/detail/chacha.hpp>
+#include <boost/beast/core/detail/pcg.hpp>
 #include <boost/align/aligned_alloc.hpp>
 #include <boost/throw_exception.hpp>
 #include <atomic>
@@ -119,21 +120,25 @@ make_prng_no_tls(bool secure)
     class fast_prng final : public prng
     {
         int refs_ = 0;
-        std::minstd_rand r_;
+        beast::detail::pcg r_;
 
     public:
         fast_prng* next = nullptr;
 
         fast_prng()
-            : r_([]
-                {
-                    static std::atomic<
-                        std::uint64_t> nonce{0};
+            : r_(
+                []{
                     auto const pv = prng_seed();
-                    return static_cast<value_type>(
-                        pv[0] + pv[1] + pv[2] + pv[3] +
-                        pv[4] + pv[5] + pv[6] + pv[7] +
-                        ++nonce);
+                    return
+                        ((static_cast<std::uint64_t>(pv[0])<<32)+pv[1]) ^
+                        ((static_cast<std::uint64_t>(pv[2])<<32)+pv[3]) ^
+                        ((static_cast<std::uint64_t>(pv[4])<<32)+pv[5]) ^
+                        ((static_cast<std::uint64_t>(pv[6])<<32)+pv[7]);
+                }(),
+                []{
+                    static std::atomic<
+                        std::uint32_t> nonce{0};
+                    return ++nonce;
                 }())
         {
         }
@@ -215,19 +220,23 @@ make_prng_tls(bool secure)
 {
     class fast_prng final : public prng
     {
-        std::minstd_rand r_;
+        beast::detail::pcg r_;
 
     public:
         fast_prng()
-            : r_([]
-                {
-                    static std::atomic<
-                        std::uint64_t> nonce{0};
+            : r_(
+                []{
                     auto const pv = prng_seed();
-                    return static_cast<value_type>(
-                        pv[0] + pv[1] + pv[2] + pv[3] +
-                        pv[4] + pv[5] + pv[6] + pv[7] +
-                        ++nonce);
+                    return
+                        ((static_cast<std::uint64_t>(pv[0])<<32)+pv[1]) ^
+                        ((static_cast<std::uint64_t>(pv[2])<<32)+pv[3]) ^
+                        ((static_cast<std::uint64_t>(pv[4])<<32)+pv[5]) ^
+                        ((static_cast<std::uint64_t>(pv[6])<<32)+pv[7]);
+                }(),
+                []{
+                    static std::atomic<
+                        std::uint32_t> nonce{0};
+                    return ++nonce;
                 }())
         {
         }
