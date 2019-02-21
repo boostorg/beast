@@ -33,7 +33,6 @@ struct stream_base
 
     /// Returns the special time_point value meaning "never"
     static
-    constexpr
     time_point
     never() noexcept
     {
@@ -42,7 +41,6 @@ struct stream_base
 
     /// Returns the special duration value meaning "none"
     static
-    constexpr
     duration
     none() noexcept
     {

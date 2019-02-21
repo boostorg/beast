@@ -155,7 +155,7 @@ public:
         ws_.next_layer().async_connect(ep_,
             alloc_.wrap(beast::bind_front_handler(
                 &connection::on_connect,
-                shared_from_this())));
+                this->shared_from_this())));
     }
 
 private:
@@ -170,7 +170,7 @@ private:
             "/",
             alloc_.wrap(beast::bind_front_handler(
                 &connection::on_handshake,
-                shared_from_this())));
+                this->shared_from_this())));
     }
 
     void
@@ -191,7 +191,7 @@ private:
             beast::buffers_prefix(dist(rng_), tb_),
             alloc_.wrap(beast::bind_front_handler(
                 &connection::on_write,
-                shared_from_this())));
+                this->shared_from_this())));
     }
 
     void
@@ -206,7 +206,7 @@ private:
         ws_.async_close({},
             alloc_.wrap(beast::bind_front_handler(
                 &connection::on_close,
-                shared_from_this())));
+                this->shared_from_this())));
     }
 
     void
@@ -215,7 +215,7 @@ private:
         ws_.async_read(buffer_,
             alloc_.wrap(beast::bind_front_handler(
                 &connection::on_read,
-                shared_from_this())));
+                this->shared_from_this())));
     }
 
     void

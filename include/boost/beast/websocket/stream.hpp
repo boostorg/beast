@@ -152,7 +152,7 @@ class stream
     using time_point = typename
         std::chrono::steady_clock::time_point;
 
-    static constexpr time_point never()
+    static time_point never() noexcept
     {
         return (time_point::max)();
     }

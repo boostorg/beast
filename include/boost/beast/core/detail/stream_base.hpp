@@ -91,7 +91,7 @@ struct stream_base
         }
     };
 
-    static constexpr time_point never()
+    static time_point never() noexcept
     {
         return (time_point::max)();
     }
