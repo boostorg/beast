@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_PARSER_IPP
-#define BOOST_BEAST_HTTP_IMPL_PARSER_IPP
+#ifndef BOOST_BEAST_HTTP_IMPL_PARSER_HPP
+#define BOOST_BEAST_HTTP_IMPL_PARSER_HPP
 
 #include <boost/throw_exception.hpp>
 #include <stdexcept>

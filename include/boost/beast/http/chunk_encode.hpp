@@ -732,6 +732,6 @@ make_chunk_last(
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/chunk_encode.ipp>
+#include <boost/beast/http/impl/chunk_encode.hpp>
 
 #endif

@@ -7,6 +7,7 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/sha1.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <array>

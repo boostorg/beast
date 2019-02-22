@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_RFC7230_IPP
-#define BOOST_BEAST_HTTP_IMPL_RFC7230_IPP
+#ifndef BOOST_BEAST_HTTP_IMPL_RFC7230_HPP
+#define BOOST_BEAST_HTTP_IMPL_RFC7230_HPP
 
 #include <boost/beast/http/detail/rfc7230.hpp>
 #include <iterator>

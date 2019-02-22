@@ -7,8 +7,12 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_IMPL_FILE_WIN32_HPP
-#define BOOST_BEAST_CORE_IMPL_FILE_WIN32_HPP
+#ifndef BOOST_BEAST_CORE_IMPL_FILE_WIN32_IPP
+#define BOOST_BEAST_CORE_IMPL_FILE_WIN32_IPP
+
+#include <boost/beast/core/file_win32.hpp>
+
+#if BOOST_BEAST_USE_WIN32_FILE
 
 #include <boost/core/exchange.hpp>
 #include <boost/winapi/access_rights.hpp>
@@ -25,7 +29,7 @@ namespace detail {
 
 // VFALCO Can't seem to get boost/detail/winapi to work with
 //        this so use the non-Ex version for now.
-inline
+BOOST_BEAST_DECL
 boost::winapi::BOOL_
 set_file_pointer_ex(
     boost::winapi::HANDLE_ hFile,
@@ -343,5 +347,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
 
 } // beast
 } // boost
+
+#endif
 
 #endif

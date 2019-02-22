@@ -460,6 +460,6 @@ using response_parser = parser<false, Body, Allocator>;
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/parser.ipp>
+#include <boost/beast/http/impl/parser.hpp>
 
 #endif

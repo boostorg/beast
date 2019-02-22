@@ -116,6 +116,8 @@ make_prng(bool secure);
 } // beast
 } // boost
 
-#include <boost/beast/websocket/detail/impl/prng.ipp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/websocket/detail/prng.ipp>
+#endif
 
 #endif

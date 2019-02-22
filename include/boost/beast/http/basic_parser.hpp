@@ -616,6 +616,6 @@ private:
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/basic_parser.ipp>
+#include <boost/beast/http/impl/basic_parser.hpp>
 
 #endif

@@ -754,6 +754,6 @@ operator<<(std::ostream& os,
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/write.ipp>
+#include <boost/beast/http/impl/write.hpp>
 
 #endif

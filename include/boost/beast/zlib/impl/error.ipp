@@ -6,6 +6,7 @@
 //
 // Official repository: https://github.com/boostorg/beast
 //
+
 // This is a derivative work based on Zlib, copyright below:
 /*
     Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
@@ -37,30 +38,21 @@
 #ifndef BOOST_BEAST_ZLIB_IMPL_ERROR_IPP
 #define BOOST_BEAST_ZLIB_IMPL_ERROR_IPP
 
-#include <boost/beast/core/error.hpp>
+#include <boost/beast/zlib/error.hpp>
 #include <type_traits>
 
 namespace boost {
-
-namespace system {
-template<>
-struct is_error_code_enum<beast::zlib::error>
-{
-    static bool const value = true;
-};
-} // system
-
 namespace beast {
 namespace zlib {
 namespace detail {
 
-class zlib_error_category : public error_category
+class error_codes : public error_category
 {
 public:
     const char*
     name() const noexcept override
     {
-        return "beast.zlib";
+        return "boost.beast.zlib";
     }
 
     std::string
@@ -114,23 +106,14 @@ public:
     }
 };
 
-inline
-error_category const&
-get_error_category()
-{
-    static zlib_error_category const cat{};
-    return cat;
-}
-
 } // detail
 
-inline
 error_code
 make_error_code(error ev)
 {
-    return error_code{
-        static_cast<std::underlying_type<error>::type>(ev),
-            detail::get_error_category()};
+    static detail::error_codes const cat{};
+    return error_code{static_cast<
+        std::underlying_type<error>::type>(ev), cat};
 }
 
 } // zlib

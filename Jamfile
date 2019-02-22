@@ -52,7 +52,7 @@ variant beast_ubasan
 path-constant TEST_MAIN : include/boost/beast/_experimental/unit_test/main.cpp ;
 
 lib static_asio
-    : test/asio.cpp
+    : test/lib_asio.cpp
     : requirements
         [ requires
             cxx11_constexpr
@@ -61,14 +61,39 @@ lib static_asio
             cxx11_template_aliases
             cxx11_variadic_templates
         ]
+        <define>BOOST_ASIO_SEPARATE_COMPILATION
         <define>BOOST_ASIO_NO_DEPRECATED=1
         <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
         <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
         <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
         <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
-        <define>BOOST_ASIO_SEPARATE_COMPILATION
         <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
-        <target-os>windows:<define>_WIN32_WINNT=0x0501
+        <target-os>windows:<define>_WIN32_WINNT=0x0601
+        <link>static
+    ;
+
+lib static_beast
+    : test/lib_beast.cpp
+    : requirements
+        [ requires
+            cxx11_constexpr
+            cxx11_decltype
+            cxx11_hdr_tuple
+            cxx11_template_aliases
+            cxx11_variadic_templates
+        ]
+        <define>BOOST_BEAST_SPLIT_COMPILATION
+        <define>BOOST_ASIO_NO_DEPRECATED=1
+        <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
+        <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
+        <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
+        <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
+        <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
+        <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
+        <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
+        <toolset>msvc:<define>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
+        <toolset>msvc:<define>_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
+        <target-os>windows:<define>_WIN32_WINNT=0x0601
         <link>static
     ;
 
@@ -79,13 +104,13 @@ project /boost/beast
     <library>/boost/coroutine//boost_coroutine
     <library>/boost/filesystem//boost_filesystem
     <library>static_asio
+    <library>static_beast
     <implicit-dependency>/boost//headers
     <threading>multi
     <debug-symbols>on
     <runtime-link>shared
     [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl : <build>no ]
     <library>/boost/beast//crypto
-
     <define>BOOST_ALL_NO_LIB=1
     <define>BOOST_ASIO_NO_DEPRECATED=1
     <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
@@ -93,14 +118,10 @@ project /boost/beast
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
     <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
-
-    # workaround for asio defect
-    <define>BOOST_ASIO_DISABLE_WINDOWS_RANDOM_ACCESS_HANDLE=1
-    <define>BOOST_ASIO_DISABLE_WINDOWS_STREAM_HANDLE=1
-
-    # VFALCO FIXME Need this for recent asio changes
-    <define>BOOST_BEAST_NO_FILE_BODY_WIN32=1
-
+  #<define>BOOST_ASIO_SEPARATE_COMPILATION
+  <define>BOOST_ASIO_DISABLE_WINDOWS_RANDOM_ACCESS_HANDLE=1
+  <define>BOOST_ASIO_DISABLE_WINDOWS_STREAM_HANDLE=1
+  #<define>BOOST_BEAST_SEPARATE_COMPILATION
     <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc-14.1:<cxxflags>"/permissive-"
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
@@ -108,7 +129,6 @@ project /boost/beast
     <toolset>msvc:<define>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
     <toolset>msvc:<define>_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
     <toolset>msvc,<variant>release:<cxxflags>"/Ob2 /Oi /Ot"
-    
     <target-os>linux:<define>_XOPEN_SOURCE=600
     <target-os>linux:<define>_GNU_SOURCE=1
     <target-os>solaris:<define>_XOPEN_SOURCE=500
@@ -128,3 +148,4 @@ project /boost/beast
 
   : usage-requirements
   ;
+

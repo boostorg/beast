@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_READ_IPP
-#define BOOST_BEAST_HTTP_IMPL_READ_IPP
+#ifndef BOOST_BEAST_HTTP_IMPL_READ_HPP
+#define BOOST_BEAST_HTTP_IMPL_READ_HPP
 
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/http/error.hpp>

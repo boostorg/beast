@@ -7,18 +7,15 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_IMPL_ERROR_HPP
-#define BOOST_BEAST_WEBSOCKET_IMPL_ERROR_HPP
+#ifndef BOOST_BEAST_HTTP_IMPL_ERROR_HPP
+#define BOOST_BEAST_HTTP_IMPL_ERROR_HPP
+
+#include <type_traits>
 
 namespace boost {
 namespace system {
 template<>
-struct is_error_code_enum<::boost::beast::websocket::error>
-{
-    static bool const value = true;
-};
-template<>
-struct is_error_condition_enum<::boost::beast::websocket::condition>
+struct is_error_code_enum<::boost::beast::http::error>
 {
     static bool const value = true;
 };
@@ -27,22 +24,18 @@ struct is_error_condition_enum<::boost::beast::websocket::condition>
 
 namespace boost {
 namespace beast {
-namespace websocket {
+namespace http {
 
 BOOST_BEAST_DECL
 error_code
-make_error_code(error e);
+make_error_code(error ev);
 
-BOOST_BEAST_DECL
-error_condition
-make_error_condition(condition c);
-
-} // websocket
+} // http
 } // beast
 } // boost
 
 #ifdef BOOST_BEAST_HEADER_ONLY
-#include <boost/beast/websocket/impl/error.ipp>
+#include <boost/beast/http/impl/error.ipp>
 #endif
 
 #endif

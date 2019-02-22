@@ -67,17 +67,27 @@ namespace net = boost::asio;
 # endif
 #endif
 
-#if BOOST_BEAST_DOXYGEN
-# define BOOST_BEAST_DECL
-#else
-# define BOOST_BEAST_DECL inline
-#endif
-
 #define BOOST_BEAST_INLINE_VARIABLE(name, type) \
     namespace \
     { \
         constexpr auto& name = \
             ::boost::beast::detail::static_const<type>::value; \
     }
+
+// Default to a header-only implementation. The user must specifically
+// request separate compilation by defining BOOST_BEAST_SPLIT_COMPILATION
+#ifndef BOOST_BEAST_HEADER_ONLY
+# ifndef BOOST_BEAST_SPLIT_COMPILATION
+#   define BOOST_BEAST_HEADER_ONLY 1
+# endif
+#endif
+
+#if BOOST_BEAST_DOXYGEN
+# define BOOST_BEAST_DECL
+#elif defined(BOOST_BEAST_HEADER_ONLY)
+# define BOOST_BEAST_DECL inline
+#else
+# define BOOST_BEAST_DECL
+#endif
 
 #endif

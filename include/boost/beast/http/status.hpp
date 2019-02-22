@@ -134,6 +134,7 @@ enum class status_class : unsigned
     If the integer does not match a known status code,
     @ref status::unknown is returned.
 */
+BOOST_BEAST_DECL
 status
 int_to_status(unsigned v);
 
@@ -144,6 +145,7 @@ int_to_status(unsigned v);
     @return The status class. If the integer does not match
     a known status class, @ref status_class::unknown is returned.
 */
+BOOST_BEAST_DECL
 status_class
 to_status_class(unsigned v);
 
@@ -153,6 +155,7 @@ to_status_class(unsigned v);
 
     @return The status class.
 */
+BOOST_BEAST_DECL
 status_class
 to_status_class(status v);
 
@@ -160,10 +163,12 @@ to_status_class(status v);
 
     @param v The status code to use.
 */
+BOOST_BEAST_DECL
 string_view
 obsolete_reason(status v);
 
 /// Outputs the standard reason phrase of a status code to a stream.
+BOOST_BEAST_DECL
 std::ostream&
 operator<<(std::ostream&, status);
 
@@ -171,6 +176,8 @@ operator<<(std::ostream&, status);
 } // beast
 } // boost
 
+#ifdef BOOST_BEAST_HEADER_ONLY
 #include <boost/beast/http/impl/status.ipp>
+#endif
 
 #endif

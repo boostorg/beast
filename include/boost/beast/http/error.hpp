@@ -151,6 +151,6 @@ enum class error
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/error.ipp>
+#include <boost/beast/http/impl/error.hpp>
 
 #endif

@@ -236,7 +236,7 @@ struct stream::run_write_op
             return;
         }
 
-        // A request to read 0 bytes from a stream is a no-op.
+        // A request to write 0 bytes to a stream is a no-op.
         if(buffer_size(buffers) == 0)
         {
             net::post(
@@ -251,11 +251,12 @@ struct stream::run_write_op
         auto out = out_.lock();
         if(! out)
         {
+            ec = net::error::connection_reset;
             net::post(
                 in_->ioc.get_executor(),
                 beast::bind_front_handler(
                     std::move(h),
-                    net::error::connection_reset,
+                    ec,
                     std::size_t{0}));
             return;
         }
@@ -269,208 +270,17 @@ struct stream::run_write_op
             out->b.commit(n);
             out->notify_read();
         }
+        BOOST_ASSERT(! ec);
         net::post(
             in_->ioc.get_executor(),
             beast::bind_front_handler(
                 std::move(h),
-                error_code{},
+                ec,
                 n));
     }
 };
 
 //------------------------------------------------------------------------------
-
-stream::
-state::
-state(
-    net::io_context& ioc_,
-    fail_count* fc_)
-    : ioc(ioc_)
-    , fc(fc_)
-{
-}
-
-stream::
-state::
-~state()
-{
-    // cancel outstanding read
-    if(op != nullptr)
-        (*op)(true);
-}
-
-void
-stream::
-state::
-notify_read()
-{
-    if(op)
-    {
-        auto op_ = std::move(op);
-        op_->operator()();
-    }
-    else
-    {
-        cv.notify_all();
-    }
-}
-
-//------------------------------------------------------------------------------
-        
-stream::
-~stream()
-{
-    close();
-}
-
-stream::
-stream(stream&& other)
-{
-    auto in = std::make_shared<state>(
-        other.in_->ioc, other.in_->fc);
-    in_ = std::move(other.in_);
-    out_ = std::move(other.out_);
-    other.in_ = in;
-}
-
-stream&
-stream::
-operator=(stream&& other)
-{
-    close();
-    auto in = std::make_shared<state>(
-        other.in_->ioc, other.in_->fc);
-    in_ = std::move(other.in_);
-    out_ = std::move(other.out_);
-    other.in_ = in;
-    return *this;
-}
-
-//------------------------------------------------------------------------------
-
-stream::
-stream(net::io_context& ioc)
-    : in_(std::make_shared<state>(ioc, nullptr))
-{
-}
-
-stream::
-stream(
-    net::io_context& ioc,
-    fail_count& fc)
-    : in_(std::make_shared<state>(ioc, &fc))
-{
-}
-
-stream::
-stream(
-    net::io_context& ioc,
-    string_view s)
-    : in_(std::make_shared<state>(ioc, nullptr))
-{
-    in_->b.commit(net::buffer_copy(
-        in_->b.prepare(s.size()),
-        net::buffer(s.data(), s.size())));
-}
-
-stream::
-stream(
-    net::io_context& ioc,
-    fail_count& fc,
-    string_view s)
-    : in_(std::make_shared<state>(ioc, &fc))
-{
-    in_->b.commit(net::buffer_copy(
-        in_->b.prepare(s.size()),
-        net::buffer(s.data(), s.size())));
-}
-
-void
-stream::
-connect(stream& remote)
-{
-    BOOST_ASSERT(! out_.lock());
-    BOOST_ASSERT(! remote.out_.lock());
-    out_ = remote.in_;
-    remote.out_ = in_;
-    in_->code = status::ok;
-    remote.in_->code = status::ok;
-}
-
-string_view
-stream::
-str() const
-{
-    auto const bs = in_->b.data();
-    if(buffer_size(bs) == 0)
-        return {};
-    auto const b = beast::buffers_front(bs);
-    return {static_cast<char const*>(b.data()), b.size()};
-}
-
-void
-stream::
-append(string_view s)
-{
-    std::lock_guard<std::mutex> lock{in_->m};
-    in_->b.commit(net::buffer_copy(
-        in_->b.prepare(s.size()),
-        net::buffer(s.data(), s.size())));
-}
-
-void
-stream::
-clear()
-{
-    std::lock_guard<std::mutex> lock{in_->m};
-    in_->b.consume(in_->b.size());
-}
-
-void
-stream::
-close()
-{
-    // cancel outstanding read
-    {
-        std::unique_ptr<read_op_base> op;
-        {
-            std::lock_guard<std::mutex> lock(in_->m);
-            in_->code = status::eof;
-            op = std::move(in_->op);
-        }
-        if(op != nullptr)
-            (*op)(true);
-    }
-
-    // disconnect
-    {
-        auto out = out_.lock();
-        out_.reset();
-
-        // notify peer
-        if(out)
-        {
-            std::lock_guard<std::mutex> lock(out->m);
-            if(out->code == status::ok)
-            {
-                out->code = status::eof;
-                out->notify_read();
-            }
-        }
-    }
-}
-
-void
-stream::
-close_remote()
-{
-    std::lock_guard<std::mutex> lock{in_->m};
-    if(in_->code == status::ok)
-    {
-        in_->code = status::eof;
-        in_->notify_read();
-    }
-}
 
 template<class MutableBufferSequence>
 std::size_t
@@ -637,24 +447,7 @@ async_write_some(
             buffers);
 }
 
-void
-teardown(
-    websocket::role_type,
-    stream& s,
-    boost::system::error_code& ec)
-{
-    if( s.in_->fc &&
-        s.in_->fc->fail(ec))
-        return;
-
-    s.close();
-
-    if( s.in_->fc &&
-        s.in_->fc->fail(ec))
-        ec = net::error::eof;
-    else
-        ec = {};
-}
+//------------------------------------------------------------------------------
 
 template<class TeardownHandler>
 void
@@ -683,19 +476,7 @@ async_teardown(
             std::move(handler), ec));
 }
 
-stream
-connect(stream& to)
-{
-    stream from{to.get_executor().context()};
-    from.connect(to);
-    return from;
-}
-
-void
-connect(stream& s1, stream& s2)
-{
-    s1.connect(s2);
-}
+//------------------------------------------------------------------------------
 
 template<class Arg1, class... ArgN>
 stream
@@ -711,5 +492,9 @@ connect(stream& to, Arg1&& arg1, ArgN&&... argn)
 } // test
 } // beast
 } // boost
+
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/_experimental/test/impl/stream.ipp>
+#endif
 
 #endif

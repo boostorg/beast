@@ -173,7 +173,7 @@ class simple_rate_policy
     }
 
     void
-    transfer_read_bytes(std::size_t n)
+    transfer_read_bytes(std::size_t n) noexcept
     {
         if( rd_remain_ != all)
             rd_remain_ =
@@ -181,7 +181,7 @@ class simple_rate_policy
     }
 
     void
-    transfer_write_bytes(std::size_t n)
+    transfer_write_bytes(std::size_t n) noexcept
     {
         if( wr_remain_ != all)
             wr_remain_ =
@@ -189,7 +189,7 @@ class simple_rate_policy
     }
 
     void
-    on_timer()
+    on_timer() noexcept
     {
         rd_remain_ = rd_limit_;
         wr_remain_ = wr_limit_;
@@ -198,7 +198,7 @@ class simple_rate_policy
 public:
     /// Set the limit of bytes per second to read
     void
-    read_limit(std::size_t bytes_per_second)
+    read_limit(std::size_t bytes_per_second) noexcept
     {
         rd_limit_ = bytes_per_second;
         if( rd_remain_ > bytes_per_second)
@@ -207,7 +207,7 @@ public:
 
     /// Set the limit of bytes per second to write
     void
-    write_limit(std::size_t bytes_per_second)
+    write_limit(std::size_t bytes_per_second) noexcept
     {
         wr_limit_ = bytes_per_second;
         if( wr_remain_ > bytes_per_second)

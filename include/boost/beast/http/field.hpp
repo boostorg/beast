@@ -380,6 +380,7 @@ enum class field : unsigned short
 
     @param f The field to convert
 */
+BOOST_BEAST_DECL
 string_view
 to_string(field f);
 
@@ -390,6 +391,7 @@ to_string(field f);
     @return The corresponding field, or @ref field::unknown
     if no known field matches.
 */
+BOOST_BEAST_DECL
 field
 string_to_field(string_view s);
 
@@ -405,6 +407,8 @@ operator<<(std::ostream& os, field f)
 } // beast
 } // boost
 
+#ifdef BOOST_BEAST_HEADER_ONLY
 #include <boost/beast/http/impl/field.ipp>
+#endif
 
 #endif

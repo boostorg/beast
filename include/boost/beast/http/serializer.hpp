@@ -365,6 +365,6 @@ using response_serializer = serializer<false, Body, Fields>;
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/serializer.ipp>
+#include <boost/beast/http/impl/serializer.hpp>
 
 #endif

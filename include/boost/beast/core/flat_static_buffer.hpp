@@ -329,6 +329,8 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/flat_static_buffer.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/core/impl/flat_static_buffer.ipp>
+#endif
 
 #endif

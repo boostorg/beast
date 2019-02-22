@@ -1001,6 +1001,6 @@ swap(
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/message.ipp>
+#include <boost/beast/http/impl/message.hpp>
 
 #endif

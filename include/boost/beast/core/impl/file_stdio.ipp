@@ -7,9 +7,10 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_IMPL_FILE_STDIO_HPP
-#define BOOST_BEAST_CORE_IMPL_FILE_STDIO_HPP
+#ifndef BOOST_BEAST_CORE_IMPL_FILE_STDIO_IPP
+#define BOOST_BEAST_CORE_IMPL_FILE_STDIO_IPP
 
+#include <boost/beast/core/file_stdio.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/core/exchange.hpp>
 #include <limits>

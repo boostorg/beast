@@ -812,6 +812,6 @@ async_read(
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/read.ipp>
+#include <boost/beast/http/impl/read.hpp>
 
 #endif

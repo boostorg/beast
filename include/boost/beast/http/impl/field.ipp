@@ -10,11 +10,9 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_FIELD_IPP
 #define BOOST_BEAST_HTTP_IMPL_FIELD_IPP
 
-#include <boost/beast/core/string.hpp>
+#include <boost/beast/http/field.hpp>
 #include <algorithm>
 #include <array>
-#include <unordered_map>
-#include <vector>
 #include <cstring>
 #include <boost/assert.hpp>
 
@@ -516,7 +514,7 @@ struct field_table
     }
 };
 
-inline
+BOOST_BEAST_DECL
 field_table const&
 get_field_table()
 {
@@ -524,7 +522,7 @@ get_field_table()
     return tab;
 }
 
-template<class = void>
+BOOST_BEAST_DECL
 string_view
 to_string(field f)
 {
@@ -535,14 +533,12 @@ to_string(field f)
 
 } // detail
 
-inline
 string_view
 to_string(field f)
 {
     return detail::to_string(f);
 }
 
-inline
 field
 string_to_field(string_view s)
 {

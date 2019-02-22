@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_FIELDS_IPP
-#define BOOST_BEAST_HTTP_IMPL_FIELDS_IPP
+#ifndef BOOST_BEAST_HTTP_IMPL_FIELDS_HPP
+#define BOOST_BEAST_HTTP_IMPL_FIELDS_HPP
 
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/string.hpp>

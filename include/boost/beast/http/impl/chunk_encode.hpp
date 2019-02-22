@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_CHUNK_ENCODE_IPP
-#define BOOST_BEAST_HTTP_IMPL_CHUNK_ENCODE_IPP
+#ifndef BOOST_BEAST_HTTP_IMPL_CHUNK_ENCODE_HPP
+#define BOOST_BEAST_HTTP_IMPL_CHUNK_ENCODE_HPP
 
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/detail/varint.hpp>
@@ -681,7 +681,6 @@ insert(string_view name, string_view value)
 }
 
 template<class Allocator>
-inline
 auto
 basic_chunk_extensions<Allocator>::
 begin() const ->
@@ -691,7 +690,6 @@ begin() const ->
 }
 
 template<class Allocator>
-inline
 auto
 basic_chunk_extensions<Allocator>::
 end() const ->

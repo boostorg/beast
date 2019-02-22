@@ -164,6 +164,8 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/file_stdio.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/core/impl/file_stdio.ipp>
+#endif
 
 #endif

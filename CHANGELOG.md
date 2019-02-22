@@ -2,6 +2,7 @@ Version 218:
 
 * detect_ssl, async_detect_ssl are public interfaces
 * Add OpenSSL installation/setup instructions
+* Enable split Beast compilation for tests
 
 --------------------------------------------------------------------------------
 

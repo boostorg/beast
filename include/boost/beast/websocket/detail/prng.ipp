@@ -7,9 +7,10 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_WEBSOCKET_DETAIL_IMPL_PRNG_IPP
-#define BOOST_BEAST_WEBSOCKET_DETAIL_IMPL_PRNG_IPP
+#ifndef BOOST_BEAST_WEBSOCKET_DETAIL_PRNG_IPP
+#define BOOST_BEAST_WEBSOCKET_DETAIL_PRNG_IPP
 
+#include <boost/beast/websocket/detail/prng.hpp>
 #include <boost/beast/core/detail/chacha.hpp>
 #include <boost/beast/core/detail/pcg.hpp>
 #include <boost/align/aligned_alloc.hpp>

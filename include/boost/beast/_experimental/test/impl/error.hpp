@@ -29,26 +29,6 @@ namespace boost {
 namespace beast {
 namespace test {
 
-namespace detail {
-
-class error_codes : public error_category
-{
-public:
-    BOOST_BEAST_DECL
-    const char*
-    name() const noexcept override;
-
-    BOOST_BEAST_DECL
-    std::string
-    message(int ev) const override;
-
-    BOOST_BEAST_DECL
-    error_condition
-    default_error_condition(int ev) const noexcept override;
-};
-
-} // detail
-
 BOOST_BEAST_DECL
 error_code
 make_error_code(error e) noexcept;
@@ -57,6 +37,8 @@ make_error_code(error e) noexcept;
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/test/impl/impl/error.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/_experimental/test/impl/error.ipp>
+#endif
 
 #endif

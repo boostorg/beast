@@ -470,8 +470,9 @@ public:
                 if(se.code() == test::error::test_failure)
                     throw;
                 BEAST_EXPECTS(se.code().category() ==
-                    zlib::detail::get_error_category(),
-                        se.code().message());
+                    make_error_code(static_cast<
+                        zlib::error>(0)).category(),
+                    se.code().message());
             }
             catch(...)
             {

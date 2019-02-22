@@ -324,6 +324,6 @@ validate_list(detail::basic_parsed_list<
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/rfc7230.ipp>
+#include <boost/beast/http/impl/rfc7230.hpp>
 
 #endif

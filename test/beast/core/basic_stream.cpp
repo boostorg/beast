@@ -15,6 +15,7 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/string.hpp>
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/empty_body.hpp>
@@ -24,6 +25,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/write.hpp>
 #include <boost/optional.hpp>
 #include <array>
 #include <thread>
@@ -1218,7 +1220,6 @@ public:
     {
         return {};
     }
-
     void process_http_1 (tcp_stream& stream, net::yield_context yield)
     {
         flat_buffer buffer;

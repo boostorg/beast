@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_VERB_IPP
 #define BOOST_BEAST_HTTP_IMPL_VERB_IPP
 
-#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/http/verb.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
 
@@ -18,12 +18,8 @@ namespace boost {
 namespace beast {
 namespace http {
 
-namespace detail {
-
-template<class = void>
-inline
 string_view
-verb_to_string(verb v)
+to_string(verb v)
 {
     switch(v)
     {
@@ -74,7 +70,6 @@ verb_to_string(verb v)
     BOOST_THROW_EXCEPTION(std::invalid_argument{"unknown verb"});
 }
 
-template<class = void>
 verb
 string_to_verb(string_view v)
 {
@@ -312,22 +307,6 @@ string_to_verb(string_view v)
     }
 
     return verb::unknown;
-}
-
-} // detail
-
-inline
-string_view
-to_string(verb v)
-{
-    return detail::verb_to_string(v);
-}
-
-inline
-verb
-string_to_verb(string_view s)
-{
-    return detail::string_to_verb(s);
 }
 
 } // http

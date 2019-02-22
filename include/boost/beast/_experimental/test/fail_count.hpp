@@ -11,7 +11,6 @@
 #define BOOST_BEAST_TEST_FAIL_COUNT_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/error.hpp>
 #include <boost/beast/_experimental/test/error.hpp>
 #include <cstdlib>
 
@@ -47,7 +46,7 @@ public:
     explicit
     fail_count(
         std::size_t n,
-        error_code ev = make_error_code(error::test_failure));
+        error_code ev = error::test_failure);
 
     /// Throw an exception on the Nth failure
     BOOST_BEAST_DECL

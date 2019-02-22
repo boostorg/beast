@@ -6,13 +6,6 @@
 //
 // Official repository: https://github.com/boostorg/beast
 //
-
-#ifndef BOOST_BEAST_ZLIB_INFLATE_STREAM_HPP
-#define BOOST_BEAST_ZLIB_INFLATE_STREAM_HPP
-
-#include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/zlib/detail/inflate_stream.hpp>
-
 // This is a derivative work based on Zlib, copyright below:
 /*
     Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
@@ -40,6 +33,12 @@
     Comments) 1950 to 1952 in the files http://tools.ietf.org/html/rfc1950
     (zlib format), rfc1951 (deflate format) and rfc1952 (gzip format).
 */
+
+#ifndef BOOST_BEAST_ZLIB_INFLATE_STREAM_HPP
+#define BOOST_BEAST_ZLIB_INFLATE_STREAM_HPP
+
+#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/zlib/detail/inflate_stream.hpp>
 
 namespace boost {
 namespace beast {

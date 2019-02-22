@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_SERIALIZER_IPP
-#define BOOST_BEAST_HTTP_IMPL_SERIALIZER_IPP
+#ifndef BOOST_BEAST_HTTP_IMPL_SERIALIZER_HPP
+#define BOOST_BEAST_HTTP_IMPL_SERIALIZER_HPP
 
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>

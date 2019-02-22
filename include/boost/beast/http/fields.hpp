@@ -768,6 +768,6 @@ using fields = basic_fields<std::allocator<char>>;
 } // beast
 } // boost
 
-#include <boost/beast/http/impl/fields.ipp>
+#include <boost/beast/http/impl/fields.hpp>
 
 #endif

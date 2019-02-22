@@ -11,6 +11,7 @@
 #define BOOST_BEAST_TEST_ERROR_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/error.hpp>
 
 namespace boost {
 namespace beast {
@@ -21,8 +22,8 @@ enum class error
 {
     /** The test stream generated a simulated testing error
 
-        This error is returned by the test @ref stream when it
-        generates a simulated error.
+        This error is returned by a @ref fail_count object
+        when it generates a simulated error.
     */
     test_failure = 1
 };

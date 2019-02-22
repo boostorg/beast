@@ -10,15 +10,13 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_STATUS_IPP
 #define BOOST_BEAST_HTTP_IMPL_STATUS_IPP
 
-#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/http/status.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {
 namespace beast {
 namespace http {
-namespace detail {
 
-template<class = void>
 status
 int_to_status(unsigned v)
 {
@@ -107,9 +105,30 @@ int_to_status(unsigned v)
     return status::unknown;
 }
 
-template<class = void>
+status_class
+to_status_class(unsigned v)
+{
+    switch(v / 100)
+    {
+    case 1: return status_class::informational;
+    case 2: return status_class::successful;
+    case 3: return status_class::redirection;
+    case 4: return status_class::client_error;
+    case 5: return status_class::server_error;
+    default:
+        break;
+    }
+    return status_class::unknown;
+}
+
+status_class
+to_status_class(status v)
+{
+    return to_status_class(static_cast<int>(v));
+}
+
 string_view
-status_to_string(unsigned v)
+obsolete_reason(status v)
 {
     switch(static_cast<status>(v))
     {
@@ -190,55 +209,6 @@ status_to_string(unsigned v)
     return "<unknown-status>";
 }
 
-template<class = void>
-status_class
-to_status_class(unsigned v)
-{
-    switch(v / 100)
-    {
-    case 1: return status_class::informational;
-    case 2: return status_class::successful;
-    case 3: return status_class::redirection;
-    case 4: return status_class::client_error;
-    case 5: return status_class::server_error;
-    default:
-        break;
-    }
-    return status_class::unknown;
-}
-
-} // detail
-
-inline
-status
-int_to_status(unsigned v)
-{
-    return detail::int_to_status(v);
-}
-
-inline
-status_class
-to_status_class(unsigned v)
-{
-    return detail::to_status_class(v);
-}
-
-inline
-status_class
-to_status_class(status v)
-{
-    return to_status_class(static_cast<int>(v));
-}
-
-inline
-string_view
-obsolete_reason(status v)
-{
-    return detail::status_to_string(
-        static_cast<unsigned>(v));
-}
-
-inline
 std::ostream&
 operator<<(std::ostream& os, status v)
 {

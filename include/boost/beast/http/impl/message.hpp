@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_MESSAGE_IPP
-#define BOOST_BEAST_HTTP_IMPL_MESSAGE_IPP
+#ifndef BOOST_BEAST_HTTP_IMPL_MESSAGE_HPP
+#define BOOST_BEAST_HTTP_IMPL_MESSAGE_HPP
 
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
@@ -30,7 +30,6 @@ header(Arg1&& arg1, ArgN&&... argn)
 }
 
 template<class Fields>
-inline
 verb
 header<true, Fields>::
 method() const
@@ -73,7 +72,6 @@ method_string(string_view s)
 }
 
 template<class Fields>
-inline
 string_view
 header<true, Fields>::
 target() const
@@ -82,7 +80,6 @@ target() const
 }
 
 template<class Fields>
-inline
 void
 header<true, Fields>::
 target(string_view s)
@@ -116,7 +113,6 @@ header(Arg1&& arg1, ArgN&&... argn)
 }
 
 template<class Fields>
-inline
 status
 header<false, Fields>::
 result() const
@@ -126,7 +122,6 @@ result() const
 }
 
 template<class Fields>
-inline
 void
 header<false, Fields>::
 result(status v)
@@ -135,7 +130,6 @@ result(status v)
 }
 
 template<class Fields>
-inline
 void
 header<false, Fields>::
 result(unsigned v)
@@ -148,7 +142,6 @@ result(unsigned v)
 }
 
 template<class Fields>
-inline
 unsigned
 header<false, Fields>::
 result_int() const
@@ -168,7 +161,6 @@ reason() const
 }
 
 template<class Fields>
-inline
 void
 header<false, Fields>::
 reason(string_view s)

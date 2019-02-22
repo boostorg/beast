@@ -181,7 +181,9 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/core/impl/file_win32.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/core/impl/file_win32.ipp>
+#endif
 
 #endif
 

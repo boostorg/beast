@@ -7,8 +7,21 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_IMPL_FILE_POSIX_HPP
-#define BOOST_BEAST_CORE_IMPL_FILE_POSIX_HPP
+#ifndef BOOST_BEAST_CORE_IMPL_FILE_POSIX_IPP
+#define BOOST_BEAST_CORE_IMPL_FILE_POSIX_IPP
+
+#include <boost/beast/core/file_posix.hpp>
+
+#if BOOST_BEAST_USE_POSIX_FILE
+
+#include <boost/core/exchange.hpp>
+#include <limits>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <limits.h>
 
 #if ! defined(BOOST_BEAST_NO_POSIX_FADVISE)
 # if defined(__APPLE__) || (defined(ANDROID) && (__ANDROID_API__ < 21))
@@ -23,15 +36,6 @@
 #  define BOOST_BEAST_USE_POSIX_FADVISE 0
 # endif
 #endif
-
-#include <boost/core/exchange.hpp>
-#include <limits>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <limits.h>
 
 namespace boost {
 namespace beast {
@@ -321,5 +325,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
 
 } // beast
 } // boost
+
+#endif
 
 #endif

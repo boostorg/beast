@@ -10,18 +10,10 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_ERROR_IPP
 #define BOOST_BEAST_HTTP_IMPL_ERROR_IPP
 
+#include <boost/beast/http/error.hpp>
 #include <type_traits>
 
 namespace boost {
-
-namespace system {
-template<>
-struct is_error_code_enum<beast::http::error>
-{
-    static bool const value = true;
-};
-} // system
-
 namespace beast {
 namespace http {
 namespace detail {
@@ -96,7 +88,6 @@ public:
 
 } // detail
 
-inline
 error_code
 make_error_code(error ev)
 {

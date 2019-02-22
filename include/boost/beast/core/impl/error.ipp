@@ -10,63 +10,70 @@
 #ifndef BOOST_BEAST_IMPL_ERROR_IPP
 #define BOOST_BEAST_IMPL_ERROR_IPP
 
+#include <boost/beast/core/error.hpp>
+
 namespace boost {
 namespace beast {
 
 namespace detail {
 
-const char*
-error_codes::
-name() const noexcept
+class error_codes : public error_category
 {
-    return "boost.beast";
-}
-
-std::string
-error_codes::
-message(int ev) const
-{
-    switch(static_cast<error>(ev))
+public:
+    const char*
+    name() const noexcept override
     {
-    default:
-    case error::timeout: return
-        "The socket was closed due to a timeout";
+        return "boost.beast";
     }
-}
 
-error_condition
-error_codes::
-default_error_condition(int ev) const noexcept
-{
-    switch(static_cast<error>(ev))
+    BOOST_BEAST_DECL
+    std::string
+    message(int ev) const override
     {
-    default:
-//        return {ev, *this};
-    case error::timeout:
-        return condition::timeout;
+        switch(static_cast<error>(ev))
+        {
+        default:
+        case error::timeout: return
+            "The socket was closed due to a timeout";
+        }
     }
-}
 
-//------------------------------------------------------------------------------
-
-const char*
-error_conditions::
-name() const noexcept
-{
-    return "boost.beast";
-}
-
-std::string
-error_conditions::
-message(int cv) const
-{
-    switch(static_cast<condition>(cv))
+    BOOST_BEAST_DECL
+    error_condition
+    default_error_condition(int ev) const noexcept override
     {
-    default:
-    case condition::timeout:
-        return "The operation timed out";
+        switch(static_cast<error>(ev))
+        {
+        default:
+    //        return {ev, *this};
+        case error::timeout:
+            return condition::timeout;
+        }
     }
-}
+};
+
+class error_conditions : public error_category
+{
+public:
+    BOOST_BEAST_DECL
+    const char*
+    name() const noexcept override
+    {
+        return "boost.beast";
+    }
+
+    BOOST_BEAST_DECL
+    std::string
+    message(int cv) const override
+    {
+        switch(static_cast<condition>(cv))
+        {
+        default:
+        case condition::timeout:
+            return "The operation timed out";
+        }
+    }
+};
 
 } // detail
 

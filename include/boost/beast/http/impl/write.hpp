@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_WRITE_IPP
-#define BOOST_BEAST_HTTP_IMPL_WRITE_IPP
+#ifndef BOOST_BEAST_HTTP_IMPL_WRITE_HPP
+#define BOOST_BEAST_HTTP_IMPL_WRITE_HPP
 
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/core/async_op_base.hpp>

@@ -7,15 +7,15 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_IMPL_FLAT_STATIC_BUFFER_HPP
-#define BOOST_BEAST_IMPL_FLAT_STATIC_BUFFER_HPP
+#ifndef BOOST_BEAST_IMPL_FLAT_STATIC_BUFFER_IPP
+#define BOOST_BEAST_IMPL_FLAT_STATIC_BUFFER_IPP
 
-#include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/asio/buffer.hpp>
+#include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <cstring>
 #include <iterator>
+#include <memory>
 #include <stdexcept>
 
 namespace boost {

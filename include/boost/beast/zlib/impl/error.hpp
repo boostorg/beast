@@ -6,6 +6,7 @@
 //
 // Official repository: https://github.com/boostorg/beast
 //
+
 // This is a derivative work based on Zlib, copyright below:
 /*
     Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
@@ -34,69 +35,33 @@
     (zlib format), rfc1951 (deflate format) and rfc1952 (gzip format).
 */
 
-#ifndef BOOST_BEAST_ZLIB_DETAIL_RANGES_HPP
-#define BOOST_BEAST_ZLIB_DETAIL_RANGES_HPP
+#ifndef BOOST_BEAST_ZLIB_IMPL_ERROR_HPP
+#define BOOST_BEAST_ZLIB_IMPL_ERROR_HPP
 
-#include <cstdint>
-#include <type_traits>
+namespace boost {
+namespace system {
+template<>
+struct is_error_code_enum<::boost::beast::zlib::error>
+{
+    static bool const value = true;
+};
+} // system
+} // boost
 
 namespace boost {
 namespace beast {
 namespace zlib {
-namespace detail {
 
-struct ranges
-{
-    template<bool isConst>
-    struct range
-    {
-        using iter_t =
-            typename std::conditional<isConst,
-                std::uint8_t const*,
-                std::uint8_t*>::type;
+BOOST_BEAST_DECL
+error_code
+make_error_code(error ev);
 
-        iter_t first;
-        iter_t last;
-        iter_t next;
-
-        // total bytes in range
-        std::size_t
-        size() const
-        {
-            return last - first;
-        }
-
-        // bytes consumed
-        std::size_t
-        used() const
-        {
-            return next - first;
-        }
-
-        // bytes remaining
-        std::size_t
-        avail() const
-        {
-            return last - next;
-        }
-    };
-
-    range<true> in;
-    range<false> out;
-};
-
-// Clamp u to v where u and v are different types
-template<class U, class V>
-U clamp(U u, V v)
-{
-    if(u > v)
-        u = static_cast<U>(v);
-    return u;
-}
-
-} // detail
 } // zlib
 } // beast
 } // boost
+
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/zlib/impl/error.ipp>
+#endif
 
 #endif
