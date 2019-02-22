@@ -115,7 +115,7 @@ project /boost/beast
     <target-os>solaris:<define>__EXTENSIONS__
     <target-os>solaris:<library>socket
     <target-os>solaris:<library>nsl
-    <target-os>windows:<define>_WIN32_WINNT=0x0501
+    <target-os>windows:<define>_WIN32_WINNT=0x0601
     <target-os>windows,<toolset>cw:<library>ws2_32
     <target-os>windows,<toolset>cw:<library>mswsock
     <target-os>windows,<toolset>gcc:<library>ws2_32

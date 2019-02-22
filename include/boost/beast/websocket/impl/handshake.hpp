@@ -41,6 +41,8 @@ class stream<NextLayer, deflateSupported>::handshake_op
 {
     struct data
     {
+        data() = default; // for msvc
+
         // VFALCO This really should be two separate
         //        composed operations, to save on memory
         http::request<http::empty_body> req;

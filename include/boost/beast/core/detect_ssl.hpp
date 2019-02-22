@@ -495,8 +495,9 @@ public:
         DetectHandler_&& handler,
         AsyncReadStream& stream,
         DynamicBuffer& buffer)
-        : async_op_base<DetectHandler_,
-            executor_type<AsyncReadStream>>(
+        : beast::async_op_base<
+            DetectHandler_,
+            beast::executor_type<AsyncReadStream>>(
                 std::forward<DetectHandler_>(handler),
                 stream.get_executor())
         , stream_(stream)
