@@ -19,7 +19,6 @@ add_executable (tests-doc
     Jamfile
     snippets.hpp
     snippets.ipp
-    core_examples.cpp
     core_snippets.cpp
     core_1_refresher.cpp
     core_3_layers.cpp

@@ -1,3 +1,9 @@
+Version 218:
+
+* detect_ssl, async_detect_ssl are public interfaces
+
+--------------------------------------------------------------------------------
+
 Version 217:
 
 * websocket idle pings

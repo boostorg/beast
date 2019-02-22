@@ -117,7 +117,6 @@
     the paths close to absolute.
 ]
 
-[import ../../example/common/detect_ssl.hpp]
 [import ../../example/doc/http_examples.hpp]
 [import ../../example/echo-op/echo_op.cpp]
 [import ../../example/http/client/sync/http_client_sync.cpp]
@@ -134,6 +133,7 @@
 [import ../../test/doc/core_3_layers.cpp]
 [import ../../test/doc/websocket_3_handshake.cpp]
 
+[import ../../include/boost/beast/core/detect_ssl.hpp]
 [import ../../test/beast/core/rate_policy.cpp]
 
 [section:quickref Reference]

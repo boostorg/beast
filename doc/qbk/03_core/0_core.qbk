@@ -95,6 +95,5 @@ effect:
 [include 4_buffers.qbk]
 [include 5_files.qbk]
 [include 6_composed.qbk]
-[include 7_detect_ssl.qbk]
 
 [endsect]

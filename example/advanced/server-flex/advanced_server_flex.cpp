@@ -13,7 +13,6 @@
 //
 //------------------------------------------------------------------------------
 
-#include "example/common/detect_ssl.hpp"
 #include "example/common/server_certificate.hpp"
 
 #include <boost/beast/core.hpp>
@@ -822,7 +821,7 @@ public:
         // Set the timeout.
         stream_.expires_after(std::chrono::seconds(30));
 
-        async_detect_ssl(
+        beast::async_detect_ssl(
             stream_,
             buffer_,
             beast::bind_front_handler(

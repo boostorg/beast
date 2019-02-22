@@ -13,7 +13,6 @@
 //
 //------------------------------------------------------------------------------
 
-#include "example/common/detect_ssl.hpp"
 #include "example/common/server_certificate.hpp"
 
 #include <boost/beast/core.hpp>

@@ -21,46 +21,6 @@ namespace boost {
 namespace beast {
 namespace test {
 
-/** Run an I/O context.
-    
-    This function runs and dispatches handlers on the specified
-    I/O context, until one of the following conditions is true:
-        
-    @li The I/O context runs out of work.
-
-    @param ioc The I/O context to run
-*/
-inline
-void
-run(net::io_context& ioc)
-{
-    ioc.run();
-    ioc.restart();
-}
-
-/** Run an I/O context for a certain amount of time.
-    
-    This function runs and dispatches handlers on the specified
-    I/O context, until one of the following conditions is true:
-        
-    @li The I/O context runs out of work.
-
-    @li No completions occur and the specified amount of time has elapsed.
-
-    @param ioc The I/O context to run
-
-    @param elapsed The maximum amount of time to run for.
-*/
-template<class Rep, class Period>
-void
-run_for(
-    net::io_context& ioc,
-    std::chrono::duration<Rep, Period> elapsed)
-{
-    ioc.run_for(elapsed);
-    ioc.restart();
-}
-
 /** Connect two TCP sockets together.
 */
 template<class Executor>

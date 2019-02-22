@@ -14,7 +14,6 @@ if (OPENSSL_FOUND)
 
     add_executable (http-server-flex
         ${BOOST_BEAST_FILES}
-        ${PROJECT_SOURCE_DIR}/example/common/detect_ssl.hpp
         ${PROJECT_SOURCE_DIR}/example/common/server_certificate.hpp
         Jamfile
         http_server_flex.cpp

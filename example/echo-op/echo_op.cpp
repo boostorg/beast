@@ -101,6 +101,11 @@ async_echo (
 template<class AsyncStream, class Handler>
 class echo_op;
 
+// This example uses the Asio's stackless "fauxroutines", implemented
+// using a macro-based solution. It makes the code easier to write and
+// easier to read. This include file defines the necessary macros and types.
+#include <boost/asio/yield.hpp>
+
 // Read a line and echo it back
 //
 template<
@@ -152,12 +157,6 @@ async_echo(
         handler_type, /*< The type of the completion handler obtained from the token >*/
         beast::executor_type<AsyncStream> /*< The type of executor used by the stream to dispatch asynchronous operations >*/
     >;
-
-    // This example uses the Asio's stackless "fauxroutines", implemented
-    // using a macro-based solution. It makes the code easier to write and
-    // easier to read. This include file defines the necessary macros and types.
-
-#include <boost/asio/yield.hpp>
 
     // This nested class implements the echo composed operation as a
     // stateful completion handler. We derive from `async_op_base` to
@@ -313,9 +312,6 @@ async_echo(
         }
     };
 
-// Including this file undefines the macros used by the stackless fauxroutines.
-#include <boost/asio/yield.hpp>
-
     // Create the composed operation and launch it. This is a constructor
     // call followed by invocation of operator(). We use BOOST_ASIO_HANDLER_TYPE
     // to convert the completion token into the correct handler type,
@@ -331,6 +327,9 @@ async_echo(
 
     return init.result.get();
 }
+
+// Including this file undefines the macros used by the stackless fauxroutines.
+#include <boost/asio/unyield.hpp>
 
 //]
 
