@@ -29,14 +29,13 @@ class stream::read_op : public stream::read_op_base
     using ex2_type
         = net::associated_executor_t<Handler, ex1_type>;
 
-    class lambda
+    struct lambda
     {
         Handler h_;
         state& s_;
         Buffers b_;
         net::executor_work_guard<ex2_type> wg2_;
 
-    public:
         lambda(lambda&&) = default;
         lambda(lambda const&) = default;
 
@@ -99,11 +98,10 @@ public:
     void
     operator()(error_code ec) override
     {
-        net::post(
-            wg1_.get_executor(),
-            bind_handler(
-                std::move(fn_),
-                ec));
+
+        auto alloc = net::get_associated_allocator(fn_.h_);
+        wg1_.get_executor().post(
+            beast::bind_front_handler(std::move(fn_), ec), alloc);
         wg1_.reset();
     }
 };
@@ -162,47 +160,36 @@ struct stream::run_write_op
             "WriteHandler type requirements not met");
 
         ++in_->nwrite;
-
-        // test failure
-        error_code ec;
-        if(in_->fc && in_->fc->fail(ec))
+        auto const complete_op = [&](error_code ec, std::size_t n)
         {
             net::post(
                 in_->ioc.get_executor(),
-                beast::bind_front_handler(
-                    std::move(h),
-                    ec,
-                    std::size_t{0}));
-            return;
+                beast::bind_front_handler(std::move(h), ec, n));
+        };
+
+        // test failure
+        error_code ec;
+        std::size_t n = 0;
+        if(in_->fc && in_->fc->fail(ec))
+        {
+            return complete_op(ec, n);
         }
 
         // A request to write 0 bytes to a stream is a no-op.
         if(buffer_size(buffers) == 0)
         {
-            net::post(
-                in_->ioc.get_executor(),
-                beast::bind_front_handler(
-                    std::move(h),
-                    ec, std::size_t{0}));
-            return;
+            return complete_op(ec, n);
         }
 
         // connection closed
         auto out = out_.lock();
         if(! out)
         {
-            ec = net::error::connection_reset;
-            net::post(
-                in_->ioc.get_executor(),
-                beast::bind_front_handler(
-                    std::move(h),
-                    ec,
-                    std::size_t{0}));
-            return;
+            return complete_op(net::error::connection_reset, n);
         }
 
         // copy buffers
-        auto n = std::min<std::size_t>(
+        n = std::min<std::size_t>(
             buffer_size(buffers), in_->write_max);
         {
             std::lock_guard<std::mutex> lock(out->m);
@@ -211,12 +198,7 @@ struct stream::run_write_op
             out->notify_read();
         }
         BOOST_ASSERT(! ec);
-        net::post(
-            in_->ioc.get_executor(),
-            beast::bind_front_handler(
-                std::move(h),
-                ec,
-                n));
+        complete_op(ec, n);
     }
 };
 
