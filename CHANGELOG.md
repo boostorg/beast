@@ -3,6 +3,7 @@ Version 219:
 * More split definitions in test::stream
 * Visual Studio 2017 minimum requirement for Windows
 * Better treatment of SSL short reads
+* ssl_stream is a public interface
 
 --------------------------------------------------------------------------------
 

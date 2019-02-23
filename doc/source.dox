@@ -104,13 +104,14 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT = \
         $(LIB_DIR)/include/boost/beast/ \
-        $(LIB_DIR)/include/boost/beast/core \
-        $(LIB_DIR)/include/boost/beast/http \
-        $(LIB_DIR)/include/boost/beast/websocket \
-        $(LIB_DIR)/include/boost/beast/zlib \
         $(LIB_DIR)/include/boost/beast/_experimental/core \
         $(LIB_DIR)/include/boost/beast/_experimental/http \
-        $(LIB_DIR)/include/boost/beast/_experimental/test
+        $(LIB_DIR)/include/boost/beast/_experimental/test \
+        $(LIB_DIR)/include/boost/beast/core \
+        $(LIB_DIR)/include/boost/beast/http \
+        $(LIB_DIR)/include/boost/beast/ssl \
+        $(LIB_DIR)/include/boost/beast/websocket \
+        $(LIB_DIR)/include/boost/beast/zlib
 
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          =
@@ -289,6 +290,7 @@ PREDEFINED             = \
                         BOOST_BEAST_DOXYGEN \
                         BOOST_BEAST_USE_POSIX_FILE=1 \
                         BOOST_BEAST_USE_WIN32_FILE=1 \
+                        BOOST_BEAST_SPLIT_COMPILATION=1 \
                         BOOST_ASIO_INITFN_RESULT_TYPE(t,a)=__deduced__ \
                         GENERATING_DOCUMENTATION \
                         BOOST_BEAST_DECL

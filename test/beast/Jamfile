@@ -10,32 +10,36 @@
 alias run-tests :
     [ compile core.cpp ]
     [ compile http.cpp ]
+    [ compile ssl.cpp ]
     [ compile version.cpp ]
     [ compile websocket.cpp ]
     [ compile zlib.cpp ]
+    _experimental//run-tests
     core//run-tests
     http//run-tests
+    ssl//run-tests
     websocket//run-tests
     zlib//run-tests
-    experimental//run-tests
     ;
 
 alias fat-tests :
+    _experimental//fat-tests
     core//fat-tests
     http//fat-tests
+    ssl//fat-tests
     websocket//fat-tests
     zlib//fat-tests
-    experimental//fat-tests
     ;
 
 explicit fat-tests ;
 
 alias run-fat-tests :
+    _experimental//run-fat-tests
     core//run-fat-tests
     http//run-fat-tests
+    ssl//run-fat-tests
     websocket//run-fat-tests
     zlib//run-fat-tests
-    experimental//run-fat-tests
     ;
 
 explicit run-fat-tests ;

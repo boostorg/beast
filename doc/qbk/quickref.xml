@@ -38,14 +38,15 @@
           <member><link linkend="beast.ref.boost__beast__iequal">iequal</link></member>
           <member><link linkend="beast.ref.boost__beast__iless">iless</link></member>
           <member><link linkend="beast.ref.boost__beast__rate_policy_access">rate_policy_access</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__saved_handler">saved_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
         </simplelist>
       </entry>
       <entry valign="top">
         <bridgehead renderas="sect3">Classes&nbsp;<emphasis role="normal">(2 of 2)</emphasis></bridgehead>
         <simplelist type="vert" columns="1">
-          <member><link linkend="beast.ref.boost__beast__saved_handler">saved_handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__span">span</link></member>
           <member><link linkend="beast.ref.boost__beast__simple_rate_policy">simple_rate_policy</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__ssl_stream">ssl_stream</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__static_string">static_string</link></member>
           <member><link linkend="beast.ref.boost__beast__stable_async_op_base">stable_async_op_base</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__string_param">string_param</link></member>
@@ -362,7 +363,6 @@
         <entry valign="top">
           <bridgehead renderas="sect3">Classes</bridgehead>
           <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.boost__beast__ssl_stream">ssl_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__http__icy_stream">http::icy_stream</link></member>
             <member><link linkend="beast.ref.boost__beast__test__fail_count">test::fail_count</link></member>
             <member><link linkend="beast.ref.boost__beast__test__handler">test::handler</link>&nbsp;<emphasis role="green">&#128946;</emphasis></member>

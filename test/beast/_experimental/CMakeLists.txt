@@ -9,17 +9,16 @@
 
 GroupSources (include/boost/beast beast)
 GroupSources (test/extras/include/boost/beast extras)
-GroupSources (test/beast/experimental "/")
+GroupSources (test/beast/_experimental "/")
 
-add_executable (tests-beast-experimental
+add_executable (tests-beast-_experimental
     ${BOOST_BEAST_FILES}
     ${EXTRAS_FILES}
     ${TEST_MAIN}
     Jamfile
     error.cpp
     icy_stream.cpp
-    ssl_stream.cpp
     stream.cpp
 )
 
-set_property(TARGET tests-beast-experimental PROPERTY FOLDER "tests")
+set_property(TARGET tests-beast-_experimental PROPERTY FOLDER "tests")

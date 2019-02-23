@@ -16,6 +16,11 @@
 #include <boost/beast/websocket/ssl.hpp>
 
 #include <boost/beast/core/flat_stream.hpp>
+
+// VFALCO We include this because anyone who uses ssl will
+//        very likely need to check for ssl::error::stream_truncated
+#include <boost/asio/ssl/error.hpp> 
+
 #include <boost/asio/ssl/stream.hpp>
 #include <cstddef>
 #include <memory>
@@ -37,11 +42,11 @@ namespace beast {
     strand.
     
     @par Example
-    To use this template with a `net::ip::tcp::socket`, you would write:
+    To use this template with a @ref tcp_stream, you would write:
     @code
         net::io_context ioc;
         net::ssl::context ctx{net::ssl::context::sslv23};
-        boost::beast::ssl_stream<net:ip::tcp::socket> sock{ioc, ctx};
+        beast::ssl_stream<beast::tcp_stream> sock{ioc, ctx};
     @endcode
 
     In addition to providing an interface identical to `net::ssl::stream`,

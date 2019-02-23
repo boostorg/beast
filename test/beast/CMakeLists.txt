@@ -11,9 +11,10 @@ add_definitions (-DBOOST_BEAST_ALLOW_DEPRECATED)
 add_definitions (-DBOOST_BEAST_TESTS)
 
 
+add_subdirectory (_experimental)
 add_subdirectory (core)
-add_subdirectory (experimental)
 add_subdirectory (http)
+add_subdirectory (ssl)
 add_subdirectory (websocket)
 add_subdirectory (zlib)
 
@@ -30,6 +31,7 @@ add_executable (tests-beast
     Jamfile
     core.cpp
     http.cpp
+    ssl.cpp
     version.cpp
     websocket.cpp
     zlib.cpp
