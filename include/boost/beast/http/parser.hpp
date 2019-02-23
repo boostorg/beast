@@ -47,8 +47,7 @@ template<
     class Body,
     class Allocator = std::allocator<char>>
 class parser
-    : public basic_parser<isRequest,
-        parser<isRequest, Body, Allocator>>
+    : public basic_parser<isRequest>
 {
     static_assert(is_body<Body>::value,
         "Body type requirements not met");
@@ -58,9 +57,6 @@ class parser
 
     template<bool, class, class>
     friend class parser;
-
-    using base_type = basic_parser<isRequest,
-        parser<isRequest, Body, Allocator>>;
 
     message<isRequest, Body, basic_fields<Allocator>> m_;
     typename Body::reader rd_;
@@ -297,8 +293,6 @@ public:
     }
 
 private:
-    friend class basic_parser<isRequest, parser>;
-
     parser(std::true_type);
     parser(std::false_type);
 
@@ -338,7 +332,8 @@ private:
         string_view method_str,
         string_view target,
         int version,
-        error_code& ec)
+        error_code& ec,
+        std::true_type)
     {
         try
         {
@@ -347,13 +342,32 @@ private:
                 m_.method(method);
             else
                 m_.method_string(method_str);
-            ec = {};
         }
         catch(std::bad_alloc const&)
         {
             ec = error::bad_alloc;
         }
         m_.version(version);
+    }
+
+    void
+    on_request_impl(
+        verb, string_view, string_view,
+        int, error_code&, std::false_type)
+    {
+    }
+
+    void
+    on_request_impl(
+        verb method,
+        string_view method_str,
+        string_view target,
+        int version,
+        error_code& ec) override
+    {
+        this->on_request_impl(
+            method, method_str, target, version, ec,
+            std::integral_constant<bool, isRequest>{});
     }
 
     void
@@ -361,19 +375,38 @@ private:
         int code,
         string_view reason,
         int version,
-        error_code& ec)
+        error_code& ec,
+        std::true_type)
     {
         m_.result(code);
         m_.version(version);
         try
         {
             m_.reason(reason);
-            ec = {};
         }
         catch(std::bad_alloc const&)
         {
             ec = error::bad_alloc;
         }
+    }
+
+    void
+    on_response_impl(
+        int, string_view, int,
+        error_code&, std::false_type)
+    {
+    }
+
+    void
+    on_response_impl(
+        int code,
+        string_view reason,
+        int version,
+        error_code& ec) override
+    {
+        this->on_response_impl(
+            code, reason, version, ec,
+            std::integral_constant<bool, ! isRequest>{});
     }
 
     void
@@ -381,12 +414,11 @@ private:
         field name,
         string_view name_string,
         string_view value,
-        error_code& ec)
+        error_code& ec) override
     {
         try
         {
             m_.insert(name, name_string, value);
-            ec = {};
         }
         catch(std::bad_alloc const&)
         {
@@ -395,7 +427,7 @@ private:
     }
 
     void
-    on_header_impl(error_code& ec)
+    on_header_impl(error_code& ec) override
     {
         ec = {};
     }
@@ -403,7 +435,7 @@ private:
     void
     on_body_init_impl(
         boost::optional<std::uint64_t> const& content_length,
-        error_code& ec)
+        error_code& ec) override
     {
         rd_.init(content_length, ec);
         rd_inited_ = true;
@@ -412,7 +444,7 @@ private:
     std::size_t
     on_body_impl(
         string_view body,
-        error_code& ec)
+        error_code& ec) override
     {
         return rd_.put(net::buffer(
             body.data(), body.size()), ec);
@@ -422,18 +454,17 @@ private:
     on_chunk_header_impl(
         std::uint64_t size,
         string_view extensions,
-        error_code& ec)
+        error_code& ec) override
     {
         if(cb_h_)
             return cb_h_(size, extensions, ec);
-        ec = {};
     }
 
     std::size_t
     on_chunk_body_impl(
         std::uint64_t remain,
         string_view body,
-        error_code& ec)
+        error_code& ec) override
     {
         if(cb_b_)
             return cb_b_(remain, body, ec);
@@ -442,7 +473,8 @@ private:
     }
 
     void
-    on_finish_impl(error_code& ec)
+    on_finish_impl(
+        error_code& ec) override
     {
         rd_.finish(ec);
     }

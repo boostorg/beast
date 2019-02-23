@@ -24,7 +24,7 @@ class header;
 template<bool, class, class>
 class message;
 
-template<bool isRequest,class Body, class Fields>
+template<bool isRequest, class Body, class Fields>
 class parser;
 
 namespace detail {

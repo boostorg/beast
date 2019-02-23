@@ -133,6 +133,9 @@ enum class error
 } // boost
 
 #include <boost/beast/zlib/impl/error.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/zlib/impl/error.ipp>
+#endif
 
 #endif
 

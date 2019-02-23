@@ -41,8 +41,4 @@ make_error_condition(condition c);
 } // beast
 } // boost
 
-#ifdef BOOST_BEAST_HEADER_ONLY
-#include <boost/beast/core/impl/error.ipp>
-#endif
-
 #endif

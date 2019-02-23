@@ -72,12 +72,12 @@ namespace http {
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser);
+    basic_parser<isRequest>& parser);
 
 /** Read part of a message from a stream using a parser.
 
@@ -129,12 +129,12 @@ read_some(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     error_code& ec);
 
 /** Read part of a message asynchronously from a stream using a parser.
@@ -205,14 +205,14 @@ read_some(
 template<
     class AsyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived,
+    bool isRequest,
     class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     ReadHandler&& handler);
 
 //------------------------------------------------------------------------------
@@ -267,12 +267,12 @@ async_read_some(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read_header(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser);
+    basic_parser<isRequest>& parser);
 
 /** Read a complete message header from a stream using a parser.
 
@@ -324,12 +324,12 @@ read_header(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read_header(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     error_code& ec);
 
 /** Read a complete message header asynchronously from a stream using a parser.
@@ -401,14 +401,14 @@ read_header(
 template<
     class AsyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived,
+    bool isRequest,
     class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
 async_read_header(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     ReadHandler&& handler);
 
 //------------------------------------------------------------------------------
@@ -463,12 +463,12 @@ async_read_header(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser);
+    basic_parser<isRequest>& parser);
 
 /** Read a complete message from a stream using a parser.
 
@@ -520,12 +520,12 @@ read(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     error_code& ec);
 
 /** Read a complete message asynchronously from a stream using a parser.
@@ -597,14 +597,14 @@ read(
 template<
     class AsyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived,
+    bool isRequest,
     class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     ReadHandler&& handler);
 
 //------------------------------------------------------------------------------

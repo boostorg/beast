@@ -4,6 +4,7 @@ Version 219:
 * Visual Studio 2017 minimum requirement for Windows
 * Better treatment of SSL short reads
 * ssl_stream is a public interface
+* basic_parser is abstract, not CRTP (API Change)
 
 --------------------------------------------------------------------------------
 

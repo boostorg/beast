@@ -30,12 +30,12 @@ std::size_t constexpr default_max_transfer_size = 65536;
 
 template<
     class DynamicBuffer,
-    bool isRequest, class Derived,
+    bool isRequest,
     class Condition>
 std::size_t
 parse_until(
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     error_code& ec,
     Condition cond)
 {
@@ -92,10 +92,10 @@ parse_until(
 }
 
 // predicate is true on any forward parser progress
-template<bool isRequest, class Derived>
+template<bool isRequest>
 struct read_some_condition
 {
-    basic_parser<isRequest, Derived>& parser;
+    basic_parser<isRequest>& parser;
 
     template<class DynamicBuffer>
     std::size_t
@@ -112,10 +112,10 @@ struct read_some_condition
 };
 
 // predicate is true when parser header is complete
-template<bool isRequest, class Derived>
+template<bool isRequest>
 struct read_header_condition
 {
-    basic_parser<isRequest, Derived>& parser;
+    basic_parser<isRequest>& parser;
 
     template<class DynamicBuffer>
     std::size_t
@@ -132,10 +132,10 @@ struct read_header_condition
 };
 
 // predicate is true when parser message is complete
-template<bool isRequest, class Derived>
+template<bool isRequest>
 struct read_all_condition
 {
-    basic_parser<isRequest, Derived>& parser;
+    basic_parser<isRequest>& parser;
 
     template<class DynamicBuffer>
     std::size_t
@@ -256,12 +256,12 @@ struct run_read_msg_op
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser)
+    basic_parser<isRequest>& parser)
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
@@ -271,7 +271,7 @@ read_some(
         "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        read_some(stream, buffer, parser, ec);
+        http::read_some(stream, buffer, parser, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -280,12 +280,12 @@ read_some(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read_some(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     error_code& ec)
 {
     static_assert(
@@ -296,27 +296,27 @@ read_some(
         "DynamicBuffer type requirements not met");
     return beast::detail::read(stream, buffer,
         detail::read_some_condition<
-            isRequest, Derived>{parser}, ec);
+            isRequest>{parser}, ec);
 }
 
 template<
     class AsyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived,
+    bool isRequest,
     class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     ReadHandler&& handler)
 {
     return beast::detail::async_read(
         stream,
         buffer,
         detail::read_some_condition<
-            isRequest, Derived>{parser},
+            isRequest>{parser},
         std::forward<ReadHandler>(handler));
 }
 
@@ -325,12 +325,12 @@ async_read_some(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read_header(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser)
+    basic_parser<isRequest>& parser)
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
@@ -340,7 +340,7 @@ read_header(
         "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        read_header(stream, buffer, parser, ec);
+        http::read_header(stream, buffer, parser, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -349,12 +349,12 @@ read_header(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read_header(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     error_code& ec)
 {
     static_assert(
@@ -366,20 +366,20 @@ read_header(
     parser.eager(false);
     return beast::detail::read(stream, buffer,
         detail::read_header_condition<
-            isRequest, Derived>{parser}, ec);
+            isRequest>{parser}, ec);
 }
 
 template<
     class AsyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived,
+    bool isRequest,
     class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
 async_read_header(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     ReadHandler&& handler)
 {
     parser.eager(false);
@@ -387,7 +387,7 @@ async_read_header(
         stream,
         buffer,
         detail::read_header_condition<
-            isRequest, Derived>{parser},
+            isRequest>{parser},
         std::forward<ReadHandler>(handler));
 }
 
@@ -396,12 +396,12 @@ async_read_header(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser)
+    basic_parser<isRequest>& parser)
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
@@ -411,7 +411,7 @@ read(
         "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        read(stream, buffer, parser, ec);
+        http::read(stream, buffer, parser, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -420,12 +420,12 @@ read(
 template<
     class SyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived>
+    bool isRequest>
 std::size_t
 read(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     error_code& ec)
 {
     static_assert(
@@ -437,20 +437,20 @@ read(
     parser.eager(true);
     return beast::detail::read(stream, buffer,
         detail::read_all_condition<
-            isRequest, Derived>{parser}, ec);
+            isRequest>{parser}, ec);
 }
 
 template<
     class AsyncReadStream,
     class DynamicBuffer,
-    bool isRequest, class Derived,
+    bool isRequest,
     class ReadHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     ReadHandler, void(error_code, std::size_t))
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
-    basic_parser<isRequest, Derived>& parser,
+    basic_parser<isRequest>& parser,
     ReadHandler&& handler)
 {
     static_assert(
@@ -464,7 +464,7 @@ async_read(
         stream,
         buffer,
         detail::read_all_condition<
-            isRequest, Derived>{parser},
+            isRequest>{parser},
         std::forward<ReadHandler>(handler));
 }
 
@@ -492,7 +492,7 @@ read(
         "BodyReader type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        read(stream, buffer, msg, ec);
+        http::read(stream, buffer, msg, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -522,7 +522,7 @@ read(
     parser<isRequest, Body, Allocator> p(std::move(msg));
     p.eager(true);
     auto const bytes_transferred =
-        read(stream, buffer, p.base(), ec);
+        http::read(stream, buffer, p, ec);
     if(ec)
         return bytes_transferred;
     msg = p.release();

@@ -81,5 +81,8 @@ enum class condition
 } // boost
 
 #include <boost/beast/core/impl/error.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/core/impl/error.ipp>
+#endif
 
 #endif

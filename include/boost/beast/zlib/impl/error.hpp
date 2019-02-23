@@ -60,8 +60,4 @@ make_error_code(error ev);
 } // beast
 } // boost
 
-#ifdef BOOST_BEAST_HEADER_ONLY
-#include <boost/beast/zlib/impl/error.ipp>
-#endif
-
 #endif

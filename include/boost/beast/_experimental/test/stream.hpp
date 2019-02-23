@@ -550,5 +550,8 @@ connect(stream& to, Arg1&& arg1, ArgN&&... argn);
 } // boost
 
 #include <boost/beast/_experimental/test/impl/stream.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/_experimental/test/impl/stream.ipp>
+#endif
 
 #endif

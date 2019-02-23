@@ -34,8 +34,4 @@ make_error_code(error ev);
 } // beast
 } // boost
 
-#ifdef BOOST_BEAST_HEADER_ONLY
-#include <boost/beast/http/impl/error.ipp>
-#endif
-
 #endif

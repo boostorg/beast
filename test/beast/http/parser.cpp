@@ -45,11 +45,11 @@ public:
     }
 
     template<class ConstBufferSequence,
-        bool isRequest, class Derived>
+        bool isRequest>
     static
     void
     put(ConstBufferSequence const& buffers,
-        basic_parser<isRequest, Derived>& p,
+        basic_parser<isRequest>& p,
             error_code& ec)
     {
         buffers_suffix<ConstBufferSequence> cb{buffers};

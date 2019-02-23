@@ -894,10 +894,10 @@ public:
         return {s.data(), s.size()};
     }
 
-    template<class ConstBufferSequence, bool isRequest, class Derived>
+    template<class ConstBufferSequence, bool isRequest>
     std::size_t
     feed(ConstBufferSequence const& buffers,
-        basic_parser<isRequest, Derived>& p, error_code& ec)
+        basic_parser<isRequest>& p, error_code& ec)
     {
         p.eager(true);
         return p.put(buffers, ec);

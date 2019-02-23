@@ -249,5 +249,8 @@ enum class condition
 } // boost
 
 #include <boost/beast/websocket/impl/error.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/websocket/impl/error.ipp>
+#endif
 
 #endif

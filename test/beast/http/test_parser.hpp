@@ -21,7 +21,7 @@ namespace http {
 
 template<bool isRequest>
 class test_parser
-    : public basic_parser<isRequest, test_parser<isRequest>>
+    : public basic_parser<isRequest>
 {
     test::fail_count* fc_ = nullptr;
 
@@ -65,8 +65,6 @@ public:
         ++got_on_begin;
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
     }
 
     void
@@ -81,8 +79,6 @@ public:
         ++got_on_begin;
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
     }
 
     void
@@ -92,8 +88,6 @@ public:
         ++got_on_field;
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
         fields[std::string(name)] = std::string(value);
     }
 
@@ -103,8 +97,6 @@ public:
         ++got_on_header;
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
     }
 
     void
@@ -117,8 +109,6 @@ public:
             static_cast<bool>(content_length_);
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
     }
 
     std::size_t
@@ -128,8 +118,6 @@ public:
         body.append(s.data(), s.size());
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
         return s.size();
     }
 
@@ -142,8 +130,6 @@ public:
         ++got_on_chunk;
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
     }
 
     std::size_t
@@ -155,8 +141,6 @@ public:
         body.append(s.data(), s.size());
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
         return s.size();
     }
 
@@ -167,8 +151,6 @@ public:
         ++got_on_complete;
         if(fc_)
             fc_->fail(ec);
-        else
-            ec = {};
     }
 };
 

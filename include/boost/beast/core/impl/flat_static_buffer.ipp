@@ -83,31 +83,6 @@ reset(void* p, std::size_t n) noexcept
     end_ = begin_ + n;
 }
 
-//------------------------------------------------------------------------------
-
-template<std::size_t N>
-flat_static_buffer<N>::
-flat_static_buffer(flat_static_buffer const& other)
-    : flat_static_buffer_base(buf_, N)
-{
-    this->commit(net::buffer_copy(
-        this->prepare(other.size()), other.data()));
-}
-
-template<std::size_t N>
-auto
-flat_static_buffer<N>::
-operator=(flat_static_buffer const& other) ->
-    flat_static_buffer<N>&
-{
-    if(this == &other)
-        return *this;
-    this->consume(this->size());
-    this->commit(net::buffer_copy(
-        this->prepare(other.size()), other.data()));
-    return *this;
-}
-
 } // beast
 } // boost
 

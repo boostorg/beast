@@ -42,7 +42,7 @@ parser<isRequest, Body, Allocator>::
 parser(
     parser<isRequest, OtherBody, Allocator>&& other,
     Args&&... args)
-    : base_type(std::move(other))
+    : basic_parser<isRequest>(std::move(other))
     , m_(other.release(), std::forward<Args>(args)...)
     , rd_(m_.base(), m_.body())
 {

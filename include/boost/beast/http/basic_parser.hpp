@@ -47,133 +47,38 @@ namespace http {
     the structured portion of the HTTP message (header or chunk header)
     is contained in a linear buffer.
 
-    The interface uses CRTP (Curiously Recurring Template Pattern).
-    To use this class directly, derive from @ref basic_parser. When
+    The interface to the parser uses virtual member functions.
+    To use this class, derive your type from @ref basic_parser. When
     bytes are presented, the implementation will make a series of zero
-    or more calls to derived class members functions (termed "callbacks"
-    in this context) matching a specific signature.
+    or more calls to virtual functions, which the derived class must
+    implement.
 
-    Every callback must be provided by the derived class, or else
-    a compilation error will be generated. This exemplar shows
-    the signature and description of the callbacks required in
-    the derived class.
-    For each callback, the function will ensure that `!ec` is `true`
-    if there was no error or set to the appropriate error code if
-    there was one.  If an error is set, the value is propagated to
-    the caller of the parser.
-
-    @par Derived Class Requirements
-    @code
-        template<bool isRequest>
-        class derived
-            : public basic_parser<isRequest, derived<isRequest>>
-        {
-        private:
-            // The friend declaration is needed,
-            // otherwise the callbacks must be made public.
-            friend class basic_parser<isRequest, derived>;
-
-            /// Called after receiving the request-line (isRequest == true).
-            void
-            on_request_impl(
-                verb method,                // The method verb, verb::unknown if no match
-                string_view method_str,     // The method as a string
-                string_view target,         // The request-target
-                int version,                // The HTTP-version
-                error_code& ec);            // The error returned to the caller, if any
-
-            /// Called after receiving the start-line (isRequest == false).
-            void
-            on_response_impl(
-                int code,                   // The status-code
-                string_view reason,         // The obsolete reason-phrase
-                int version,                // The HTTP-version
-                error_code& ec);            // The error returned to the caller, if any
-
-            /// Called after receiving a header field.
-            void
-            on_field_impl(
-                field f,                    // The known-field enumeration constant
-                string_view name,           // The field name string.
-                string_view value,          // The field value
-                error_code& ec);            // The error returned to the caller, if any
-
-            /// Called after the complete header is received.
-            void
-            on_header_impl(
-                error_code& ec);            // The error returned to the caller, if any
-
-            /// Called just before processing the body, if a body exists.
-            void
-            on_body_init_impl(
-                boost::optional<
-                    std::uint64_t> const&
-                        content_length,     // Content length if known, else `boost::none`
-                error_code& ec);            // The error returned to the caller, if any
-
-            /// Called for each piece of the body, if a body exists.
-            //!
-            //! This is used when there is no chunked transfer coding.
-            //!
-            //! The function returns the number of bytes consumed from the
-            //! input buffer. Any input octets not consumed will be will be
-            //! presented on subsequent calls.
-            //!
-            std::size_t
-            on_body_impl(
-                string_view s,              // A portion of the body
-                error_code& ec);            // The error returned to the caller, if any
-
-            /// Called for each chunk header.
-            void
-            on_chunk_header_impl(
-                std::uint64_t size,         // The size of the upcoming chunk,
-                                            // or zero for the last chunk
-                string_view extension,      // The chunk extensions (may be empty)
-                error_code& ec);            // The error returned to the caller, if any
-
-            /// Called to deliver the chunk body.
-            //!
-            //! This is used when there is a chunked transfer coding. The
-            //! implementation will automatically remove the encoding before
-            //! calling this function.
-            //!
-            //! The function returns the number of bytes consumed from the
-            //! input buffer. Any input octets not consumed will be will be
-            //! presented on subsequent calls.
-            //!
-            std::size_t
-            on_chunk_body_impl(
-                std::uint64_t remain,       // The number of bytes remaining in the chunk,
-                                            // including what is being passed here.
-                                            // or zero for the last chunk
-                string_view body,           // The next piece of the chunk body
-                error_code& ec);            // The error returned to the caller, if any
-
-            /// Called when the complete message is parsed.
-            void
-            on_finish_impl(error_code& ec);
-
-        public:
-            derived() = default;
-        };
-    @endcode
+    Every virtual function must be provided by the derived class,
+    or else a compilation error will be generated. The implementation
+    will make sure that `ec` is clear before each virtual function
+    is invoked. If a virtual function sets an error, it is propagated
+    out of the parser to the caller.
 
     @tparam isRequest A `bool` indicating whether the parser will be
     presented with request or response message.
 
-    @tparam Derived The derived class type. This is part of the
-    Curiously Recurring Template Pattern interface.
-
     @note If the parser encounters a field value with obs-fold
     longer than 4 kilobytes in length, an error is generated.
 */
-template<bool isRequest, class Derived>
+template<bool isRequest>
 class basic_parser
     : private detail::basic_parser_base
 {
-    template<bool OtherIsRequest, class OtherDerived>
-    friend class basic_parser;
+    std::uint64_t body_limit_ =
+        default_body_limit(is_request{});   // max payload body
+    std::uint64_t len_ = 0;                 // size of chunk or body
+    std::unique_ptr<char[]> buf_;           // temp storage
+    std::size_t buf_len_ = 0;               // size of buf_
+    std::size_t skip_ = 0;                  // resume search here
+    std::uint32_t header_limit_ = 8192;     // max header size
+    unsigned short status_ = 0;             // response status
+    state state_ = state::nothing_yet;      // initial state
+    unsigned f_ = 0;                        // flags
 
     // limit on the size of the stack flat buffer
     static std::size_t constexpr max_stack_buffer = 8192;
@@ -219,26 +124,12 @@ class basic_parser
         return 8 * 1024 * 1024; // 8MB
     }
 
-    std::uint64_t body_limit_ =
-        default_body_limit(is_request{});   // max payload body
-    std::uint64_t len_ = 0;                 // size of chunk or body
-    std::unique_ptr<char[]> buf_;           // temp storage
-    std::size_t buf_len_ = 0;               // size of buf_
-    std::size_t skip_ = 0;                  // resume search here
-    std::uint32_t header_limit_ = 8192;     // max header size
-    unsigned short status_ = 0;             // response status
-    state state_ = state::nothing_yet;      // initial state
-    unsigned f_ = 0;                        // flags
+    template<bool OtherIsRequest>
+    friend class basic_parser;
 
 protected:
     /// Default constructor
     basic_parser() = default;
-
-    /// Move constructor
-    basic_parser(basic_parser &&) = default;
-
-    /// Move assignment
-    basic_parser& operator=(basic_parser &&) = default;
 
     /** Move constructor
 
@@ -247,8 +138,10 @@ protected:
         After the move, the only valid operation on the
         moved-from object is destruction.
     */
-    template<class OtherDerived>
-    basic_parser(basic_parser<isRequest, OtherDerived>&&);
+    basic_parser(basic_parser &&) = default;
+
+    /// Move assignment
+    basic_parser& operator=(basic_parser &&) = default;
 
 public:
     /// `true` if this parser parses requests, `false` for responses.
@@ -263,30 +156,6 @@ public:
 
     /// Copy assignment
     basic_parser& operator=(basic_parser const&) = delete;
-
-    /** Returns a reference to this object as a `basic_parser`.
-
-        This is used to pass a derived class where a base class is
-        expected, to choose a correct function overload when the
-        resolution would be ambiguous.
-    */
-    basic_parser&
-    base()
-    {
-        return *this;
-    }
-
-    /** Returns a constant reference to this object as a `basic_parser`.
-
-        This is used to pass a derived class where a base class is
-        expected, to choose a correct function overload when the
-        resolution would be ambiguous.
-    */
-    basic_parser const&
-    base() const
-    {
-        return *this;
-    }
 
     /// Returns `true` if the parser has received at least one byte of input.
     bool
@@ -526,7 +395,7 @@ public:
 
 #if ! BOOST_BEAST_DOXYGEN
     std::size_t
-    put(net::const_buffer const& buffer,
+    put(net::const_buffer buffer,
         error_code& ec);
 #endif
 
@@ -549,19 +418,205 @@ public:
     void
     put_eof(error_code& ec);
 
-private:
-    inline
-    Derived&
-    impl()
+protected:
+    /** Called after receiving the request-line.
+
+        This virtual function is invoked after receiving a request-line
+        when parsing HTTP requests.
+        It can only be called when `isRequest == true`.
+
+        @param method The verb enumeration. If the method string is not
+        one of the predefined strings, this value will be @ref verb::unknown.
+
+        @param method_str The unmodified string representing the verb.
+
+        @param target The request-target.
+
+        @param version The HTTP-version. This will be 10 for HTTP/1.0,
+        and 11 for HTTP/1.1.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+    */
+    virtual
+    void
+    on_request_impl(
+        verb method,
+        string_view method_str,
+        string_view target,
+        int version,
+        error_code& ec) = 0;
+
+    /** Called after receiving the status-line.
+
+        This virtual function is invoked after receiving a status-line
+        when parsing HTTP responses.
+        It can only be called when `isRequest == false`.
+
+        @param code The numeric status code.
+
+        @param reason The reason-phrase. Note that this value is
+        now obsolete, and only provided for historical or diagnostic
+        purposes.
+
+        @param version The HTTP-version. This will be 10 for HTTP/1.0,
+        and 11 for HTTP/1.1.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+    */
+    virtual
+    void
+    on_response_impl(
+        int code,
+        string_view reason,
+        int version,
+        error_code& ec) = 0;
+
+    /** Called once for each complete field in the HTTP header.
+
+        This virtual function is invoked for each field that is received
+        while parsing an HTTP message.
+
+        @param name The known field enum value. If the name of the field
+        is not recognized, this value will be @ref field::unknown.
+
+        @param name_string The exact name of the field as received from
+        the input, represented as a string.
+
+        @param value A string holding the value of the field.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+    */
+    virtual
+    void
+    on_field_impl(
+        field name,
+        string_view name_string,
+        string_view value,
+        error_code& ec) = 0;
+
+    /** Called once after the complete HTTP header is received.
+
+        This virtual function is invoked once, after the complete HTTP
+        header is received while parsing a message.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+    */
+    virtual
+    void
+    on_header_impl(error_code& ec) = 0;
+
+    /** Called once before the body is processed.
+
+        This virtual function is invoked once, before the content body is
+        processed (but after the complete header is received).
+
+        @param content_length A value representing the content length in
+        bytes if the length is known (this can include a zero length).
+        Otherwise, the value will be `boost::none`.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+    */
+    virtual
+    void
+    on_body_init_impl(
+        boost::optional<std::uint64_t> const& content_length,
+        error_code& ec) = 0;
+
+    /** Called each time additional data is received representing the content body.
+
+        This virtual function is invoked for each piece of the body which is
+        received while parsing of a message. This function is only used when
+        no chunked transfer encoding is present.
+
+        @param body A string holding the additional body contents. This may
+        contain nulls or unprintable characters.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+
+        @see on_chunk_body_impl
+    */
+    virtual
+    std::size_t
+    on_body_impl(
+        string_view body,
+        error_code& ec)
     {
-        return *static_cast<Derived*>(this);
     }
 
+    /** Called each time a new chunk header of a chunk encoded body is received.
+
+        This function is invoked each time a new chunk header is received.
+        The function is only used when the chunked transfer encoding is present.
+
+        @param size The size of this chunk, in bytes.
+
+        @param extensions A string containing the entire chunk extensions.
+        This may be empty, indicating no extensions are present.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+    */
+    virtual
+    void
+    on_chunk_header_impl(
+        std::uint64_t size,
+        string_view extensions,
+        error_code& ec) = 0;
+
+    /** Called each time additional data is received representing part of a body chunk.
+
+        This virtual function is invoked for each piece of the body which is
+        received while parsing of a message. This function is only used when
+        no chunked transfer encoding is present.
+
+        @param remain The number of bytes remaining in this chunk. This includes
+        the contents of passed `body`. If this value is zero, then this represents
+        the final chunk.
+
+        @param body A string holding the additional body contents. This may
+        contain nulls or unprintable characters.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+
+        @return This function should return the number of bytes actually consumed
+        from the `body` value. Any bytes that are not consumed on this call
+        will be presented in a subsequent call.
+
+        @see on_body_impl
+    */
+    virtual
+    std::size_t
+    on_chunk_body_impl(
+        std::uint64_t remain,
+        string_view body,
+        error_code& ec) = 0;
+
+    /** Called once when the complete message is received.
+
+        This virtual function is invoked once, after successfully parsing
+        a complete HTTP message.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+    */
+    virtual
+    void
+    on_finish_impl(error_code& ec) = 0;
+
+private:
     template<class ConstBufferSequence>
     std::size_t
-    put_from_stack(std::size_t size,
+    put_from_stack(
+        std::size_t size,
         ConstBufferSequence const& buffers,
-            error_code& ec);
+        error_code& ec);
 
     void
     maybe_need_more(
@@ -617,5 +672,8 @@ private:
 } // boost
 
 #include <boost/beast/http/impl/basic_parser.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/http/impl/basic_parser.ipp>
+#endif
 
 #endif

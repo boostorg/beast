@@ -37,8 +37,4 @@ make_error_code(error e) noexcept;
 } // beast
 } // boost
 
-#ifdef BOOST_BEAST_HEADER_ONLY
-#include <boost/beast/_experimental/test/impl/error.ipp>
-#endif
-
 #endif

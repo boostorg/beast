@@ -51,29 +51,9 @@ variant beast_ubasan
 
 path-constant TEST_MAIN : include/boost/beast/_experimental/unit_test/main.cpp ;
 
-lib static_asio
-    : test/lib_asio.cpp
-    : requirements
-        [ requires
-            cxx11_constexpr
-            cxx11_decltype
-            cxx11_hdr_tuple
-            cxx11_template_aliases
-            cxx11_variadic_templates
-        ]
-        <define>BOOST_ASIO_SEPARATE_COMPILATION
-        <define>BOOST_ASIO_NO_DEPRECATED=1
-        <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
-        <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
-        <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
-        <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
-        <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
-        <target-os>windows:<define>_WIN32_WINNT=0x0601
-        <link>static
-    ;
-
 lib static_beast
     : test/lib_beast.cpp
+      test/lib_asio.cpp
     : requirements
         [ requires
             cxx11_constexpr
@@ -83,12 +63,14 @@ lib static_beast
             cxx11_variadic_templates
         ]
         <define>BOOST_BEAST_SPLIT_COMPILATION
+        <define>BOOST_ASIO_SEPARATE_COMPILATION
         <define>BOOST_ASIO_NO_DEPRECATED=1
         <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
         <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
         <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
         <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
         <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
+        <toolset>msvc-14.1:<cxxflags>"/permissive-"
         <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
         <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
         <toolset>msvc:<define>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
@@ -103,7 +85,7 @@ project /boost/beast
     <include>./test/extras/include
     <library>/boost/coroutine//boost_coroutine
     <library>/boost/filesystem//boost_filesystem
-    <library>static_asio
+    #<library>static_asio
     <library>static_beast
     <implicit-dependency>/boost//headers
     <threading>multi
@@ -112,16 +94,16 @@ project /boost/beast
     [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl : <build>no ]
     <library>/boost/beast//crypto
     <define>BOOST_ALL_NO_LIB=1
+    <define>BOOST_BEAST_SPLIT_COMPILATION
+    <define>BOOST_ASIO_SEPARATE_COMPILATION
     <define>BOOST_ASIO_NO_DEPRECATED=1
     <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
     <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
     <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
-  #<define>BOOST_ASIO_SEPARATE_COMPILATION
-  <define>BOOST_ASIO_DISABLE_WINDOWS_RANDOM_ACCESS_HANDLE=1
-  <define>BOOST_ASIO_DISABLE_WINDOWS_STREAM_HANDLE=1
-  #<define>BOOST_BEAST_SEPARATE_COMPILATION
+<define>BOOST_ASIO_DISABLE_WINDOWS_RANDOM_ACCESS_HANDLE=1
+<define>BOOST_ASIO_DISABLE_WINDOWS_STREAM_HANDLE=1
     <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc-14.1:<cxxflags>"/permissive-"
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1

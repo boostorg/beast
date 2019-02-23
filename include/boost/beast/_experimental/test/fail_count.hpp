@@ -63,6 +63,8 @@ public:
 } // beast
 } // boost
 
-#include <boost/beast/_experimental/test/impl/fail_count.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/_experimental/test/impl/fail_count.ipp>
+#endif
 
 #endif

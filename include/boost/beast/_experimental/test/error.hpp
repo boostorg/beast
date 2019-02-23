@@ -33,5 +33,8 @@ enum class error
 } // boost
 
 #include <boost/beast/_experimental/test/impl/error.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/_experimental/test/impl/error.ipp>
+#endif
 
 #endif
