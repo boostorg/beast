@@ -105,6 +105,7 @@ public:
             // What else could it be?
             BOOST_ASSERT(sr_.is_done());
         }
+
         return net::post(
             s_.get_executor(),
             beast::bind_front_handler(

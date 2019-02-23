@@ -43,7 +43,7 @@ parse_until(
     {
         if(parser.got_some())
         {
-            // caller sees EOF on next read
+            // Caller sees EOF on next read
             ec = {};
             parser.put_eof(ec);
             BOOST_ASSERT(ec || parser.is_done());
@@ -55,7 +55,17 @@ parse_until(
         return 0;
     }
     if(ec)
+    {
+        // Upgrade the error if we have a partial message.
+        // This causes SSL short reads (and every other error)
+        // to be converted into something else, allowing the
+        // caller to distinguish an SSL short read which
+        // represents a safe connection closure, versus
+        // a closure with data loss.
+        if(parser.got_some() && ! parser.is_done())
+            ec = error::partial_message;
         return 0;
+    }
     if(parser.is_done())
         return 0;
     if(buffer.size() > 0)

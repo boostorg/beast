@@ -18,10 +18,10 @@ namespace websocket {
 
 /*
 
-See
-http://stackoverflow.com/questions/32046034/what-is-the-proper-way-to-securely-disconnect-an-asio-ssl-socket/32054476#32054476
+    See
+    http://stackoverflow.com/questions/32046034/what-is-the-proper-way-to-securely-disconnect-an-asio-ssl-socket/32054476#32054476
 
-Behavior of ssl::stream regarding close_
+    Behavior of ssl::stream regarding close_notify
 
     If the remote host calls async_shutdown then the
     local host's async_read will complete with eof.
