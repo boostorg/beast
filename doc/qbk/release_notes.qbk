@@ -11,6 +11,8 @@
 
 [/-----------------------------------------------------------------------------]
 
+[/
+
 * [phrase library..[@/libs/beast/ Beast]:]
   [*YUUUGE Update!] The
     [link beast.quickref [*reference]] shows a star
@@ -74,6 +76,8 @@
   * See the full [link beast.release_notes [*Release Notes]] for a complete list
     of changes.
 
+]
+
 [/-----------------------------------------------------------------------------]
 
 [heading Boost 1.70]
@@ -84,9 +88,39 @@
 
 [/ includes up to version 209]
 
+
+
 [*New Features]
 
-[/* `BASIC_TIMEOUT_STREAM` TODO]
+* All composed operations use the new
+  [@boost:/doc/html/boost_asio/reference/async_initiate.html `net::async_initiate`]
+  internally.
+
+* New `tcp_stream` and
+  `basic_stream`
+  support:
+  * Timeouts,
+    [link beast.ref.boost__beast__basic_stream.async_read_some `async_read_some`],
+    [link beast.ref.boost__beast__basic_stream.async_write_some `async_write_some`]
+    complete with
+    [link beast.ref.boost__beast__error `error::timeout`]
+    on expiration.
+  * Traffic-shaping policies
+    [link beast.ref.boost__beast__simple_rate_policy `simple`] and
+    [link beast.ref.boost__beast__unlimited_rate_policy `unlimited`],
+    or a user-defined
+    [link beast.concepts.RatePolicy ['RatePolicy]].
+  * Supports
+    [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html P1322R0].
+
+* `websocket::stream`
+   supports
+   * Configurable handshake timeout
+   * Configurable idle timeout
+   * Automatic idle pings
+
+* [link beast.ref.boost__beast__ssl_stream `ssl_stream`]
+  is a public interface
 
 * ([issue 1305]) Better
   `flat_buffer`,
@@ -98,6 +132,8 @@
   * non-const `data()` returns a mutable buffer sequence
   * Add `cdata()` to also return constant readable bytes
   * Eligible member functions are declared `noexcept`
+
+* New `make_strand`
 
 * ([issue 1345]) Better
   `flat_buffer`,
@@ -116,7 +152,10 @@
   * More members are `noexcept`
   * Specify exception safety
 
-* Faster `http::string_to_field`
+* Faster
+  `http::string_to_field`
+
+* Dynamic buffer `clear` operations perserve capacity.
 
 * New file <boost/beast/core/buffer_traits.hpp>
   * New variadic `is_const_buffer_sequence`
@@ -148,9 +187,33 @@
   * `error`,
     `condition`
 
+* These interfaces are now public (were experimental):
+  [link beast.ref.boost__beast__flat_stream `flat_stream`],
+  [link beast.ref.boost__beast__detect_ssl `detect_ssl`],
+  [link beast.ref.boost__beast__async_detect_ssl `async_detect_ssl`].
+
+* Websocket streams use PCG as the fast random number generator,
+  for increased security.
+
+
+
+[*Documentation]
+
+* WebSocket reference documentation is revised
+
+* Updated [link beast.using_io.asio_refresher Networking Refresher]
+
+* Revised [link beast.using_io.writing_composed_operations.echo Asynchronous Echo]
+
+* Rewritten [link beast.using_io.writing_composed_operations.detect_ssl [*Detect SSL Handshake]]
+
+
+
 [*API Changes]
 
 * On Windows, Visual Studio 2017 or later is required
+
+* OpenSSL is required to build the examples and tests
 
 * HTTP stream algorithms return the number of bytes transferred
   from the stream. Previously, they returned the number of bytes
@@ -172,6 +235,15 @@
   `is_async_write_stream`
   are in stream_traits.hpp.
   ['Actions Required]: Include stream_traits.hpp as needed.
+
+* `basic_parser`
+  is abstract.
+  ['Actions Required]
+  * Change uses of the `basic_parser` type to omit the `Derived`
+    template parameter
+  * Classes derived from `basic_parser` no longer need to friend
+    the base.
+  * Virtual functions in the derived class may be marked `override`.
 
 * Metafunction
   `is_file`
@@ -220,20 +292,46 @@
   type trait
   `lowest_layer_type` instead.
 
+* WebSocket decorator is a socket option:
+  * Overloads of the following functions which accept a Decorator
+    are deprecated:
+    - `accept`, `accept_ex`
+    - `handshake`, `handshake_ex`
+    - `async_accept`, `async_accept_ex`
+    - `async_handshake`, `async_handshake_ex`
+
 [*Examples]
+
+* All example programs are updated:
+  * Use
+    `tcp_stream`
+    with timeouts (HTTP)
+  * Use
+    `ssl_stream`
+  * Set timeouts for WebSocket streams.
+  * Use
+    `bind_front_handler`
 
 * ([issue 1100]) http-crawl clears the response before each read
 
-* ([issue 1347]) Improve echo-op
+* ([issue 1347]) echo-op is rewritten
 
 * ([issue 1401]) Examples use
   `flat_buffer`
 
-* New example [[source_file example/websocket/server/chat-multi]]
+* detect-ssl is rewritten
+
+* New example [source_file example/websocket/server/chat-multi]
 
 * `async_echo` works with move-only handlers
 
+* cppcon2018 example is removed
+
+
+
 [*Fixes]
+
+* ([issue 38]) Better treatment of SSL short reads
 
 * ([issue 1223]) HTTP read counts bytes correctly when an error occurs
 
@@ -261,7 +359,11 @@
 * ([issue 1418]) `test::stream`
   maintains a handler work guard
 
+* ([issue 1445]) Fix posix_file::close handling of EINTR
+
 * ([issue 1460]) Large WebSocket Upgrade response no longer overflows
+
+* Handler bind wrappers use the associated allocator
 
 * `buffers_cat`
   correctly skips empty buffers when iterated
