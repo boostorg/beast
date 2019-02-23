@@ -71,7 +71,7 @@ create concurrent network programs using callbacks or coroutines.
 * **Boost:** Boost.Asio and some other parts of Boost.
 * **OpenSSL:** Required for using TLS/Secure sockets and examples/tests
 
-When using Microsoft Visual C++, Visual Studio 2015 Update 3 or later is required.
+When using Microsoft Visual C++, Visual Studio 2017 or later is required.
 
 One of these components is required in order to build the tests and examples:
 
@@ -198,7 +198,6 @@ cd libs/beast
 mkdir bin
 cd bin
 cmake ..                                    # for 32-bit Windows builds, or
-cmake -G"Visual Studio 14 2015 Win64" ..    # for 64-bit Windows builds (VS2015), or
 cmake -G"Visual Studio 15 2017 Win64" ..    # for 64-bit Windows builds (VS2017)
 ```
 

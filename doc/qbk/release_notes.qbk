@@ -86,7 +86,6 @@
 
 [/ includes up to version 209]
 
-
 [*New Features]
 
 [/* `BASIC_TIMEOUT_STREAM` TODO]
@@ -152,6 +151,8 @@
     `condition`
 
 [*API Changes]
+
+* On Windows, Visual Studio 2017 or later is required
 
 * HTTP stream algorithms return the number of bytes transferred
   from the stream. Previously, they returned the number of bytes

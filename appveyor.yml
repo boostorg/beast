@@ -15,6 +15,9 @@ configuration:
   #- Debug
   - Release
 
+image:
+  - Visual Studio 2017
+
 environment:
   OPENSSL_ROOT: C:\tools\vcpkg\installed\x64-windows
 
@@ -100,8 +103,8 @@ install:
 build: off
 
 test_script:
-  - b2 variant=release cxxstd=11 address-model=64 libs/beast/example toolset=msvc-14.0
-  - b2 variant=release cxxstd=11 address-model=64 --verbose-test libs/beast/test//run-fat-tests toolset=msvc-14.0
+  - b2 variant=release cxxstd=11 address-model=64 libs/beast/example
+  - b2 variant=release cxxstd=11 address-model=64 --verbose-test libs/beast/test//run-fat-tests
 
 cache:
 - c:\tools\vcpkg\installed\
