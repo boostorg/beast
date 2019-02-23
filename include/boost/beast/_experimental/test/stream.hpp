@@ -99,8 +99,10 @@ class stream
     struct read_op_base
     {
         virtual ~read_op_base() = default;
-        virtual void operator()(bool cancel = false) = 0;
+        virtual void operator()(error_code ec) = 0;
     };
+
+    BOOST_BEAST_DECL void initiate_read(std::unique_ptr<read_op_base>&& op, std::size_t buf_size);
 
     template<class Handler, class Buffers>
     class read_op;
@@ -138,7 +140,7 @@ class stream
 
         BOOST_BEAST_DECL
         ~state();
-        
+
         BOOST_BEAST_DECL
         void
         notify_read();

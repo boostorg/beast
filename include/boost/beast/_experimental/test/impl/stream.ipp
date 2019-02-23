@@ -21,6 +21,45 @@ namespace beast {
 namespace test {
 
 //------------------------------------------------------------------------------
+void stream::initiate_read(
+    std::unique_ptr<stream::read_op_base>&& op,
+    std::size_t buf_size)
+{
+    std::unique_lock<std::mutex> lock(in_->m);
+
+    ++in_->nread;
+    if(in_->op != nullptr)
+        throw std::logic_error(
+            "in_->op != nullptr");
+
+    // test failure
+    error_code ec;
+    if(in_->fc && in_->fc->fail(ec))
+    {
+        lock.unlock();
+        (*op)(ec);
+        return;
+    }
+
+    // A request to read 0 bytes from a stream is a no-op.
+    if(buf_size == 0 || buffer_size(in_->b.data()) > 0)
+    {
+        lock.unlock();
+        (*op)(ec);
+        return;
+    }
+
+    // deliver error
+    if(in_->code != status::ok)
+    {
+        lock.unlock();
+        (*op)(net::error::eof);
+        return;
+    }
+
+    // complete when bytes available or closed
+    in_->op = std::move(op);
+}
 
 stream::
 state::
@@ -38,7 +77,7 @@ state::
 {
     // cancel outstanding read
     if(op != nullptr)
-        (*op)(true);
+        (*op)(net::error::operation_aborted);
 }
 
 void
@@ -49,7 +88,7 @@ notify_read()
     if(op)
     {
         auto op_ = std::move(op);
-        op_->operator()();
+        op_->operator()(error_code{});
     }
     else
     {
@@ -58,7 +97,7 @@ notify_read()
 }
 
 //------------------------------------------------------------------------------
-        
+
 stream::
 ~stream()
 {
@@ -181,7 +220,7 @@ close()
             op = std::move(in_->op);
         }
         if(op != nullptr)
-            (*op)(true);
+            (*op)(net::error::operation_aborted);
     }
 
     // disconnect

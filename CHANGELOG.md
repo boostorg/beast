@@ -1,3 +1,9 @@
+Version 219:
+
+* More split definitions in test::stream
+
+--------------------------------------------------------------------------------
+
 Version 218:
 
 * detect_ssl, async_detect_ssl are public interfaces

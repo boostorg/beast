@@ -54,15 +54,10 @@ class stream::read_op : public stream::read_op_base
         }
 
         void
-        operator()(bool cancel)
+        operator()(error_code ec)
         {
-            error_code ec;
             std::size_t bytes_transferred = 0;
-            if(cancel)
-            {
-                ec = net::error::operation_aborted;
-            }
-            else
+            if (!ec)
             {
                 std::lock_guard<std::mutex> lock(s_.m);
                 BOOST_ASSERT(! s_.op);
@@ -73,11 +68,12 @@ class stream::read_op : public stream::read_op_base
                             b_, s_.b.data(), s_.read_max);
                     s_.b.consume(bytes_transferred);
                 }
-                else
+                else if (buffer_size(b_) > 0)
                 {
                     ec = net::error::eof;
                 }
             }
+
             auto alloc = net::get_associated_allocator(h_);
             wg2_.get_executor().dispatch(
                 beast::bind_front_handler(std::move(h_),
@@ -101,13 +97,13 @@ public:
     }
 
     void
-    operator()(bool cancel) override
+    operator()(error_code ec) override
     {
         net::post(
             wg1_.get_executor(),
             bind_handler(
                 std::move(fn_),
-                cancel));
+                ec));
         wg1_.reset();
     }
 };
@@ -120,7 +116,7 @@ struct stream::run_read_op
     void
     operator()(
         ReadHandler&& h,
-        std::shared_ptr<state> in_,
+        stream& s,
         MutableBufferSequence const& buffers)
     {
         // If you get an error on the following line it means
@@ -132,71 +128,15 @@ struct stream::run_read_op
                 void(error_code, std::size_t)>::value,
             "ReadHandler type requirements not met");
 
-        ++in_->nread;
-
-        std::unique_lock<std::mutex> lock(in_->m);
-        if(in_->op != nullptr)
-            throw std::logic_error(
-                "in_->op != nullptr");
-
-        // test failure
-        error_code ec;
-        if(in_->fc && in_->fc->fail(ec))
-        {
-            net::post(
-                in_->ioc.get_executor(),
-                beast::bind_front_handler(
-                    std::move(h),
-                    ec, std::size_t{0}));
-            return;
-        }
-
-        // A request to read 0 bytes from a stream is a no-op.
-        if(buffer_size(buffers) == 0)
-        {
-            lock.unlock();
-            net::post(
-                in_->ioc.get_executor(),
-                beast::bind_front_handler(
-                    std::move(h),
-                    ec, std::size_t{0}));
-            return;
-        }
-
-        // deliver bytes before eof
-        if(buffer_size(in_->b.data()) > 0)
-        {
-            auto n = net::buffer_copy(
-                buffers, in_->b.data(), in_->read_max);
-            in_->b.consume(n);
-            lock.unlock();
-            net::post(
-                in_->ioc.get_executor(),
-                beast::bind_front_handler(
-                    std::move(h),
-                    ec, n));
-            return;
-        }
-
-        // deliver error
-        if(in_->code != status::ok)
-        {
-            lock.unlock();
-            ec = net::error::eof;
-            net::post(
-                in_->ioc.get_executor(),
-                beast::bind_front_handler(
-                    std::move(h),
-                    ec, std::size_t{0}));
-            return;
-        }
-
-        // complete when bytes available or closed
-        in_->op.reset(
+        s.initiate_read(
+            std::unique_ptr<read_op_base>{
             new read_op<
-                ReadHandler,
+                typename std::decay<ReadHandler>::type,
                 MutableBufferSequence>(
-                    std::move(h), *in_, buffers));
+                    std::move(h),
+                    *s.in_,
+                    buffers)},
+            buffer_size(buffers));
     }
 };
 
@@ -362,7 +302,7 @@ async_read_some(
         void(error_code, std::size_t)>(
             run_read_op{},
             handler,
-            in_,
+            *this,
             buffers);
 }
 
