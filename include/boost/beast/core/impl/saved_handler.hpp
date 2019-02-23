@@ -17,7 +17,6 @@
 #include <boost/assert.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/core/exchange.hpp>
-#include <memory>
 #include <utility>
 
 namespace boost {
@@ -95,29 +94,6 @@ public:
 
 //------------------------------------------------------------------------------
 
-saved_handler::
-~saved_handler()
-{
-    if(p_)
-        p_->destroy();
-}
-
-saved_handler::
-saved_handler(saved_handler&& other) noexcept
-    : p_(boost::exchange(other.p_, nullptr))
-{
-}
-
-saved_handler&
-saved_handler::
-operator=(saved_handler&& other) noexcept
-{
-    // Can't delete a handler before invoking
-    BOOST_ASSERT(! has_value());
-    p_ = boost::exchange(other.p_, nullptr);
-    return *this;
-}
-
 template<class Handler, class Allocator>
 void
 saved_handler::
@@ -167,27 +143,6 @@ emplace(Handler&& handler)
     emplace(
         std::forward<Handler>(handler),
         net::get_associated_allocator(handler));
-}
-
-void
-saved_handler::
-invoke()
-{
-    // Can't invoke without a value
-    BOOST_ASSERT(has_value());
-    boost::exchange(
-        p_, nullptr)->invoke();
-}
-
-bool
-saved_handler::
-maybe_invoke()
-{
-    if(! p_)
-        return false;
-    boost::exchange(
-        p_, nullptr)->invoke();
-    return true;
 }
 
 } // beast

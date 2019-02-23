@@ -120,5 +120,8 @@ public:
 } // boost
 
 #include <boost/beast/core/impl/saved_handler.hpp>
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/core/impl/saved_handler.ipp>
+#endif
 
 #endif

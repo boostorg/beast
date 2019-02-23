@@ -2727,7 +2727,7 @@ private:
 
     @see stream::secure_prng
 */
-BOOST_BEAST_DECL
+inline
 void
 seed_prng(std::seed_seq& ss)
 {
