@@ -5,6 +5,7 @@ Version 219:
 * Better treatment of SSL short reads
 * ssl_stream is a public interface
 * basic_parser is abstract, not CRTP (API Change)
+* OpenSSL is required for tests and examples
 
 --------------------------------------------------------------------------------
 

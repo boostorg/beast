@@ -16,9 +16,9 @@
 #include "example/common/server_certificate.hpp"
 
 #include <boost/beast/core.hpp>
+#include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
-#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/strand.hpp>
 #include <algorithm>
 #include <cstdlib>

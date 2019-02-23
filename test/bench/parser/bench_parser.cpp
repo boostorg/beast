@@ -210,7 +210,7 @@ public:
         }
 
         void
-        on_finish_impl(error_code& ec) override
+        on_finish_impl(error_code&) override
         {
         }
     };

@@ -291,8 +291,6 @@ class stream;
 
 //------------------------------------------------------------------------------
 
-#if BOOST_BEAST_USE_OPENSSL
-
 //[wss_snippet_1
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/asio/ssl.hpp>
@@ -335,6 +333,3 @@ net::ip::tcp::socket sock{ioc};
 } // fxx()
 
 } // doc_wss_snippets
-
-#endif
-

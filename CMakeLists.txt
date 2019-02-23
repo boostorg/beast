@@ -115,14 +115,6 @@ endif()
 
 find_package(OpenSSL)
 
-if (OPENSSL_FOUND)
-    add_definitions (-DBOOST_BEAST_USE_OPENSSL=1)
-
-else()
-    add_definitions (-DBOOST_BEAST_USE_OPENSSL=0)
-    message("OpenSSL not found.")
-endif()
-
 #
 #-------------------------------------------------------------------------------
 

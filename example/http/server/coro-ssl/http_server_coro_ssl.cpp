@@ -17,8 +17,8 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/beast/_experimental/core/ssl_stream.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
