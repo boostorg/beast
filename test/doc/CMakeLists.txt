@@ -22,6 +22,7 @@ add_executable (tests-doc
     core_snippets.cpp
     core_1_refresher.cpp
     core_3_layers.cpp
+    http_10_custom_parser.cpp
     http_examples.cpp
     http_snippets.cpp
     websocket_3_handshake.cpp

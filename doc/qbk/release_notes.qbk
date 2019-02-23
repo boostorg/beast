@@ -61,17 +61,15 @@
     [link beast.ref.boost__beast__async_op_base `async_op_base`] and
     [link beast.ref.boost__beast__stable_async_op_base `stable_async_op_base`]
     handle all composed operation boilerplate for you.
+  * [link beast.ref.boost__beast__ssl_stream `ssl_stream`] provides a
+    movable, assignable SSL stream with a flat write optimization.
   * All asynchronous operations use Asio's
     [@boost:/doc/html/boost_asio/reference/async_initiate.html `async_initiate`]
     for efficient integration with Coroutines TS.
   * '''
     &#9889;
     '''
-    [*['faster compilation]],
-    '''
-    &#9889;
-    '''
-    define `BOOST_BEAST_SPLIT_COMPILATION` and include
+    [*['faster compilation]], define `BOOST_BEAST_SPLIT_COMPILATION` and include
     [@../../include/boost/beast/src.hpp src.hpp] in one of your .cpp files!
   * See the full [link beast.release_notes [*Release Notes]] for a complete list
     of changes.

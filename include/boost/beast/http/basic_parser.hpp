@@ -545,9 +545,7 @@ protected:
     std::size_t
     on_body_impl(
         string_view body,
-        error_code& ec)
-    {
-    }
+        error_code& ec) = 0;
 
     /** Called each time a new chunk header of a chunk encoded body is received.
 

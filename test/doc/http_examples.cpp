@@ -189,42 +189,6 @@ public:
     }
 
     void
-    doCustomParser()
-    {
-        {
-            string_view s{
-                "POST / HTTP/1.1\r\n"
-                "User-Agent: test\r\n"
-                "Content-Length: 13\r\n"
-                "\r\n"
-                "Hello, world!"
-            };
-            error_code ec;
-            custom_parser<true> p;
-            p.put(net::buffer(
-                s.data(), s.size()), ec);
-            BEAST_EXPECTS(! ec, ec.message());
-        }
-        {
-            string_view s{
-                "HTTP/1.1 200 OK\r\n"
-                "Server: test\r\n"
-                "Transfer-Encoding: chunked\r\n"
-                "\r\n"
-                "d\r\n"
-                "Hello, world!"
-                "\r\n"
-                "0\r\n\r\n"
-            };
-            error_code ec;
-            custom_parser<false> p;
-            p.put(net::buffer(
-                s.data(), s.size()), ec);
-            BEAST_EXPECTS(! ec, ec.message());
-        }
-    }
-
-    void
     doHEAD()
     {
         test::stream ts{ioc_}, tr{ioc_};
@@ -428,7 +392,6 @@ public:
         doRelay();
         doReadStdStream();
         doWriteStdStream();
-        doCustomParser();
         doHEAD();
         doDeferredBody();
         doIncrementalRead();
