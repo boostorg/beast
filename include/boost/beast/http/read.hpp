@@ -192,6 +192,7 @@ read_some(
         std::size_t bytes_transferred   // the total number of bytes transferred from the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -385,6 +386,7 @@ read_header(
         std::size_t bytes_transferred   // the total number of bytes transferred from the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -580,6 +582,7 @@ read(
         std::size_t bytes_transferred   // the total number of bytes transferred from the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -784,6 +787,7 @@ read(
         std::size_t bytes_transferred   // the total number of bytes transferred from the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a

@@ -861,6 +861,7 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -940,6 +941,7 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1278,6 +1280,7 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1341,6 +1344,7 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1404,6 +1408,7 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1538,6 +1543,7 @@ public:
             error_code const& ec     // Result of operation
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1638,6 +1644,7 @@ public:
             error_code const& ec     // Result of operation
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1741,6 +1748,7 @@ public:
             error_code const& ec     // Result of operation
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1897,6 +1905,7 @@ public:
             std::size_t bytes_written   // Number of bytes appended to buffer
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -2072,6 +2081,7 @@ public:
             std::size_t bytes_written   // Number of bytes appended to buffer
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -2243,6 +2253,7 @@ public:
             std::size_t bytes_written   // Number of bytes written to the buffers
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -2362,6 +2373,7 @@ public:
                                             // this will be less than the buffer_size.
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -2483,6 +2495,7 @@ public:
                                             // this will be less than the buffer_size.
         );
         @endcode
+        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a

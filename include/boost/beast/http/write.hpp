@@ -160,6 +160,7 @@ write_some(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -285,6 +286,7 @@ write_header(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -407,6 +409,7 @@ write(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -630,6 +633,7 @@ write(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -692,6 +696,7 @@ async_write(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a

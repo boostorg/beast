@@ -76,6 +76,7 @@ async_echo (AsyncStream& stream, DynamicBuffer& buffer, CompletionToken&& token)
         beast::error_code error      // Result of operation.
     );
     @endcode
+    
     Regardless of whether the asynchronous operation completes immediately or
     not, the handler will not be invoked from within this function. Invocation
     of the handler will be performed in a manner equivalent to using
