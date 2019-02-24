@@ -12,17 +12,21 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/basic_stream.hpp>
+#include <boost/beast/core/rate_policy.hpp>
 #include <boost/asio/executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
 namespace boost {
 namespace beast {
 
-/** A TCP/IP stream socket with timeouts, rate limits, and polymorphic executor.
+/** A TCP/IP stream socket with timeouts and a polymorphic executor.
 
     @see basic_stream
 */
-using tcp_stream = basic_stream<net::ip::tcp, net::executor>;
+using tcp_stream = basic_stream<
+    net::ip::tcp,
+    net::executor,
+    unlimited_rate_policy>;
 
 } // beast
 } // boost

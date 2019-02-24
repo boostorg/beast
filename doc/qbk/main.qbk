@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -29,6 +29,8 @@
 [template source_file[path] '''<ulink url="../../'''[path]'''">'''[path]'''</ulink>''']
 [template include_file[path][^<'''<ulink url="../../../../'''[path]'''">'''[path]'''</ulink>'''>]]
 [template issue[n] '''<ulink url="https://github.com/boostorg/beast/issues/'''[n]'''">#'''[n]'''</ulink>''']
+
+[template example_src[path name] '''<ulink url="../../'''[path]'''">'''[name]'''</ulink>''']
 
 [def __N3747__                  [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*N3747]]]
 [def __NetTS__                  [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/n4771.pdf Networking TS]]
@@ -90,6 +92,7 @@
 [def __Fields__                 [link beast.concepts.Fields ['Fields]]]
 [def __FieldsWriter__           [link beast.concepts.FieldsWriter ['FieldsWriter]]]
 [def __File__                   [link beast.concepts.File ['File]]]
+[def __RatePolicy__             [link beast.concepts.RatePolicy ['RatePolicy]]]
 [def __Stream__                 [link beast.concepts.streams ['Stream]]]
 [def __SyncStream__             [link beast.concepts.streams.SyncStream ['SyncStream]]]
 
@@ -111,6 +114,14 @@
 [def __flat_static_buffer_base__ [link beast.ref.boost__beast__flat_static_buffer_base `flat_static_buffer_base`]]
 [def __websocket_stream__       [link beast.ref.boost__beast__websocket__stream `websocket::stream`]]
 
+[/ Dingbat Legend]
+
+[def __new__ [role green \u2605]]
+[def __example__ \U0001f4a1]
+[def __video__ \U0001f3a6]
+[def __report__ \U0001f4cb]
+[def __star__ \u2b50]
+
 [/
     VFALCO unfortunately quickbook wants relative paths and we have no
     variables so all of the .cpp and .hpp files are placed here to keep
@@ -130,17 +141,24 @@
 [import ../../test/doc/websocket_snippets.cpp]
 
 [import ../../test/doc/core_1_refresher.cpp]
-[import ../../test/doc/core_3_layers.cpp]
+[import ../../test/doc/core_3_timeouts.cpp]
+[import ../../test/doc/core_4_layers.cpp]
 [import ../../test/doc/http_10_custom_parser.cpp]
 [import ../../test/doc/websocket_3_handshake.cpp]
 
 [import ../../include/boost/beast/core/detect_ssl.hpp]
 [import ../../test/beast/core/rate_policy.cpp]
 
-[section:quickref Reference]
-'''
-<emphasis role="green">&#128946;</emphasis> indicates an item that is new in this version.
-'''
+__new__ indicates a new or updated section in this version.
+
+__example__ contains example source code.
+
+__video__ contains video presentation content
+
+[section:quickref Reference __new__]
+
+__new__ indicates an item that is new in this version.
+
 [xinclude quickref.xml]
 [endsect]
 [block'''<reference id="beast_hidden"><title>This Page Intentionally Left Blank 1/2</title>''']
@@ -151,9 +169,9 @@
 
 [include release_notes.qbk]
 
-[include 01_intro/0_intro.qbk]
-[include 02_examples/0_examples.qbk]
-[include 03_core/0_core.qbk]
+[include 01_intro/_intro.qbk]
+[include 02_examples/_examples.qbk]
+[include 03_core/_core.qbk]
 [include 04_http/0_http.qbk]
 [include 05_http_examples/0_http_examples.qbk]
 [include 06_websocket/0_websocket.qbk]

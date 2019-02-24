@@ -84,6 +84,8 @@ snippets()
     }
 }
 
+//------------------------------------------------------------------------------
+
 //[code_core_1_refresher_1
 template <class ConstBufferSequence>
 std::string string_from_buffers (ConstBufferSequence const& buffers)
@@ -110,6 +112,8 @@ std::string string_from_buffers (ConstBufferSequence const& buffers)
     return result;
 }
 //]
+
+//------------------------------------------------------------------------------
 
 //[code_core_1_refresher_2
 // Read a line ending in '\n' from a socket, returning
@@ -144,8 +148,9 @@ std::size_t read_line(net::ip::tcp::socket& sock, DynamicBuffer& buffer)
         buffer.commit(sock.read_some(buffer.prepare(bytes_to_read)));
     }
 }
-
 //]
+
+//------------------------------------------------------------------------------
 
 //[code_core_1_refresher_3
 // Meets the requirements of SyncReadStream
@@ -172,6 +177,7 @@ struct sync_write_stream
     std::size_t write_some(ConstBufferSequence const& buffers, error_code& ec);
 };
 //]
+
 template<class MutableBufferSequence>
 std::size_t sync_read_stream::read_some(MutableBufferSequence const&)
 {
@@ -195,6 +201,8 @@ std::size_t sync_write_stream::write_some(ConstBufferSequence const&, error_code
 BOOST_STATIC_ASSERT(is_sync_read_stream<sync_read_stream>::value);
 BOOST_STATIC_ASSERT(is_sync_write_stream<sync_write_stream>::value);
 
+//------------------------------------------------------------------------------
+
 //[code_core_1_refresher_4
 template <class SyncWriteStream>
 void hello (SyncWriteStream& stream)
@@ -208,6 +216,8 @@ void hello (SyncWriteStream& stream)
     while (cb.size() > 0);
 }
 //]
+
+//------------------------------------------------------------------------------
 
 //[code_core_1_refresher_5
 template <class SyncWriteStream>
@@ -223,17 +233,25 @@ void hello (SyncWriteStream& stream, error_code& ec)
 }
 //]
 
+//------------------------------------------------------------------------------
+
+} // (anon)
+} // beast
+} // boost
+
 //[code_core_1_refresher_6
-// Intrusively specify an associated allocator and executor
+// The following is a completion handler expressed
+// as a function object, with a nested associated
+// allocator and a nested associated executor.
 struct handler
 {
     using allocator_type = std::allocator<char>;
     allocator_type get_allocator() const noexcept;
 
-    using executor_type = net::io_context::executor_type;
+    using executor_type = boost::asio::io_context::executor_type;
     executor_type get_executor() const noexcept;
 
-    void operator()(error_code, std::size_t);
+    void operator()(boost::beast::error_code, std::size_t);
 };
 //]
 inline auto handler::get_allocator() const noexcept ->
@@ -244,14 +262,69 @@ inline auto handler::get_allocator() const noexcept ->
 inline auto handler::get_executor() const noexcept ->
     executor_type
 {
-    static net::io_context ioc;
+    static boost::asio::io_context ioc;
     return ioc.get_executor();
 }
-inline void handler::operator()(error_code, std::size_t)
+inline void handler::operator()(
+    boost::beast::error_code, std::size_t)
 {
 }
 
 //[code_core_1_refresher_7
+namespace boost {
+namespace asio {
+
+template<class Allocator>
+struct associated_allocator<handler, Allocator>
+{
+    using type = std::allocator<void>;
+
+    static
+    type
+    get(handler const& h,
+        Allocator const& alloc = Allocator{}) noexcept;
+};
+
+template<class Executor>
+struct associated_executor<handler, Executor>
+{
+    using type = boost::asio::executor;
+
+    static
+    type
+    get(handler const& h,
+        Executor const& ex = Executor{}) noexcept;
+};
+
+} // boost
+} // asio
+//]
+
+template<class Allocator>
+auto
+boost::asio::associated_allocator<handler, Allocator>::
+get(handler const&, Allocator const&) noexcept -> type
+{
+    return {};
+}
+template<class Executor>
+auto
+boost::asio::associated_executor<handler, Executor>::
+get(handler const&, Executor const&) noexcept -> type
+{
+    return {};
+}
+
+//------------------------------------------------------------------------------
+
+namespace boost {
+namespace beast {
+
+namespace {
+
+//------------------------------------------------------------------------------
+
+//[code_core_1_refresher_8
 template <class AsyncWriteStream, class WriteHandler>
 void async_hello (AsyncWriteStream& stream, WriteHandler&& handler)
 {
@@ -261,33 +334,60 @@ void async_hello (AsyncWriteStream& stream, WriteHandler&& handler)
 }
 //]
 
-//[code_core_1_refresher_8
+//------------------------------------------------------------------------------
+
+//[code_core_1_refresher_9
 template<
     class AsyncWriteStream,
     class ConstBufferSequence,
-    class WriteHandler>
+    class CompletionToken>
 auto
 async_write(
     AsyncWriteStream& stream,
     ConstBufferSequence const& buffers,
-    WriteHandler&& handler) ->
-        typename net::async_result<                     // return-type customization point
-            typename std::decay<WriteHandler>::type,    // type used to specialize async_result
-            void(error_code, std::size_t)               // signature of the corresponding completion handler
+    CompletionToken&& token)                        // a handler, or a special object.
+    ->
+    typename net::async_result<                     // return-type customization point.
+        typename std::decay<CompletionToken>::type, // type used to specialize async_result.
+        void(error_code, std::size_t)               // underlying completion handler signature.
+            >::return_type;
+//]
+struct run_async_write
+{
+    template<class... Args>
+    void
+    operator()(Args&&...)
+    {
+    }
+};
+template<
+    class AsyncWriteStream,
+    class ConstBufferSequence,
+    class CompletionToken>
+auto
+async_write(
+    AsyncWriteStream& stream,
+    ConstBufferSequence const& buffers,
+    CompletionToken&& token) ->
+        typename net::async_result<
+            typename std::decay<CompletionToken>::type,
+            void(error_code, std::size_t)
                 >::return_type
 {
-    net::async_completion<
-        WriteHandler,                                   // completion handler customization point
-        void(error_code, std::size_t)                   // signature of the corresponding completion handler
-            > init(handler);                            // variable which holds the corresponding completion handler
+//[code_core_1_refresher_10
+    
+    return net::async_initiate<
+        CompletionToken,
+        void(error_code, std::size_t)>(
+            run_async_write{},              // the "initiation" object.
+            token,                          // must be first.
+            stream,                         // additional captured arguments are
+            buffers);                       //   forwarded to the initiation object.
 
-    (void)init.completion_handler;                      // the underlying completion handler used for the operation
-
-    // ...launch the operation (omitted for clarity)
-
-    return init.result.get();
-}
 //]
+}
+
+//------------------------------------------------------------------------------
 
 } // (anon)
 

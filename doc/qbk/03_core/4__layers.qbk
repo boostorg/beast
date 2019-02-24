@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Layered Streams]
+[section Layered Streams __new__]
 
 Networking's __ssl_stream__ is a class template meeting the requirements
 of both synchronous and asynchronous read and write streams, implemented
@@ -17,7 +17,7 @@ layer object internally, while allowing external access through the
 observer `net::ssl::stream::next_layer()`. This declares an SSL stream
 which uses a regular TCP/IP socket as the next layer:
 
-[code_core_3_layers_1]
+[code_core_4_layers_1]
 
 Objects using this design pattern are referred to in networking as "a
 stack of stream layers". In Beast we use the term ['layered stream],
@@ -26,13 +26,13 @@ As with the SSL stream, __websocket_stream__ is a class template
 parameterized on a next layer object. This declares a websocket
 stream which uses a regular TCP/IP socket as the next layer:
 
-[code_core_3_layers_2]
+[code_core_4_layers_2]
 
 If a Secure WebSockets stream is desired, this is accomplished simply
 by changing the type of the next layer and adjusting the constructor
 arguments to match:
 
-[code_core_3_layers_3]
+[code_core_4_layers_3]
 
 Higher level abstractions can be developed in this fashion by nesting
 stream layers to arbitrary degree. The stack of stream layers effectively
@@ -88,7 +88,7 @@ facilities for authoring and working with layered streams:
     puts a layered stream into non-blocking mode by retrieving the
     TCP/IP socket in the lowest layer and changing the socket option:
 
-    [code_core_3_layers_4]
+    [code_core_4_layers_4]
 ]]
 [[
     [link beast.ref.boost__beast__http__icy_stream `http::icy_stream`]
@@ -114,13 +114,15 @@ facilities for authoring and working with layered streams:
 ]]
 ]
 
-[heading Example]
+[section Counted Stream __example__ __new__]
 
 This example shows the definition of a layered stream which keeps individual
 counts of the total number of bytes read from and written to the next layer.
 It meets the requirements for synchronous and asynchronous read and write
 streams:
 
-[code_core_3_layers_5]
+[code_core_4_layers_5]
+
+[endsect]
 
 [endsect]

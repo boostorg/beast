@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,7 +15,7 @@ a variety of scenarios.
 
 
 
-[section Change Body Type]
+[section:change_body_type Change Body Type __example__]
 
 Sophisticated servers may wish to defer the choice of the Body template type
 until after the header is available. Then, a body type may be chosen
@@ -35,7 +35,7 @@ type depending on the method verb:
 
 
 
-[section Expect 100-continue (Client)]
+[section:expect_100_continue_client Expect 100-continue (Client) __example__]
 
 The Expect field with the value "100-continue" in a request is special. It
 indicates that the after sending the message header, a client desires an
@@ -54,7 +54,7 @@ this client action looks like this:
 
 
 
-[section Expect 100-continue (Server)]
+[section:expect_100_continue_server Expect 100-continue (Server) __example__]
 
 The Expect field with the value "100-continue" in a request is special. It
 indicates that the after sending the message header, a client desires an
@@ -72,7 +72,7 @@ synchronous version of this server action looks like this:
 
 
 
-[section HEAD request (Client)]
+[section:head_request_client HEAD request (Client) __example__]
 
 The
 [@https://tools.ietf.org/html/rfc7231#section-4.3.2 HEAD request]
@@ -90,7 +90,7 @@ with the value `true`, as shown in this example:
 
 
 
-[section HEAD response (Server)]
+[section:head_response_server HEAD response (Server) __example__]
 
 When a server receives a
 [@https://tools.ietf.org/html/rfc7231#section-4.3.2 HEAD request],
@@ -103,7 +103,7 @@ if the method was GET, except that the body is omitted.
 
 
 
-[section HTTP Relay]
+[section:http_relay HTTP Relay __example__]
 
 An HTTP proxy acts as a relay between client and server. The proxy reads a
 request from the client and sends it to the server, possibly adjusting some
@@ -123,7 +123,7 @@ and a __parser__ to achieve its goal:
 
 
 
-[section Send Child Process Output]
+[section:send_child_process_output Send Child Process Output __example__]
 
 Sometimes it is necessary  to send a message whose body is not conveniently
 described by a single container. For example, when implementing an HTTP relay

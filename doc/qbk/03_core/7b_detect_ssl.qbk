@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:detect_ssl Detect SSL]
+[section:detect_ssl Detect SSL __example__ __new__]
 
 In this example we will build a simple function to detect the presence of the
 [@https://tools.ietf.org/html/rfc2246#section-7.4 TLS client handshake]

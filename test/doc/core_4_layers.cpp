@@ -15,7 +15,6 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/async_result.hpp>
 #include <cstdlib>
 #include <utility>
 
@@ -23,31 +22,31 @@ namespace boost {
 namespace beast {
 
 void
-core_3_layers_snippets()
+core_4_layers_snippets()
 {
     #include "snippets.ipp"
     {
-    //[code_core_3_layers_1
+    //[code_core_4_layers_1
 
         net::ssl::stream<net::ip::tcp::socket> ss(ioc, ctx);
 
     //]
     }
     {
-    //[code_core_3_layers_2
+    //[code_core_4_layers_2
 
         websocket::stream<net::ip::tcp::socket> ws(ioc);
 
     //]
     }
-    //[code_core_3_layers_3
+    //[code_core_4_layers_3
 
         websocket::stream<net::ssl::stream<net::ip::tcp::socket>> ws(ioc, ctx);
 
     //]
 }
 
-//[code_core_3_layers_4
+//[code_core_4_layers_4
 
 // Set non-blocking mode on a stack of stream
 // layers with a regular socket at the lowest layer.
@@ -63,7 +62,7 @@ void set_non_blocking (Stream& stream)
 
 //]
 
-//[code_core_3_layers_5
+//[code_core_4_layers_5
 
 // A layered stream which counts the bytes read and bytes written on the next layer
 template <class NextLayer>
@@ -229,7 +228,7 @@ BOOST_STATIC_ASSERT(is_sync_write_stream<counted_stream<test::stream>>::value);
 BOOST_STATIC_ASSERT(is_async_read_stream<counted_stream<test::stream>>::value);
 BOOST_STATIC_ASSERT(is_async_write_stream<counted_stream<test::stream>>::value);
 
-struct core_3_layers_test
+struct core_4_layers_test
     : public beast::unit_test::suite
 {
     struct handler
@@ -242,7 +241,7 @@ struct core_3_layers_test
     void
     run() override
     {
-        BEAST_EXPECT(&core_3_layers_snippets);
+        BEAST_EXPECT(&core_4_layers_snippets);
         BEAST_EXPECT(&set_non_blocking<net::ip::tcp::socket>);
 
         BEAST_EXPECT(&counted_stream<test::stream>::get_executor);
@@ -271,7 +270,7 @@ struct core_3_layers_test
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,doc,core_3_layers);
+BEAST_DEFINE_TESTSUITE(beast,doc,core_4_layers);
 
 } // beast
 } // boost

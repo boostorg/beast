@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -9,7 +9,7 @@
 <iframe width="560" height="315" src="https://www.youtube.com/embed/WsUnnYEKPnI?rel=0" frameborder="0" allowfullscreen></iframe>
 ]
 
-[section HTTP Message Container]
+[section:http_message_container HTTP Message Container __video__]
 
 The following video presentation was delivered at
 [@https://cppcon.org/ CppCon]
@@ -18,6 +18,7 @@ process for the HTTP message container used in Beast. The slides and code
 used are available in the
 [@https://github.com/vinniefalco/CppCon2017 GitHub repository].
 
+[/ "Make Classes Great Again! (Using Concepts for Customization Points)"]
 [block'''
 <mediaobject>
   <videoobject>

@@ -42,18 +42,21 @@ template<typename> class stream;
 namespace boost {
 namespace beast {
 
-/** A stream socket wrapper with timeouts, bandwidth limits, and associated executor.
+/** A stream socket wrapper with timeouts, an executor, and a rate limit policy.
 
     This stream wraps a `net::basic_stream_socket` to provide
     the following features:
-
-    @li Optional timeouts may be specified for each logical asynchronous
-    operation performing any reading, writing, or connecting.
 
     @li An <em>Executor</em> may be associated with the stream, which will
     be used to invoke any completion handlers which do not already have
     an associated executor. This achieves support for
     <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html">[P1322R0] Networking TS enhancement to enable custom I/O executors</a>.
+
+    @li Timeouts may be specified for each logical asynchronous operation
+    performing any reading, writing, or connecting.
+
+    @li A <em>RatePolicy</em> may be associated with the stream, to implement
+    rate limiting through the policy's interface.
 
     Although the stream supports multiple concurrent outstanding asynchronous
     operations, the stream object is not thread-safe. The caller is responsible

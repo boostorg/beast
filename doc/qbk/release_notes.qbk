@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -11,32 +11,20 @@
 
 [/-----------------------------------------------------------------------------]
 
-[/
-
 * [phrase library..[@/libs/beast/ Beast]:]
-  [*YUUUGE Update!] The
-    [link beast.quickref [*reference]] shows a star
-    '''
-    <emphasis role="green">&#128946;</emphasis>
-    '''
-    next to each new item.
-  * [role red [*Beast needs your help!]]
+  [role red [*BIG Update!]] The
+    [link beast.quickref [*reference]] shows a star [role green \u2605] next to each new item.
+  * [*Beast needs your help!]
     * [@https://github.com/boostorg/beast/wiki/Companies-and-Individuals-Using-Beast [*Tell Us]]
       how you or your company use Beast.
     * Please
       [@https://github.com/boostorg/beast/issues/new report]
       any bugs, feature requests, or general feedback.
-    * Don't forget to
-      '''
-      &#11088;&#11088;&#11088;
-      '''
-      [@https://github.com/boostorg/beast [*star the repository]]
-      '''
-      &#11088;&#11088;&#11088;
-      '''
-      !
     * Chat with us at the [*#beast] and [*#boost] channels in the
       [@https://cppalliance.org/slack/ [*C++ Slack Workspace]].
+    * Don't forget to \u2b50 \u2b50 \u2b50 
+      [@https://github.com/boostorg/beast [*star the repository]]
+      \u2b50 \u2b50 \u2b50 !
   * [role green [*More tutorials]], code like the pros!
     * [link beast.using_io.asio_refresher Networking Refresher] teaches you from the ground up.
     * Updated [link beast.using_io.writing_composed_operations.echo Asynchronous Echo] example
@@ -68,15 +56,10 @@
   * All asynchronous operations use Asio's
     [@boost:/doc/html/boost_asio/reference/async_initiate.html `async_initiate`]
     for efficient integration with Coroutines TS.
-  * '''
-    &#9889;
-    '''
-    [*['faster compilation]], define `BOOST_BEAST_SPLIT_COMPILATION` and include
+  * \u26a1 [*['faster compilation]], define `BOOST_BEAST_SPLIT_COMPILATION` and include
     [@../../include/boost/beast/src.hpp src.hpp] in one of your .cpp files!
   * See the full [link beast.release_notes [*Release Notes]] for a complete list
     of changes.
-
-]
 
 [/-----------------------------------------------------------------------------]
 

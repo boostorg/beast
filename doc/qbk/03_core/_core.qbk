@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:using_io Using Networking]
+[section:using_io Networking __new__]
 
 This library uses the
 [@http://cplusplus.github.io/networking-ts/draft.pdf Networking Technical Specification],
@@ -75,9 +75,9 @@ namespace is used to qualify Networking identifiers. For Boost.Beast,
 `net` will be an alias for the `boost::asio` namespace.
 
 To further ease of use, this library provides an extensive collection
-of types and algorithms. This section of the documentation explains these types and algorithms, provides examples
-of usage, and also provides refreshers and tutorials for working with
-networking.
+of types and algorithms. This section of the documentation explains these
+types and algorithms, provides examples of usage, and also provides
+refreshers and tutorials for working with networking.
 
 [heading Abbreviations]
 
@@ -91,9 +91,10 @@ effect:
 
 [include 1_refresher.qbk]
 [include 2_streams.qbk]
-[include 3_layers.qbk]
-[include 4_buffers.qbk]
-[include 5_files.qbk]
-[include 6_composed.qbk]
+[include 3_timeouts.qbk]
+[include 4__layers.qbk]
+[include 5_buffers.qbk]
+[include 6_files.qbk]
+[include 7_composed.qbk]
 
 [endsect]

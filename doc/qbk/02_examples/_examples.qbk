@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,46 +7,13 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Quick Start]
-[block'''<?dbhtml stop-chunking?>''']
-
-These complete programs are intended to quickly impress upon readers
-the flavor of the library. Source code and build scripts for them are
-located in the [source_file example] directory.
-
-[section HTTP Client]
-
-Use HTTP to make a GET request to a website and print the response:
-
-File: [source_file example/http/client/sync/http_client_sync.cpp]
-
-[example_http_client]
-
-[endsect]
-
-[section WebSocket Client]
-
-Establish a WebSocket connection, send a message and receive the reply:
-
-File: [source_file example/websocket/client/sync/websocket_client_sync.cpp]
-
-[example_websocket_client]
-
-[endsect]
-
-[endsect]
-
-
-
 [section Examples]
 [block'''<?dbhtml stop-chunking?>''']
 
 Source code and build scripts for these programs are located
 in the [source_file example] directory.
 
-
-
-[template example_src[path name] '''<ulink url="../../'''[path]'''">'''[name]'''</ulink>''']
+[/-----------------------------------------------------------------------------]
 
 [section Clients]
 
@@ -97,7 +64,7 @@ before disconnecting. All asynchronous clients support timeouts.
 
 [endsect]
 
-
+[/-----------------------------------------------------------------------------]
 
 [section Servers]
 
@@ -166,7 +133,7 @@ support timeouts.
 
 [endsect]
 
-
+[/-----------------------------------------------------------------------------]
 
 [section Servers (Advanced)]
 
@@ -211,93 +178,56 @@ and illustrate the implementation of advanced features.
 
 [endsect]
 
+[/-----------------------------------------------------------------------------]
 
+[section:chat_server Chat Server __video__ __new__]
 
-[section CppCon 2018]
+This example demonstrates a websocket chat server, allowing multiple
+users to connect and participate in live, group messaging. It comes
+with a tiny front end implemented in JavaScript and HTML5 which runs
+in any browser. The example is accompanied by a one hour presentation
+which provides a discussion of networking concepts, followed by in-depth
+explanation of how the client and server are constructed. This talk
+was delivered at [@https://cppcon.org CppCon 2018]. The source code
+in the Beast example contains improvements to the original program.
 
-This talk was given at [@https://cppcon.org CppCon 2018]. In this
-presentation, we develop a multi-user chat server written in C++ using
-Beast WebSocket, which uses a provided chat client written in HTML and
-JavaScript. An improved, multi-threaded version of this program is
-included here
-[source_file example/websocket/server/chat-multi].
+[table Chat WebSocket Server and JavaScript Client
+[[Component] [Features] [Sources]]
+[
+  [Server]
+  [[itemized_list
+      [C++]
+      [Timeouts]
+      [Multi-threaded]
+      [Broadcast to multiple peers]
+      [Dual protocols: HTTP and WebSocket]
+      [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
+  ]]
+  [[source_file example/websocket/server/chat-multi]]
+][
+  [Client]
+  [[itemized_list
+      [JavaScript / HTML5]
+      [Runs in the browser]
+      [Delivered by the server]
+      [Only 60 lines total including UI]
+      [Completely portable graphics]
+  ]]
+  [[source_file example/websocket/server/chat-multi/chat_client.html]]
+]]
 
-[block'''
+[/ "Get rich quick! Using Boost.Beast WebSockets and Networking TS"]
+'''
 <mediaobject>
   <videoobject>
     <videodata fileref="https://www.youtube.com/embed/7FQwAjELMek"
         align="center" contentwidth="560" contentdepth="315"/>
   </videoobject>
 </mediaobject>
-''']
+'''
 
 [endsect]
 
-
-
-[section Common Files]
-
-Some of the examples use one or more shared header files, they are
-listed here along with a description of their use:
-
-[table
-[[Source File] [Description]]
-[
-    [[source_file example/common/detect_ssl.hpp]]
-    [
-        This contains the detect SSL algorithm including the
-        synchronous and asynchronous initiating functions, described
-        in the documentation. It is used by the "flex" servers which
-        support both plain and SSL sessions on the same port.
-    ]
-][
-    [[source_file example/common/root_certificates.hpp]]
-    [
-        This contains the root SSL certificates used in the SSL client
-        examples. These certificates are used to verify the signatures
-        of SSL certificates presented by remote servers. They represent
-        a subset of the public keys usually installed as part of the
-        operating system or browser, so they may not identify every
-        possible server.
-    ]
-][
-    [[source_file example/common/server_certificate.hpp]]
-    [
-        This file contains a self-signed SSL certificate used by the
-        SSL server examples. It has not been validated by a Certificate
-        Authority ("CA") so connecting to an example HTTP server using
-        a browser may generate security warnings.
-    ]
-]]
-
-[endsect]
-
-
-
-[section Documentation Samples]
-
-Here are all of the example functions and classes presented
-throughout the documentation, they can be included and used
-in your program without modification
-
-* [source_file example/doc/http_examples.hpp]
-
-[endsect]
-
-
-
-[section Composed Operations]
-
-This program shows how to use Beast's network foundations to build a
-composable asynchronous initiation function with associated composed
-operation implementation. This is a complete, runnable version of
-the example described in
-[link beast.using_io.writing_composed_operations.echo Writing Composed Operations: Echo].
-
-* [source_file example/echo-op/echo_op.cpp]
-
-[endsect]
-
-
+[/-----------------------------------------------------------------------------]
 
 [endsect]

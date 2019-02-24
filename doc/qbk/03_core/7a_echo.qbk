@@ -1,5 +1,5 @@
 [/
-    Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:echo Echo]
+[section:echo Echo __example__ __new__]
 
 This example develops an initiating function called [*echo].
 The operation will read up to the first newline on a stream, and
@@ -16,6 +16,10 @@ First we define the input parameters and results, then declare our
 initiation function. For our echo operation the only inputs are the
 stream and the completion token. The output is the error code which
 is usually included in all completion handler signatures.
+
+[tip
+    The source for for this example is [source_file example/echo-op/echo_op.cpp].
+]
 
 [example_core_echo_op_2]
 

@@ -21,7 +21,8 @@ add_executable (tests-doc
     snippets.ipp
     core_snippets.cpp
     core_1_refresher.cpp
-    core_3_layers.cpp
+    core_3_timeouts.cpp
+    core_4_layers.cpp
     http_10_custom_parser.cpp
     http_examples.cpp
     http_snippets.cpp

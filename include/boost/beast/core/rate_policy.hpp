@@ -91,14 +91,13 @@ private:
 
 /** A rate policy with unlimited throughput.
 
-    This rate policy places no restrictions on read and write
-    bandwidth utilization.
+    This rate policy object does not apply any rate limit.
 
     @par Concepts
 
     @li <em>RatePolicy</em>
 
-    @see @ref beast::basic_stream
+    @see beast::basic_stream, beast::tcp_stream
 */
 class unlimited_rate_policy
 {
@@ -137,7 +136,7 @@ class unlimited_rate_policy
 
 //------------------------------------------------------------------------------
 
-/** A rate policy with simple, configurable limits on read and write throughput.
+/** A rate policy with simple, configurable limits on reads and writes.
 
     This rate policy allows for simple individual limits on the amount
     of bytes per second allowed for reads and writes.
