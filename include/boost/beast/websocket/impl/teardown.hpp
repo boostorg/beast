@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_HPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_TEARDOWN_HPP
 
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
@@ -29,7 +29,7 @@ template<
     class Protocol, class Executor,
     class Handler>
 class teardown_tcp_op
-    : public beast::async_op_base<
+    : public beast::async_base<
         Handler, beast::executor_type<
             net::basic_stream_socket<
                 Protocol, Executor>>>
@@ -48,7 +48,7 @@ public:
         Handler_&& h,
         socket_type& s,
         role_type role)
-        : async_op_base<Handler,
+        : async_base<Handler,
             beast::executor_type<
                 net::basic_stream_socket<
                     Protocol, Executor>>>(

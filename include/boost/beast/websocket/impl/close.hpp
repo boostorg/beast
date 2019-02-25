@@ -13,7 +13,7 @@
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/websocket/impl/stream_impl.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
@@ -36,7 +36,7 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::close_op
-    : public beast::stable_async_op_base<
+    : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
@@ -52,7 +52,7 @@ public:
         Handler_&& h,
         boost::shared_ptr<impl_type> const& sp,
         close_reason const& cr)
-        : stable_async_op_base<Handler,
+        : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())

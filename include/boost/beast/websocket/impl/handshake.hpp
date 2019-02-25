@@ -16,7 +16,7 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/coroutine.hpp>
@@ -35,7 +35,7 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::handshake_op
-    : public beast::stable_async_op_base<Handler,
+    : public beast::stable_async_base<Handler,
         beast::executor_type<stream>>
     , public net::coroutine
 {
@@ -65,7 +65,7 @@ public:
         response_type* res_p,
         string_view host, string_view target,
         Decorator const& decorator)
-        : stable_async_op_base<Handler,
+        : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())

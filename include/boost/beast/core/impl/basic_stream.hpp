@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_IMPL_BASIC_STREAM_HPP
 #define BOOST_BEAST_CORE_IMPL_BASIC_STREAM_HPP
 
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
@@ -202,7 +202,7 @@ struct basic_stream<Protocol, Executor, RatePolicy>::ops
 
 template<bool isRead, class Buffers, class Handler>
 class transfer_op
-    : public async_op_base<Handler, Executor>
+    : public async_base<Handler, Executor>
     , public boost::asio::coroutine
 {
     boost::shared_ptr<impl_type> impl_;
@@ -294,7 +294,7 @@ public:
         Handler_&& h,
         basic_stream& s,
         Buffers const& b)
-        : async_op_base<Handler, Executor>(
+        : async_base<Handler, Executor>(
             std::forward<Handler_>(h), s.get_executor())
         , impl_(s.impl_)
         , pg_(state().pending)
@@ -404,7 +404,7 @@ public:
 
 template<class Handler>
 class connect_op
-    : public async_op_base<Handler, Executor>
+    : public async_base<Handler, Executor>
 {
     boost::shared_ptr<impl_type> impl_;
     pending_guard pg0_;
@@ -422,7 +422,7 @@ public:
         Handler_&& h,
         basic_stream& s,
         endpoint_type ep)
-        : async_op_base<Handler, Executor>(
+        : async_base<Handler, Executor>(
             std::forward<Handler_>(h), s.get_executor())
         , impl_(s.impl_)
         , pg0_(impl_->read.pending)
@@ -450,7 +450,7 @@ public:
         basic_stream& s,
         Endpoints const& eps,
         Condition const& cond)
-        : async_op_base<Handler, Executor>(
+        : async_base<Handler, Executor>(
             std::forward<Handler_>(h), s.get_executor())
         , impl_(s.impl_)
         , pg0_(impl_->read.pending)
@@ -478,7 +478,7 @@ public:
         basic_stream& s,
         Iterator begin, Iterator end,
         Condition const& cond)
-        : async_op_base<Handler, Executor>(
+        : async_base<Handler, Executor>(
             std::forward<Handler_>(h), s.get_executor())
         , impl_(s.impl_)
         , pg0_(impl_->read.pending)

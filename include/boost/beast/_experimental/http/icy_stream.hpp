@@ -40,16 +40,11 @@ namespace http {
 
     @par Example
 
-    To use the @ref stream template with an `ip::tcp::socket`,
+    To use the @ref icy_stream template with an @ref tcp_stream
     you would write:
 
     @code
-    http::icy_stream<ip::tcp::socket> is{io_context};
-    @endcode
-    Alternatively, you can write:
-    @code
-    ip::tcp::socket sock{io_context};
-    http::icy_stream<ip::tcp::socket&> is{sock};
+    http::icy_stream<tcp_stream> is(ioc);
     @endcode
 
     @tparam NextLayer The type representing the next layer, to which

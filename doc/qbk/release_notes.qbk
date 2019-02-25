@@ -11,6 +11,8 @@
 
 [/-----------------------------------------------------------------------------]
 
+[/
+
 * [phrase library..[@/libs/beast/ Beast]:]
   '''<emphasis role="bold"><emphasis role="red">BIG Update!!!</emphasis></emphasis>''' The
   [@/libs/beast/doc/html/beast/quickref.html reference]
@@ -45,8 +47,8 @@
       [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html P1322R0],
       no more `bind_executor` at call sites!
   * Base classes
-    [@/libs/beast/doc/html/beast/ref/boost__beast__async_op_base.html `async_op_base`] and
-    [@/libs/beast/doc/html/beast/ref/boost__beast__stable_async_op_base.html `stable_async_op_base`] and
+    [@/libs/beast/doc/html/beast/ref/boost__beast__async_base.html `async_base`] and
+    [@/libs/beast/doc/html/beast/ref/boost__beast__stable_async_base.html `stable_async_base`] and
     handle all composed operation boilerplate for you.
   * [@/libs/beast/doc/html/beast/ref/boost__beast__ssl_stream.html `ssl_stream`] provides a
     movable, assignable SSL stream with a flat write optimization.
@@ -57,6 +59,8 @@
   * See the full
     [@/libs/beast/doc/html/beast/release_notes.html Release Notes]
     for a complete list of changes.
+
+]
 
 [/-----------------------------------------------------------------------------]
 
@@ -144,8 +148,8 @@
   * New trait `buffers_type`
 
 * New classes
-  `async_op_base`,
-  `stable_async_op_base`
+  `async_base`,
+  `stable_async_base`
   * Handle boilerplate for writing composed operations
   * New
     `allocate_stable`

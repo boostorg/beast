@@ -11,7 +11,7 @@
 #define BOOST_BEAST_HTTP_IMPL_WRITE_HPP
 
 #include <boost/beast/http/type_traits.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/ostream.hpp>
@@ -34,7 +34,7 @@ template<
     class Stream,
     bool isRequest, class Body, class Fields>
 class write_some_op
-    : public beast::async_op_base<
+    : public beast::async_base<
         Handler, beast::executor_type<Stream>>
 {
     Stream& s_;
@@ -72,7 +72,7 @@ public:
         Handler_&& h,
         Stream& s,
         serializer<isRequest, Body, Fields>& sr)
-        : async_op_base<
+        : async_base<
             Handler, beast::executor_type<Stream>>(
                  std::forward<Handler_>(h), s.get_executor())
         , s_(s)
@@ -157,7 +157,7 @@ template<
     class Predicate,
     bool isRequest, class Body, class Fields>
 class write_op
-    : public beast::async_op_base<
+    : public beast::async_base<
         Handler, beast::executor_type<Stream>>
     , public net::coroutine
 {
@@ -171,7 +171,7 @@ public:
         Handler_&& h,
         Stream& s,
         serializer<isRequest, Body, Fields>& sr)
-        : async_op_base<
+        : async_base<
             Handler, beast::executor_type<Stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , s_(s)
@@ -219,7 +219,7 @@ template<
     class Stream,
     bool isRequest, class Body, class Fields>
 class write_msg_op
-    : public beast::stable_async_op_base<
+    : public beast::stable_async_base<
         Handler, beast::executor_type<Stream>>
 {
     Stream& s_;
@@ -233,7 +233,7 @@ public:
         Handler_&& h,
         Stream& s,
         Args&&... args)
-        : stable_async_op_base<
+        : stable_async_base<
             Handler, beast::executor_type<Stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , s_(s)

@@ -17,7 +17,7 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/write.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
@@ -170,7 +170,7 @@ build_response(
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::response_op
-    : public beast::stable_async_op_base<
+    : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
@@ -190,7 +190,7 @@ public:
             http::basic_fields<Allocator>> const& req,
         Decorator const& decorator,
         bool cont = false)
-        : stable_async_op_base<Handler,
+        : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())
@@ -243,7 +243,7 @@ public:
 template<class NextLayer, bool deflateSupported>
 template<class Handler, class Decorator>
 class stream<NextLayer, deflateSupported>::accept_op
-    : public beast::stable_async_op_base<
+    : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
@@ -258,7 +258,7 @@ public:
         boost::shared_ptr<impl_type> const& sp,
         Decorator const& decorator,
         Buffers const& buffers)
-        : stable_async_op_base<Handler,
+        : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())

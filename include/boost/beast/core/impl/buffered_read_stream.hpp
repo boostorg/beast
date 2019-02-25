@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERED_READ_STREAM_HPP
 #define BOOST_BEAST_IMPL_BUFFERED_READ_STREAM_HPP
 
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/read_size.hpp>
@@ -29,7 +29,7 @@ struct buffered_read_stream<Stream, DynamicBuffer>::ops
 
 template<class MutableBufferSequence, class Handler>
 class read_op
-    : public async_op_base<Handler,
+    : public async_base<Handler,
     beast::executor_type<buffered_read_stream>>
 {
     buffered_read_stream& s_;
@@ -45,7 +45,7 @@ public:
         Handler_&& h,
         buffered_read_stream& s,
         MutableBufferSequence const& b)
-        : async_op_base<
+        : async_base<
             Handler, beast::executor_type<buffered_read_stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , s_(s)

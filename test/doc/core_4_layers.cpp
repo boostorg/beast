@@ -11,7 +11,7 @@
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/websocket.hpp>
@@ -86,8 +86,8 @@ class counted_stream
         {
             using handler_type = typename std::decay<ReadHandler>::type;
 
-            // async_op_base handles all of the composed operation boilerplate for us
-            using base = async_op_base<
+            // async_base handles all of the composed operation boilerplate for us
+            using base = async_base<
                 handler_type, beast::executor_type<NextLayer>>;
 
             // Our composed operation is implemented as a completion handler object
@@ -132,8 +132,8 @@ class counted_stream
         {
             using handler_type = typename std::decay<WriteHandler>::type;
 
-            // async_op_base handles all of the composed operation boilerplate for us
-            using base = async_op_base<
+            // async_base handles all of the composed operation boilerplate for us
+            using base = async_base<
                 handler_type, beast::executor_type<NextLayer>>;
 
             // Our composed operation is implemented as a completion handler object

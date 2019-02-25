@@ -14,7 +14,7 @@
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/websocket/impl/stream_impl.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
@@ -45,7 +45,7 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler, class MutableBufferSequence>
 class stream<NextLayer, deflateSupported>::read_some_op
-    : public beast::async_op_base<
+    : public beast::async_base<
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
@@ -65,7 +65,7 @@ public:
         Handler_&& h,
         boost::shared_ptr<impl_type> const& sp,
         MutableBufferSequence const& bs)
-        : async_op_base<
+        : async_base<
             Handler, beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())
@@ -613,7 +613,7 @@ public:
 template<class NextLayer, bool deflateSupported>
 template<class Handler,  class DynamicBuffer>
 class stream<NextLayer, deflateSupported>::read_op
-    : public beast::async_op_base<
+    : public beast::async_base<
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
@@ -631,7 +631,7 @@ public:
         DynamicBuffer& b,
         std::size_t limit,
         bool some)
-        : async_op_base<Handler,
+        : async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())

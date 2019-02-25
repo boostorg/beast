@@ -11,7 +11,7 @@
 #define BOOST_BEAST_CORE_DETECT_SSL_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/stream_traits.hpp>
@@ -447,7 +447,7 @@ namespace detail {
 // which are based on macros forming a switch statement. The
 // operation is derived from `coroutine` for this reason.
 //
-// The library type `async_op_base` takes care of all of the
+// The library type `async_base` takes care of all of the
 // boilerplate for writing composed operations, including:
 //
 //  * Storing the user's completion handler
@@ -457,7 +457,7 @@ namespace detail {
 //  * Deallocating temporary storage before invoking the handler
 //  * Posting the handler to the executor on an immediate completion
 //
-// `async_op_base` needs to know the type of the handler, as well
+// `async_base` needs to know the type of the handler, as well
 // as the executor of the I/O object being used. The metafunction
 // `executor_type` returns the type of executor used by an
 // I/O object.
@@ -468,7 +468,7 @@ template<
     class DynamicBuffer>
 class detect_ssl_op
     : public boost::asio::coroutine
-    , public async_op_base<
+    , public async_base<
         DetectHandler, executor_type<AsyncReadStream>>
 {
     // This composed operation has trivial state,
@@ -495,7 +495,7 @@ public:
         DetectHandler_&& handler,
         AsyncReadStream& stream,
         DynamicBuffer& buffer)
-        : beast::async_op_base<
+        : beast::async_base<
             DetectHandler_,
             beast::executor_type<AsyncReadStream>>(
                 std::forward<DetectHandler_>(handler),

@@ -104,7 +104,6 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT = \
         $(LIB_DIR)/include/boost/beast/ \
-        $(LIB_DIR)/include/boost/beast/_experimental/core \
         $(LIB_DIR)/include/boost/beast/_experimental/http \
         $(LIB_DIR)/include/boost/beast/_experimental/test \
         $(LIB_DIR)/include/boost/beast/core \

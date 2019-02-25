@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_IMPL_FLAT_STREAM_HPP
 #define BOOST_BEAST_CORE_IMPL_FLAT_STREAM_HPP
 
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
@@ -28,7 +28,7 @@ struct flat_stream<NextLayer>::ops
 
 template<class Handler>
 class write_op
-    : public async_op_base<Handler,
+    : public async_base<Handler,
         beast::executor_type<flat_stream>>
     , public net::coroutine
 {
@@ -40,7 +40,7 @@ public:
         Handler_&& h,
         flat_stream<NextLayer>& s,
         ConstBufferSequence const& b)
-        : async_op_base<Handler,
+        : async_base<Handler,
             beast::executor_type<flat_stream>>(
                 std::forward<Handler_>(h),
                 s.get_executor())

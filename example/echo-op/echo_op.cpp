@@ -143,7 +143,7 @@ async_echo(
 
     using handler_type = BOOST_ASIO_HANDLER_TYPE(CompletionToken, void(beast::error_code));
 
-    // The class template `async_op_base` holds the caller's completion
+    // The class template `async_base` holds the caller's completion
     // handler for us, and provides all of the boilerplate for forwarding
     // the associated allocator and associated executor from the caller's
     // handler to our operation. It also maintains a `net::executor_work_guard`
@@ -154,13 +154,13 @@ async_echo(
     // performs more than one asynchronous operation in a row).
     // We declare this type alias to make the code easier to read.
 
-    using base_type = beast::async_op_base<
+    using base_type = beast::async_base<
         handler_type, /*< The type of the completion handler obtained from the token >*/
         beast::executor_type<AsyncStream> /*< The type of executor used by the stream to dispatch asynchronous operations >*/
     >;
 
     // This nested class implements the echo composed operation as a
-    // stateful completion handler. We derive from `async_op_base` to
+    // stateful completion handler. We derive from `async_base` to
     // take care of boilerplate and we derived from net::coroutine to
     // allow the reenter and yield keywords to work.
 
@@ -174,7 +174,7 @@ async_echo(
             DynamicBuffer& buffer,
             handler_type&& handler)
             : base_type(
-                std::move(handler), /*< The `async_op_base` helper takes ownership of the handler, >*/
+                std::move(handler), /*< The `async_base` helper takes ownership of the handler, >*/
                 stream.get_executor()) /*<  and also needs to know which executor to use. >*/
             , stream_(stream)
             , buffer_(buffer)
@@ -304,7 +304,7 @@ async_echo(
                 // if cont == false (meaning, that the call stack still includes
                 // the frame of the initiating function) then we need to use
                 // `net::post` to cause us to be called again after the initiating
-                // function. The function `async_op_base::invoke` takes care of
+                // function. The function `async_base::invoke` takes care of
                 // calling the final completion handler, using post if the
                 // first argument is false, otherwise invoking it directly.
 

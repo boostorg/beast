@@ -11,7 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_IMPL_WRITE_HPP
 
 #include <boost/beast/websocket/detail/mask.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
@@ -39,7 +39,7 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler, class Buffers>
 class stream<NextLayer, deflateSupported>::write_some_op
-    : public beast::async_op_base<
+    : public beast::async_base<
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
@@ -73,7 +73,7 @@ public:
         boost::shared_ptr<impl_type> const& sp,
         bool fin,
         Buffers const& bs)
-        : beast::async_op_base<Handler,
+        : beast::async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())

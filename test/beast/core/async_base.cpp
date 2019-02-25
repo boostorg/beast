@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 
 #include "test_handler.hpp"
 
@@ -164,7 +164,7 @@ struct associated_executor<
 namespace boost {
 namespace beast {
 
-class async_op_base_test : public beast::unit_test::suite
+class async_base_test : public beast::unit_test::suite
 {
 public:
     // no associated allocator
@@ -173,7 +173,7 @@ public:
         std::is_same<
             std::allocator<void>,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, no_alloc>,
                     net::io_context::executor_type>
         >>::value);
@@ -182,7 +182,7 @@ public:
         std::is_same<
             std::allocator<int>,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, no_alloc>,
                     net::io_context::executor_type,
                     std::allocator<int>>
@@ -192,7 +192,7 @@ public:
         std::is_same<
             std::allocator<void>,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, no_alloc>,
                     net::io_context::executor_type>,
                 std::allocator<int> // ignored
@@ -202,7 +202,7 @@ public:
         std::is_same<
             std::allocator<int>,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, no_alloc>,
                     net::io_context::executor_type,
                     std::allocator<int>>,
@@ -215,7 +215,7 @@ public:
         std::is_same<
             nested_alloc::allocator_type,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, nested_alloc>,
                     net::io_context::executor_type>
         >>::value);
@@ -224,7 +224,7 @@ public:
         std::is_same<
             nested_alloc::allocator_type,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, nested_alloc>,
                     net::io_context::executor_type,
                     std::allocator<int>> // ignored
@@ -234,7 +234,7 @@ public:
         std::is_same<
             nested_alloc::allocator_type,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, nested_alloc>,
                     net::io_context::executor_type>,
                 std::allocator<int> // ignored
@@ -244,7 +244,7 @@ public:
         std::is_same<
             nested_alloc::allocator_type,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, nested_alloc>,
                     net::io_context::executor_type,
                     std::allocator<int>>, // ignored
@@ -257,7 +257,7 @@ public:
         std::is_same<
             intrusive_alloc::allocator_type,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, intrusive_alloc>,
                     net::io_context::executor_type>
         >>::value);
@@ -266,7 +266,7 @@ public:
         std::is_same<
             intrusive_alloc::allocator_type,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, intrusive_alloc>,
                     net::io_context::executor_type,
                     std::allocator<int>> // ignored
@@ -276,7 +276,7 @@ public:
         std::is_same<
             intrusive_alloc::allocator_type,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, intrusive_alloc>,
                     net::io_context::executor_type>,
                 std::allocator<int> // ignored
@@ -286,7 +286,7 @@ public:
         std::is_same<
             intrusive_alloc::allocator_type,
             net::associated_allocator_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, intrusive_alloc>,
                     net::io_context::executor_type,
                     std::allocator<int>>, // ignored
@@ -299,7 +299,7 @@ public:
         std::is_same<
             ex1_type,
             net::associated_executor_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, no_alloc>,
                     ex1_type>
         >>::value);
@@ -308,7 +308,7 @@ public:
         std::is_same<
             ex1_type,
             net::associated_executor_t<
-                async_op_base<
+                async_base<
                     handler<no_ex, no_alloc>,
                     ex1_type>,
                 net::system_executor // ignored
@@ -320,7 +320,7 @@ public:
         std::is_same<
             nested_ex::executor_type,
             net::associated_executor_t<
-                async_op_base<
+                async_base<
                     handler<nested_ex, no_alloc>,
                     ex1_type>
         >>::value);
@@ -329,7 +329,7 @@ public:
         std::is_same<
             nested_ex::executor_type,
             net::associated_executor_t<
-                async_op_base<
+                async_base<
                     handler<nested_ex, no_alloc>,
                     ex1_type>,
                 net::system_executor // ignored
@@ -341,7 +341,7 @@ public:
         std::is_same<
             intrusive_ex::executor_type,
             net::associated_executor_t<
-                async_op_base<
+                async_base<
                     handler<intrusive_ex, no_alloc>,
                     ex1_type>
         >>::value);
@@ -350,7 +350,7 @@ public:
         std::is_same<
             intrusive_ex::executor_type,
             net::associated_executor_t<
-                async_op_base<
+                async_base<
                     handler<intrusive_ex, no_alloc>,
                     ex1_type>,
                 net::system_executor // ignored
@@ -374,7 +374,7 @@ public:
         {
             simple_allocator alloc;
             simple_allocator alloc2;
-            async_op_base<
+            async_base<
                 move_only_handler,
                 simple_executor,
                 simple_allocator> op(
@@ -387,7 +387,7 @@ public:
         {
             simple_executor ex;
             simple_executor ex2;
-            async_op_base<
+            async_base<
                 move_only_handler,
                 simple_executor> op(
                     move_only_handler{}, ex);
@@ -397,7 +397,7 @@ public:
 
         // move construction
         {
-            async_op_base<
+            async_base<
                 move_only_handler,
                 simple_executor> op(
                     move_only_handler{}, {});
@@ -407,7 +407,7 @@ public:
         // observers
         {
             bool b = false;
-            async_op_base<
+            async_base<
                 legacy_handler,
                 simple_executor> op(
                     legacy_handler{b}, {});
@@ -421,7 +421,7 @@ public:
         // invocation
         {
             net::io_context ioc;
-            async_op_base<
+            async_base<
                 test::handler,
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
@@ -429,7 +429,7 @@ public:
         }
         {
             net::io_context ioc;
-            async_op_base<
+            async_base<
                 test::handler,
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
@@ -437,7 +437,7 @@ public:
             ioc.run();
         }
         {
-            async_op_base<
+            async_base<
                 test::handler,
                 simple_executor> op(
                     test::any_handler(), {});
@@ -448,7 +448,7 @@ public:
         legacy_handler::test(
             [](legacy_handler h)
             {
-                return async_op_base<
+                return async_base<
                     legacy_handler,
                     simple_executor>(
                         std::move(h), {});
@@ -462,7 +462,7 @@ public:
         {
             simple_allocator alloc;
             simple_allocator alloc2;
-            stable_async_op_base<
+            stable_async_base<
                 move_only_handler,
                 simple_executor,
                 simple_allocator> op(
@@ -475,7 +475,7 @@ public:
         {
             simple_executor ex;
             simple_executor ex2;
-            stable_async_op_base<
+            stable_async_base<
                 move_only_handler,
                 simple_executor> op(
                     move_only_handler{}, ex);
@@ -485,7 +485,7 @@ public:
 
         // move construction
         {
-            stable_async_op_base<
+            stable_async_base<
                 move_only_handler,
                 simple_executor> op(
                     move_only_handler{}, {});
@@ -495,7 +495,7 @@ public:
         // invocation
         {
             net::io_context ioc;
-            stable_async_op_base<
+            stable_async_base<
                 test::handler,
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
@@ -503,7 +503,7 @@ public:
         }
         {
             net::io_context ioc;
-            stable_async_op_base<
+            stable_async_base<
                 test::handler,
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
@@ -511,7 +511,7 @@ public:
             ioc.run();
         }
         {
-            stable_async_op_base<
+            stable_async_base<
                 test::handler,
                 simple_executor> op(
                     test::any_handler(), {});
@@ -522,7 +522,7 @@ public:
         legacy_handler::test(
             [](legacy_handler h)
             {
-                return stable_async_op_base<
+                return stable_async_base<
                     legacy_handler,
                     simple_executor>(
                         std::move(h), {});
@@ -542,7 +542,7 @@ public:
                         destroyed = true;
                     }
                 };
-                stable_async_op_base<
+                stable_async_base<
                     move_only_handler,
                     simple_executor> op(
                         move_only_handler{}, {});
@@ -561,7 +561,7 @@ public:
                         std::exception{});
                 }
             };
-            stable_async_op_base<
+            stable_async_base<
                 move_only_handler,
                 simple_executor> op(
                     move_only_handler{}, {});
@@ -585,7 +585,7 @@ public:
     async_read(AsyncReadStream& stream, net::mutable_buffer buffer, ReadHandler&& handler)
     {
         using handler_type = BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t));
-        using base_type = async_op_base<handler_type, typename AsyncReadStream::executor_type>;
+        using base_type = async_base<handler_type, typename AsyncReadStream::executor_type>;
 
         struct op : base_type
         {
@@ -641,7 +641,7 @@ public:
                 void(error_code)>::return_type
     {
         using handler_type = typename net::async_completion<WriteHandler, void(error_code)>::completion_handler_type;
-        using base_type = stable_async_op_base<handler_type, typename AsyncWriteStream::executor_type>;
+        using base_type = stable_async_base<handler_type, typename AsyncWriteStream::executor_type>;
 
         struct op : base_type
         {
@@ -728,8 +728,8 @@ public:
             }
         };
 
-        BEAST_EXPECT((&async_op_base_test::async_read<test::stream, handler>));
-        BEAST_EXPECT((&async_op_base_test::async_write_messages<test::stream, std::string, handler>));
+        BEAST_EXPECT((&async_base_test::async_read<test::stream, handler>));
+        BEAST_EXPECT((&async_base_test::async_write_messages<test::stream, std::string, handler>));
     }
 
     //--------------------------------------------------------------------------
@@ -743,7 +743,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,async_op_base);
+BEAST_DEFINE_TESTSUITE(beast,core,async_base);
 
 } // beast
 } // boost

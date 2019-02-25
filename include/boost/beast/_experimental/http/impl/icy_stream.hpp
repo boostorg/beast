@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 #define BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_adaptor.hpp>
@@ -123,7 +123,7 @@ struct icy_stream<NextLayer>::ops
 
 template<class Buffers, class Handler>
 class read_op
-    : public beast::stable_async_op_base<Handler,
+    : public beast::stable_async_base<Handler,
         beast::executor_type<icy_stream>>
     , public net::coroutine
 {
@@ -159,7 +159,7 @@ public:
         Handler_&& h,
         icy_stream& s,
         Buffers const& b)
-        : stable_async_op_base<Handler,
+        : stable_async_base<Handler,
             beast::executor_type<icy_stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , d_(beast::allocate_stable<data>(*this, s, b))

@@ -11,7 +11,7 @@
 #define BOOST_BEAST_DETAIL_IMPL_READ_HPP
 
 #include <boost/beast/core/bind_handler.hpp>
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/coroutine.hpp>
@@ -38,7 +38,7 @@ template<
     class Handler>
 class read_op
     : public net::coroutine
-    , public async_op_base<
+    , public async_base<
         Handler, beast::executor_type<Stream>>
 {
     Stream& s_;
@@ -56,7 +56,7 @@ public:
         Stream& s,
         DynamicBuffer& b,
         Condition_&& cond)
-        : async_op_base<Handler,
+        : async_base<Handler,
             beast::executor_type<Stream>>(
                 std::forward<Handler_>(h),
                     s.get_executor())

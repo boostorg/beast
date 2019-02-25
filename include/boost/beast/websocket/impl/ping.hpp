@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_IMPL_PING_HPP
 #define BOOST_BEAST_WEBSOCKET_IMPL_PING_HPP
 
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
@@ -33,7 +33,7 @@ namespace websocket {
 template<class NextLayer, bool deflateSupported>
 template<class Handler>
 class stream<NextLayer, deflateSupported>::ping_op
-    : public beast::stable_async_op_base<
+    : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
     , public net::coroutine
 {
@@ -49,7 +49,7 @@ public:
         boost::shared_ptr<impl_type> const& sp,
         detail::opcode op,
         ping_data const& payload)
-        : stable_async_op_base<Handler,
+        : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())

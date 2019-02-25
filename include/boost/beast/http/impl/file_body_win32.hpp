@@ -12,7 +12,7 @@
 
 #if BOOST_BEAST_USE_WIN32_FILE
 
-#include <boost/beast/core/async_op_base.hpp>
+#include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
@@ -331,7 +331,7 @@ template<
     bool isRequest, class Fields,
     class Handler>
 class write_some_win32_op
-    : public beast::async_op_base<Handler, Executor>
+    : public beast::async_base<Handler, Executor>
 {
     net::basic_stream_socket<
         Protocol, Executor>& sock_;
@@ -348,7 +348,7 @@ public:
             Protocol, Executor>& s,
         serializer<isRequest,
             basic_file_body<file_win32>,Fields>& sr)
-        : async_op_base<
+        : async_base<
             Handler, Executor>(
                 std::forward<Handler_>(h),
                 s.get_executor())

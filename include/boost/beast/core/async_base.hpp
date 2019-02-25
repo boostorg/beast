@@ -7,13 +7,13 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_ASYNC_OP_BASE_HPP
-#define BOOST_BEAST_CORE_ASYNC_OP_BASE_HPP
+#ifndef BOOST_BEAST_CORE_ASYNC_BASE_HPP
+#define BOOST_BEAST_CORE_ASYNC_BASE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
-#include <boost/beast/core/detail/async_op_base.hpp>
+#include <boost/beast/core/detail/async_base.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/bind_executor.hpp>
@@ -40,7 +40,7 @@ namespace beast {
     The composed operation must be typical; that is, associated with one
     executor of an I/O object, and invoking a caller-provided completion
     handler when the operation is finished. Classes derived from
-    @ref async_op_base will acquire these properties:
+    @ref async_base will acquire these properties:
 
     @li Ownership of the final completion handler provided upon construction.
 
@@ -69,7 +69,7 @@ namespace beast {
 
     @par Example
 
-    The following code demonstrates how @ref async_op_base may be be used to
+    The following code demonstrates how @ref async_base may be be used to
     assist authoring an asynchronous initiating function, by providing all of
     the boilerplate to manage the final completion handler in a way that
     maintains the allocator and executor associations:
@@ -82,7 +82,7 @@ namespace beast {
     async_read(AsyncReadStream& stream, net::mutable_buffer buffer, ReadHandler&& handler)
     {
         using handler_type = BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t));
-        using base_type = async_op_base<handler_type, typename AsyncReadStream::executor_type>;
+        using base_type = async_base<handler_type, typename AsyncReadStream::executor_type>;
 
         struct op : base_type
         {
@@ -132,7 +132,7 @@ namespace beast {
     do not have stable addresses, as the composed operation object is move
     constructed upon each call to an initiating function. For most operations
     this is not a problem. For complex operations requiring stable temporary
-    storage, the class @ref stable_async_op_base is provided which offers
+    storage, the class @ref stable_async_base is provided which offers
     additional functionality:
 
     @li The free function @ref allocate_stable may be used to allocate
@@ -169,14 +169,14 @@ namespace beast {
     not default constructible, an instance of the type must be provided
     upon construction.
 
-    @see @ref stable_async_op_base
+    @see @ref stable_async_base
 */
 template<
     class Handler,
     class Executor1,
     class Allocator = std::allocator<void>
 >
-class async_op_base
+class async_base
 #if ! BOOST_BEAST_DOXYGEN
     : private boost::empty_value<Allocator>
 #endif
@@ -212,7 +212,7 @@ public:
     */
 #if BOOST_BEAST_DOXYGEN
     template<class Handler_>
-    async_op_base(
+    async_base(
         Handler&& handler,
         Executor1 const& ex1,
         Allocator const& alloc = Allocator());
@@ -222,10 +222,10 @@ public:
         class = typename std::enable_if<
             ! std::is_same<typename
                 std::decay<Handler_>::type,
-                async_op_base
+                async_base
             >::value>::type
     >
-    async_op_base(
+    async_base(
         Handler_&& handler,
         Executor1 const& ex1)
         : h_(std::forward<Handler_>(handler))
@@ -234,7 +234,7 @@ public:
     }
 
     template<class Handler_>
-    async_op_base(
+    async_base(
         Handler_&& handler,
         Executor1 const& ex1,
         Allocator const& alloc)
@@ -247,11 +247,11 @@ public:
 #endif
 
     /// Move Constructor
-    async_op_base(async_op_base&& other) = default;
+    async_base(async_base&& other) = default;
 
     /** The type of allocator associated with this object.
 
-        If a class derived from @ref async_op_base is a completion
+        If a class derived from @ref async_base is a completion
         handler, then the associated allocator of the derived class will
         be this type.
     */
@@ -260,7 +260,7 @@ public:
 
     /** The type of executor associated with this object.
 
-        If a class derived from @ref async_op_base is a completion
+        If a class derived from @ref async_base is a completion
         handler, then the associated executor of the derived class will
         be this type.
     */
@@ -269,7 +269,7 @@ public:
 
     /** Returns the allocator associated with this object.
 
-        If a class derived from @ref async_op_base is a completion
+        If a class derived from @ref async_base is a completion
         handler, then the object returned from this function will be used
         as the associated allocator of the derived class.
     */
@@ -282,7 +282,7 @@ public:
 
     /** Returns the executor associated with this object.
 
-        If a class derived from @ref async_op_base is a completion
+        If a class derived from @ref async_base is a completion
         handler, then the object returned from this function will be used
         as the associated executor of the derived class.
     */
@@ -319,7 +319,7 @@ public:
         arguments forwarded. It is undefined to call either of
         @ref invoke or @ref invoke_now more than once.
 
-        Any temporary objects allocated with @ref allocate_stable will
+        Any temporary objects allocated with @ref beast::allocate_stable will
         be automatically destroyed before the final completion handler
         is invoked.
 
@@ -359,7 +359,7 @@ public:
         arguments forwarded. It is undefined to call either of
         @ref invoke or @ref invoke_now more than once.
 
-        Any temporary objects allocated with @ref allocate_stable will
+        Any temporary objects allocated with @ref beast::allocate_stable will
         be automatically destroyed before the final completion handler
         is invoked.
 
@@ -385,12 +385,12 @@ public:
     friend
     void asio_handler_invoke(
         Function&& f,
-        async_op_base<
+        async_base<
             Handler_, Executor1_, Allocator_>* p);
 
     friend
     void* asio_handler_allocate(
-        std::size_t size, async_op_base* p)
+        std::size_t size, async_base* p)
     {
         using net::asio_handler_allocate;
         return asio_handler_allocate(
@@ -400,7 +400,7 @@ public:
     friend
     void asio_handler_deallocate(
         void* mem, std::size_t size,
-            async_op_base* p)
+            async_base* p)
     {
         using net::asio_handler_deallocate;
         asio_handler_deallocate(mem, size,
@@ -409,7 +409,7 @@ public:
 
     friend
     bool asio_handler_is_continuation(
-        async_op_base* p)
+        async_base* p)
     {
         using net::asio_handler_is_continuation;
         return asio_handler_is_continuation(
@@ -431,7 +431,7 @@ public:
     The composed operation must be typical; that is, associated with one
     executor of an I/O object, and invoking a caller-provided completion
     handler when the operation is finished. Classes derived from
-    @ref async_op_base will acquire these properties:
+    @ref async_base will acquire these properties:
 
     @li Ownership of the final completion handler provided upon construction.
 
@@ -462,7 +462,7 @@ public:
     do not have stable addresses, as the composed operation object is move
     constructed upon each call to an initiating function. For most operations
     this is not a problem. For complex operations requiring stable temporary
-    storage, the class @ref stable_async_op_base is provided which offers
+    storage, the class @ref stable_async_base is provided which offers
     additional functionality:
 
     @li The free function @ref allocate_stable may be used to allocate
@@ -478,7 +478,7 @@ public:
 
     @par Example
 
-    The following code demonstrates how @ref stable_async_op_base may be be used to
+    The following code demonstrates how @ref stable_async_base may be be used to
     assist authoring an asynchronous initiating function, by providing all of
     the boilerplate to manage the final completion handler in a way that maintains
     the allocator and executor associations. Furthermore, the operation shown
@@ -499,7 +499,7 @@ public:
                 void(error_code)>::return_type
     {
         using handler_type = typename net::async_completion<WriteHandler, void(error_code)>::completion_handler_type;
-        using base_type = stable_async_op_base<handler_type, typename AsyncWriteStream::executor_type>;
+        using base_type = stable_async_base<handler_type, typename AsyncWriteStream::executor_type>;
 
         struct op : base_type
         {
@@ -592,15 +592,15 @@ public:
     not default constructible, an instance of the type must be provided
     upon construction.
 
-    @see @ref allocate_stable, @ref async_op_base
+    @see @ref allocate_stable, @ref async_base
 */
 template<
     class Handler,
     class Executor1,
     class Allocator = std::allocator<void>
 >
-class stable_async_op_base
-    : public async_op_base<
+class stable_async_base
+    : public async_base<
         Handler, Executor1, Allocator>
 {
     detail::stable_base* list_ = nullptr;
@@ -629,7 +629,7 @@ public:
     */
 #if BOOST_BEAST_DOXYGEN
     template<class Handler>
-    stable_async_op_base(
+    stable_async_base(
         Handler&& handler,
         Executor1 const& ex1,
         Allocator const& alloc = Allocator());
@@ -639,24 +639,24 @@ public:
         class = typename std::enable_if<
             ! std::is_same<typename
                 std::decay<Handler_>::type,
-                stable_async_op_base
+                stable_async_base
             >::value>::type
     >
-    stable_async_op_base(
+    stable_async_base(
         Handler_&& handler,
         Executor1 const& ex1)
-        : async_op_base<
+        : async_base<
             Handler, Executor1, Allocator>(
                 std::forward<Handler_>(handler), ex1)
     {
     }
 
     template<class Handler_>
-    stable_async_op_base(
+    stable_async_base(
         Handler_&& handler,
         Executor1 const& ex1,
         Allocator const& alloc)
-        : async_op_base<
+        : async_base<
             Handler, Executor1, Allocator>(
                 std::forward<Handler_>(handler), ex1, alloc)
     {
@@ -664,8 +664,8 @@ public:
 #endif
 
     /// Move Constructor
-    stable_async_op_base(stable_async_op_base&& other)
-        : async_op_base<Handler, Executor1, Allocator>(
+    stable_async_base(stable_async_base&& other)
+        : async_base<Handler, Executor1, Allocator>(
             std::move(other))
         , list_(boost::exchange(other.list_, nullptr))
     {
@@ -677,7 +677,7 @@ public:
         state objects allocated with @ref allocate_stable will
         be destroyed here.
     */
-    ~stable_async_op_base()
+    ~stable_async_base()
     {
         detail::stable_base::destroy_list(list_);
     }
@@ -696,7 +696,7 @@ public:
     friend
     State&
     allocate_stable(
-        stable_async_op_base<
+        stable_async_base<
             Handler_, Executor1_, Allocator_>& base,
         Args&&... args);
 };
@@ -709,7 +709,7 @@ template<
     class Function>
 void asio_handler_invoke(
     Function&& f,
-    async_op_base<
+    async_base<
         Handler, Executor1, Allocator>* p)
 {
     using net::asio_handler_invoke;
@@ -757,7 +757,7 @@ struct allocate_stable_state final
     The object will be destroyed just before the completion
     handler is invoked, or when the base is destroyed.
 
-    @see @ref stable_async_op_base
+    @see @ref stable_async_base
 */
 template<
     class State,
@@ -767,11 +767,11 @@ template<
     class... Args>
 State&
 allocate_stable(
-    stable_async_op_base<
+    stable_async_base<
         Handler, Executor1, Allocator>& base,
     Args&&... args)
 {
-    using allocator_type = typename stable_async_op_base<
+    using allocator_type = typename stable_async_base<
         Handler, Executor1, Allocator>::allocator_type;
 
     using A = typename detail::allocator_traits<

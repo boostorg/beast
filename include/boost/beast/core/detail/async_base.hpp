@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_CORE_DETAIL_ASYNC_OP_BASE_HPP
-#define BOOST_BEAST_CORE_DETAIL_ASYNC_OP_BASE_HPP
+#ifndef BOOST_BEAST_CORE_DETAIL_ASYNC_BASE_HPP
+#define BOOST_BEAST_CORE_DETAIL_ASYNC_BASE_HPP
 
 #include <boost/core/exchange.hpp>
 
