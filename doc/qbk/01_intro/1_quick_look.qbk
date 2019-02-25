@@ -12,7 +12,7 @@
 
 These complete programs are intended to quickly impress upon readers
 the flavor of the library. Source code and build scripts for them are
-located in the [source_file example] directory.
+located in the [path_link example example] directory.
 
 
 
@@ -20,7 +20,7 @@ located in the [source_file example] directory.
 
 Use HTTP to make a GET request to a website and print the response:
 
-File: [source_file example/http/client/sync/http_client_sync.cpp]
+File: [path_link example/http/client/sync/http_client_sync.cpp http_sync_client.cpp]
 
 [example_http_client]
 
@@ -32,7 +32,7 @@ File: [source_file example/http/client/sync/http_client_sync.cpp]
 
 Establish a WebSocket connection, send a message and receive the reply:
 
-File: [source_file example/websocket/client/sync/websocket_client_sync.cpp]
+File: [path_link example/websocket/client/sync/websocket_client_sync.cpp websocket_sync_client.cpp]
 
 [example_websocket_client]
 

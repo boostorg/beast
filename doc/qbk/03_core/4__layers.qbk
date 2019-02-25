@@ -59,9 +59,9 @@ facilities for authoring and working with layered streams:
 [[
     [link beast.ref.boost__beast__buffered_read_stream `buffered_read_stream`]
 ][
-    A timeout stream meets the requirements for synchronous and asynchronous
-    read and write streams, and additionally implements configurable buffering
-    for reads.
+    A buffered read stream meets the requirements for synchronous and
+    asynchronous read and write streams, and additionally implements
+    configurable buffering for reads.
 ]]
 [[
     [link beast.ref.boost__beast__close_socket `close_socket`]

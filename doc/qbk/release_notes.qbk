@@ -12,54 +12,51 @@
 [/-----------------------------------------------------------------------------]
 
 * [phrase library..[@/libs/beast/ Beast]:]
-  [role red [*BIG Update!]] The
-    [link beast.quickref [*reference]] shows a star [role green \u2605] next to each new item.
-  * [*Beast needs your help!]
-    * [@https://github.com/boostorg/beast/wiki/Companies-and-Individuals-Using-Beast [*Tell Us]]
-      how you or your company use Beast.
+  '''<emphasis role="bold"><emphasis role="red">BIG Update!!!</emphasis></emphasis>''' The
+  [@/libs/beast/doc/html/beast/quickref.html reference]
+  shows a star '''<emphasis role="green">&#9733;</emphasis>''' next to each new item.
+  * Beast needs your help!
+    * [@https://github.com/boostorg/beast/wiki/Companies-and-Individuals-Using-Beast Tell Us]
+      how you or your company use Beast
     * Please
       [@https://github.com/boostorg/beast/issues/new report]
-      any bugs, feature requests, or general feedback.
-    * Chat with us at the [*#beast] and [*#boost] channels in the
-      [@https://cppalliance.org/slack/ [*C++ Slack Workspace]].
-    * Don't forget to \u2b50 \u2b50 \u2b50 
-      [@https://github.com/boostorg/beast [*star the repository]]
-      \u2b50 \u2b50 \u2b50 !
-  * [role green [*More tutorials]], code like the pros!
-    * [link beast.using_io.asio_refresher Networking Refresher] teaches you from the ground up.
-    * Updated [link beast.using_io.writing_composed_operations.echo Asynchronous Echo] example
-    * Updated [link beast.using_io.writing_composed_operations.detect_ssl [*Detect SSL Handshake]],
-      now a [link beast.ref.boost__beast__async_detect_ssl public api]!
-    * [@../../example/websocket/server/chat-multi websocket-chat-multi]
-      threaded chat server with a JavaScript browser client.
-  * [link beast.ref.boost__beast__basic_stream `basic_stream`] and
-    [link beast.ref.boost__beast__basic_stream `tcp_stream`] offer:
-    * Timeouts:
-      [link beast.ref.boost__beast__basic_stream.async_read_some `async_read_some`],
-      [link beast.ref.boost__beast__basic_stream.async_write_some `async_write_some`]
-      complete with
-      [link beast.ref.boost__beast__error `error::timeout`] on expiration!     
+      any bugs, feature requests, or general feedback
+    * Join the [@https://cppalliance.org/slack/ [*C++ Slack Workspace]] for
+      free and chat with us in the #beast and #boost channels   
+    * Don't forget to [@https://github.com/boostorg/beast star the repository] \u2b50!
+  * More tutorials, code like the pros!
+    * [@/libs/beast/doc/html/beast/using_asio/asio_refresher.html Networking Refresher]
+      teaches you from the ground up.
+    * Updated [@/libs/beast/doc/html/beast/using_io/writing_composed_operations/echo.html Asynchronous Echo] example
+    * Updated [@/libs/beast/doc/html/beast/using_io/writing_composed_operations/detect_ssl.html [*Detect SSL]] composed operation tutorial
+    * [@/libs/beast/example/websocket/server/chat-multi websocket-chat-multi]
+      threaded chat server with a JavaScript
+      [@/libs/beast/example/websocket/server/chat-multi/chat_client.html browser client]
+  * [@/libs/beast/doc/html/beast/ref/boost__beast__basic_stream.html `basic_stream`] and
+    [@/libs/beast/doc/html/beast/ref/boost__beast__tcp_stream.html `tcp_stream`] offer:
+    * Timeouts: `async_read_some`, `async_write_some` complete with
+      [@/libs/beast/doc/html/beast/ref/boost__beast__error.html `error::timeout`] on expiration!     
     * Traffic-shaping policies
-      [link beast.ref.boost__beast__simple_rate_policy `simple`] and
-      [link beast.ref.boost__beast__unlimited_rate_policy `unlimited`],
+      [@/libs/beast/doc/html/beast/ref/boost__beast__simple_rate_policy.html `simple`] and
+      [@/libs/beast/doc/html/beast/ref/boost__beast__unlimited_rate_policy.html `unlimited`],
       or a user-defined
-      [link beast.concepts.RatePolicy ['RatePolicy]]!
+      [@/libs/beast/doc/html/beast/concepts/RatePolicy.html ['RatePolicy]]!
     * Put the strand directly on the socket using
       [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1322r0.html P1322R0],
       no more `bind_executor` at call sites!
   * Base classes
-    [link beast.ref.boost__beast__async_op_base `async_op_base`] and
-    [link beast.ref.boost__beast__stable_async_op_base `stable_async_op_base`]
+    [@/libs/beast/doc/html/beast/ref/boost__beast__async_op_base.html `async_op_base`] and
+    [@/libs/beast/doc/html/beast/ref/boost__beast__stable_async_op_base.html `stable_async_op_base`] and
     handle all composed operation boilerplate for you.
-  * [link beast.ref.boost__beast__ssl_stream `ssl_stream`] provides a
+  * [@/libs/beast/doc/html/beast/ref/boost__beast__ssl_stream.html `ssl_stream`] provides a
     movable, assignable SSL stream with a flat write optimization.
-  * All asynchronous operations use Asio's
-    [@boost:/doc/html/boost_asio/reference/async_initiate.html `async_initiate`]
-    for efficient integration with Coroutines TS.
-  * \u26a1 [*['faster compilation]], define `BOOST_BEAST_SPLIT_COMPILATION` and include
-    [@../../include/boost/beast/src.hpp src.hpp] in one of your .cpp files!
-  * See the full [link beast.release_notes [*Release Notes]] for a complete list
-    of changes.
+  * All asynchronous operations use Asio's `async_initiate` for efficient integration with Coroutines TS.
+  * \u26a1 [*['faster compilation]], define `BOOST_BEAST_SPLIT_COMPILATION` and
+    `#include <`[@/libs/beast/include/boost/beast/src.hpp `boost/beast/src.hpp`]`>`
+    in one of your .cpp files!
+  * See the full
+    [@/libs/beast/doc/html/beast/release_notes.html Release Notes]
+    for a complete list of changes.
 
 [/-----------------------------------------------------------------------------]
 
@@ -304,7 +301,7 @@
 
 * detect-ssl is rewritten
 
-* New example [source_file example/websocket/server/chat-multi]
+* New example [path_link example/websocket/server/chat-multi example/websocket/server/chat-multi]
 
 * `async_echo` works with move-only handlers
 
@@ -385,7 +382,7 @@
 
 [*Examples]
 
-* New WebSocket server and browser-based client: [source_file example/cppcon2018]
+* New WebSocket server and browser-based client: example/cppcon2018
 
 [*Fixes]
 
@@ -585,8 +582,7 @@ to update to the latest Boost release.
 
 * Fix "warning: ‘const’ type qualifier on return type has no effect"
 
-* ([issue 916]) Tidy up `ssl_stream` special members in
-  [source_file example/common/ssl_stream.hpp]
+* ([issue 916]) Tidy up `ssl_stream` special members
 
 * ([issue 918]) Calls to `<algorithm>` are protected from macros
 

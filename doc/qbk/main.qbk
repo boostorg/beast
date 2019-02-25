@@ -26,11 +26,9 @@
 [template indexterm1[term1] '''<indexterm><primary>'''[term1]'''</primary></indexterm>''']
 [template indexterm2[term1 term2] '''<indexterm><primary>'''[term1]'''</primary><secondary>'''[term2]'''</secondary></indexterm>''']
 
-[template source_file[path] '''<ulink url="../../'''[path]'''">'''[path]'''</ulink>''']
+[template path_link[path name] '''<ulink url="../../'''[path]'''">'''[name]'''</ulink>''']
 [template include_file[path][^<'''<ulink url="../../../../'''[path]'''">'''[path]'''</ulink>'''>]]
 [template issue[n] '''<ulink url="https://github.com/boostorg/beast/issues/'''[n]'''">#'''[n]'''</ulink>''']
-
-[template example_src[path name] '''<ulink url="../../'''[path]'''">'''[name]'''</ulink>''']
 
 [def __N3747__                  [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*N3747]]]
 [def __NetTS__                  [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/n4771.pdf Networking TS]]
@@ -64,8 +62,9 @@
 
 [def __AsyncReadStream__        [@boost:/doc/html/boost_asio/reference/AsyncReadStream.html ['AsyncReadStream]]]
 [def __AsyncWriteStream__       [@boost:/doc/html/boost_asio/reference/AsyncWriteStream.html ['AsyncWriteStream]]]
-[def __CompletionHandler__      [@boost:/doc/html/boost_asio/reference/CompletionHandler.html ['CompletionHandler]]]
 [def __CompletionCondition__    [@boost:/doc/html/boost_asio/reference/CompletionCondition.html ['CompletionCondition]]]
+[def __CompletionHandler__      [@boost:/doc/html/boost_asio/reference/CompletionHandler.html ['CompletionHandler]]]
+[def __CompletionToken__        [@boost:/doc/html/boost_asio/reference/asynchronous_operations#boost_asio.reference.asynchronous_operations.completion_tokens_and_handlers ['CompletionToken]]]
 [def __ConnectCondition__       [@boost:/doc/html/boost_asio/reference/ConnectCondition.html ['ConnectCondition]]]
 [def __ConnectHandler__         [@boost:/doc/html/boost_asio/reference/ConnectHandler.html ['ConnectHandler]]]
 [def __ConstBufferSequence__    [@boost:/doc/html/boost_asio/reference/ConstBufferSequence.html ['ConstBufferSequence]]]

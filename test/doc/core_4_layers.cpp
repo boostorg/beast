@@ -68,9 +68,101 @@ void set_non_blocking (Stream& stream)
 template <class NextLayer>
 class counted_stream
 {
-    NextLayer next_layer_;
-    std::size_t bytes_read_ = 0;
-    std::size_t bytes_written_ = 0;
+    NextLayer next_layer_;              // Reads and writes are passed through to this
+    std::size_t bytes_read_ = 0;        // Holds the total bytes read
+    std::size_t bytes_written_ = 0;     // Holds the total bytes written
+
+    // This is the "initiation" object passed to async_initiate to start the operation
+    struct run_read_op
+    {
+        template<
+            class ReadHandler,
+            class MutableBufferSequence>
+        void
+        operator()(
+            ReadHandler&& handler,
+            counted_stream* stream,
+            MutableBufferSequence const& buffers)
+        {
+            using handler_type = typename std::decay<ReadHandler>::type;
+
+            // async_op_base handles all of the composed operation boilerplate for us
+            using base = async_op_base<
+                handler_type, beast::executor_type<NextLayer>>;
+
+            // Our composed operation is implemented as a completion handler object
+            struct op : base
+            {
+                counted_stream& stream_;
+
+                op( counted_stream& stream,
+                    handler_type&& handler,
+                    MutableBufferSequence const& buffers)
+                    : base(std::move(handler), stream.get_executor())
+                    , stream_(stream)
+                {
+                    // Start the asynchronous operation
+                    stream_.next_layer().async_read_some(buffers, std::move(*this));
+                }
+
+                void operator()(error_code ec, std::size_t bytes_transferred)
+                {
+                    // Count the bytes transferred towards the total
+                    stream_.bytes_read_ += bytes_transferred;
+
+                    this->invoke_now(ec, bytes_transferred);
+                }
+            };
+
+            op(*stream, std::forward<ReadHandler>(handler), buffers);
+        }
+    };
+
+    // This is the "initiation" object passed to async_initiate to start the operation
+    struct run_write_op
+    {
+        template<
+            class WriteHandler,
+            class ConstBufferSequence>
+        void
+        operator()(
+            WriteHandler&& handler,
+            counted_stream* stream,
+            ConstBufferSequence const& buffers)
+        {
+            using handler_type = typename std::decay<WriteHandler>::type;
+
+            // async_op_base handles all of the composed operation boilerplate for us
+            using base = async_op_base<
+                handler_type, beast::executor_type<NextLayer>>;
+
+            // Our composed operation is implemented as a completion handler object
+            struct op : base
+            {
+                counted_stream& stream_;
+
+                op( counted_stream& stream,
+                    handler_type&& handler,
+                    ConstBufferSequence const& buffers)
+                    : base(std::move(handler), stream.get_executor())
+                    , stream_(stream)
+                {
+                    // Start the asynchronous operation
+                    stream_.next_layer().async_write_some(buffers, std::move(*this));
+                }
+
+                void operator()(error_code ec, std::size_t bytes_transferred)
+                {
+                    // Count the bytes transferred towards the total
+                    stream_.bytes_written_ += bytes_transferred;
+
+                    this->invoke_now(ec, bytes_transferred);
+                }
+            };
+
+            op(*stream, std::forward<WriteHandler>(handler), buffers);
+        }
+    };
 
 public:
     /// The type of executor used by this stream
@@ -151,77 +243,42 @@ public:
     }
 
     /// Read some data from the stream asynchronously
-    template<class MutableBufferSequence, class ReadHandler>
+    template <class MutableBufferSequence, class ReadHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
         void(error_code, std::size_t))
     async_read_some(
         MutableBufferSequence const& buffers,
         ReadHandler&& handler)
     {
-        using handler_type = BOOST_ASIO_HANDLER_TYPE(
-            ReadHandler, void(error_code, std::size_t));
-        struct op : async_op_base<handler_type, executor_type>
-        {
-            counted_stream& stream_;
-
-            op(
-                counted_stream& stream,
-                handler_type&& handler,
-                MutableBufferSequence const& buffers)
-                : async_op_base<handler_type, executor_type>(
-                    std::move(handler), stream.get_executor())
-                , stream_(stream)
-            {
-                stream_.next_layer().async_read_some(buffers, std::move(*this));
-            }
-
-            void operator()(error_code ec, std::size_t bytes_transferred)
-            {
-                stream_.bytes_read_ += bytes_transferred;
-                this->invoke_now(ec, bytes_transferred);
-            }
-        };
-        net::async_completion<ReadHandler, void(error_code, std::size_t)> init{handler};
-        op(*this, std::move(init.completion_handler), buffers);
-        return init.result.get();
+        return net::async_initiate<
+            ReadHandler,
+            void(error_code, std::size_t)>(
+                run_read_op{},
+                handler,
+                this,
+                buffers);
     }
 
     /// Write some data to the stream asynchronously
-    template<class ConstBufferSequence, class WriteHandler>
+    template <class ConstBufferSequence, class WriteHandler>
     BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
         void(error_code, std::size_t))
     async_write_some(
         ConstBufferSequence const& buffers,
         WriteHandler&& handler)
     {
-        using handler_type = BOOST_ASIO_HANDLER_TYPE(
-            WriteHandler, void(error_code, std::size_t));
-        struct op : async_op_base<handler_type, executor_type>
-        {
-            counted_stream& stream_;
-
-            op( counted_stream& stream,
-                handler_type&& handler,
-                ConstBufferSequence const& buffers)
-                : async_op_base<handler_type, executor_type>(
-                    std::move(handler), stream.get_executor())
-                , stream_(stream)
-            {
-                stream_.next_layer().async_write_some(buffers, std::move(*this));
-            }
-
-            void operator()(error_code ec, std::size_t bytes_transferred)
-            {
-                stream_.bytes_written_ += bytes_transferred;
-                this->invoke_now(ec, bytes_transferred);
-            }
-        };
-        net::async_completion<WriteHandler, void(error_code, std::size_t)> init{handler};
-        op(*this, std::move(init.completion_handler), buffers);
-        return init.result.get();
+        return net::async_initiate<
+            WriteHandler,
+            void(error_code, std::size_t)>(
+                run_write_op{},
+                handler,
+                this,
+                buffers);
     }
 };
 //]
+
+template class counted_stream<test::stream>;
 
 BOOST_STATIC_ASSERT(is_sync_read_stream<counted_stream<test::stream>>::value);
 BOOST_STATIC_ASSERT(is_sync_write_stream<counted_stream<test::stream>>::value);
@@ -243,30 +300,6 @@ struct core_4_layers_test
     {
         BEAST_EXPECT(&core_4_layers_snippets);
         BEAST_EXPECT(&set_non_blocking<net::ip::tcp::socket>);
-
-        BEAST_EXPECT(&counted_stream<test::stream>::get_executor);
-        BEAST_EXPECT(static_cast<
-            test::stream&(counted_stream<test::stream>::*)()>(
-            &counted_stream<test::stream>::next_layer));
-        BEAST_EXPECT(static_cast<
-            test::stream const&(counted_stream<test::stream>::*)() const>(
-            &counted_stream<test::stream>::next_layer));
-        BEAST_EXPECT(&counted_stream<test::stream>::bytes_read);
-        BEAST_EXPECT(&counted_stream<test::stream>::bytes_written);
-        BEAST_EXPECT(static_cast<
-            std::size_t(counted_stream<test::stream>::*)(net::mutable_buffer const&)>(
-            &counted_stream<test::stream>::read_some));
-        BEAST_EXPECT(static_cast<
-            std::size_t(counted_stream<test::stream>::*)(net::mutable_buffer const&, error_code&)>(
-            &counted_stream<test::stream>::read_some));
-        BEAST_EXPECT(static_cast<
-            std::size_t(counted_stream<test::stream>::*)(net::const_buffer const&)>(
-            &counted_stream<test::stream>::write_some));
-        BEAST_EXPECT(static_cast<
-            std::size_t(counted_stream<test::stream>::*)(net::const_buffer const&, error_code&)>(
-            &counted_stream<test::stream>::write_some));
-        BEAST_EXPECT((&counted_stream<test::stream>::async_read_some<net::mutable_buffer, handler>));
-        BEAST_EXPECT((&counted_stream<test::stream>::async_write_some<net::const_buffer, handler>));
     }
 };
 

@@ -53,7 +53,7 @@ asynchronous version delivers the error code to a completion handler
 or other custom mechanism defined by the completion token. The signature
 of the initiating function reflects these differences.
 
-First we declare the initiating function and document the requirments,
+First we declare the initiating function and document the requirements,
 parameters, preconditions, and effects:
 
 [example_core_detect_ssl_4]
@@ -103,7 +103,9 @@ callback style:
 
 [example_core_detect_ssl_8]
 
-This SSL detector is used in the advanced-flex and http-flex servers
-in the example directory.
+The examples
+[path_link example/advanced/server/advanced_server.cpp advanced-server] and
+[path_link example/advanced/server-flex/advanced_server_flex.cpp advanced-server-flex]
+use this SSL detection function.
 
 [endsect]

@@ -11,9 +11,9 @@
 
 Asynchronous operations are started by calling a free function or member
 function known as an asynchronous ['__async_initfn__]. This function accepts
-parameters specific to the operation as well as a "completion token." The
+parameters specific to the operation as well as a __CompletionToken__. The
 token is either a completion handler, or a type defining how the caller is
-informed of the asynchronous operation result. __Asio__ comes with the
+informed of the asynchronous operation result. Networking provides the
 special tokens __use_future__ and __yield_context__ for using futures
 and coroutines respectively. This system of customizing the return value
 and method of completion notification is known as the
@@ -47,10 +47,10 @@ composed operations:
     [link beast.ref.boost__beast__async_op_base `async_op_base`]
     [link beast.ref.boost__beast__stable_async_op_base `stable_async_op_base`]
 ][
-    This class is designed to be used as a base class when authoriing
+    This class is designed to be used as a base class when authoring
     composed asynchronous operations expressed as an intermediate
     completion handler. This eliminates the need for the extensive
-    boilerplate to propgate the associated executor, associated
+    boilerplate to propagate the associated executor, associated
     allocator, and legacy completion handler hooks.
 ]]
 [[

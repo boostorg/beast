@@ -372,7 +372,7 @@ https_get (std::string const& host, std::string const& target, error_code& ec)
         // improve performance). Generally this can be a security issue,
         // but if your communication protocol is self-terminated (as
         // it is with both HTTP and WebSocket) then you may simply
-        // ignore the lack of close_notify.
+        // ignore the lack of close_notify:
         //
         // https://github.com/boostorg/beast/issues/38
         //
@@ -382,6 +382,7 @@ https_get (std::string const& host, std::string const& target, error_code& ec)
         // Beast returns the error beast::http::error::partial_message.
         // Therefore, if we see a short read here, it has occurred
         // after the message has been completed, so it is safe to ignore it.
+
         if(ec == net::ssl::error::stream_truncated)
             ec = {};
         else if(ec)

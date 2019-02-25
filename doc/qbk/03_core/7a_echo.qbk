@@ -17,10 +17,6 @@ initiation function. For our echo operation the only inputs are the
 stream and the completion token. The output is the error code which
 is usually included in all completion handler signatures.
 
-[tip
-    The source for for this example is [source_file example/echo-op/echo_op.cpp].
-]
-
 [example_core_echo_op_2]
 
 Now that we have a declaration, we will define the body of the function.
@@ -78,7 +74,7 @@ composed operations:
   in a manner equivalent to using __post__]. The function
   __bind_handler__ is provided for this purpose.
 
-A complete, runnable version of this example may be found in the examples
-directory.
+The listing for a complete, runnable version of this example is in
+[path_link example/echo-op/echo_op.cpp echo_op.cpp].
 
 [endsect]

@@ -11,7 +11,7 @@
 [block'''<?dbhtml stop-chunking?>''']
 
 Source code and build scripts for these programs are located
-in the [source_file example] directory.
+in the [path_link example example] directory.
 
 [/-----------------------------------------------------------------------------]
 
@@ -26,19 +26,19 @@ used to evaluate robustness. All asynchronous clients support timeouts.
 [[Description] [Source File] [Source File (using SSL)]]
 [
         [HTTP, synchronous]
-        [[example_src example/http/client/sync/http_client_sync.cpp http_client_sync.cpp]]
-        [[example_src example/http/client/sync-ssl/http_client_sync_ssl.cpp http_client_sync_ssl.cpp]]
+        [[path_link example/http/client/sync/http_client_sync.cpp http_client_sync.cpp]]
+        [[path_link example/http/client/sync-ssl/http_client_sync_ssl.cpp http_client_sync_ssl.cpp]]
 ][
         [HTTP, asynchronous]
-        [[example_src example/http/client/async/http_client_async.cpp http_client_async.cpp]]
-        [[example_src example/http/client/async-ssl/http_client_async_ssl.cpp http_client_async_ssl.cpp]]
+        [[path_link example/http/client/async/http_client_async.cpp http_client_async.cpp]]
+        [[path_link example/http/client/async-ssl/http_client_async_ssl.cpp http_client_async_ssl.cpp]]
 ][
         [HTTP, coroutine]
-        [[example_src example/http/client/coro/http_client_coro.cpp http_client_coro.cpp]]
-        [[example_src example/http/client/coro-ssl/http_client_coro_ssl.cpp http_client_coro_ssl.cpp]]
+        [[path_link example/http/client/coro/http_client_coro.cpp http_client_coro.cpp]]
+        [[path_link example/http/client/coro-ssl/http_client_coro_ssl.cpp http_client_coro_ssl.cpp]]
 ][
         [HTTP crawl (asynchronous)]
-        [[example_src example/http/client/crawl/http_crawl.cpp http_crawl.cpp]]
+        [[path_link example/http/client/crawl/http_crawl.cpp http_crawl.cpp]]
         []
 ]]
 
@@ -50,16 +50,16 @@ before disconnecting. All asynchronous clients support timeouts.
 [[Description] [Source File] [Source File (using SSL)]]
 [
         [WebSocket, synchronous]
-        [[example_src example/websocket/client/sync/websocket_client_sync.cpp websocket_client_sync.cpp]]
-        [[example_src example/websocket/client/sync-ssl/websocket_client_sync_ssl.cpp websocket_client_sync_ssl.cpp]]
+        [[path_link example/websocket/client/sync/websocket_client_sync.cpp websocket_client_sync.cpp]]
+        [[path_link example/websocket/client/sync-ssl/websocket_client_sync_ssl.cpp websocket_client_sync_ssl.cpp]]
 ][
         [WebSocket, asynchronous]
-        [[example_src example/websocket/client/async/websocket_client_async.cpp websocket_client_async.cpp]]
-        [[example_src example/websocket/client/async-ssl/websocket_client_async_ssl.cpp websocket_client_async_ssl.cpp]]
+        [[path_link example/websocket/client/async/websocket_client_async.cpp websocket_client_async.cpp]]
+        [[path_link example/websocket/client/async-ssl/websocket_client_async_ssl.cpp websocket_client_async_ssl.cpp]]
 ][
         [WebSocket, coroutine]
-        [[example_src example/websocket/client/coro/websocket_client_coro.cpp websocket_client_coro.cpp]]
-        [[example_src example/websocket/client/coro-ssl/websocket_client_coro_ssl.cpp websocket_client_coro_ssl.cpp]]
+        [[path_link example/websocket/client/coro/websocket_client_coro.cpp websocket_client_coro.cpp]]
+        [[path_link example/websocket/client/coro-ssl/websocket_client_coro_ssl.cpp websocket_client_coro_ssl.cpp]]
 ]]
 
 [endsect]
@@ -75,32 +75,32 @@ command line. All asynchronous servers support timeouts.
 [[Description] [Source File] [Source File (using SSL)]]
 [
         [HTTP, synchronous]
-        [[example_src example/http/server/sync/http_server_sync.cpp http_server_sync.cpp]]
-        [[example_src example/http/server/sync-ssl/http_server_sync_ssl.cpp http_server_sync_ssl.cpp]]
+        [[path_link example/http/server/sync/http_server_sync.cpp http_server_sync.cpp]]
+        [[path_link example/http/server/sync-ssl/http_server_sync_ssl.cpp http_server_sync_ssl.cpp]]
 ][
         [HTTP, asynchronous]
-        [[example_src example/http/server/async/http_server_async.cpp http_server_async.cpp]]
-        [[example_src example/http/server/async-ssl/http_server_async_ssl.cpp http_server_async_ssl.cpp]]
+        [[path_link example/http/server/async/http_server_async.cpp http_server_async.cpp]]
+        [[path_link example/http/server/async-ssl/http_server_async_ssl.cpp http_server_async_ssl.cpp]]
 ][
         [HTTP, coroutine]
-        [[example_src example/http/server/coro/http_server_coro.cpp http_server_coro.cpp]]
-        [[example_src example/http/server/coro-ssl/http_server_coro_ssl.cpp http_server_coro_ssl.cpp]]
+        [[path_link example/http/server/coro/http_server_coro.cpp http_server_coro.cpp]]
+        [[path_link example/http/server/coro-ssl/http_server_coro_ssl.cpp http_server_coro_ssl.cpp]]
 ][
         [HTTP, stackless coroutine]
-        [[example_src example/http/server/stackless/http_server_stackless.cpp http_server_stackless.cpp]]
-        [[example_src example/http/server/stackless-ssl/http_server_stackless_ssl.cpp http_server_stackless_ssl.cpp]]
+        [[path_link example/http/server/stackless/http_server_stackless.cpp http_server_stackless.cpp]]
+        [[path_link example/http/server/stackless-ssl/http_server_stackless_ssl.cpp http_server_stackless_ssl.cpp]]
 ][
         [HTTP, fast (optimized for speed)]
-        [[example_src example/http/server/fast/http_server_fast.cpp http_server_fast.cpp]]
+        [[path_link example/http/server/fast/http_server_fast.cpp http_server_fast.cpp]]
         []
 ][
         [HTTP, small (optimized for space)]
-        [[example_src example/http/server/small/http_server_small.cpp http_server_small.cpp]]
+        [[path_link example/http/server/small/http_server_small.cpp http_server_small.cpp]]
         []
 ][
         [HTTP, flex (plain + SSL)]
         []
-        [[example_src example/http/server/flex/http_server_flex.cpp http_server_flex.cpp]]
+        [[path_link example/http/server/flex/http_server_flex.cpp http_server_flex.cpp]]
 ]]
 
 These WebSocket servers echo back any message received, keeping the
@@ -111,23 +111,23 @@ support timeouts.
 [[Description] [Source File] [Source File (using SSL)]]
 [
         [WebSocket, synchronous]
-        [[example_src example/websocket/server/sync/websocket_server_sync.cpp websocket_server_sync.cpp]]
-        [[example_src example/websocket/server/sync-ssl/websocket_server_sync_ssl.cpp websocket_server_sync_ssl.cpp]]
+        [[path_link example/websocket/server/sync/websocket_server_sync.cpp websocket_server_sync.cpp]]
+        [[path_link example/websocket/server/sync-ssl/websocket_server_sync_ssl.cpp websocket_server_sync_ssl.cpp]]
 ][
         [WebSocket, asynchronous]
-        [[example_src example/websocket/server/async/websocket_server_async.cpp websocket_server_async.cpp]]
-        [[example_src example/websocket/server/async-ssl/websocket_server_async_ssl.cpp websocket_server_async_ssl.cpp]]
+        [[path_link example/websocket/server/async/websocket_server_async.cpp websocket_server_async.cpp]]
+        [[path_link example/websocket/server/async-ssl/websocket_server_async_ssl.cpp websocket_server_async_ssl.cpp]]
 ][
         [WebSocket, coroutine]
-        [[example_src example/websocket/server/coro/websocket_server_coro.cpp websocket_server_coro.cpp]]
-        [[example_src example/websocket/server/coro-ssl/websocket_server_coro_ssl.cpp websocket_server_coro_ssl.cpp]]
+        [[path_link example/websocket/server/coro/websocket_server_coro.cpp websocket_server_coro.cpp]]
+        [[path_link example/websocket/server/coro-ssl/websocket_server_coro_ssl.cpp websocket_server_coro_ssl.cpp]]
 ][
         [WebSocket, stackless coroutine]
-        [[example_src example/websocket/server/stackless/websocket_server_stackless.cpp websocket_server_stackless.cpp]]
-        [[example_src example/websocket/server/stackless-ssl/websocket_server_stackless_ssl.cpp websocket_server_stackless_ssl.cpp]]
+        [[path_link example/websocket/server/stackless/websocket_server_stackless.cpp websocket_server_stackless.cpp]]
+        [[path_link example/websocket/server/stackless-ssl/websocket_server_stackless_ssl.cpp websocket_server_stackless_ssl.cpp]]
 ][
         [WebSocket, fast (suited for benchmarks)]
-        [[example_src example/websocket/server/fast/websocket_server_fast.cpp websocket_server_fast.cpp]]
+        [[path_link example/websocket/server/fast/websocket_server_fast.cpp websocket_server_fast.cpp]]
         []
 ]]
 
@@ -151,7 +151,7 @@ and illustrate the implementation of advanced features.
             [Dual protocols: HTTP and WebSocket]
             [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
         ]]
-        [[example_src example/advanced/server/advanced_server.cpp advanced_server.cpp]]
+        [[path_link example/advanced/server/advanced_server.cpp advanced_server.cpp]]
 ][
         [Advanced, flex (plain + SSL)]
         [[itemized_list
@@ -162,7 +162,7 @@ and illustrate the implementation of advanced features.
             [Flexible ports: plain and SSL on the same port]
             [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
         ]]
-        [[example_src example/advanced/server-flex/advanced_server_flex.cpp advanced_server_flex.cpp]]
+        [[path_link example/advanced/server-flex/advanced_server_flex.cpp advanced_server_flex.cpp]]
 ][
         [Chat Server, multi-threaded]
         [[itemized_list
@@ -173,7 +173,7 @@ and illustrate the implementation of advanced features.
             [Dual protocols: HTTP and WebSocket]
             [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
         ]]
-        [[source_file example/websocket/server/chat-multi]]
+        [[path_link example/websocket/server/chat-mult chat-multi]]
 ]]
 
 [endsect]
@@ -203,7 +203,7 @@ in the Beast example contains improvements to the original program.
       [Dual protocols: HTTP and WebSocket]
       [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
   ]]
-  [[source_file example/websocket/server/chat-multi]]
+  [[path_link example/websocket/server/chat-multi chat-multi]]
 ][
   [Client]
   [[itemized_list
@@ -213,7 +213,7 @@ in the Beast example contains improvements to the original program.
       [Only 60 lines total including UI]
       [Completely portable graphics]
   ]]
-  [[source_file example/websocket/server/chat-multi/chat_client.html]]
+  [[path_link example/websocket/server/chat-multi/chat_client.html chat_client.html]]
 ]]
 
 [/ "Get rich quick! Using Boost.Beast WebSockets and Networking TS"]
