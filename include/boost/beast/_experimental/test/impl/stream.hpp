@@ -114,7 +114,7 @@ struct stream::run_read_op
     void
     operator()(
         ReadHandler&& h,
-        stream& s,
+        std::shared_ptr<state> const& in,
         MutableBufferSequence const& buffers)
     {
         // If you get an error on the following line it means
@@ -126,13 +126,14 @@ struct stream::run_read_op
                 void(error_code, std::size_t)>::value,
             "ReadHandler type requirements not met");
 
-        s.initiate_read(
+        initiate_read(
+            in,
             std::unique_ptr<read_op_base>{
             new read_op<
                 typename std::decay<ReadHandler>::type,
                 MutableBufferSequence>(
                     std::move(h),
-                    *s.in_,
+                    *in,
                     buffers)},
             buffer_size(buffers));
     }
@@ -278,7 +279,7 @@ async_read_some(
         void(error_code, std::size_t)>(
             run_read_op{},
             handler,
-            *this,
+            in_,
             buffers);
 }
 

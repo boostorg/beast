@@ -81,7 +81,7 @@ struct run_write_op
     void
     operator()(
         WriteHandler&& h,
-        flat_stream& s,
+        flat_stream* s,
         Buffers const& b)
     {
         // If you get an error on the following line it means
@@ -95,9 +95,7 @@ struct run_write_op
 
         write_op<
             typename std::decay<WriteHandler>::type>(
-                std::forward<WriteHandler>(h),
-                s,
-                b);
+                std::forward<WriteHandler>(h), *s, b);
     }
 };
 
@@ -248,7 +246,7 @@ async_write_some(
         void(error_code, std::size_t)>(
             typename ops::run_write_op{},
             handler,
-            *this,
+            this,
             buffers);
 }
 

@@ -223,10 +223,10 @@ struct run_read_msg_op
     void
     operator()(
         ReadHandler&& h,
-        AsyncReadStream& s,
-        DynamicBuffer& b,
+        AsyncReadStream* s,
+        DynamicBuffer* b,
         message<isRequest, Body,
-            basic_fields<Allocator>>& m)
+            basic_fields<Allocator>>* m)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
@@ -242,10 +242,7 @@ struct run_read_msg_op
             DynamicBuffer,
             isRequest, Body, Allocator,
             typename std::decay<ReadHandler>::type>(
-                std::forward<ReadHandler>(h),
-                s,
-                b,
-                m);
+                std::forward<ReadHandler>(h), *s, *b, *m);
     }
 };
 
@@ -556,10 +553,7 @@ async_read(
         ReadHandler,
         void(error_code, std::size_t)>(
             detail::run_read_msg_op{},
-            handler,
-            stream,
-            buffer,
-            msg);
+                handler, &stream, &buffer, &msg);
 }
 
 } // http

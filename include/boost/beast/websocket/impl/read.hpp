@@ -727,7 +727,7 @@ struct stream<NextLayer, deflateSupported>::
     operator()(
         ReadHandler&& h,
         boost::shared_ptr<impl_type> const& sp,
-        DynamicBuffer& b,
+        DynamicBuffer* b,
         std::size_t limit,
         bool some)
     {
@@ -745,7 +745,7 @@ struct stream<NextLayer, deflateSupported>::
             DynamicBuffer>(
                 std::forward<ReadHandler>(h),
                 sp,
-                b,
+                *b,
                 limit,
                 some);
     }
@@ -811,7 +811,7 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
             run_read_op{},
             handler,
             impl_,
-            buffer,
+            &buffer,
             0,
             false);
 }
@@ -889,7 +889,7 @@ async_read_some(
             run_read_op{},
             handler,
             impl_,
-            buffer,
+            &buffer,
             limit,
             true);
 }

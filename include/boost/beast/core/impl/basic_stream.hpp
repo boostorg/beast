@@ -538,7 +538,7 @@ struct run_read_op
     void
     operator()(
         ReadHandler&& h,
-        basic_stream& s,
+        basic_stream* s,
         Buffers const& b)
     {
         // If you get an error on the following line it means
@@ -554,7 +554,7 @@ struct run_read_op
             true,
             Buffers,
             typename std::decay<ReadHandler>::type>(
-                std::forward<ReadHandler>(h), s, b);
+                std::forward<ReadHandler>(h), *s, b);
     }
 };
 
@@ -564,7 +564,7 @@ struct run_write_op
     void
     operator()(
         WriteHandler&& h,
-        basic_stream& s,
+        basic_stream* s,
         Buffers const& b)
     {
         // If you get an error on the following line it means
@@ -580,7 +580,7 @@ struct run_write_op
             false,
             Buffers,
             typename std::decay<WriteHandler>::type>(
-                std::forward<WriteHandler>(h), s, b);
+                std::forward<WriteHandler>(h), *s, b);
     }
 };
 
@@ -590,7 +590,7 @@ struct run_connect_op
     void
     operator()(
         ConnectHandler&& h,
-        basic_stream& s,
+        basic_stream* s,
         endpoint_type const& ep)
     {
         // If you get an error on the following line it means
@@ -603,7 +603,7 @@ struct run_connect_op
             "ConnectHandler type requirements not met");
 
         connect_op<typename std::decay<ConnectHandler>::type>(
-            std::forward<ConnectHandler>(h), s, ep);
+            std::forward<ConnectHandler>(h), *s, ep);
     }
 };
 
@@ -616,7 +616,7 @@ struct run_connect_range_op
     void
     operator()(
         RangeConnectHandler&& h,
-        basic_stream& s,
+        basic_stream* s,
         EndpointSequence const& eps,
         Condition const& cond)
     {
@@ -630,7 +630,7 @@ struct run_connect_range_op
             "RangeConnectHandler type requirements not met");
 
         connect_op<typename std::decay<RangeConnectHandler>::type>(
-            std::forward<RangeConnectHandler>(h), s, eps, cond);
+            std::forward<RangeConnectHandler>(h), *s, eps, cond);
     }
 };
 
@@ -643,7 +643,7 @@ struct run_connect_iter_op
     void
     operator()(
         IteratorConnectHandler&& h,
-        basic_stream& s,
+        basic_stream* s,
         Iterator begin, Iterator end,
         Condition const& cond)
     {
@@ -657,7 +657,7 @@ struct run_connect_iter_op
             "IteratorConnectHandler type requirements not met");
 
         connect_op<typename std::decay<IteratorConnectHandler>::type>(
-            std::forward<IteratorConnectHandler>(h), s, begin, end, cond);
+            std::forward<IteratorConnectHandler>(h), *s, begin, end, cond);
     }
 };
 
@@ -813,7 +813,7 @@ async_connect(
         void(error_code)>(
             typename ops::run_connect_op{},
             handler,
-            *this,
+            this,
             ep);
 }
 
@@ -834,7 +834,7 @@ async_connect(
         void(error_code, typename Protocol::endpoint)>(
             typename ops::run_connect_range_op{},
             handler,
-            *this,
+            this,
             endpoints,
             detail::any_endpoint{});
 }
@@ -858,7 +858,7 @@ async_connect(
         void(error_code, typename Protocol::endpoint)>(
             typename ops::run_connect_range_op{},
             handler,
-            *this,
+            this,
             endpoints,
             connect_condition);
 }
@@ -879,7 +879,7 @@ async_connect(
         void(error_code, Iterator)>(
             typename ops::run_connect_iter_op{},
             handler,
-            *this,
+            this,
             begin, end,
             detail::any_endpoint{});
 }
@@ -902,7 +902,7 @@ async_connect(
         void(error_code, Iterator)>(
             typename ops::run_connect_iter_op{},
             handler,
-            *this,
+            this,
             begin, end,
             connect_condition);
 }
@@ -926,7 +926,7 @@ async_read_some(
         void(error_code, std::size_t)>(
             typename ops::run_read_op{},
             handler,
-            *this,
+            this,
             buffers);
 }
 
@@ -947,7 +947,7 @@ async_write_some(
         void(error_code, std::size_t)>(
             typename ops::run_write_op{},
             handler,
-            *this,
+            this,
             buffers);
 }
 

@@ -96,24 +96,21 @@ namespace test {
 */
 class stream
 {
-    struct read_op_base
-    {
-        virtual ~read_op_base() = default;
-        virtual void operator()(error_code ec) = 0;
-    };
+    struct state;
 
-    BOOST_BEAST_DECL void initiate_read(std::unique_ptr<read_op_base>&& op, std::size_t buf_size);
-
-    template<class Handler, class Buffers>
-    class read_op;
-
-    struct run_read_op;
-    struct run_write_op;
+    std::shared_ptr<state> in_;
+    std::weak_ptr<state> out_;
 
     enum class status
     {
         ok,
         eof,
+    };
+
+    struct read_op_base
+    {
+        virtual ~read_op_base() = default;
+        virtual void operator()(error_code ec) = 0;
     };
 
     struct state
@@ -146,8 +143,19 @@ class stream
         notify_read();
     };
 
-    std::shared_ptr<state> in_;
-    std::weak_ptr<state> out_;
+    template<class Handler, class Buffers>
+    class read_op;
+
+    struct run_read_op;
+    struct run_write_op;
+
+    BOOST_BEAST_DECL
+    static
+    void
+    initiate_read(
+        std::shared_ptr<state> const& in,
+        std::unique_ptr<read_op_base>&& op,
+        std::size_t buf_size);
 
 public:
     using buffer_type = flat_buffer;

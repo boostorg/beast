@@ -18,9 +18,6 @@ class RatePolicy
 {
     friend class rate_policy_access;
 
-    static std::size_t constexpr all =
-        (std::numeric_limits<std::size_t>::max)();
-
     std::size_t
     available_read_bytes();
 

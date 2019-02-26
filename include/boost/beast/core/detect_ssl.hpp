@@ -370,16 +370,14 @@ struct run_detect_ssl_op
         class DynamicBuffer>
     void operator()(
         DetectHandler&& h,
-        AsyncReadStream& s,
+        AsyncReadStream* s, // references are passed as pointers
         DynamicBuffer& b)
     {
         detect_ssl_op<
             typename std::decay<DetectHandler>::type,
             AsyncReadStream,
             DynamicBuffer>(
-                std::forward<DetectHandler>(h),
-                s,
-                b);
+                std::forward<DetectHandler>(h), *s, b);
     }
 };
 
@@ -423,14 +421,18 @@ async_detect_ssl(
     // `net::async_result` for the type of `CompletionToken`,
     // the `initiation` object will be invoked with the saved
     // parameters and the actual completion handler. Our
-    // initiating object is `run_detect_ssl_op`
+    // initiating object is `run_detect_ssl_op`.
+    //
+    // Non-const references need to be passed as pointers,
+    // since we don't want a decay-copy.
+
 
     return net::async_initiate<
         CompletionToken,
         void(error_code, boost::tribool)>(
             detail::run_detect_ssl_op{},
             token,
-            stream,
+            &stream, // pass the reference by pointer
             buffer);
 }
 

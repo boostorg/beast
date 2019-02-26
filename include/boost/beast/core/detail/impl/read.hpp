@@ -119,8 +119,8 @@ struct run_read_op
     void
     operator()(
         ReadHandler&& h,
-        AsyncReadStream& s,
-        DynamicBuffer& b,
+        AsyncReadStream* s,
+        DynamicBuffer* b,
         Condition&& c)
     {
         // If you get an error on the following line it means
@@ -138,8 +138,8 @@ struct run_read_op
             typename std::decay<Condition>::type,
             typename std::decay<ReadHandler>::type>(
                 std::forward<ReadHandler>(h),
-                s,
-                b,
+                *s,
+                *b,
                 std::forward<Condition>(c));
     }
 
@@ -248,8 +248,8 @@ async_read(
         void(error_code, std::size_t)>(
             typename dynamic_read_ops::run_read_op{},
             handler,
-            stream,
-            buffer,
+            &stream,
+            &buffer,
             std::forward<CompletionCondition>(cond));
 }
 

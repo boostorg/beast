@@ -338,7 +338,7 @@ struct stream<NextLayer, deflateSupported>::
         AcceptHandler&& h,
         boost::shared_ptr<impl_type> const& sp,
         http::request<Body,
-            http::basic_fields<Allocator>> const& m,
+            http::basic_fields<Allocator>> const* m,
         Decorator const& d)
     {
         // If you get an error on the following line it means
@@ -352,10 +352,7 @@ struct stream<NextLayer, deflateSupported>::
 
         response_op<
             typename std::decay<AcceptHandler>::type>(
-                std::forward<AcceptHandler>(h),
-                sp,
-                m,
-                d);
+                std::forward<AcceptHandler>(h), sp, *m, d);
     }
 };
 
@@ -677,7 +674,7 @@ async_accept(
             run_response_op{},
             handler,
             impl_,
-            req,
+            &req,
             &default_decorate_res);
 }
 
@@ -706,7 +703,7 @@ async_accept_ex(
             run_response_op{},
             handler,
             impl_,
-            req,
+            &req,
             decorator);
 }
 

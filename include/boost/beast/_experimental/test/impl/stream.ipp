@@ -21,7 +21,9 @@ namespace beast {
 namespace test {
 
 //------------------------------------------------------------------------------
+
 void stream::initiate_read(
+    std::shared_ptr<state> const& in_,
     std::unique_ptr<stream::read_op_base>&& op,
     std::size_t buf_size)
 {

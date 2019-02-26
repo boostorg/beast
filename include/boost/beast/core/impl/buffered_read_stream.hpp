@@ -109,7 +109,7 @@ struct run_read_op
     void
     operator()(
         ReadHandler&& h,
-        buffered_read_stream& s,
+        buffered_read_stream* s,
         Buffers const& b)
     {
         // If you get an error on the following line it means
@@ -124,9 +124,7 @@ struct run_read_op
         read_op<
             Buffers,
             typename std::decay<ReadHandler>::type>(
-                std::forward<ReadHandler>(h),
-                s,
-                b);
+                std::forward<ReadHandler>(h), *s, b);
     }
 };
 
@@ -236,7 +234,7 @@ async_read_some(
         void(error_code, std::size_t)>(
             typename ops::run_read_op{},
             handler,
-            *this,
+            this,
             buffers);
 }
 

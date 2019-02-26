@@ -41,15 +41,19 @@ class stream<NextLayer, deflateSupported>::handshake_op
 {
     struct data
     {
-        data() = default; // for msvc
-
         // VFALCO This really should be two separate
         //        composed operations, to save on memory
-        http::request<http::empty_body> req;
+        request_type req;
         http::response_parser<
             typename response_type::body_type> p;
         flat_buffer fb;
-        bool overflow;
+        bool overflow = false; // could be a member of the op
+
+        explicit
+        data(request_type&& req_)
+            : req(std::move(req_))
+        {
+        }
     };
 
     boost::weak_ptr<impl_type> wp_;
@@ -58,23 +62,23 @@ class stream<NextLayer, deflateSupported>::handshake_op
     data& d_;
 
 public:
-    template<class Handler_, class Decorator>
+    template<class Handler_>
     handshake_op(
         Handler_&& h,
         boost::shared_ptr<impl_type> const& sp,
-        response_type* res_p,
-        string_view host, string_view target,
-        Decorator const& decorator)
+        request_type&& req,
+        detail::sec_ws_key_type key,
+        response_type* res_p)
         : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream.get_executor())
         , wp_(sp)
+        , key_(key)
         , res_p_(res_p)
-        , d_(beast::allocate_stable<data>(*this))
+        , d_(beast::allocate_stable<data>(
+            *this, std::move(req)))
     {
-        d_.req = sp->build_request(
-            key_, host, target, decorator);
         sp->reset(); // VFALCO I don't like this
         (*this)({}, 0, false);
     }
@@ -164,13 +168,13 @@ template<class NextLayer, bool deflateSupported>
 struct stream<NextLayer, deflateSupported>::
     run_handshake_op
 {
-    template<class HandshakeHandler, class Decorator>
+    template<class HandshakeHandler>
     void operator()(
         HandshakeHandler&& h,
         boost::shared_ptr<impl_type> const& sp,
-        response_type* r,
-        string_view host, string_view target,
-        Decorator const& d)
+        request_type&& req,
+        detail::sec_ws_key_type key,
+        response_type* res_p)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
@@ -184,10 +188,7 @@ struct stream<NextLayer, deflateSupported>::
         handshake_op<
             typename std::decay<HandshakeHandler>::type>(
                 std::forward<HandshakeHandler>(h),
-                sp,
-                r,
-                host, target,
-                d);
+                    sp, std::move(req), key, res_p);
     }
 };
 
@@ -269,21 +270,25 @@ template<class HandshakeHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     HandshakeHandler, void(error_code))
 stream<NextLayer, deflateSupported>::
-async_handshake(string_view host,
+async_handshake(
+    string_view host,
     string_view target,
-        HandshakeHandler&& handler)
+    HandshakeHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
+    detail::sec_ws_key_type key;
+    auto req = impl_->build_request(
+        key, host, target, &default_decorate_req);
     return net::async_initiate<
         HandshakeHandler,
         void(error_code)>(
             run_handshake_op{},
             handler,
             impl_,
-            nullptr,
-            host, target,
-            &default_decorate_req);
+            std::move(req),
+            key,
+            nullptr);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -291,22 +296,26 @@ template<class HandshakeHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     HandshakeHandler, void(error_code))
 stream<NextLayer, deflateSupported>::
-async_handshake(response_type& res,
+async_handshake(
+    response_type& res,
     string_view host,
-        string_view target,
-            HandshakeHandler&& handler)
+    string_view target,
+    HandshakeHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
+    detail::sec_ws_key_type key;
+    auto req = impl_->build_request(
+        key, host, target, &default_decorate_req);
     return net::async_initiate<
         HandshakeHandler,
         void(error_code)>(
             run_handshake_op{},
             handler,
             impl_,
-            &res,
-            host, target,
-            &default_decorate_req);
+            std::move(req),
+            key,
+            &res);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -478,15 +487,18 @@ async_handshake_ex(string_view host,
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
+    detail::sec_ws_key_type key;
+    auto req = impl_->build_request(
+        key, host, target, decorator);
     return net::async_initiate<
         HandshakeHandler,
         void(error_code)>(
             run_handshake_op{},
             handler,
             impl_,
-            nullptr,
-            host, target,
-            decorator);
+            std::move(req),
+            key,
+            nullptr);
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -509,15 +521,18 @@ async_handshake_ex(response_type& res,
     static_assert(detail::is_request_decorator<
             RequestDecorator>::value,
         "RequestDecorator requirements not met");
+    detail::sec_ws_key_type key;
+    auto req = impl_->build_request(
+        key, host, target, decorator);
     return net::async_initiate<
         HandshakeHandler,
         void(error_code)>(
             run_handshake_op{},
             handler,
             impl_,
-            &res,
-            host, target,
-            decorator);
+            std::move(req),
+            key,
+            &res);
 }
 
 } // websocket

@@ -444,9 +444,9 @@ struct run_write_some_win32_op
     operator()(
         WriteHandler&& h,
         net::basic_stream_socket<
-            Protocol, Executor>& s,
+            Protocol, Executor>* s,
         serializer<isRequest,
-            basic_file_body<file_win32>, Fields>& sr)
+            basic_file_body<file_win32>, Fields>* sr)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
@@ -461,9 +461,7 @@ struct run_write_some_win32_op
             Protocol, Executor,
             isRequest, Fields,
             typename std::decay<WriteHandler>::type>(
-                std::forward<WriteHandler>(h),
-                s,
-                sr);
+                std::forward<WriteHandler>(h), *s, *sr);
     }
 };
 
@@ -560,8 +558,8 @@ async_write_some(
         void(error_code, std::size_t)>(
             detail::run_write_some_win32_op{},
             handler,
-            sock,
-            sr);
+            &sock,
+            &sr);
 }
 
 #endif

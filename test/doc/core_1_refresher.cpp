@@ -343,7 +343,7 @@ template<
     class CompletionToken>
 auto
 async_write(
-    AsyncWriteStream& stream,
+    AsyncWriteStream* stream,                       // references are passed as pointers
     ConstBufferSequence const& buffers,
     CompletionToken&& token)                        // a handler, or a special object.
     ->
@@ -379,9 +379,9 @@ async_write(
     return net::async_initiate<
         CompletionToken,
         void(error_code, std::size_t)>(
-            run_async_write{},              // the "initiation" object.
-            token,                          // must be first.
-            stream,                         // additional captured arguments are
+            run_async_write{},              // The "initiation" object.
+            token,                          // Token must come before other arguments.
+            &stream,                        // Additional captured arguments are
             buffers);                       //   forwarded to the initiation object.
 
 //]
