@@ -73,14 +73,13 @@ public:
         std::size_t bytes_transferred,
         bool cont = true)
     {
-        ec_ = ec;
         std::size_t max_size;
         std::size_t max_prepare;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             for(;;)
             {
-                max_size = cond_(ec_, total_, b_);
+                max_size = cond_(ec, total_, b_);
                 max_prepare = std::min<std::size_t>(
                     std::max<std::size_t>(
                         512, b_.capacity() - b_.size()),
@@ -98,11 +97,13 @@ public:
             {
                 // run this handler "as-if" using net::post
                 // to reduce template instantiations
+                ec_ = ec;
                 BOOST_ASIO_CORO_YIELD
                 s_.async_read_some(
                     b_.prepare(0), std::move(*this));
+                ec = ec_;
             }
-            this->invoke_now(ec_, total_);
+            this->invoke_now(ec, total_);
         }
     }
 };
