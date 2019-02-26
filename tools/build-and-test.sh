@@ -112,12 +112,20 @@ function build_bjam ()
       toolset=$TOOLSET \
       variant=$VARIANT \
       -j${JOBS}
-  else
+  elif [[ $VARIANT == "debug" ]]; then
     b2 \
       define=BOOST_COROUTINES_NO_DEPRECATION_WARNING=1 \
       cxxstd=$CXXSTD \
       libs/beast/test//fat-tests \
       libs/beast/example \
+      toolset=$TOOLSET \
+      variant=$VARIANT \
+      -j${JOBS}
+  else
+    b2 \
+      define=BOOST_COROUTINES_NO_DEPRECATION_WARNING=1 \
+      cxxstd=$CXXSTD \
+      libs/beast/test//fat-tests \
       toolset=$TOOLSET \
       variant=$VARIANT \
       -j${JOBS}
