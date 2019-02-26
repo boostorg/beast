@@ -10,6 +10,7 @@
 //[code_websocket_1b
 
 namespace net = boost::asio;
+namespace beast = boost::beast;
 using namespace boost::beast;
 using namespace boost::beast::websocket;
 

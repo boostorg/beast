@@ -19,6 +19,8 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
+#include <iostream>
+
 namespace {
 
 #include "websocket_common.ipp"
@@ -26,10 +28,57 @@ namespace {
 void
 snippets()
 {
+    {
+  
     stream<tcp_stream> ws(ioc);
 
     {
     //[code_websocket_6_1
+
+        // Apply suggested timeout options for the server role to the stream
+        ws.set_option(stream_base::timeout::suggested(role_type::server));
+
+    //]
+    }
+
+    {
+    //[code_websocket_6_2
+
+        stream_base::timeout opt{
+            std::chrono::seconds(30),   // handshake timeout
+            stream_base::none(),        // idle timeout
+            false
+        };
+
+        // Set the timeout options on the stream.
+        ws.set_option(opt);
+
+    //]
+    }
+
+    {
+        flat_buffer b;
+    //[code_websocket_6_3
+
+        ws.async_read(b,
+            [](error_code ec, std::size_t)
+            {
+                if(ec == beast::error::timeout)
+                    std::cerr << "timeout, connection closed!";
+            });
+    //]
+    }
+
+    }
+
+    {
+    //[code_websocket_6_4
+
+        // Disable any timeouts on the tcp_stream
+        sock.expires_never();
+
+        // Construct the websocket stream, taking ownership of the existing tcp_stream
+        stream<tcp_stream> ws(std::move(sock));
 
     //]
     }
