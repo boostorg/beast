@@ -482,6 +482,9 @@ class detect_ssl_op
     // The callers buffer is used to hold all received data
     DynamicBuffer& buffer_;
 
+    // We're going to need this in case we have to post the handler
+    error_code ec_;
+
     boost::tribool result_ = false;
 
 public:
@@ -593,12 +596,41 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
                 break;
         }
 
-        // Invoke the final handler.
         // If `cont` is true, the handler will be invoked directly.
-        // Otherwise, the handler will be submitted to the executor
-        // through a call to `net::post`.
+        //
+        // Otherwise, the handler cannot be invoked directly, because
+        // initiating functions are not allowed to call the handler
+        // before returning. Instead, the handler must be posted to
+        // the I/O context. We issue a zero-byte read using the same
+        // type of buffers used in the ordinary read above, to prevent
+        // the compiler from creating an extra instantiation of the
+        // function template. This reduces compile times and the size
+        // of the program executable.
 
-        this->invoke(cont, ec, result_);
+        if(! cont)
+        {
+            // Save the error, otherwise it will be overwritten with
+            // a successful error code when this read completes
+            // immediately.
+            ec_ = ec;
+
+            // Zero-byte reads and writes are guaranteed to complete
+            // immediately with succcess. The type of buffers and the
+            // type of handler passed here need to exactly match the types
+            // used in the call to async_read_some above, to avoid
+            // instantiating another version of the function template.
+
+            yield stream_.async_read_some(buffer_.prepare(0), std::move(*this));
+
+            // Restore the saved error code
+            ec = ec_;
+        }
+
+        // Invoke the final handler.
+        // At this point, we are guaranteed that the original initiating
+        // function is no longer on our stack frame.
+
+        this->invoke_now(ec, result_);
     }
 }
 
