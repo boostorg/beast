@@ -138,7 +138,6 @@
 [import ../../test/doc/exemplars.cpp]
 [import ../../test/doc/core_snippets.cpp]
 [import ../../test/doc/http_snippets.cpp]
-[import ../../test/doc/websocket_snippets.cpp]
 
 [import ../../test/doc/core_1_refresher.cpp]
 [import ../../test/doc/core_3_timeouts.cpp]

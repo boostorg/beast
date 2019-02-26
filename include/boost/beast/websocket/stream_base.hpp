@@ -105,45 +105,46 @@ struct stream_base
             complete immediately the error @ref beast::error::timeout.
         */
         bool keep_alive_pings;
-    };
 
-    /** Construct timeout settings with suggested values for a role.
+        /** Construct timeout settings with suggested values for a role.
 
-        This constructs the timeout settings with a predefined set
-        of values which varies depending on the desired role. The
-        values are selected upon construction, regardless of the
-        current or actual role in use on the stream.
+            This constructs the timeout settings with a predefined set
+            of values which varies depending on the desired role. The
+            values are selected upon construction, regardless of the
+            current or actual role in use on the stream.
 
-        @par Example
-        This statement sets the timeout settings of the stream to
-        the suggested values for the server role:
-        @code
-        @endcode
+            @par Example
+            This statement sets the timeout settings of the stream to
+            the suggested values for the server role:
+            @code
+            @endcode
 
-        @param role The role of the websocket stream
-        (@ref role_type::client or @ref role_type::server).
-    */
-    static
-    timeout
-    suggested_settings(role_type role) noexcept
-    {
-        timeout opt{};
-        switch(role)
+            @param role The role of the websocket stream
+            (@ref role_type::client or @ref role_type::server).
+        */
+        static
+        timeout
+        suggested(role_type role) noexcept
         {
-        case role_type::client:
-            opt.handshake_timeout = std::chrono::seconds(30);
-            opt.idle_timeout = none();
-            opt.keep_alive_pings = false;
-            break;
+            timeout opt{};
+            switch(role)
+            {
+            case role_type::client:
+                opt.handshake_timeout = std::chrono::seconds(30);
+                opt.idle_timeout = none();
+                opt.keep_alive_pings = false;
+                break;
 
-        case role_type::server:
-            opt.handshake_timeout = std::chrono::seconds(30);
-            opt.idle_timeout = std::chrono::seconds(300);
-            opt.keep_alive_pings = true;
-            break;
+            case role_type::server:
+                opt.handshake_timeout = std::chrono::seconds(30);
+                opt.idle_timeout = std::chrono::seconds(300);
+                opt.keep_alive_pings = true;
+                break;
+            }
+            return opt;
         }
-        return opt;
-    }
+
+    };
 
 protected:
     enum class status

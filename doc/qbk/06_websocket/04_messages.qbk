@@ -46,15 +46,15 @@ These stream members are used to write websocket messages:
 [[Function][Description]]
 [
     [
-        [link beast.ref.boost__beast__websocket__stream.write `write`],
+        [link beast.ref.boost__beast__websocket__stream.write.overload2 `write`],
         [link beast.ref.boost__beast__websocket__stream.async_write `async_write`]
     ][
         Send a buffer sequence as a complete message.
     ]
 ][
     [
-        [link beast.ref.boost__beast__websocket__stream.write_some `write_some`],
-        [link beast.ref.boost__beast__websocket__stream.async_write `async_write_some`]
+        [link beast.ref.boost__beast__websocket__stream.write_some.overload2 `write_some`],
+        [link beast.ref.boost__beast__websocket__stream.async_write_some `async_write_some`]
     ][
         Send a buffer sequence as part of a message.
     ]
@@ -72,7 +72,7 @@ The same message could be sent in two or more frames thusly.
 [[Function][Description]]
 [
     [
-        [link beast.ref.boost__beast__websocket__stream.read `read`],
+        [link beast.ref.boost__beast__websocket__stream.read.overload2 `read`],
         [link beast.ref.boost__beast__websocket__stream.async_read `async_read`]
     ][
         Read a complete message into a __DynamicBuffer__.
@@ -80,14 +80,14 @@ The same message could be sent in two or more frames thusly.
 ][
     [
         [link beast.ref.boost__beast__websocket__stream.read_some.overload2 `read_some`],
-        [link beast.ref.boost__beast__websocket__stream.async_read.overload1 `async_read_some`]
+        [link beast.ref.boost__beast__websocket__stream.async_read_some.overload1 `async_read_some`]
     ][
         Read part of a message into a __DynamicBuffer__.
     ]
 ][
     [
         [link beast.ref.boost__beast__websocket__stream.read_some.overload4 `read_some`],
-        [link beast.ref.boost__beast__websocket__stream.async_read.overload2 `async_read_some`]
+        [link beast.ref.boost__beast__websocket__stream.async_read_some.overload2 `async_read_some`]
     ][
         Read part of a message into a __MutableBufferSequence__.
     ]
@@ -117,6 +117,6 @@ message ahead of time:
 For these cases, the partial data oriented interface may be used. This
 example reads and echoes a complete message using this interface:
 
-[ws_snippet_16]
+[code_websocket_4_3]
 
 [endsect]

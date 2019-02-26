@@ -237,7 +237,7 @@ public:
     {
         // Set suggested timeout settings for the websocket
         ws_.set_option(
-            websocket::stream_base::suggested_settings(
+            websocket::stream_base::timeout::suggested(
                 beast::role_type::server));
 
         // Set a decorator to change the Server of the handshake

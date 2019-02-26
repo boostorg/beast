@@ -465,7 +465,7 @@ public:
     storage, the class @ref stable_async_base is provided which offers
     additional functionality:
 
-    @li The free function @ref allocate_stable may be used to allocate
+    @li The free function @ref beast::allocate_stable may be used to allocate
     one or more temporary objects associated with the composed operation.
 
     @li Memory for stable temporary objects is allocated using the allocator
@@ -482,7 +482,7 @@ public:
     assist authoring an asynchronous initiating function, by providing all of
     the boilerplate to manage the final completion handler in a way that maintains
     the allocator and executor associations. Furthermore, the operation shown
-    allocates temporary memory using @ref allocate_stable for the timer and
+    allocates temporary memory using @ref beast::allocate_stable for the timer and
     message, whose addresses must not change between intermediate operations:
 
     @code
@@ -592,7 +592,7 @@ public:
     not default constructible, an instance of the type must be provided
     upon construction.
 
-    @see @ref allocate_stable, @ref async_base
+    @see allocate_stable, async_base
 */
 template<
     class Handler,

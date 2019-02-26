@@ -303,7 +303,6 @@
         <bridgehead renderas="sect3">Options</bridgehead>
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.ref.boost__beast__websocket__permessage_deflate">permessage_deflate</link></member>
-          <member><link linkend="beast.ref.boost__beast__websocket__stream_base.suggested_settings">suggested_settings</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__websocket__stream_base__decorator">decorator</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__websocket__stream_base__timeout">timeout</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
         </simplelist>

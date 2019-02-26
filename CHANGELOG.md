@@ -1,3 +1,9 @@
+Version 222:
+
+* stream_base::timeout::suggested is a nested function
+
+--------------------------------------------------------------------------------
+
 Version 221:
 
 * Rename to async_base, stable_async_base

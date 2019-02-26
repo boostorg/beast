@@ -45,11 +45,11 @@ public:
 
         {
             ws.set_option(
-                stream_base::suggested_settings(
+                stream_base::timeout::suggested(
                     role_type::client));
 
             ws.set_option(
-                stream_base::suggested_settings(
+                stream_base::timeout::suggested(
                     role_type::server));
 
             ws.set_option({

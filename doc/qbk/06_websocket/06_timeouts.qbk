@@ -7,8 +7,42 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
+[/-----------------------------------------------------------------------------]
+
 [section Timeouts __new__]
 
-[/-----------------------------------------------------------------------------]
+While
+[link beast.ref.boost__beast__basic_stream `basic_stream`] and
+[link beast.ref.boost__beast__basic_stream `tcp_stream`] support timeouts on
+general logical operations, the websocket stream has a more sophisticated timeout
+mechanism built-in which may be enabled and configured. The timeout features
+of the TCP or basic stream should not be used when working with a websocket
+stream. The interface to these timeout features is show in this table.
+
+[table WebSocket Timeout Interface
+[[Name][Description]]
+[[
+    [link beast.ref.boost__beast__websocket__stream_base__timeout `stream_base::timeout`]
+][
+    This represents configured timeout settings for a websocket stream.
+]]
+[[
+    [link beast.ref.boost__beast__websocket__stream_base__timeout `stream_base::timeout`]
+][
+    This is the type of the object passed to the decorator to
+    represent HTTP Upgrade response.
+]]
+[[
+    [link beast.ref.boost__beast__websocket__stream_base__decorator `stream_base::decorator`]
+][
+    Objects of this type are used to hold a decorator to be
+    set on the stream using `set_option`.
+]]
+[[
+    [link beast.ref.boost__beast__websocket__stream.set_option `stream::set_option`]
+][
+    This function is used to set a `stream_base::decorator` on the stream.
+]]
+]
 
 [endsect]

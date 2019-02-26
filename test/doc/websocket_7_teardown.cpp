@@ -88,7 +88,7 @@ snippets()
     //stream<tcp_stream> ws(ioc);
 
     {
-    //[code_websocket_7_1
+    //[code_websocket_7_3
 
     //]
     }
