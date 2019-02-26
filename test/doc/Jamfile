@@ -18,14 +18,20 @@ project
 alias run-tests :
     [ compile core_snippets.cpp ]
     [ compile http_snippets.cpp ]
-    [ compile websocket_snippets.cpp ]
     [ run core_1_refresher.cpp $(TEST_MAIN) ]
     [ run core_3_timeouts.cpp $(TEST_MAIN) ]
     [ run core_4_layers.cpp $(TEST_MAIN) ]
     [ run http_10_custom_parser.cpp $(TEST_MAIN) ]
     [ run http_examples.cpp $(TEST_MAIN) ]
     [ run websocket.cpp $(TEST_MAIN) ]
-    [ run websocket_3_handshake.cpp $(TEST_MAIN) ]
+    [ run websocket_1_connecting.cpp $(TEST_MAIN) ]
+    [ run websocket_2_handshaking.cpp $(TEST_MAIN) ]
+    [ run websocket_3_decorator.cpp $(TEST_MAIN) ]
+    [ run websocket_4_messages.cpp $(TEST_MAIN) ]
+    [ run websocket_5_control_frames.cpp $(TEST_MAIN) ]
+    [ run websocket_6_timeouts.cpp $(TEST_MAIN) ]
+    [ run websocket_7_teardown.cpp $(TEST_MAIN) ]
+    [ run websocket_8_notes.cpp $(TEST_MAIN) ]
     ;
 
 exe fat-tests :
@@ -36,7 +42,14 @@ exe fat-tests :
     http_10_custom_parser.cpp
     http_examples.cpp
     websocket.cpp
-    websocket_3_handshake.cpp
+    websocket_1_connecting.cpp
+    websocket_2_handshaking.cpp
+    websocket_3_decorator.cpp
+    websocket_4_messages.cpp
+    websocket_5_control_frames.cpp
+    websocket_6_timeouts.cpp
+    websocket_7_teardown.cpp
+    websocket_8_notes.cpp
     ;
 
 explicit fat-tests ;

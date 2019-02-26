@@ -47,7 +47,7 @@ To provide overloads of teardown for a user-defined type, simply declare
 the two free functions with the correct signature, accepting a reference
 to the user-defined type as the stream parameter:
 
-[ws_snippet_22]
+[code_websocket_7_1]
 
 When the implementation invokes the asynchronous teardown function, it
 always uses an invokable completion handler. It is not necessary
@@ -61,6 +61,6 @@ into scope with a `using` statement. Then call the customization point
 without namespace qualification, allowing argument-dependent lookup to
 take effect:
 
-[ws_snippet_23]
+[code_websocket_7_2]
 
 [endsect]

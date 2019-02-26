@@ -56,7 +56,7 @@ To be notified of control frames, callers may register a
 The object provided with this option should be callable with the following
 signature:
 
-[ws_snippet_17]
+[code_websocket_5_1]
 
 When a control callback is registered, it will be invoked for all pings,
 pongs, and close frames received through either synchronous read functions
@@ -88,7 +88,7 @@ To request a close use a close function such as
 [link beast.ref.boost__beast__websocket__stream.close.overload2 `close`] or
 [link beast.ref.boost__beast__websocket__stream.async_close `async_close`]:
 
-[ws_snippet_18]
+[code_websocket_5_2]
 
 The close function will send a close frame, read and discard incoming
 message data until receiving a close frame, and then shut down the
@@ -114,6 +114,6 @@ be broken up into smaller sized frames. The automatic fragment option
 turns on this feature, and the write buffer size option determines the
 maximum size of the fragments:
 
-[ws_snippet_19]
+[code_websocket_5_3]
 
 [endsect]

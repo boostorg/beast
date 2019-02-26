@@ -61,7 +61,7 @@ struct stream_base
 
         template<class Decorator>
         decorator(Decorator&& f)
-            : d_(f)
+            : d_(std::forward<Decorator>(f))
         {
         }
     };

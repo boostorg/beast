@@ -7,7 +7,9 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:decorator Custom HTTP Fields __new__]
+[/-----------------------------------------------------------------------------]
+
+[section:decorator Decorator __new__]
 
 For programs which need to modify either the outgoing WebSocket HTTP Upgrade
 request, the outgoing WebSocket HTTP Upgrade response, or both, the stream
@@ -20,13 +22,13 @@ uses:
 [table WebSocket Decorator Interface
 [[Name][Description]]
 [[
-    `request_type`
+    [link beast.ref.boost__beast__websocket__request_type `request_type`]
 ][
     This is the type of the object passed to the decorator to
     represent HTTP Upgrade requests.
 ]]
 [[
-    `response_type`
+    [link beast.ref.boost__beast__websocket__response_type `response_type`]
 ][
     This is the type of the object passed to the decorator to
     represent HTTP Upgrade response.
@@ -46,29 +48,34 @@ uses:
 
 This declares a normal function which decorates outgoing HTTP requests:
 
-[code_websocket_3_decorator_1b]
+[code_websocket_3_1]
 
-If a decorator is used, it must be set on the stream before any handshaking
+When using a decorator, it must be set on the stream before any handshaking
 takes place. This sets the decorator on the stream, to be used for all
 subsequent calls to accept or handshake:
 
-[code_websocket_3_decorator_1]
+[code_websocket_3_2]
 
 Alternatively, a function object may be used. Small function objects will
 not incur a memory allocation. The follow code declares and sets a function
 object as a decorator:
 
-[code_websocket_3_decorator_2]
+[code_websocket_3_3]
 
 A lambda may be used in place of a named function object:
 
-[code_websocket_3_decorator_3]
+[code_websocket_3_4]
 
 It also possible for a single decorator to handle both requests and
 responses, if it is overloaded for both types either as a generic
 lambda (C++14 and later) or as a class as shown here:
 
-[code_websocket_3_decorator_4]
+[code_websocket_3_5]
+
+The implementation takes ownership by decay-copy of the invocable object
+used as the decorator. Move-only types are possible:
+
+[code_websocket_3_6]
 
 [important
     Undefined behavior results if the decorator modifies the fields

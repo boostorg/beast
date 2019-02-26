@@ -7,8 +7,6 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#include "snippets.hpp"
-
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 
 #ifdef BOOST_MSVC
@@ -17,26 +15,20 @@
 #endif
 
 //[code_websocket_1a
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
+
+#include <boost/beast.hpp>
 #include <boost/beast/ssl.hpp>
-#include <boost/beast/websocket.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
+
 //]
 
 namespace {
 
-//[code_websocket_1b
-namespace net = boost::asio;
-using namespace boost::beast;
-using namespace boost::beast::websocket;
-
-net::io_context ioc;
-net::ssl::context ctx(net::ssl::context::sslv23);
-
-//]
+#include "websocket_common.ipp"
 
 void
-websocket_snippets()
+snippets()
 {
     {
     //[code_websocket_1f
@@ -52,8 +44,8 @@ websocket_snippets()
     {
     //[code_websocket_2f
 
-        // The `tcp_stream` will be constructed with a new strand which
-        // uses the specified I/O context.
+        // The `tcp_stream` will be constructed with a new
+        // strand which uses the specified I/O context.
 
         stream<tcp_stream> ws(make_strand(ioc));
 
@@ -63,34 +55,60 @@ websocket_snippets()
     {
     //[code_websocket_3f
 
+        // Ownership of the `tcp_stream` is transferred to the websocket stream
+
+        stream<tcp_stream> ws(std::move(sock));
+
+    //]
+    }
+    
+    {
+        stream<tcp_stream> ws(ioc);
+    //[code_websocket_4f
+
+        // Calls `close` on the underlying `beast::tcp_stream`
+        ws.next_layer().close();
+
+    //]
+    }
+
+    {
+    //[code_websocket_5f
+
         // The WebSocket stream will use SSL and a new strand
         stream<ssl_stream<tcp_stream>> wss(make_strand(ioc), ctx);
 
-        //
+    //]
+
+    //[code_websocket_6f
+
+        // Perform the SSL handshake in the client role
+        wss.next_layer().handshake(net::ssl::stream_base::client);
+
+    //]
+
+    //[code_websocket_7f
+
+        // Cancel all pending I/O on the underlying `tcp_stream`
+        get_lowest_layer(wss).cancel();
+
     //]
     }
 }
 
-} // (anon)
-
-namespace boost {
-namespace beast {
-
-struct websocket_snippets_test
-    : public beast::unit_test::suite
+struct doc_websocket_test
+    : public boost::beast::unit_test::suite
 {
     void
     run() override
     {
-        BEAST_EXPECT(&websocket_snippets);
-        pass();
+        BEAST_EXPECT(&snippets);
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,doc,websocket_snippets);
+BEAST_DEFINE_TESTSUITE(beast,doc,doc_websocket);
 
-} // beast
-} // boost
+} // (anon)
 
 #ifdef BOOST_MSVC
 #pragma warning(pop)

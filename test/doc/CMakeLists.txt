@@ -26,9 +26,16 @@ add_executable (tests-doc
     http_10_custom_parser.cpp
     http_examples.cpp
     http_snippets.cpp
+    websocket_common.ipp
     websocket.cpp
-    websocket_3_handshake.cpp
-    websocket_snippets.cpp
+    websocket_1_connecting.cpp
+    websocket_2_handshaking.cpp
+    websocket_3_decorator.cpp
+    websocket_4_messages.cpp
+    websocket_5_control_frames.cpp
+    websocket_6_timeouts.cpp
+    websocket_7_teardown.cpp
+    websocket_8_notes.cpp
     exemplars.cpp
 )
 

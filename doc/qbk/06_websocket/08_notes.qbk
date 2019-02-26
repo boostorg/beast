@@ -23,13 +23,13 @@ of the underlying TCP/IP connection.
 
 Asynchronous versions are available for all functions:
 
-[ws_snippet_20]
+[code_websocket_8_1]
 
 Calls to asynchronous initiation functions support the extensible asynchronous
 model developed by the Boost.Asio author, allowing for traditional completion
 handlers, stackful or stackless coroutines, and even futures:
 
-[ws_snippet_21]
+[code_websocket_8_1f]
 
 The example programs that come with the library demonstrate the usage of
 websocket stream operations with all asynchronous varieties.
@@ -59,11 +59,11 @@ following operations to be active at the same time:
 For example, the following code is produces undefined behavior, because the
 program is attempting to perform two simultaneous reads:
 
-[ws_snippet_24]
+[code_websocket_8_2]
 
 However, this code is correct:
 
-[ws_snippet_25]
+[code_websocket_8_3]
 
 The implementation uses composed asynchronous operations; although
 some individual operations can perform both reads and writes, this

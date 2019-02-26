@@ -7,29 +7,27 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:establishing_connections Connecting]
+[section:establishing_connections Connecting __new__]
 
-Connections are established by invoking functions directly on the next layer
-object. For example, to make an outgoing connection using a standard TCP/IP
-socket:
+Before messages can be exchanged, a websocket stream first needs to be
+connected, and then to have the websocket handshake performed. The stream
+delegates the task of establishing the connection to the next layers.
+For example, if the next layer is a connectible stream or socket object,
+it can be accessed to call the necessary function for connecting.
+Here we make an outbound connection as a client would do.
 
-[ws_snippet_6]
+[code_websocket_1_1]
 
-Similarly, to accept an incoming connection using a standard TCP/IP
-socket, pass the next layer object to the acceptor:
+To accept incoming connections, an acceptor is used. The websocket stream
+may be constructed from the socket returned by the acceptor when an
+incoming connection is established.
 
-[ws_snippet_7]
+[code_websocket_1_2]
 
-When using SSL, which itself wraps a next layer object that is usually a
-TCP/IP socket, multiple calls to retrieve the next layer may be required.
-In this example, the websocket stream wraps the SSL stream which wraps
-the TCP/IP socket:
+Alternatively, the incoming connection may be accepted directly into
+the socket owned by the websocket stream, using this overload of the
+acceptor member function.
 
-[wss_snippet_3]
-
-[note
-    Examples use synchronous interfaces for clarity of exposition;
-    signatures for asynchronous operations are also provided.
-]
+[code_websocket_1_3]
 
 [endsect]

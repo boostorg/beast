@@ -98,6 +98,18 @@ strand to invoke all completion handlers:
 
 [code_websocket_2f]
 
+If the next layer supports move-construction, then the websocket stream can be
+constructed from a moved-from object.
+
+[code_websocket_3f]
+
+The next layer may be accessed by calling
+[link beast.ref.boost__beast__websocket__stream.next_layer.overload1 `stream::next_layer`].
+
+[code_websocket_4f]
+
+[/-----------------------------------------------------------------------------]
+
 [heading Using SSL]
 
 To use WebSockets over SSL, use an instance of the __ssl_stream__
@@ -105,51 +117,41 @@ class template as the template type for the stream. The required
 __io_context__ and __ssl_context__ arguments are forwarded to the
 wrapped stream's constructor:
 
-[code_websocket_3f]
+[code_websocket_5f]
 
 [important
     Code which declares websocket stream objects using Asio SSL types
     must include the file [include_file boost/beast/websocket/ssl.hpp].
 ]
 
-[heading Non-owning References]
+As before, the underlying SSL stream may be accessed by calling `next_layer`.
 
-If a socket type supports move construction, a websocket stream may be
-constructed around the already existing socket by invoking the move
-constructor signature:
+[code_websocket_6f]
 
-[ws_snippet_3]
+With multi-layered streams such as the one declared above, accessing an
+individual layer can be cumbersome when using chained calls to `next_layer`.
+The function
+[link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
+returns the last stream in a stack of layers in a layered stream. Here we
+access the lowest layer to cancel all outstanding I/O.
 
-Or, the wrapper can be constructed with a non-owning reference. In
-this case, the caller is responsible for managing the lifetime of the
-underlying socket being wrapped:
+[code_websocket_7f]
 
-[ws_snippet_4]
-
-Once the WebSocket stream wrapper is created, the wrapped object may be
-accessed by calling
-[link beast.ref.boost__beast__websocket__stream.next_layer.overload1 `stream::next_layer`]:
-
-[ws_snippet_5]
-
-[warning
-    Initiating operations on the next layer while websocket
-    operations are being performed may result in undefined behavior.
-]
+[/-----------------------------------------------------------------------------]
 
 [heading Non-Blocking Mode]
 
 Please note that websocket streams do not support non-blocking modes.
 
-
+[/-----------------------------------------------------------------------------]
 
 [include 01_connecting.qbk]
-[include 03_client.qbk]
-[include 04_server.qbk]
-[include 05_decorator.qbk]
-[include 06_messages.qbk]
-[include 07_control.qbk]
-[include 08_teardown.qbk]
-[include 09_notes.qbk]
+[include 02_handshaking.qbk]
+[include 03_decorator.qbk]
+[include 04_messages.qbk]
+[include 05_control_frames.qbk]
+[include 06_timeouts.qbk]
+[include 07_teardown.qbk]
+[include 08_notes.qbk]
 
 [endsect]

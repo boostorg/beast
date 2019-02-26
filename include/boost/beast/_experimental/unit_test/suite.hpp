@@ -644,7 +644,7 @@ run(runner& r)
 // detail:
 // This inserts the suite with the given manual flag
 #define BEAST_DEFINE_TESTSUITE_INSERT(Library,Module,Class,manual) \
-    static beast::unit_test::detail::insert_suite <Class##_test>   \
+    static ::boost::beast::unit_test::detail::insert_suite <Class##_test>   \
         Library ## Module ## Class ## _test_instance(             \
             #Class, #Module, #Library, manual)
 

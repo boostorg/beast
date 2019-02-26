@@ -160,7 +160,7 @@ struct stream::run_write_op
             "WriteHandler type requirements not met");
 
         ++in_->nwrite;
-        auto const complete_op = [&](error_code ec, std::size_t n)
+        auto const upcall = [&](error_code ec, std::size_t n)
         {
             net::post(
                 in_->ioc.get_executor(),
@@ -171,22 +171,16 @@ struct stream::run_write_op
         error_code ec;
         std::size_t n = 0;
         if(in_->fc && in_->fc->fail(ec))
-        {
-            return complete_op(ec, n);
-        }
+            return upcall(ec, n);
 
         // A request to write 0 bytes to a stream is a no-op.
         if(buffer_size(buffers) == 0)
-        {
-            return complete_op(ec, n);
-        }
+            return upcall(ec, n);
 
         // connection closed
         auto out = out_.lock();
         if(! out)
-        {
-            return complete_op(net::error::connection_reset, n);
-        }
+            return upcall(net::error::connection_reset, n);
 
         // copy buffers
         n = std::min<std::size_t>(
@@ -198,7 +192,7 @@ struct stream::run_write_op
             out->notify_read();
         }
         BOOST_ASSERT(! ec);
-        complete_op(ec, n);
+        upcall(ec, n);
     }
 };
 
