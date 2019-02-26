@@ -51,7 +51,7 @@ do_session(
     // Set suggested timeout settings for the websocket
     ws.set_option(
         websocket::stream_base::suggested_settings(
-            websocket::role_type::server));
+            beast::role_type::server));
 
     // Set a decorator to change the Server of the handshake
     ws.set_option(websocket::stream_base::decorator(

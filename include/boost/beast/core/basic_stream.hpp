@@ -14,8 +14,8 @@
 #include <boost/beast/core/detail/stream_base.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/rate_policy.hpp>
+#include <boost/beast/core/role.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/websocket/role.hpp> // VFALCO This is unfortunate
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/connect.hpp>

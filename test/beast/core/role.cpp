@@ -8,4 +8,4 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/websocket/role.hpp>
+#include <boost/beast/core/role.hpp>

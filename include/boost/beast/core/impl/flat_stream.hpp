@@ -255,7 +255,7 @@ async_write_some(
 template<class NextLayer>
 void
 teardown(
-    boost::beast::websocket::role_type role,
+    boost::beast::role_type role,
     flat_stream<NextLayer>& s,
     error_code& ec)
 {
@@ -266,7 +266,7 @@ teardown(
 template<class NextLayer, class TeardownHandler>
 void
 async_teardown(
-    boost::beast::websocket::role_type role,
+    boost::beast::role_type role,
     flat_stream<NextLayer>& s,
     TeardownHandler&& handler)
 {

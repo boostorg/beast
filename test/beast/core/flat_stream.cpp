@@ -14,7 +14,7 @@
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
-#include <boost/beast/websocket/role.hpp>
+#include <boost/beast/core/role.hpp>
 #include <initializer_list>
 #include <vector>
 
@@ -162,14 +162,14 @@ public:
             flat_stream<test::stream> s(ioc);
             ts.connect(s.next_layer());
             error_code ec;
-            teardown(websocket::role_type::client, s, ec);
+            teardown(role_type::client, s, ec);
         }
 
         {
             test::stream ts(ioc);
             flat_stream<test::stream> s(ioc);
             ts.connect(s.next_layer());
-            async_teardown(websocket::role_type::client, s,
+            async_teardown(role_type::client, s,
                 [](error_code)
                 {
                 });

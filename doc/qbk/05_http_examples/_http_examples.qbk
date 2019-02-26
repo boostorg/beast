@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section More Examples]
+[section:more_examples HTTP Examples]
 
 These examples in this section are working functions that may be found
 in the examples directory. They demonstrate the usage of the library for

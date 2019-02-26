@@ -10,14 +10,14 @@
 #ifndef BOOST_BEAST_WEBSOCKET_DETAIL_IMPL_BASE_HPP
 #define BOOST_BEAST_WEBSOCKET_DETAIL_IMPL_BASE_HPP
 
+#include <boost/beast/websocket/option.hpp>
+#include <boost/beast/websocket/detail/frame.hpp>
+#include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/role.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
-#include <boost/beast/websocket/option.hpp>
-#include <boost/beast/websocket/role.hpp>
-#include <boost/beast/websocket/detail/frame.hpp>
-#include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/zlib/deflate_stream.hpp>
 #include <boost/beast/zlib/inflate_stream.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>

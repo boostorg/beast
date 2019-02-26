@@ -10,18 +10,17 @@
 #include <boost/beast/core.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/asio/use_future.hpp>
 #include <algorithm>
 #include <future>
 #include <iostream>
 #include <thread>
 
-//[ws_snippet_1
+using namespace boost::beast;
+
 #include <boost/beast/websocket.hpp>
 using namespace boost::beast::websocket;
-//]
-
-using namespace boost::beast;
 
 namespace doc_ws_snippets {
 
@@ -33,12 +32,6 @@ std::thread t{[&](){ ioc.run(); }};
 error_code ec;
 net::ip::tcp::socket sock{ioc};
 boost::ignore_unused(ec);
-
-{
-//[ws_snippet_2
-    stream<net::ip::tcp::socket> ws{ioc};
-//]
-}
 
 {
 //[ws_snippet_3
@@ -277,24 +270,9 @@ struct custom_wrapper
 
 //]
 
-//[ws_snippet_26
-
-// A WebSocket stream
-template<
-    class NextLayer,
-    bool deflateSupported = true>
-class stream;
-
-//]
-
 } // doc_ws_snippets
 
 //------------------------------------------------------------------------------
-
-//[wss_snippet_1
-#include <boost/beast/websocket/ssl.hpp>
-#include <boost/asio/ssl.hpp>
-//]
 
 namespace doc_wss_snippets {
 
@@ -305,13 +283,6 @@ auto work = net::make_work_guard(ioc);
 std::thread t{[&](){ ioc.run(); }};
 error_code ec;
 net::ip::tcp::socket sock{ioc};
-
-{
-//[wss_snippet_2
-    net::ssl::context ctx{net::ssl::context::sslv23};
-    stream<net::ssl::stream<net::ip::tcp::socket>> wss{ioc, ctx};
-//]
-}
 
 {
 //[wss_snippet_3

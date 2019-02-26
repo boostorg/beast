@@ -11,8 +11,8 @@
 #define BOOST_BEAST_WEBSOCKET_STREAM_BASE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/websocket/role.hpp>
 #include <boost/beast/websocket/detail/decorator.hpp>
+#include <boost/beast/core/role.hpp>
 #include <chrono>
 
 namespace boost {

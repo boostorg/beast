@@ -13,8 +13,8 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/role.hpp>
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/websocket/role.hpp>
 #include <boost/beast/_experimental/test/fail_count.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
@@ -494,7 +494,7 @@ public:
     BOOST_BEAST_DECL
     void
     teardown(
-        websocket::role_type,
+        role_type,
         stream& s,
         boost::system::error_code& ec);
 
@@ -503,7 +503,7 @@ public:
     BOOST_BEAST_DECL
     void
     async_teardown(
-        websocket::role_type role,
+        role_type role,
         stream& s,
         TeardownHandler&& handler);
 #endif

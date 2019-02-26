@@ -1200,13 +1200,13 @@ public:
         {
             error_code ec;
             stream_type s(ioc);
-            teardown(websocket::role_type::client, s, ec);
+            teardown(role_type::client, s, ec);
         }
 
         {
             error_code ec;
             stream_type s(ioc);
-            async_teardown(websocket::role_type::server, s,
+            async_teardown(role_type::server, s,
                 [](error_code)
                 {
                 });

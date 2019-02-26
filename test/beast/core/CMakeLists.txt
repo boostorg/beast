@@ -62,6 +62,7 @@ add_executable (tests-beast-core
     ostream.cpp
     rate_policy.cpp
     read_size.cpp
+    role.cpp
     saved_handler.cpp
     span.cpp
     static_buffer.cpp

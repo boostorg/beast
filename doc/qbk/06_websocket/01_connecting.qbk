@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Establishing Connections]
+[section:establishing_connections Connecting]
 
 Connections are established by invoking functions directly on the next layer
 object. For example, to make an outgoing connection using a standard TCP/IP

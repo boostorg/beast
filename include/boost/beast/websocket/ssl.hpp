@@ -73,7 +73,6 @@ teardown(
 
 */
 template<class AsyncStream, class TeardownHandler>
-inline
 void
 async_teardown(
     role_type role,

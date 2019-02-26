@@ -26,6 +26,7 @@ add_executable (tests-doc
     http_10_custom_parser.cpp
     http_examples.cpp
     http_snippets.cpp
+    websocket.cpp
     websocket_3_handshake.cpp
     websocket_snippets.cpp
     exemplars.cpp

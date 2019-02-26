@@ -972,7 +972,7 @@ template<
     class Protocol, class Executor, class RatePolicy>
 void
 teardown(
-    websocket::role_type role,
+    role_type role,
     basic_stream<Protocol, Executor, RatePolicy>& stream,
     error_code& ec)
 {
@@ -985,7 +985,7 @@ template<
     class TeardownHandler>
 void
 async_teardown(
-    websocket::role_type role,
+    role_type role,
     basic_stream<Protocol, Executor, RatePolicy>& stream,
     TeardownHandler&& handler)
 {

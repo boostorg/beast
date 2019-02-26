@@ -64,7 +64,7 @@
 [def __AsyncWriteStream__       [@boost:/doc/html/boost_asio/reference/AsyncWriteStream.html ['AsyncWriteStream]]]
 [def __CompletionCondition__    [@boost:/doc/html/boost_asio/reference/CompletionCondition.html ['CompletionCondition]]]
 [def __CompletionHandler__      [@boost:/doc/html/boost_asio/reference/CompletionHandler.html ['CompletionHandler]]]
-[def __CompletionToken__        [@boost:/doc/html/boost_asio/reference/asynchronous_operations#boost_asio.reference.asynchronous_operations.completion_tokens_and_handlers ['CompletionToken]]]
+[def __CompletionToken__        [@boost:/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.completion_tokens_and_handlers ['CompletionToken]]]
 [def __ConnectCondition__       [@boost:/doc/html/boost_asio/reference/ConnectCondition.html ['ConnectCondition]]]
 [def __ConnectHandler__         [@boost:/doc/html/boost_asio/reference/ConnectHandler.html ['ConnectHandler]]]
 [def __ConstBufferSequence__    [@boost:/doc/html/boost_asio/reference/ConstBufferSequence.html ['ConstBufferSequence]]]
@@ -133,6 +133,7 @@
 [import ../../example/websocket/client/sync/websocket_client_sync.cpp]
 
 [import ../../include/boost/beast/http/basic_file_body.hpp]
+[import ../../include/boost/beast/websocket/stream_fwd.hpp]
 
 [import ../../test/doc/exemplars.cpp]
 [import ../../test/doc/core_snippets.cpp]
@@ -143,6 +144,7 @@
 [import ../../test/doc/core_3_timeouts.cpp]
 [import ../../test/doc/core_4_layers.cpp]
 [import ../../test/doc/http_10_custom_parser.cpp]
+[import ../../test/doc/websocket.cpp]
 [import ../../test/doc/websocket_3_handshake.cpp]
 
 [import ../../include/boost/beast/core/detect_ssl.hpp]
@@ -171,11 +173,11 @@ __new__ indicates an item that is new in this version.
 [include 01_intro/_intro.qbk]
 [include 02_examples/_examples.qbk]
 [include 03_core/_core.qbk]
-[include 04_http/0_http.qbk]
-[include 05_http_examples/0_http_examples.qbk]
-[include 06_websocket/0_websocket.qbk]
-[include 07_concepts/0_concepts.qbk]
-[include 08_design/0_design.qbk]
+[include 04_http/_http.qbk]
+[include 05_http_examples/_http_examples.qbk]
+[include 06_websocket/_websocket.qbk]
+[include 07_concepts/_concepts.qbk]
+[include 08_design/_design.qbk]
 
 [section:moved1 Release Notes (Moved)]
 The Release Notes have been moved to the top of the table of contents.

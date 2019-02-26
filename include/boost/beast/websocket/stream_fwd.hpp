@@ -12,6 +12,8 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
+//[code_websocket_1h
+
 namespace boost {
 namespace beast {
 namespace websocket {
@@ -24,5 +26,7 @@ class stream;
 } // websocket
 } // beast
 } // boost
+
+//]
 
 #endif

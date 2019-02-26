@@ -392,7 +392,7 @@ async_write_some(
 template<class TeardownHandler>
 void
 async_teardown(
-    websocket::role_type,
+    role_type,
     stream& s,
     TeardownHandler&& handler)
 {

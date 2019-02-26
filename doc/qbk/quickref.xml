@@ -58,6 +58,7 @@
           <member><link linkend="beast.ref.boost__beast__condition">condition</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__error">error</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__file_mode">file_mode</link></member>
+          <member><link linkend="beast.ref.boost__beast__role_type">role_type</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
         </simplelist>
       </entry>
       <entry valign="top">
@@ -312,7 +313,6 @@
           <member><link linkend="beast.ref.boost__beast__websocket__condition">condition</link></member>
           <member><link linkend="beast.ref.boost__beast__websocket__error">error</link></member>
           <member><link linkend="beast.ref.boost__beast__websocket__frame_type">frame_type</link></member>
-          <member><link linkend="beast.ref.boost__beast__websocket__role_type">role_type</link></member>
         </simplelist>
       </entry>
     </row></tbody>

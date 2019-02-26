@@ -658,7 +658,7 @@ public:
 template<class SyncStream>
 void
 teardown(
-    boost::beast::websocket::role_type role,
+    boost::beast::role_type role,
     ssl_stream<SyncStream>& stream,
     boost::system::error_code& ec)
 {
@@ -670,7 +670,7 @@ teardown(
 template<class AsyncStream, class TeardownHandler>
 void
 async_teardown(
-    boost::beast::websocket::role_type role,
+    boost::beast::role_type role,
     ssl_stream<AsyncStream>& stream,
     TeardownHandler&& handler)
 {

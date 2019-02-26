@@ -12,48 +12,24 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
+#if ! BOOST_BEAST_ALLOW_DEPRECATED
+
+#error This file is deprecated interface, #define BOOST_BEAST_ALLOW_DEPRECATED to allow it
+
+#else
+
+#include <boost/beast/core/role.hpp>
+
 namespace boost {
 namespace beast {
 namespace websocket {
 
-/** The role of the websocket stream endpoint.
-
-    Whether the endpoint is a client or server affects the
-    behavior of the <em>Close the WebSocket Connection</em>
-    operation described in rfc6455 section 7.1.1.
-    The shutdown behavior depends on the type of the next
-    layer template parameter used to construct the @ref stream.
-    Other next layer types including user-defined types
-    may implement different role-based behavior when
-    performing the close operation.
-    
-    The default implementation for @ref stream when the next
-    layer type is a `net::ip::tcp::socket` behaves
-    as follows:
-
-    @li In the client role, a TCP/IP shutdown is sent after
-    reading all remaining data on the connection.
-
-    @li In the server role, a TCP/IP shutdown is sent before
-    reading all remaining data on the connection.
-
-    When the next layer type is a `net::ssl::stream`,
-    the connection is closed by performing the SSL closing
-    handshake corresponding to the role type, client or server.
-
-    @see https://tools.ietf.org/html/rfc6455#section-7.1.1
-*/
-enum class role_type
-{
-    /// The stream is operating as a client.
-    client,
-
-    /// The stream is operating as a server.
-    server
-};
+using role_type = beast::role_type;
 
 } // websocket
 } // beast
 } // boost
+
+#endif
 
 #endif

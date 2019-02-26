@@ -129,7 +129,7 @@ public:
         // Set suggested timeout settings for the websocket
         ws_.set_option(
             websocket::stream_base::suggested_settings(
-                websocket::role_type::client));
+                beast::role_type::client));
 
         // Set a decorator to change the User-Agent of the handshake
         ws_.set_option(websocket::stream_base::decorator(

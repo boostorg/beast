@@ -1,6 +1,12 @@
 Version 221:
 
 * Rename to async_base, stable_async_base
+* role_type is in boost/beast/core/role.hpp (API Change)
+
+Actions Required:
+
+* Include <boost/beast/core/role.hpp> or
+  define BOOST_BEAST_ALLOW_DEPRECATED=1
 
 --------------------------------------------------------------------------------
 

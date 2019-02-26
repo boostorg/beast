@@ -24,6 +24,7 @@ alias run-tests :
     [ run core_4_layers.cpp $(TEST_MAIN) ]
     [ run http_10_custom_parser.cpp $(TEST_MAIN) ]
     [ run http_examples.cpp $(TEST_MAIN) ]
+    [ run websocket.cpp $(TEST_MAIN) ]
     [ run websocket_3_handshake.cpp $(TEST_MAIN) ]
     ;
 
@@ -34,6 +35,7 @@ exe fat-tests :
     core_4_layers.cpp
     http_10_custom_parser.cpp
     http_examples.cpp
+    websocket.cpp
     websocket_3_handshake.cpp
     ;
 

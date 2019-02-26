@@ -13,13 +13,13 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/websocket/error.hpp>
 #include <boost/beast/websocket/option.hpp>
-#include <boost/beast/websocket/role.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/stream_base.hpp>
 #include <boost/beast/websocket/stream_fwd.hpp>
 #include <boost/beast/websocket/detail/hybi13.hpp>
 #include <boost/beast/websocket/detail/impl_base.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
+#include <boost/beast/core/role.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>

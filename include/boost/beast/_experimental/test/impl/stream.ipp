@@ -255,7 +255,7 @@ close_remote()
 
 void
 teardown(
-    websocket::role_type,
+    role_type,
     stream& s,
     boost::system::error_code& ec)
 {

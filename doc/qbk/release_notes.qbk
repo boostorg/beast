@@ -261,6 +261,8 @@
     `file_mode::append_existing`
     as needed.
 
+* `role_type` is moved from `websocket` to `beast`
+
 * `buffers_range_ref`
   is preferred to `std::reference_wrapper`.
   ['Actions Required]:
