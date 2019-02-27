@@ -88,6 +88,7 @@ struct websocket_8_test
     run() override
     {
         BEAST_EXPECT(&snippets);
+        BEAST_EXPECT(&echo);
     }
 };
 

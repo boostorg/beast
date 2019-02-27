@@ -42,6 +42,14 @@ async_teardown(
 
 //]
 
+void
+teardown(
+    role_type,
+    custom_stream&,
+    error_code&)
+{
+}
+
 //[code_websocket_7_2
 
 template <class NextLayer>
@@ -101,6 +109,9 @@ struct websocket_7_test
     run() override
     {
         BEAST_EXPECT(&snippets);
+        BEAST_EXPECT(static_cast<void(*)(
+            role_type, custom_stream&, error_code&)>(
+                &teardown));
     }
 };
 
