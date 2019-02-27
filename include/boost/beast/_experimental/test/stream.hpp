@@ -23,6 +23,8 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/assert.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <boost/throw_exception.hpp>
 #include <condition_variable>
 #include <limits>
@@ -98,14 +100,17 @@ class stream
 {
     struct state;
 
-    std::shared_ptr<state> in_;
-    std::weak_ptr<state> out_;
+    boost::shared_ptr<state> in_;
+    boost::weak_ptr<state> out_;
 
     enum class status
     {
         ok,
         eof,
     };
+
+    class service;
+    struct service_impl;
 
     struct read_op_base
     {
@@ -117,11 +122,12 @@ class stream
     {
         friend class stream;
 
+        net::io_context& ioc;
+        boost::weak_ptr<service_impl> wp;
         std::mutex m;
         flat_buffer b;
         std::condition_variable cv;
         std::unique_ptr<read_op_base> op;
-        net::io_context& ioc;
         status code = status::ok;
         fail_count* fc = nullptr;
         std::size_t nread = 0;
@@ -132,15 +138,26 @@ class stream
             (std::numeric_limits<std::size_t>::max)();
 
         BOOST_BEAST_DECL
-        explicit
-        state(net::io_context& ioc_, fail_count* fc_);
+        state(
+            net::io_context& ioc_,
+            boost::weak_ptr<service_impl> wp_,
+            fail_count* fc_);
+
 
         BOOST_BEAST_DECL
         ~state();
 
         BOOST_BEAST_DECL
         void
+        remove() noexcept;
+
+        BOOST_BEAST_DECL
+        void
         notify_read();
+
+        BOOST_BEAST_DECL
+        void
+        cancel_read();
     };
 
     template<class Handler, class Buffers>
@@ -153,7 +170,7 @@ class stream
     static
     void
     initiate_read(
-        std::shared_ptr<state> const& in,
+        boost::shared_ptr<state> const& in,
         std::unique_ptr<read_op_base>&& op,
         std::size_t buf_size);
 
@@ -402,7 +419,7 @@ public:
             std::size_t bytes_transferred   // Number of bytes read.
         );
         @endcode
-        
+
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -481,7 +498,7 @@ public:
             std::size_t bytes_transferred   // Number of bytes written.
         );
         @endcode
-        
+
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a

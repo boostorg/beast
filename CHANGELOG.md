@@ -1,3 +1,9 @@
+Version 223:
+
+* Add test::stream::service
+
+--------------------------------------------------------------------------------
+
 Version 222:
 
 * stream_base::timeout::suggested is a nested function

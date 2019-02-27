@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -11,23 +11,25 @@
 #include <boost/beast/_experimental/test/stream.hpp>
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/test/handler.hpp>
 
 namespace boost {
 namespace beast {
 
-class test_stream_test
+class stream_test
     : public unit_test::suite
 {
 public:
     void
     testTestStream()
     {
-        net::io_context ioc;
         char buf[1] = {};
         net::mutable_buffer m0;
         net::mutable_buffer m1(buf, sizeof(buf));
 
         {
+            net::io_context ioc;
+
             {
                 test::stream ts(ioc);
             }
@@ -44,91 +46,111 @@ public:
                 auto t2 = connect(t1);
                 t2.close();
             }
-            {
-#if 0
-                test::stream ts(ioc);
-                error_code ec;
-                ts.read_some(net::mutable_buffer{}, ec);
-                log << ec.message();
-#endif
-            }
-            {
-                error_code ec;
+        }
+        {
+            // abandon
+            net::io_context ioc;
+            test::stream ts(ioc);
+            ts.async_read_some(m1,
+                [](error_code, std::size_t)
                 {
-                    test::stream ts(ioc);
-                    ts.async_read_some(m1,
-                        [&](error_code ec_, std::size_t)
-                        {
-                            ec = ec_;
-                        });
-                }
-                ioc.run();
-                ioc.restart();
-                BEAST_EXPECTS(
-                    //ec == net::error::eof,
-                    ec == net::error::operation_aborted,
-                    ec.message());
-            }
+                    BEAST_FAIL();
+                });
+        }
+        //---
+        {
+            net::io_context ioc;
             {
-                error_code ec;
                 test::stream ts(ioc);
                 ts.async_read_some(m1,
-                    [&](error_code ec_, std::size_t)
-                    {
-                        ec = ec_;
-                    });
-                ts.close(); 
-                ioc.run();
-                ioc.restart();
-                BEAST_EXPECTS(
-                    //ec == net::error::eof,
-                    ec == net::error::operation_aborted,
-                    ec.message());
+                    test::fail_handler(
+                        net::error::operation_aborted));
             }
+            test::run(ioc);
+        }
+        {
+            net::io_context ioc;
+            test::stream ts(ioc);
+            ts.async_read_some(m1,
+                test::fail_handler(
+                    net::error::operation_aborted));
+            ts.close(); 
+            test::run(ioc);
+        }
+        {
+            net::io_context ioc;
+            test::stream t1(ioc);
+            auto t2 = connect(t1);
+            t1.async_read_some(m1,
+                test::fail_handler(
+                    net::error::eof));
+            t2.close();
+            test::run(ioc);
+        }
+        {
+            net::io_context ioc;
+            test::stream t1(ioc);
+            auto t2 = connect(t1);
+            t1.async_read_some(m1,
+                test::fail_handler(
+                    net::error::operation_aborted));
+            t1.close();
+            test::run(ioc);
+        }
+    }
+
+    void
+    testSharedAbandon()
+    {
+        struct handler
+        {
+            std::shared_ptr<test::stream> ts_;
+
+            void
+            operator()(error_code, std::size_t)
             {
-                error_code ec;
-                test::stream t1(ioc);
-                auto t2 = connect(t1);
-                t1.async_read_some(m1,
-                    [&](error_code ec_, std::size_t)
-                    {
-                        ec = ec_;
-                    });
-                t2.close();
-                ioc.run();
-                ioc.restart();
-                BEAST_EXPECTS(
-                    ec == net::error::eof,
-                    ec.message());
             }
+        };
+
+        char buf[1] = {};
+        net::mutable_buffer m1(buf, sizeof(buf));
+
+        std::weak_ptr<test::stream> wp;
+
+        {
+            net::io_context ioc;
             {
-                error_code ec;
-                test::stream t1(ioc);
-                auto t2 = connect(t1);
-                t1.async_read_some(m1,
-                    [&](error_code ec_, std::size_t)
-                    {
-                        ec = ec_;
-                    });
-                t1.close();
-                ioc.run();
-                ioc.restart();
-                BEAST_EXPECTS(
-                    ec == net::error::operation_aborted,
-                    ec.message());
+                auto sp = std::make_shared<test::stream>(ioc);
+
+                sp->async_read_some(m1, handler{sp});
+                wp = sp;
             }
         }
+        BEAST_EXPECT(! wp.lock());
+    }
+
+    void
+    testLifetimeViolation()
+    {
+        // This should assert
+        std::shared_ptr<test::stream> sp;
+        {
+            net::io_context ioc;
+            sp = std::make_shared<test::stream>(ioc);
+        }
+        sp.reset();
     }
 
     void
     run() override
     {
         testTestStream();
-        pass();
+        testSharedAbandon();
+        //testLifetimeViolation();
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,test,test_stream);
+BEAST_DEFINE_TESTSUITE(beast,test,stream);
 
 } // beast
 } // boost

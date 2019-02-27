@@ -13,11 +13,49 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/beast/core/detail/service_base.hpp>
+#include <mutex>
 #include <stdexcept>
+#include <vector>
 
 namespace boost {
 namespace beast {
 namespace test {
+
+//------------------------------------------------------------------------------
+
+struct stream::service_impl
+{
+    std::mutex m_;
+    std::vector<state*> v_;
+
+    BOOST_BEAST_DECL
+    void
+    remove(state& impl);
+};
+
+class stream::service
+    : public beast::detail::service_base<service>
+{
+    boost::shared_ptr<service_impl> sp_;
+
+    BOOST_BEAST_DECL
+    void
+    shutdown() override;
+
+public:
+    BOOST_BEAST_DECL
+    explicit
+    service(net::execution_context& ctx);
+
+    BOOST_BEAST_DECL
+    static
+    auto
+    make_impl(
+        net::io_context& ctx,
+        test::fail_count* fc) ->
+            boost::shared_ptr<state>;
+};
 
 //------------------------------------------------------------------------------
 
@@ -32,7 +70,7 @@ class stream::read_op : public stream::read_op_base
     struct lambda
     {
         Handler h_;
-        state& s_;
+        boost::weak_ptr<state> wp_;
         Buffers b_;
         net::executor_work_guard<ex2_type> wg2_;
 
@@ -42,13 +80,13 @@ class stream::read_op : public stream::read_op_base
         template<class Handler_>
         lambda(
             Handler_&& h,
-            state& s,
+            boost::shared_ptr<state> const& s,
             Buffers const& b)
             : h_(std::forward<Handler_>(h))
-            , s_(s)
+            , wp_(s)
             , b_(b)
             , wg2_(net::get_associated_executor(
-                h_, s_.ioc.get_executor()))
+                h_, s->ioc.get_executor()))
         {
         }
 
@@ -56,16 +94,19 @@ class stream::read_op : public stream::read_op_base
         operator()(error_code ec)
         {
             std::size_t bytes_transferred = 0;
-            if (!ec)
+            auto sp = wp_.lock();
+            if(! sp)
+                ec = net::error::operation_aborted;
+            if(! ec)
             {
-                std::lock_guard<std::mutex> lock(s_.m);
-                BOOST_ASSERT(! s_.op);
-                if(s_.b.size() > 0)
+                std::lock_guard<std::mutex> lock(sp->m);
+                BOOST_ASSERT(! sp->op);
+                if(sp->b.size() > 0)
                 {
                     bytes_transferred =
                         net::buffer_copy(
-                            b_, s_.b.data(), s_.read_max);
-                    s_.b.consume(bytes_transferred);
+                            b_, sp->b.data(), sp->read_max);
+                    sp->b.consume(bytes_transferred);
                 }
                 else if (buffer_size(b_) > 0)
                 {
@@ -88,10 +129,10 @@ public:
     template<class Handler_>
     read_op(
         Handler_&& h,
-        state& s,
+        boost::shared_ptr<state> const& s,
         Buffers const& b)
         : fn_(std::forward<Handler_>(h), s, b)
-        , wg1_(s.ioc.get_executor())
+        , wg1_(s->ioc.get_executor())
     {
     }
 
@@ -114,7 +155,7 @@ struct stream::run_read_op
     void
     operator()(
         ReadHandler&& h,
-        std::shared_ptr<state> const& in,
+        boost::shared_ptr<state> const& in,
         MutableBufferSequence const& buffers)
     {
         // If you get an error on the following line it means
@@ -133,7 +174,7 @@ struct stream::run_read_op
                 typename std::decay<ReadHandler>::type,
                 MutableBufferSequence>(
                     std::move(h),
-                    *in,
+                    in,
                     buffers)},
             buffer_size(buffers));
     }
@@ -147,8 +188,8 @@ struct stream::run_write_op
     void
     operator()(
         WriteHandler&& h,
-        std::shared_ptr<state> in_,
-        std::weak_ptr<state> out_,
+        boost::shared_ptr<state> in_,
+        boost::weak_ptr<state> out_,
         ConstBufferSequence const& buffers)
     {
         // If you get an error on the following line it means

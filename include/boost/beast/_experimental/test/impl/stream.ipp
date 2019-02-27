@@ -14,7 +14,9 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
+#include <boost/make_shared.hpp>
 #include <stdexcept>
+#include <vector>
 
 namespace boost {
 namespace beast {
@@ -22,8 +24,61 @@ namespace test {
 
 //------------------------------------------------------------------------------
 
+stream::
+service::
+service(net::execution_context& ctx)
+    : beast::detail::service_base<service>(ctx)
+    , sp_(boost::make_shared<service_impl>())
+{
+}
+
+void
+stream::
+service::
+shutdown()
+{
+    std::vector<std::unique_ptr<read_op_base>> v;
+    std::lock_guard<std::mutex> g1(sp_->m_);
+    v.reserve(sp_->v_.size());
+    for(auto p : sp_->v_)
+    {
+        std::lock_guard<std::mutex> g2(p->m);
+        v.emplace_back(std::move(p->op));
+        p->code = status::eof;
+    }
+}
+
+auto
+stream::
+service::
+make_impl(
+    net::io_context& ctx,
+    test::fail_count* fc) ->
+    boost::shared_ptr<state>
+{
+    auto& svc = net::use_service<service>(ctx);
+    auto sp = boost::make_shared<state>(ctx, svc.sp_, fc);
+    std::lock_guard<std::mutex> g(svc.sp_->m_);
+    svc.sp_->v_.push_back(sp.get());
+    return sp;
+}
+
+void
+stream::
+service_impl::
+remove(state& impl)
+{
+    std::lock_guard<std::mutex> g(m_);
+    *std::find(
+        v_.begin(), v_.end(),
+            &impl) = std::move(v_.back());
+    v_.pop_back();
+}
+
+//------------------------------------------------------------------------------
+
 void stream::initiate_read(
-    std::shared_ptr<state> const& in_,
+    boost::shared_ptr<state> const& in_,
     std::unique_ptr<stream::read_op_base>&& op,
     std::size_t buf_size)
 {
@@ -67,8 +122,10 @@ stream::
 state::
 state(
     net::io_context& ioc_,
+    boost::weak_ptr<service_impl> wp_,
     fail_count* fc_)
     : ioc(ioc_)
+    , wp(std::move(wp_))
     , fc(fc_)
 {
 }
@@ -80,6 +137,20 @@ state::
     // cancel outstanding read
     if(op != nullptr)
         (*op)(net::error::operation_aborted);
+}
+
+void
+stream::
+state::
+remove() noexcept
+{
+    auto sp = wp.lock();
+
+    // If this goes off, it means the lifetime of a test::stream object
+    // extended beyond the lifetime of the associated execution context.
+    BOOST_ASSERT(sp);
+
+    sp->remove(*this);
 }
 
 void
@@ -98,18 +169,34 @@ notify_read()
     }
 }
 
+void
+stream::
+state::
+cancel_read()
+{
+    std::unique_ptr<read_op_base> p;
+    {
+        std::lock_guard<std::mutex> lock(m);
+        code = status::eof;
+        p = std::move(op);
+    }
+    if(p != nullptr)
+        (*p)(net::error::operation_aborted);
+}
+
 //------------------------------------------------------------------------------
 
 stream::
 ~stream()
 {
     close();
+    in_->remove();
 }
 
 stream::
 stream(stream&& other)
 {
-    auto in = std::make_shared<state>(
+    auto in = service::make_impl(
         other.in_->ioc, other.in_->fc);
     in_ = std::move(other.in_);
     out_ = std::move(other.out_);
@@ -121,8 +208,9 @@ stream::
 operator=(stream&& other)
 {
     close();
-    auto in = std::make_shared<state>(
+    auto in = service::make_impl(
         other.in_->ioc, other.in_->fc);
+    in_->remove();
     in_ = std::move(other.in_);
     out_ = std::move(other.out_);
     other.in_ = in;
@@ -133,7 +221,7 @@ operator=(stream&& other)
 
 stream::
 stream(net::io_context& ioc)
-    : in_(std::make_shared<state>(ioc, nullptr))
+    : in_(service::make_impl(ioc, nullptr))
 {
 }
 
@@ -141,7 +229,7 @@ stream::
 stream(
     net::io_context& ioc,
     fail_count& fc)
-    : in_(std::make_shared<state>(ioc, &fc))
+    : in_(service::make_impl(ioc, &fc))
 {
 }
 
@@ -149,7 +237,7 @@ stream::
 stream(
     net::io_context& ioc,
     string_view s)
-    : in_(std::make_shared<state>(ioc, nullptr))
+    : in_(service::make_impl(ioc, nullptr))
 {
     in_->b.commit(net::buffer_copy(
         in_->b.prepare(s.size()),
@@ -161,7 +249,7 @@ stream(
     net::io_context& ioc,
     fail_count& fc,
     string_view s)
-    : in_(std::make_shared<state>(ioc, &fc))
+    : in_(service::make_impl(ioc, &fc))
 {
     in_->b.commit(net::buffer_copy(
         in_->b.prepare(s.size()),
@@ -213,17 +301,7 @@ void
 stream::
 close()
 {
-    // cancel outstanding read
-    {
-        std::unique_ptr<read_op_base> op;
-        {
-            std::lock_guard<std::mutex> lock(in_->m);
-            in_->code = status::eof;
-            op = std::move(in_->op);
-        }
-        if(op != nullptr)
-            (*op)(net::error::operation_aborted);
-    }
+    in_->cancel_read();
 
     // disconnect
     {
