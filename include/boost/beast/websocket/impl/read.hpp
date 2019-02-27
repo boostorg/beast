@@ -68,7 +68,7 @@ public:
         : async_base<
             Handler, beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
-                    sp->stream.get_executor())
+                    sp->stream().get_executor())
         , wp_(sp)
         , bs_(bs)
         , cb_(bs)
@@ -159,7 +159,7 @@ public:
                     }
                     BOOST_ASSERT(impl.rd_block.is_locked(this));
                     BOOST_ASIO_CORO_YIELD
-                    impl.stream.async_read_some(
+                    impl.stream().async_read_some(
                         impl.rd_buf.prepare(read_size(
                             impl.rd_buf, impl.rd_buf.max_size())),
                                 std::move(*this));
@@ -250,7 +250,7 @@ public:
                         BOOST_ASSERT(impl.wr_block.is_locked(this));
                         BOOST_ASIO_CORO_YIELD
                         net::async_write(
-                            impl.stream, impl.rd_fb.data(),
+                            impl.stream(), impl.rd_fb.data(),
                             beast::detail::bind_continuation(std::move(*this)));
                         BOOST_ASSERT(impl.wr_block.is_locked(this));
                         if(impl.check_stop_now(ec))
@@ -355,7 +355,7 @@ public:
                         // Fill the read buffer first, otherwise we
                         // get fewer bytes at the cost of one I/O.
                         BOOST_ASIO_CORO_YIELD
-                        impl.stream.async_read_some(
+                        impl.stream().async_read_some(
                             impl.rd_buf.prepare(read_size(
                                 impl.rd_buf, impl.rd_buf.max_size())),
                                     std::move(*this));
@@ -401,7 +401,7 @@ public:
                         BOOST_ASSERT(buffer_size(buffers_prefix(
                             clamp(impl.rd_remain), cb_)) > 0);
                         BOOST_ASIO_CORO_YIELD
-                        impl.stream.async_read_some(buffers_prefix(
+                        impl.stream().async_read_some(buffers_prefix(
                             clamp(impl.rd_remain), cb_), std::move(*this));
                         if(impl.check_stop_now(ec))
                             goto upcall;
@@ -443,7 +443,7 @@ public:
                     {
                         // read new
                         BOOST_ASIO_CORO_YIELD
-                        impl.stream.async_read_some(
+                        impl.stream().async_read_some(
                             impl.rd_buf.prepare(read_size(
                                 impl.rd_buf, impl.rd_buf.max_size())),
                                     std::move(*this));
@@ -567,7 +567,7 @@ public:
                 // Send close frame
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(impl.stream, impl.rd_fb.data(),
+                net::async_write(impl.stream(), impl.rd_fb.data(),
                     beast::detail::bind_continuation(std::move(*this)));
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
                 if(impl.check_stop_now(ec))
@@ -578,7 +578,7 @@ public:
             using beast::websocket::async_teardown;
             BOOST_ASSERT(impl.wr_block.is_locked(this));
             BOOST_ASIO_CORO_YIELD
-            async_teardown(impl.role, impl.stream,
+            async_teardown(impl.role, impl.stream(),
                 beast::detail::bind_continuation(std::move(*this)));
             BOOST_ASSERT(impl.wr_block.is_locked(this));
             if(ec == net::error::eof)
@@ -634,7 +634,7 @@ public:
         : async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
-                    sp->stream.get_executor())
+                    sp->stream().get_executor())
         , wp_(sp)
         , b_(b)
         , limit_(limit ? limit : (
@@ -959,7 +959,7 @@ loop:
                 return bytes_written;
             }
             auto const bytes_transferred =
-                impl.stream.read_some(
+                impl.stream().read_some(
                     impl.rd_buf.prepare(read_size(
                         impl.rd_buf, impl.rd_buf.max_size())),
                     ec);
@@ -1001,7 +1001,7 @@ loop:
                 detail::frame_buffer fb;
                 impl.template write_ping<flat_static_buffer_base>(fb,
                     detail::opcode::pong, payload);
-                net::write(impl.stream, fb.data(), ec);
+                net::write(impl.stream(), fb.data(), ec);
                 if(impl.check_stop_now(ec))
                     return bytes_written;
                 goto loop;
@@ -1065,7 +1065,7 @@ loop:
             {
                 // Fill the read buffer first, otherwise we
                 // get fewer bytes at the cost of one I/O.
-                impl.rd_buf.commit(impl.stream.read_some(
+                impl.rd_buf.commit(impl.stream().read_some(
                     impl.rd_buf.prepare(read_size(impl.rd_buf,
                         impl.rd_buf.max_size())), ec));
                 if(impl.check_stop_now(ec))
@@ -1109,7 +1109,7 @@ loop:
                 BOOST_ASSERT(buffer_size(buffers_prefix(
                     clamp(impl.rd_remain), buffers)) > 0);
                 auto const bytes_transferred =
-                    impl.stream.read_some(buffers_prefix(
+                    impl.stream().read_some(buffers_prefix(
                         clamp(impl.rd_remain), buffers), ec);
                 // VFALCO What if some bytes were written?
                 if(impl.check_stop_now(ec))
@@ -1170,7 +1170,7 @@ loop:
                 {
                     // read new
                     auto const bytes_transferred =
-                        impl.stream.read_some(
+                        impl.stream().read_some(
                             impl.rd_buf.prepare(read_size(
                                 impl.rd_buf, impl.rd_buf.max_size())),
                             ec);

@@ -55,7 +55,7 @@ public:
         : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
-                    sp->stream.get_executor())
+                    sp->stream().get_executor())
         , wp_(sp)
         , fb_(beast::allocate_stable<
             detail::frame_buffer>(*this))
@@ -102,7 +102,7 @@ public:
             impl.change_status(status::closing);
             impl.update_timer(this->get_executor());
             BOOST_ASIO_CORO_YIELD
-            net::async_write(impl.stream, fb_.data(),
+            net::async_write(impl.stream(), fb_.data(),
                 beast::detail::bind_continuation(std::move(*this)));
             if(impl.check_stop_now(ec))
                 goto upcall;
@@ -142,7 +142,7 @@ public:
                     if(ev_)
                         goto teardown;
                     BOOST_ASIO_CORO_YIELD
-                    impl.stream.async_read_some(
+                    impl.stream().async_read_some(
                         impl.rd_buf.prepare(read_size(
                             impl.rd_buf, impl.rd_buf.max_size())),
                         beast::detail::bind_continuation(std::move(*this)));
@@ -182,7 +182,7 @@ public:
                     impl.rd_remain -= impl.rd_buf.size();
                     impl.rd_buf.consume(impl.rd_buf.size());
                     BOOST_ASIO_CORO_YIELD
-                    impl.stream.async_read_some(
+                    impl.stream().async_read_some(
                         impl.rd_buf.prepare(read_size(
                             impl.rd_buf, impl.rd_buf.max_size())),
                         beast::detail::bind_continuation(std::move(*this)));
@@ -200,7 +200,7 @@ public:
             BOOST_ASSERT(impl.wr_block.is_locked(this));
             using beast::websocket::async_teardown;
             BOOST_ASIO_CORO_YIELD
-            async_teardown(impl.role, impl.stream,
+            async_teardown(impl.role, impl.stream(),
                 beast::detail::bind_continuation(std::move(*this)));
             BOOST_ASSERT(impl.wr_block.is_locked(this));
             if(ec == net::error::eof)
@@ -297,7 +297,7 @@ close(close_reason const& cr, error_code& ec)
         impl.change_status(status::closing);
         detail::frame_buffer fb;
         impl.template write_close<flat_static_buffer_base>(fb, cr);
-        net::write(impl.stream, fb.data(), ec);
+        net::write(impl.stream(), fb.data(), ec);
         if(impl.check_stop_now(ec))
             return;
     }
@@ -317,7 +317,7 @@ close(close_reason const& cr, error_code& ec)
                 // Protocol violation
                 return do_fail(close_code::none, ev, ec);
             }
-            impl.rd_buf.commit(impl.stream.read_some(
+            impl.rd_buf.commit(impl.stream().read_some(
                 impl.rd_buf.prepare(read_size(
                     impl.rd_buf, impl.rd_buf.max_size())), ec));
             if(impl.check_stop_now(ec))
@@ -359,7 +359,7 @@ close(close_reason const& cr, error_code& ec)
             impl.rd_remain -= impl.rd_buf.size();
             impl.rd_buf.consume(impl.rd_buf.size());
             impl.rd_buf.commit(
-                impl.stream.read_some(
+                impl.stream().read_some(
                     impl.rd_buf.prepare(
                         read_size(
                             impl.rd_buf,

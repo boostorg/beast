@@ -52,7 +52,7 @@ public:
         : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
-                    sp->stream.get_executor())
+                    sp->stream().get_executor())
         , wp_(sp)
         , fb_(beast::allocate_stable<
             detail::frame_buffer>(*this))
@@ -91,7 +91,7 @@ public:
 
             // Send ping frame
             BOOST_ASIO_CORO_YIELD
-            net::async_write(impl.stream, fb_.data(),
+            net::async_write(impl.stream(), fb_.data(),
                 beast::detail::bind_continuation(std::move(*this)));
             if(impl.check_stop_now(ec))
                 goto upcall;
@@ -182,7 +182,7 @@ public:
 
             // Send ping frame
             BOOST_ASIO_CORO_YIELD
-            net::async_write(impl.stream, fb_->data(),
+            net::async_write(impl.stream(), fb_->data(),
                 //beast::detail::bind_continuation(std::move(*this)));
                 std::move(*this));
             if(impl.check_stop_now(ec))
@@ -253,7 +253,7 @@ ping(ping_data const& payload, error_code& ec)
     detail::frame_buffer fb;
     impl_->template write_ping<flat_static_buffer_base>(
         fb, detail::opcode::ping, payload);
-    net::write(impl_->stream, fb.data(), ec);
+    net::write(impl_->stream(), fb.data(), ec);
     if(impl_->check_stop_now(ec))
         return;
 }
@@ -279,7 +279,7 @@ pong(ping_data const& payload, error_code& ec)
     detail::frame_buffer fb;
     impl_->template write_ping<flat_static_buffer_base>(
         fb, detail::opcode::pong, payload);
-    net::write(impl_->stream, fb.data(), ec);
+    net::write(impl_->stream(), fb.data(), ec);
     if(impl_->check_stop_now(ec))
         return;
 }

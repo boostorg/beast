@@ -60,7 +60,7 @@ stream<NextLayer, deflateSupported>::
 get_executor() const noexcept ->
     executor_type
 {
-    return impl_->stream.get_executor();
+    return impl_->stream().get_executor();
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -69,7 +69,7 @@ stream<NextLayer, deflateSupported>::
 next_layer() noexcept ->
     next_layer_type&
 {
-    return impl_->stream;
+    return impl_->stream();
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -78,7 +78,7 @@ stream<NextLayer, deflateSupported>::
 next_layer() const noexcept ->
     next_layer_type const&
 {
-    return impl_->stream;
+    return impl_->stream();
 }
 
 template<class NextLayer, bool deflateSupported>
@@ -324,12 +324,12 @@ do_fail(
         detail::frame_buffer fb;
         impl_->template write_close<
             flat_static_buffer_base>(fb, code);
-        net::write(impl_->stream, fb.data(), ec);
+        net::write(impl_->stream(), fb.data(), ec);
         if(impl_->check_stop_now(ec))
             return;
     }
     using beast::websocket::teardown;
-    teardown(impl_->role, impl_->stream, ec);
+    teardown(impl_->role, impl_->stream(), ec);
     if(ec == net::error::eof)
     {
         // Rationale:

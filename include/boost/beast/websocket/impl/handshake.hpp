@@ -72,7 +72,7 @@ public:
         : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
-                    sp->stream.get_executor())
+                    sp->stream().get_executor())
         , wp_(sp)
         , key_(key)
         , res_p_(res_p)
@@ -103,14 +103,14 @@ public:
             // write HTTP request
             impl.do_pmd_config(d_.req);
             BOOST_ASIO_CORO_YIELD
-            http::async_write(impl.stream,
+            http::async_write(impl.stream(),
                 d_.req, std::move(*this));
             if(impl.check_stop_now(ec))
                 goto upcall;
 
             // read HTTP response
             BOOST_ASIO_CORO_YIELD
-            http::async_read(impl.stream,
+            http::async_read(impl.stream(),
                 impl.rd_buf, d_.p,
                     std::move(*this));
             if(ec == http::error::buffer_overflow)
@@ -125,7 +125,7 @@ public:
                 impl.rd_buf.clear();
 
                 BOOST_ASIO_CORO_YIELD
-                http::async_read(impl.stream,
+                http::async_read(impl.stream(),
                     d_.fb, d_.p, std::move(*this));
 
                 if(! ec)
@@ -213,7 +213,7 @@ do_handshake(
         auto const req = impl.build_request(
             key, host, target, decorator);
         impl.do_pmd_config(req);
-        http::write(impl.stream, req, ec);
+        http::write(impl.stream(), req, ec);
     }
     if(impl.check_stop_now(ec))
         return;

@@ -143,7 +143,6 @@ struct stream_base
             }
             return opt;
         }
-
     };
 
 protected:

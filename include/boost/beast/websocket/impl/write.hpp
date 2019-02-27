@@ -76,7 +76,7 @@ public:
         : beast::async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
-                    sp->stream.get_executor())
+                    sp->stream().get_executor())
         , wp_(sp)
         , cb_(bs)
         , fin_(fin)
@@ -192,7 +192,7 @@ operator()(
                 impl.wr_fb, fh_);
             impl.wr_cont = ! fin_;
             BOOST_ASIO_CORO_YIELD
-            net::async_write(impl.stream,
+            net::async_write(impl.stream(),
                 buffers_cat(impl.wr_fb.data(), cb_),
                     beast::detail::bind_continuation(std::move(*this)));
             bytes_transferred_ += clamp(fh_.len);
@@ -218,7 +218,7 @@ operator()(
                 impl.wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(impl.stream, buffers_cat(
+                net::async_write(impl.stream(), buffers_cat(
                     impl.wr_fb.data(),
                     buffers_prefix(clamp(fh_.len), cb_)),
                         beast::detail::bind_continuation(std::move(*this)));
@@ -269,7 +269,7 @@ operator()(
             impl.wr_cont = ! fin_;
             // write frame header and some payload
             BOOST_ASIO_CORO_YIELD
-            net::async_write(impl.stream, buffers_cat(
+            net::async_write(impl.stream(), buffers_cat(
                 impl.wr_fb.data(),
                 net::buffer(impl.wr_buf.get(), n)),
                     beast::detail::bind_continuation(std::move(*this)));
@@ -289,7 +289,7 @@ operator()(
                 remain_ -= n;
                 // write more payload
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(impl.stream,
+                net::async_write(impl.stream(),
                     net::buffer(impl.wr_buf.get(), n),
                         beast::detail::bind_continuation(std::move(*this)));
                 bytes_transferred_ += bytes_transferred;
@@ -322,7 +322,7 @@ operator()(
                 impl.wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(impl.stream, buffers_cat(
+                net::async_write(impl.stream(), buffers_cat(
                     impl.wr_fb.data(),
                     net::buffer(impl.wr_buf.get(), n)),
                         beast::detail::bind_continuation(std::move(*this)));
@@ -386,7 +386,7 @@ operator()(
                 impl.wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
-                net::async_write(impl.stream, buffers_cat(
+                net::async_write(impl.stream(), buffers_cat(
                     impl.wr_fb.data(), b),
                         beast::detail::bind_continuation(std::move(*this)));
                 bytes_transferred_ += in_;
@@ -555,7 +555,7 @@ write_some(bool fin,
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
             impl.wr_cont = ! fin;
-            net::write(impl.stream,
+            net::write(impl.stream(),
                 buffers_cat(fh_buf.data(), b), ec);
             if(impl.check_stop_now(ec))
                 return bytes_transferred;
@@ -578,7 +578,7 @@ write_some(bool fin,
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
             impl.wr_cont = ! fin;
-            net::write(impl.stream,
+            net::write(impl.stream(),
                 buffers_cat(fh_buf.data(), buffers), ec);
             if(impl.check_stop_now(ec))
                 return bytes_transferred;
@@ -600,7 +600,7 @@ write_some(bool fin,
                 detail::write<
                     flat_static_buffer_base>(fh_buf, fh);
                 impl.wr_cont = ! fin;
-                net::write(impl.stream,
+                net::write(impl.stream(),
                     beast::buffers_cat(fh_buf.data(),
                         beast::buffers_prefix(n, cb)), ec);
                 bytes_transferred += n;
@@ -636,7 +636,7 @@ write_some(bool fin,
             remain -= n;
             detail::mask_inplace(b, key);
             impl.wr_cont = ! fin;
-            net::write(impl.stream,
+            net::write(impl.stream(),
                 buffers_cat(fh_buf.data(), b), ec);
             bytes_transferred += n;
             if(impl.check_stop_now(ec))
@@ -652,7 +652,7 @@ write_some(bool fin,
             cb.consume(n);
             remain -= n;
             detail::mask_inplace(b, key);
-            net::write(impl.stream, b, ec);
+            net::write(impl.stream(), b, ec);
             bytes_transferred += n;
             if(impl.check_stop_now(ec))
                 return bytes_transferred;
@@ -682,7 +682,7 @@ write_some(bool fin,
             detail::fh_buffer fh_buf;
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
-            net::write(impl.stream,
+            net::write(impl.stream(),
                 buffers_cat(fh_buf.data(), b), ec);
             bytes_transferred += n;
             if(impl.check_stop_now(ec))

@@ -193,7 +193,7 @@ public:
         : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
-                    sp->stream.get_executor())
+                    sp->stream().get_executor())
         , wp_(sp)
         , res_(beast::allocate_stable<response_type>(*this, 
             sp->build_response(req, decorator, result_)))
@@ -220,7 +220,7 @@ public:
             // Send response
             BOOST_ASIO_CORO_YIELD
             http::async_write(
-                impl.stream, res_, std::move(*this));
+                impl.stream(), res_, std::move(*this));
             if(impl.check_stop_now(ec))
                 goto upcall;
             if(! ec)
@@ -261,7 +261,7 @@ public:
         : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
-                    sp->stream.get_executor())
+                    sp->stream().get_executor())
         , wp_(sp)
         , p_(beast::allocate_stable<
             http::request_parser<http::empty_body>>(*this))
@@ -300,7 +300,7 @@ public:
                 goto upcall;
 
             BOOST_ASIO_CORO_YIELD
-            http::async_read(impl.stream,
+            http::async_read(impl.stream(),
                 impl.rd_buf, p_, std::move(*this));
             if(ec == http::error::end_of_stream)
                 ec = error::closed;
@@ -407,7 +407,7 @@ do_accept(
 
     error_code result;
     auto const res = impl_->build_response(req, decorator, result);
-    http::write(impl_->stream, res, ec);
+    http::write(impl_->stream(), res, ec);
     if(ec)
         return;
     ec = result;

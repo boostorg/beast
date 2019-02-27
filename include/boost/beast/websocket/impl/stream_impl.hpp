@@ -46,8 +46,13 @@ template<
 struct stream<NextLayer, deflateSupported>::impl_type
     : boost::enable_shared_from_this<impl_type>
     , detail::impl_base<deflateSupported>
+    , boost::empty_value<NextLayer>
 {
-    NextLayer               stream;         // The underlying stream
+    NextLayer& stream() noexcept
+    {
+        return this->boost::empty_value<NextLayer>::get();
+    }
+
     net::steady_timer       timer;          // used for timeouts
     close_reason            cr;             // set from received close frame
     control_cb_type         ctrl_cb;        // control callback
@@ -91,20 +96,21 @@ struct stream<NextLayer, deflateSupported>::impl_type
     saved_handler           op_r_rd;        // paused read op (async read)
     saved_handler           op_r_close;     // paused close op (async read)
 
-    bool idle_pinging = false;
-    bool secure_prng_ = true;
-    bool ec_delivered = false;
-    bool timed_out = false;
-    int idle_counter = 0;
+    bool    idle_pinging = false;
+    bool    secure_prng_ = true;
+    bool    ec_delivered = false;
+    bool    timed_out = false;
+    int     idle_counter = 0;
 
     detail::decorator       decorator_opt;  // Decorator for HTTP messages
     timeout                 timeout_opt;    // Timeout/idle settings
 
-
     template<class... Args>
     impl_type(Args&&... args)
-        : stream(std::forward<Args>(args)...)
-        , timer(stream.get_executor())
+        : boost::empty_value<NextLayer>(
+            boost::empty_init_t{},
+            std::forward<Args>(args)...)
+        , timer(this->stream().get_executor())
     {
         timeout_opt.handshake_timeout = none();
         timeout_opt.idle_timeout = none();
@@ -472,7 +478,7 @@ private:
             {
             case status::handshake:
                 impl.timed_out = true;
-                close_socket(get_lowest_layer(impl.stream));
+                close_socket(get_lowest_layer(impl.stream()));
                 return;
 
             case status::open:
@@ -494,12 +500,12 @@ private:
 
                 // timeout
                 impl.timed_out = true;
-                close_socket(get_lowest_layer(impl.stream));
+                close_socket(get_lowest_layer(impl.stream()));
                 return;
 
             case status::closing:
                 impl.timed_out = true;
-                close_socket(get_lowest_layer(impl.stream));
+                close_socket(get_lowest_layer(impl.stream()));
                 return;
 
             case status::closed:
