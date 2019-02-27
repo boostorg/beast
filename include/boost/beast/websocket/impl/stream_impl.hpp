@@ -16,6 +16,7 @@
 #include <boost/beast/websocket/detail/mask.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/websocket/detail/prng.hpp>
+#include <boost/beast/websocket/detail/service.hpp>
 #include <boost/beast/websocket/detail/soft_mutex.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
 #include <boost/beast/http/read.hpp>
@@ -35,6 +36,7 @@
 #include <boost/asio/steady_timer.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/optional.hpp>
 
 namespace boost {
@@ -44,13 +46,30 @@ namespace websocket {
 template<
     class NextLayer, bool deflateSupported>
 struct stream<NextLayer, deflateSupported>::impl_type
-    : boost::enable_shared_from_this<impl_type>
+    : boost::empty_value<NextLayer>
+    , detail::service::impl_type
     , detail::impl_base<deflateSupported>
-    , boost::empty_value<NextLayer>
 {
     NextLayer& stream() noexcept
     {
-        return this->boost::empty_value<NextLayer>::get();
+        return this->boost::empty_value<
+            NextLayer>::get();
+    }
+
+    boost::weak_ptr<impl_type>
+    weak_from_this()
+    {
+        return boost::static_pointer_cast<
+            impl_type>(this->detail::service::
+                impl_type::shared_from_this());
+    }
+
+    boost::shared_ptr<impl_type>
+    shared_this()
+    {
+        return boost::static_pointer_cast<
+            impl_type>(this->detail::service::
+                impl_type::shared_from_this());
     }
 
     net::steady_timer       timer;          // used for timeouts
@@ -110,6 +129,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
         : boost::empty_value<NextLayer>(
             boost::empty_init_t{},
             std::forward<Args>(args)...)
+        , detail::service::impl_type(
+            this->stream().get_executor().context())
         , timer(this->stream().get_executor())
     {
         timeout_opt.handshake_timeout = none();

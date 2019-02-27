@@ -178,27 +178,20 @@ public:
         @note A stream object must not be destroyed while there
         are pending asynchronous operations associated with it.
     */
-    ~stream() = default;
+    ~stream();
 
     /** Constructor
 
         If `NextLayer` is move constructible, this function
         will move-construct a new stream from the existing stream.
 
-        @note The behavior of move assignment on or from streams
-        with active or pending operations is undefined.
+        After the move, the only valid operation on the moved-from
+        object is destruction.
     */
     stream(stream&&) = default;
 
-    /** Assignment
-
-        If `NextLayer` is move assignable, this function
-        will move-assign a new stream from the existing stream.
-
-        @note The behavior of move assignment on or from streams
-        with active or pending operations is undefined.
-    */
-    stream& operator=(stream&&) = default;
+    /// Move assignment (deleted)
+    stream& operator=(stream&&) = delete;
 
     /** Constructor
 

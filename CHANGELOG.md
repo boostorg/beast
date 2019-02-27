@@ -1,6 +1,7 @@
 Version 223:
 
 * Add test::stream::service
+* Add websocket service
 
 --------------------------------------------------------------------------------
 

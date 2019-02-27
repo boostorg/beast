@@ -44,6 +44,14 @@ namespace beast {
 namespace websocket {
 
 template<class NextLayer, bool deflateSupported>
+stream<NextLayer, deflateSupported>::
+~stream()
+{
+    if(impl_)
+        impl_->remove();
+}
+
+template<class NextLayer, bool deflateSupported>
 template<class... Args>
 stream<NextLayer, deflateSupported>::
 stream(Args&&... args)
