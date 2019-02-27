@@ -84,11 +84,6 @@ add_definitions (-DBOOST_ASIO_DISABLE_BOOST_ARRAY=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_BIND=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_DATE_TIME=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_REGEX=1)
-
-# workaround for asio defect
-add_definitions (-DBOOST_ASIO_DISABLE_WINDOWS_RANDOM_ACCESS_HANDLE=1)
-add_definitions (-DBOOST_ASIO_DISABLE_WINDOWS_STREAM_HANDLE=1)
-
 add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
 
 include_directories (${BOOST_ROOT})
