@@ -186,25 +186,21 @@ async_echo(
             (*this)({}, 0, false);
         }
 
-        // This is the type of buffer sequence used to represent the
-        // readable bytes of the dynamic buffer_. We declare a type alias
-        // to make the code easier to read.
-
-        using const_buffers_type = typename DynamicBuffer::const_buffers_type;
-
         // If a newline is present in the buffer sequence, this function returns
         // the number of characters from the beginning of the buffer up to the
         // newline, including the newline character. Otherwise it returns zero.
 
         std::size_t
-        find_newline(const_buffers_type const& buffers)
+        find_newline(typename DynamicBuffer::const_buffers_type const& buffers)
         {
             // The `buffers_iterator` class template provides random-access
             // iterators into a buffer sequence. Use the standard algorithm
             // to look for the new line if it exists.
 
-            auto begin = net::buffers_iterator<const_buffers_type>::begin(buffers);
-            auto end =   net::buffers_iterator<const_buffers_type>::end(buffers);
+            auto begin = net::buffers_iterator<
+                typename DynamicBuffer::const_buffers_type>::begin(buffers);
+            auto end =   net::buffers_iterator<
+                typename DynamicBuffer::const_buffers_type>::end(buffers);
             auto result = std::find(begin, end, '\n');
 
             if(result == end)

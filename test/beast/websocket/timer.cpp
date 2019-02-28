@@ -41,7 +41,7 @@ struct timer_test : unit_test::suite
 
             ws2.set_option(stream_base::timeout{
                 stream_base::none(),
-                std::chrono::milliseconds(50),
+                std::chrono::milliseconds(100),
                 true});
             flat_buffer b1;
             flat_buffer b2;
@@ -56,7 +56,7 @@ struct timer_test : unit_test::suite
                 net::error::operation_aborted));
             ws2.async_read(b2, test::fail_handler(
                 net::error::operation_aborted));
-            test::run_for(ioc, std::chrono::milliseconds(100));
+            test::run_for(ioc, std::chrono::milliseconds(500));
             BEAST_EXPECT(received);
         }
 
