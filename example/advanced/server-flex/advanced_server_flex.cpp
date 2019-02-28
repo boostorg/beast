@@ -637,10 +637,6 @@ public:
     {
         boost::ignore_unused(bytes_transferred);
 
-        // Happens when the timer closes the socket
-        if(ec == net::error::operation_aborted)
-            return;
-
         if(ec)
             return fail(ec, "write");
 

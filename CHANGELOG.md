@@ -1,3 +1,9 @@
+Version 224:
+
+* Remove extraneous error check in advanced-server-flex
+
+--------------------------------------------------------------------------------
+
 Version 223:
 
 * Add test::stream::service
