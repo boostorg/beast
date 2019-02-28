@@ -1,6 +1,7 @@
 Version 224:
 
 * Remove extraneous error check in advanced-server-flex
+* Advanced servers use HTTP parser interfaces for reading
 
 --------------------------------------------------------------------------------
 

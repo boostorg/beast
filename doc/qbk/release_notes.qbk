@@ -305,6 +305,8 @@
 * ([issue 1401]) Examples use
   `flat_buffer`
 
+* Advanced servers use HTTP parser interfaces for reading
+
 * detect-ssl is rewritten
 
 * New example [path_link example/websocket/server/chat-multi example/websocket/server/chat-multi]

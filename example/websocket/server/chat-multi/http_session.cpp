@@ -188,6 +188,40 @@ handle_request(
 
 //------------------------------------------------------------------------------
 
+struct http_session::send_lambda
+{
+    http_session& self_;
+
+    explicit
+    send_lambda(http_session& self)
+        : self_(self)
+    {
+    }
+
+    template<bool isRequest, class Body, class Fields>
+    void
+    operator()(http::message<isRequest, Body, Fields>&& msg) const
+    {
+        // The lifetime of the message has to extend
+        // for the duration of the async operation so
+        // we use a shared_ptr to manage it.
+        auto sp = boost::make_shared<
+            http::message<isRequest, Body, Fields>>(std::move(msg));
+
+        // Write the response
+        auto self = self_.shared_from_this();
+        http::async_write(
+            self_.stream_,
+            *sp,
+            [self, sp](beast::error_code ec, std::size_t bytes)
+            {
+                self->on_write(ec, bytes, sp->need_eof());
+            });
+    }
+};
+
+//------------------------------------------------------------------------------
+
 http_session::
 http_session(
     tcp::socket&& socket,
@@ -201,14 +235,7 @@ void
 http_session::
 run()
 {
-    // Set the timeout.
-    stream_.expires_after(std::chrono::seconds(30));
-
-    // Read a request
-    http::async_read(stream_, buffer_, req_,
-        beast::bind_front_handler(
-            &http_session::on_read,
-            shared_from_this()));
+    do_read();
 }
 
 // Report a failure
@@ -223,27 +250,28 @@ fail(beast::error_code ec, char const* what)
     std::cerr << what << ": " << ec.message() << "\n";
 }
 
-template<bool isRequest, class Body, class Fields>
 void
 http_session::
-send_lambda::
-operator()(http::message<isRequest, Body, Fields>&& msg) const
+do_read()
 {
-    // The lifetime of the message has to extend
-    // for the duration of the async operation so
-    // we use a shared_ptr to manage it.
-    auto sp = boost::make_shared<
-        http::message<isRequest, Body, Fields>>(std::move(msg));
+    // Construct a new parser for each message
+    parser_.emplace();
 
-    // Write the response
-    auto self = self_.shared_from_this();
-    http::async_write(
-        self_.stream_,
-        *sp,
-        [self, sp](beast::error_code ec, std::size_t bytes)
-        {
-            self->on_write(ec, bytes, sp->need_eof());
-        });
+    // Apply a reasonable limit to the allowed size
+    // of the body in bytes to prevent abuse.
+    parser_->body_limit(10000);
+
+    // Set the timeout.
+    stream_.expires_after(std::chrono::seconds(30));
+
+    // Read a request
+    http::async_read(
+        stream_,
+        buffer_,
+        parser_->get(),
+        beast::bind_front_handler(
+            &http_session::on_read,
+            shared_from_this()));
 }
 
 void
@@ -262,12 +290,13 @@ on_read(beast::error_code ec, std::size_t)
         return fail(ec, "read");
 
     // See if it is a WebSocket Upgrade
-    if(websocket::is_upgrade(req_))
+    if(websocket::is_upgrade(parser_->get()))
     {
-        // Create a WebSocket session by transferring the socket
+        // Create a websocket session, transferring ownership
+        // of both the socket and the HTTP request.
         boost::make_shared<websocket_session>(
             stream_.release_socket(),
-                state_)->run(std::move(req_));
+                state_)->run(parser_->release());
         return;
     }
 
@@ -315,7 +344,7 @@ on_read(beast::error_code ec, std::size_t)
     //
     handle_request(
         state_->doc_root(),
-        std::move(req_),
+        parser_->release(),
         send_lambda(*this));
 
 #endif
@@ -337,16 +366,6 @@ on_write(beast::error_code ec, std::size_t, bool close)
         return;
     }
 
-    // Clear contents of the request message,
-    // otherwise the read behavior is undefined.
-    req_ = {};
-
-    // Set the timeout.
-    stream_.expires_after(std::chrono::seconds(30));
-
     // Read another request
-    http::async_read(stream_, buffer_, req_,
-        beast::bind_front_handler(
-            &http_session::on_read,
-            shared_from_this()));
+    do_read();
 }

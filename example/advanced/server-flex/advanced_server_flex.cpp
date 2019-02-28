@@ -25,7 +25,7 @@
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/make_unique.hpp>
-#include <boost/config.hpp>
+#include <boost/optional.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -561,8 +561,11 @@ class http_session
     };
 
     std::shared_ptr<std::string const> doc_root_;
-    http::request<http::string_body> req_;
     queue queue_;
+
+    // The parser is stored in an optional container so we can
+    // construct it from scratch it at the beginning of each new message.
+    boost::optional<http::request_parser<http::string_body>> parser_;
 
 protected:
     beast::flat_buffer buffer_;
@@ -581,19 +584,22 @@ public:
     void
     do_read()
     {
-        // Make the request empty before reading,
-        // otherwise the operation behavior is undefined.
-        req_ = {};
+        // Construct a new parser for each message
+        parser_.emplace();
+
+        // Apply a reasonable limit to the allowed size
+        // of the body in bytes to prevent abuse.
+        parser_->body_limit(10000);
 
         // Set the timeout.
         beast::get_lowest_layer(
             derived().stream()).expires_after(std::chrono::seconds(30));
 
-        // Read a request
+        // Read a request using the parser-oriented interface
         http::async_read(
             derived().stream(),
             buffer_,
-            req_,
+            *parser_,
             beast::bind_front_handler(
                 &http_session::on_read,
                 derived().shared_from_this()));
@@ -612,20 +618,21 @@ public:
             return fail(ec, "read");
 
         // See if it is a WebSocket Upgrade
-        if(websocket::is_upgrade(req_))
+        if(websocket::is_upgrade(parser_->get()))
         {
             // Disable the timeout.
             // The websocket::stream uses its own timeout settings.
             beast::get_lowest_layer(derived().stream()).expires_never();
 
-            // Transfer the stream to a new WebSocket session.
+            // Create a websocket session, transferring ownership
+            // of both the socket and the HTTP request.
             return make_websocket_session(
                 derived().release_stream(),
-                std::move(req_));
+                parser_->release());
         }
 
         // Send the response
-        handle_request(*doc_root_, std::move(req_), queue_);
+        handle_request(*doc_root_, parser_->release(), queue_);
 
         // If we aren't at the queue limit, try to pipeline another request
         if(! queue_.is_full())
