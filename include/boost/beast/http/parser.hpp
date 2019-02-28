@@ -61,6 +61,7 @@ class parser
     message<isRequest, Body, basic_fields<Allocator>> m_;
     typename Body::reader rd_;
     bool rd_inited_ = false;
+    bool used_ = false;
 
     std::function<void(
         std::uint64_t,
@@ -335,6 +336,20 @@ private:
         error_code& ec,
         std::true_type)
     {
+        // If this assert goes off, it means you tried to re-use a
+        // parser after it was done reading a message. This is not
+        // allowed, you need to create a new parser for each message.
+        // The easiest way to do that is to store the parser in
+        // an optional object.
+
+        BOOST_ASSERT(! used_);
+        if(used_)
+        {
+            ec = error::stale_parser;
+            return;
+        }
+        used_ = true;
+
         try
         {
             m_.target(target);
@@ -378,6 +393,20 @@ private:
         error_code& ec,
         std::true_type)
     {
+        // If this assert goes off, it means you tried to re-use a
+        // parser after it was done reading a message. This is not
+        // allowed, you need to create a new parser for each message.
+        // The easiest way to do that is to store the parser in
+        // an optional object.
+
+        BOOST_ASSERT(! used_);
+        if(used_)
+        {
+            ec = error::stale_parser;
+            return;
+        }
+        used_ = true;
+
         m_.result(code);
         m_.version(version);
         try

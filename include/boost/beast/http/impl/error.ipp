@@ -55,6 +55,7 @@ public:
         case error::bad_chunk: return "bad chunk";
         case error::bad_chunk_extension: return "bad chunk extension";
         case error::bad_obs_fold: return "bad obs-fold";
+        case error::stale_parser: return "stale parser";
 
         default:
             return "beast.http error";

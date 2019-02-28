@@ -353,6 +353,8 @@
 
 * ([issue 1460]) Large WebSocket Upgrade response no longer overflows
 
+* Reusing an HTTP parser returns an error
+
 * Handler bind wrappers use the associated allocator
 
 * `buffers_cat`

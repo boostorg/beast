@@ -144,7 +144,16 @@ enum class error
     bad_chunk_extension,
 
     /// An obs-fold exceeded an internal limit.
-    bad_obs_fold
+    bad_obs_fold,
+
+    /** The parser is stale.
+
+        This happens when attempting to re-use a parser that has
+        already completed parsing a message. Programs must construct
+        a new parser for each message. This can be easily done by
+        storing the parser in an boost or std::optional container.
+    */
+    stale_parser
 };
 
 } // http

@@ -65,6 +65,8 @@ public:
         check("beast.http", error::bad_chunk);
         check("beast.http", error::bad_chunk_extension);
         check("beast.http", error::bad_obs_fold);
+
+        check("beast.http", error::stale_parser);
     }
 };
 
