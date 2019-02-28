@@ -335,6 +335,8 @@
 * ([issue 1306]) `test::stream`
   has fewer dependencies
 
+* ([issue 1358]) Destroy abandoned websocket ops on shutdown
+
 * ([issue 1365]) Handler wrappers decay parameters sooner
 
 * ([issue 1408]) `session_alloc`

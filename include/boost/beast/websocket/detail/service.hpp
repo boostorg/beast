@@ -55,6 +55,10 @@ public:
             svc_.v_[index_] = &other;
             svc_.v_.pop_back();
         }
+
+        virtual
+        void
+        shutdown() = 0;
     };
 
 private:
@@ -72,6 +76,9 @@ private:
             for(auto p : v_)
                 v.emplace_back(p->weak_from_this());
         }
+        for(auto wp : v)
+            if(auto sp = wp.lock())
+                sp->shutdown();
     }
 
 public:

@@ -39,6 +39,16 @@ operator=(saved_handler&& other) noexcept
     return *this;
 }
 
+bool
+saved_handler::
+reset() noexcept
+{
+    if(! p_)
+        return false;
+    boost::exchange(p_, nullptr)->destroy();
+    return true;
+}
+
 void
 saved_handler::
 invoke()

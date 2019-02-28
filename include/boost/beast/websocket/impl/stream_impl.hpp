@@ -139,6 +139,18 @@ struct stream<NextLayer, deflateSupported>::impl_type
     }
 
     void
+    shutdown() override
+    {
+        op_rd.reset();
+        op_wr.reset();
+        op_ping.reset();
+        op_idle_ping.reset();
+        op_close.reset();
+        op_r_rd.reset();
+        op_r_close.reset();
+    }
+
+    void
     open(role_type role_)
     {
         // VFALCO TODO analyze and remove dupe code in reset()

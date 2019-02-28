@@ -90,6 +90,16 @@ public:
     void
     emplace(Handler&& handler);
 
+    /** Discard the saved handler, if one exists.
+
+        If `*this` contains an object, it is destroyed.
+
+        @returns `true` if an object was destroyed.
+    */
+    BOOST_BEAST_DECL
+    bool
+    reset() noexcept;
+
     /** Unconditionally invoke the stored completion handler.
 
         Requires `this->has_value() == true`. Any dynamic memory
