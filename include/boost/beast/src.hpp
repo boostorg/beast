@@ -46,6 +46,7 @@ the program, with the macro BOOST_BEAST_SPLIT_COMPILATION defined.
 #include <boost/beast/http/impl/verb.ipp>
 
 #include <boost/beast/websocket/detail/prng.ipp>
+#include <boost/beast/websocket/detail/service.ipp>
 #include <boost/beast/websocket/impl/error.ipp>
 
 #include <boost/beast/zlib/detail/deflate_stream.ipp>

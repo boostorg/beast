@@ -36,25 +36,13 @@ public:
     public:
         virtual ~impl_type() = default;
 
+        BOOST_BEAST_DECL
         explicit
-        impl_type(net::execution_context& ctx)
-            : svc_(net::use_service<service>(ctx))
-        {
-            std::lock_guard<std::mutex> g(svc_.m_);
-            index_ = svc_.v_.size();
-            svc_.v_.push_back(this);
-        }
+        impl_type(net::execution_context& ctx);
 
         BOOST_BEAST_DECL
         void
-        remove()
-        {
-            std::lock_guard<std::mutex> g(svc_.m_);
-            auto& other = *svc_.v_.back();
-            other.index_ = index_;
-            svc_.v_[index_] = &other;
-            svc_.v_.pop_back();
-        }
+        remove();
 
         virtual
         void
@@ -67,19 +55,7 @@ private:
 
     BOOST_BEAST_DECL
     void
-    shutdown() override
-    {
-        std::vector<boost::weak_ptr<impl_type>> v;
-        {
-            std::lock_guard<std::mutex> g(m_);
-            v.reserve(v_.size());
-            for(auto p : v_)
-                v.emplace_back(p->weak_from_this());
-        }
-        for(auto wp : v)
-            if(auto sp = wp.lock())
-                sp->shutdown();
-    }
+    shutdown() override;
 
 public:
     BOOST_BEAST_DECL
@@ -94,5 +70,9 @@ public:
 } // websocket
 } // beast
 } // boost
+
+#if BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/websocket/detail/service.ipp>
+#endif
 
 #endif
