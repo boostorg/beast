@@ -35,6 +35,13 @@ struct static_const
 template<typename T>
 constexpr T static_const<T>::value;
 
+#define BOOST_BEAST_INLINE_VARIABLE(name, type) \
+    namespace \
+    { \
+        constexpr auto& name = \
+            ::boost::beast::detail::static_const<type>::value; \
+    }
+
 } // detail
 } // beast
 } // boost
