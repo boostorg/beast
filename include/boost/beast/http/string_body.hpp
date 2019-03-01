@@ -15,6 +15,7 @@
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/core/buffers_range.hpp>
+#include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
@@ -94,21 +95,12 @@ public:
         {
             if(length)
             {
-                if(static_cast<std::size_t>(*length) != *length)
+                if(*length > body_.max_size())
                 {
                     ec = error::buffer_overflow;
                     return;
                 }
-                try
-                {
-                    body_.reserve(
-                        static_cast<std::size_t>(*length));
-                }
-                catch(std::exception const&)
-                {
-                    ec = error::buffer_overflow;
-                    return;
-                }
+                body_.reserve(beast::detail::clamp(*length));
             }
             ec = {};
         }
@@ -120,15 +112,13 @@ public:
         {
             auto const extra = buffer_size(buffers);
             auto const size = body_.size();
-            try
-            {
-                body_.resize(size + extra);
-            }
-            catch(std::exception const&)
+            if (extra > body_.max_size() - size)
             {
                 ec = error::buffer_overflow;
                 return 0;
             }
+
+            body_.resize(size + extra);
             ec = {};
             CharT* dest = &body_[size];
             for(auto b : beast::buffers_range_ref(buffers))
