@@ -1,3 +1,9 @@
+Version 225:
+
+* Tidy up an unused function
+
+--------------------------------------------------------------------------------
+
 Version 224:
 
 * Remove extraneous error check in advanced-server-flex

@@ -259,7 +259,6 @@ class websocket_session
 
     beast::flat_buffer buffer_;
 
-public:
     // Start the asynchronous operation
     template<class Body, class Allocator>
     void
@@ -348,6 +347,16 @@ public:
         // Do another read
         do_read();
     }
+
+public:
+    // Start the asynchronous operation
+    template<class Body, class Allocator>
+    void
+    run(http::request<Body, http::basic_fields<Allocator>> req)
+    {
+        // Accept the WebSocket upgrade request
+        do_accept(std::move(req));
+    }
 };
 
 //------------------------------------------------------------------------------
@@ -374,15 +383,6 @@ public:
     {
         return ws_;
     }
-
-    // Start the asynchronous operation
-    template<class Body, class Allocator>
-    void
-    run(http::request<Body, http::basic_fields<Allocator>> req)
-    {
-        // Accept the WebSocket upgrade request
-        do_accept(std::move(req));
-    }
 };
 
 //------------------------------------------------------------------------------
@@ -404,31 +404,12 @@ public:
     {
     }
 
-    // Start the session
-    template<class Body, class Allocator>
-    void
-    run(http::request<Body, http::basic_fields<Allocator>> req)
-    {
-        // Accept the WebSocket upgrade request
-        do_accept(std::move(req));
-    }
-
     // Called by the base class
     websocket::stream<
         beast::ssl_stream<beast::tcp_stream>>&
     ws()
     {
         return ws_;
-    }
-
-private:
-    void
-    on_shutdown(beast::error_code ec)
-    {
-        if(ec)
-            return fail(ec, "shutdown");
-
-        // At this point the connection is closed gracefully
     }
 };
 
