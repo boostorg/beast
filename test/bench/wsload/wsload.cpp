@@ -115,7 +115,7 @@ class connection
     test_buffer const& tb_;
     net::strand<
         net::io_context::executor_type> strand_;
-    beast::multi_buffer buffer_;
+    beast::flat_buffer buffer_;
     std::mt19937_64 rng_;
     std::size_t count_ = 0;
     std::size_t bytes_ = 0;

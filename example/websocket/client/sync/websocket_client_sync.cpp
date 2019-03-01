@@ -76,7 +76,7 @@ int main(int argc, char** argv)
         ws.write(net::buffer(std::string(text)));
 
         // This buffer will hold the incoming message
-        beast::multi_buffer buffer;
+        beast::flat_buffer buffer;
 
         // Read a message into our buffer
         ws.read(buffer);

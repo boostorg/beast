@@ -70,7 +70,7 @@ do_session(
     for(;;)
     {
         // This buffer will hold the incoming message
-        beast::multi_buffer buffer;
+        beast::flat_buffer buffer;
 
         // Read a message
         ws.async_read(buffer, yield[ec]);

@@ -93,7 +93,7 @@ do_session(
         return fail(ec, "write");
 
     // This buffer will hold the incoming message
-    beast::multi_buffer buffer;
+    beast::flat_buffer buffer;
 
     // Read a message into our buffer
     ws.async_read(buffer, yield[ec]);

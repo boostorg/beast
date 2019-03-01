@@ -99,7 +99,7 @@ do_sync_session(websocket::stream<beast::tcp_stream>& ws)
 
     for(;;)
     {
-        beast::multi_buffer buffer;
+        beast::flat_buffer buffer;
         
         ws.read(buffer, ec);
         if(ec == websocket::error::closed)
@@ -141,7 +141,7 @@ do_sync_listen(
 class async_session : public std::enable_shared_from_this<async_session>
 {
     websocket::stream<beast::tcp_stream> ws_;
-    beast::multi_buffer buffer_;
+    beast::flat_buffer buffer_;
 
 public:
     // Take ownership of the socket
@@ -355,7 +355,7 @@ do_coro_session(
 
     for(;;)
     {
-        beast::multi_buffer buffer;
+        beast::flat_buffer buffer;
 
         ws.async_read(buffer, yield[ec]);
         if(ec == websocket::error::closed)

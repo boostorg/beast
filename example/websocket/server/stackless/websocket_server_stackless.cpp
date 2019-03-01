@@ -47,7 +47,7 @@ class session
     , public std::enable_shared_from_this<session>
 {
     websocket::stream<beast::tcp_stream> ws_;
-    beast::multi_buffer buffer_;
+    beast::flat_buffer buffer_;
 
 public:
     // Take ownership of the socket
