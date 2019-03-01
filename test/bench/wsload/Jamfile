@@ -8,7 +8,6 @@
 #
 
 exe wsload :
-    $(TEST_MAIN)
     wsload.cpp
     ;
 

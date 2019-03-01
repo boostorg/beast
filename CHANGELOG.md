@@ -1,6 +1,7 @@
 Version 225:
 
 * Tidy up an unused function
+* Fix wsload jamfile
 
 --------------------------------------------------------------------------------
 
