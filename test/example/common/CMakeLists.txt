@@ -20,7 +20,6 @@ add_executable (tests-example-common
     Jamfile
     root_certificates.cpp
     server_certificate.cpp
-    session_alloc.cpp
 )
 
 set_property(TARGET tests-example-common PROPERTY FOLDER "tests")

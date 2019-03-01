@@ -3,6 +3,11 @@ Version 225:
 * Tidy up an unused function
 * Fix wsload jamfile
 * Examples use flat_buffer
+* Remove session_alloc (API Change)
+
+Actions Required:
+
+* Don't use session_alloc
 
 --------------------------------------------------------------------------------
 

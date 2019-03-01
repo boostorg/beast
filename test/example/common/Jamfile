@@ -10,7 +10,6 @@
 local SOURCES =
     root_certificates.cpp
     server_certificate.cpp
-    session_alloc.cpp
     ;
 
 local RUN_TESTS ;

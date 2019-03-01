@@ -15,8 +15,6 @@
 //
 //------------------------------------------------------------------------------
 
-#include <example/common/session_alloc.hpp>
-
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/_experimental/unit_test/dstream.hpp>
@@ -119,7 +117,6 @@ class connection
     std::mt19937_64 rng_;
     std::size_t count_ = 0;
     std::size_t bytes_ = 0;
-    session_alloc<char> alloc_;
 
 public:
     connection(
@@ -153,9 +150,9 @@ public:
     run()
     {
         ws_.next_layer().async_connect(ep_,
-            alloc_.wrap(beast::bind_front_handler(
+            beast::bind_front_handler(
                 &connection::on_connect,
-                this->shared_from_this())));
+                this->shared_from_this()));
     }
 
 private:
@@ -168,9 +165,9 @@ private:
         ws_.async_handshake(
             ep_.address().to_string() + ":" + std::to_string(ep_.port()),
             "/",
-            alloc_.wrap(beast::bind_front_handler(
+            beast::bind_front_handler(
                 &connection::on_handshake,
-                this->shared_from_this())));
+                this->shared_from_this()));
     }
 
     void
@@ -189,9 +186,9 @@ private:
             double(4) / beast::buffer_size(tb_)};
         ws_.async_write_some(true,
             beast::buffers_prefix(dist(rng_), tb_),
-            alloc_.wrap(beast::bind_front_handler(
+            beast::bind_front_handler(
                 &connection::on_write,
-                this->shared_from_this())));
+                this->shared_from_this()));
     }
 
     void
@@ -204,18 +201,18 @@ private:
             return do_read();
 
         ws_.async_close({},
-            alloc_.wrap(beast::bind_front_handler(
+            beast::bind_front_handler(
                 &connection::on_close,
-                this->shared_from_this())));
+                this->shared_from_this()));
     }
 
     void
     do_read()
     {
         ws_.async_read(buffer_,
-            alloc_.wrap(beast::bind_front_handler(
+            beast::bind_front_handler(
                 &connection::on_read,
-                this->shared_from_this())));
+                this->shared_from_this()));
     }
 
     void
