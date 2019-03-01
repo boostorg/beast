@@ -1,3 +1,9 @@
+Version 226:
+
+* Support -fno-exceptions
+
+--------------------------------------------------------------------------------
+
 Version 225:
 
 * Tidy up an unused function

@@ -350,18 +350,11 @@ private:
         }
         used_ = true;
 
-        try
-        {
-            m_.target(target);
-            if(method != verb::unknown)
-                m_.method(method);
-            else
-                m_.method_string(method_str);
-        }
-        catch(std::bad_alloc const&)
-        {
-            ec = error::bad_alloc;
-        }
+        m_.target(target);
+        if(method != verb::unknown)
+            m_.method(method);
+        else
+            m_.method_string(method_str);
         m_.version(version);
     }
 
@@ -409,14 +402,7 @@ private:
 
         m_.result(code);
         m_.version(version);
-        try
-        {
-            m_.reason(reason);
-        }
-        catch(std::bad_alloc const&)
-        {
-            ec = error::bad_alloc;
-        }
+        m_.reason(reason);
     }
 
     void
@@ -443,16 +429,9 @@ private:
         field name,
         string_view name_string,
         string_view value,
-        error_code& ec) override
+        error_code&) override
     {
-        try
-        {
-            m_.insert(name, name_string, value);
-        }
-        catch(std::bad_alloc const&)
-        {
-            ec = error::bad_alloc;
-        }
+        m_.insert(name, name_string, value);
     }
 
     void

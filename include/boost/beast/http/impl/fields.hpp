@@ -1048,6 +1048,7 @@ set_chunked_impl(bool value)
     // filter "chunked"
     if(it == end())
         return;
+#ifndef BOOST_NO_EXCEPTIONS
     try
     {
         static_string<max_static_buffer> buf;
@@ -1062,6 +1063,7 @@ set_chunked_impl(bool value)
             erase(field::transfer_encoding);
     }
     catch(std::length_error const&)
+#endif
     {
     #ifdef BOOST_BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
         // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
@@ -1108,6 +1110,7 @@ set_keep_alive_impl(
 {
     // VFALCO What about Proxy-Connection ?
     auto const value = (*this)[field::connection];
+#ifndef BOOST_NO_EXCEPTIONS
     try
     {
         static_string<max_static_buffer> buf;
@@ -1119,6 +1122,7 @@ set_keep_alive_impl(
             set(field::connection, buf);
     }
     catch(std::length_error const&)
+#endif
     {
     #ifdef BOOST_BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
         // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437

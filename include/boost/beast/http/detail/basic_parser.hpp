@@ -674,7 +674,9 @@ struct basic_parser_base
         buf.resize(0);
         buf.append(first, token_last);
         BOOST_ASSERT(! buf.empty());
+#ifndef BOOST_NO_EXCEPTIONS
         try
+#endif
         {
             for(;;)
             {
@@ -719,11 +721,13 @@ struct basic_parser_base
                 ++p;
             }
         }
+#ifndef BOOST_NO_EXCEPTIONS
         catch(std::length_error const&)
         {
             ec = error::header_limit;
             return;
         }
+#endif
     }
 
     void
