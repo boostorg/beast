@@ -94,21 +94,13 @@ public:
         {
             if(length)
             {
-                if(static_cast<std::size_t>(*length) != *length)
+                std::size_t len = *length;
+                if(len != *length || len > body_.max_size())
                 {
                     ec = error::buffer_overflow;
                     return;
                 }
-                try
-                {
-                    body_.reserve(
-                        static_cast<std::size_t>(*length));
-                }
-                catch(std::exception const&)
-                {
-                    ec = error::buffer_overflow;
-                    return;
-                }
+                body_.reserve(len);
             }
             ec = {};
         }
@@ -120,15 +112,13 @@ public:
         {
             auto const extra = buffer_size(buffers);
             auto const size = body_.size();
-            try
-            {
-                body_.resize(size + extra);
-            }
-            catch(std::exception const&)
+            if (extra > body_.max_size() - size)
             {
                 ec = error::buffer_overflow;
                 return 0;
             }
+
+            body_.resize(size + extra);
             ec = {};
             CharT* dest = &body_[size];
             for(auto b : beast::buffers_range_ref(buffers))

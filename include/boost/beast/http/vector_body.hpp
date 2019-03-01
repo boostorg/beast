@@ -88,21 +88,13 @@ public:
         {
             if(length)
             {
-                if(static_cast<std::size_t>(*length) != *length)
+                std::size_t const len = *length;
+                if(len != *length || len > body_.max_size())
                 {
                     ec = error::buffer_overflow;
                     return;
                 }
-                try
-                {
-                    body_.reserve(
-                        static_cast<std::size_t>(*length));
-                }
-                catch(std::exception const&)
-                {
-                    ec = error::buffer_overflow;
-                    return;
-                }
+                body_.reserve(len);
             }
             ec = {};
         }
@@ -114,15 +106,13 @@ public:
         {
             auto const n = buffer_size(buffers);
             auto const len = body_.size();
-            try
-            {
-                body_.resize(len + n);
-            }
-            catch(std::exception const&)
+            if (n > body_.max_size() - len)
             {
                 ec = error::buffer_overflow;
                 return 0;
             }
+
+            body_.resize(len + n);
             ec = {};
             return net::buffer_copy(net::buffer(
                 &body_[0] + len, n), buffers);
