@@ -171,9 +171,15 @@ from asynchronous intermediate operations.
 
 [code_core_3_timeouts_2f]
 
+[endsect]
+
 [/-----------------------------------------------------------------------------]
 
-[heading Rate Limiting]
+
+
+[/-----------------------------------------------------------------------------]
+
+[section:rate_limiting Rate Limiting __example__ __new__]
 
 The
 [link beast.ref.boost__beast__basic_stream `basic_stream`]
@@ -215,3 +221,5 @@ read or write rates by calling into the policy.
 [code_core_3_timeouts_9]
 
 [endsect]
+
+[/-----------------------------------------------------------------------------]
