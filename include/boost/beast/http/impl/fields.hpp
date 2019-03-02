@@ -14,6 +14,7 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
+#include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/http/verb.hpp>
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/http/status.hpp>
@@ -1018,7 +1019,8 @@ set_chunked_impl(bool value)
             itt = next;
         }
         static_string<max_static_buffer> buf;
-        if(it->value().size() <= buf.size() + 9)
+        if(! beast::detail::sum_exceeds(
+            it->value().size(), 9u, buf.max_size()))
         {
             buf.append(it->value().data(), it->value().size());
             buf.append(", chunked", 9);

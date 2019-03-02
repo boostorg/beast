@@ -2,6 +2,7 @@ Version 226:
 
 * Support -fno-exceptions
 * make_strand is in net::
+* Fix HTTP parser static string calculation
 
 --------------------------------------------------------------------------------
 
