@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/core/make_strand.hpp>
+#include <boost/beast/core/net::make_strand.hpp>
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/executor.hpp>
@@ -24,15 +24,15 @@ public:
     testFunction()
     {
         net::io_context ioc;
-        make_strand(ioc);
-        make_strand(ioc.get_executor());
-        make_strand(make_strand(ioc));
+        net::make_strand(ioc);
+        net::make_strand(ioc.get_executor());
+        net::make_strand(net::make_strand(ioc));
 
         net::executor ex(ioc.get_executor());
-        make_strand(ex);
+        net::make_strand(ex);
 
         // this *should-not* compile
-        //make_strand(ex.context());
+        //net::make_strand(ex.context());
     }
 
     void
@@ -43,7 +43,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,make_strand);
+BEAST_DEFINE_TESTSUITE(beast,core,net::make_strand);
 
 } // beast
 } // boost

@@ -47,7 +47,7 @@ snippets()
         // The `tcp_stream` will be constructed with a new
         // strand which uses the specified I/O context.
 
-        stream<tcp_stream> ws(make_strand(ioc));
+        stream<tcp_stream> ws(net::make_strand(ioc));
 
     //]
     }
@@ -76,7 +76,7 @@ snippets()
     //[code_websocket_5f
 
         // The WebSocket stream will use SSL and a new strand
-        stream<ssl_stream<tcp_stream>> wss(make_strand(ioc), ctx);
+        stream<ssl_stream<tcp_stream>> wss(net::make_strand(ioc), ctx);
 
     //]
 

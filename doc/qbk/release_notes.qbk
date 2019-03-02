@@ -117,8 +117,6 @@
   * Add `cdata()` to also return constant readable bytes
   * Eligible member functions are declared `noexcept`
 
-* New `make_strand`
-
 * ([issue 1345]) Better
   `flat_buffer`,
   `multi_buffer`

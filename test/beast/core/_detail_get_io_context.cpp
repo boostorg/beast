@@ -8,7 +8,6 @@
 //
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/make_strand.hpp>
 #include <boost/beast/core/detail/get_io_context.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/strand.hpp>
@@ -32,7 +31,7 @@ public:
         BEAST_EXPECT(get_io_context(none{}) == nullptr);
         BEAST_EXPECT(get_io_context(ioc) == &ioc);
         BEAST_EXPECT(get_io_context(ioc.get_executor()) == &ioc);
-        BEAST_EXPECT(get_io_context(make_strand(ioc)) == &ioc);
+        BEAST_EXPECT(get_io_context(net::make_strand(ioc)) == &ioc);
         BEAST_EXPECT(get_io_context(net::executor(ioc.get_executor())) == &ioc);
 #if 0
         // VFALCO FIXME

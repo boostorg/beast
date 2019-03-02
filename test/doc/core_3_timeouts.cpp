@@ -69,7 +69,7 @@ core_3_timeouts_snippets()
     //[code_core_3_timeouts_3
 
         // The strand will be used to invoke all completion handlers
-        tcp_stream stream(make_strand(ioc));
+        tcp_stream stream(net::make_strand(ioc));
 
     //]
 
@@ -111,7 +111,7 @@ core_3_timeouts_snippets()
         // We construct the acceptor to use a new strand, and listen
         // on the loopback address with an operating-system assigned port.
 
-        net::ip::tcp::acceptor acceptor(make_strand(ioc));
+        net::ip::tcp::acceptor acceptor(net::make_strand(ioc));
         acceptor.bind(net::ip::tcp::endpoint(net::ip::make_address_v4("127.0.0.1"), 0));
         acceptor.listen(0);
 
@@ -120,7 +120,7 @@ core_3_timeouts_snippets()
         // connected to the peer. The socket will have its own executor,
         // which in the call below is a new strand for the I/O context.
 
-        net::ip::tcp::socket s = acceptor.accept(make_strand(ioc));
+        net::ip::tcp::socket s = acceptor.accept(net::make_strand(ioc));
 
         // Construct a new tcp_stream from the connected socket.
         // The stream will use the strand created when the connection

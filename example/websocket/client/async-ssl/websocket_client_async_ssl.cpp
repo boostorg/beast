@@ -19,6 +19,7 @@
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
+#include <boost/asio/strand.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -55,8 +56,8 @@ public:
     // Resolver and socket require an io_context
     explicit
     session(net::io_context& ioc, ssl::context& ctx)
-        : resolver_(beast::make_strand(ioc))
-        , ws_(beast::make_strand(ioc), ctx)
+        : resolver_(net::make_strand(ioc))
+        , ws_(net::make_strand(ioc), ctx)
     {
     }
 

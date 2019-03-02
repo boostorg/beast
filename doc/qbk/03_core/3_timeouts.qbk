@@ -90,8 +90,8 @@ Alternatively, we can construct the stream from an executor:
 [code_core_3_timeouts_2]
 
 The function
-[link beast.ref.boost__beast__make_strand `make_strand`] returns a strand
-constructed from an execution context or executor. When a
+[@boost:/doc/html/boost_asio/reference/make_strand.html `make_strand`]
+returns a strand constructed from an execution context or executor. When a
 [@boost:/doc/html/boost_asio/reference/strand.html `net::strand`]
 is chosen for the stream's executor, all completion handlers which do not
 already have an associated executor will use the strand. This is both a

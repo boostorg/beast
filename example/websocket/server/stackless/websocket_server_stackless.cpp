@@ -151,8 +151,8 @@ public:
         net::io_context& ioc,
         tcp::endpoint endpoint)
         : ioc_(ioc)
-        , acceptor_(beast::make_strand(ioc))
-        , socket_(beast::make_strand(ioc))
+        , acceptor_(net::make_strand(ioc))
+        , socket_(net::make_strand(ioc))
     {
         beast::error_code ec;
 
@@ -224,7 +224,7 @@ public:
                 }
 
                 // Make sure each session gets its own strand
-                socket_ = tcp::socket(beast::make_strand(ioc_));
+                socket_ = tcp::socket(net::make_strand(ioc_));
             }
         }
     }

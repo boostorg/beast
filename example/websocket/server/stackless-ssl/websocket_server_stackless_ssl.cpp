@@ -250,7 +250,7 @@ public:
                 }
 
                 // Make sure each session gets its own strand
-                socket_ = tcp::socket(beast::make_strand(ioc_));
+                socket_ = tcp::socket(net::make_strand(ioc_));
             }
         }
     }

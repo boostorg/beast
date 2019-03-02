@@ -19,6 +19,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/asio/strand.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -54,8 +55,8 @@ public:
     // ensure that handlers do not execute concurrently.
     explicit
     session(net::io_context& ioc, ssl::context& ctx)
-        : resolver_(beast::make_strand(ioc))
-        , stream_(beast::make_strand(ioc), ctx)
+        : resolver_(net::make_strand(ioc))
+        , stream_(net::make_strand(ioc), ctx)
     {
     }
 

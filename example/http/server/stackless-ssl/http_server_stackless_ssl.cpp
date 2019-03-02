@@ -413,8 +413,8 @@ public:
         std::shared_ptr<std::string const> const& doc_root)
         : ioc_(ioc)
         , ctx_(ctx)
-        , acceptor_(beast::make_strand(ioc))
-        , socket_(beast::make_strand(ioc))
+        , acceptor_(net::make_strand(ioc))
+        , socket_(net::make_strand(ioc))
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -490,7 +490,7 @@ public:
                 }
 
                 // Make sure each session gets its own strand
-                socket_ = tcp::socket(beast::make_strand(ioc_));
+                socket_ = tcp::socket(net::make_strand(ioc_));
             }
         }
     }

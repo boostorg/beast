@@ -545,7 +545,7 @@ public:
         tcp::endpoint endpoint,
         std::shared_ptr<std::string const> const& doc_root)
         : ioc_(ioc)
-        , acceptor_(beast::make_strand(ioc))
+        , acceptor_(net::make_strand(ioc))
         , doc_root_(doc_root)
     {
         beast::error_code ec;
@@ -598,7 +598,7 @@ public:
     {
         // The new connection gets its own strand
         acceptor_.async_accept(
-            beast::make_strand(ioc_),
+            net::make_strand(ioc_),
             beast::bind_front_handler(
                 &listener::on_accept,
                 shared_from_this()));

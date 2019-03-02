@@ -58,7 +58,7 @@ snippets()
     //[code_websocket_1_3
     
         // The stream will use the strand for invoking all completion handlers
-        stream<tcp_stream> ws(make_strand(ioc));
+        stream<tcp_stream> ws(net::make_strand(ioc));
 
         // This overload of accept uses the socket provided for the new connection.
         // The function `tcp_stream::socket` provides access to the low-level socket

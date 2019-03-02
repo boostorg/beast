@@ -164,8 +164,8 @@ public:
         crawl_report& report,
         net::io_context& ioc)
         : report_(report)
-        , resolver_(beast::make_strand(ioc))
-        , stream_(beast::make_strand(ioc))
+        , resolver_(net::make_strand(ioc))
+        , stream_(net::make_strand(ioc))
     {
         // Set up the common fields of the request
         req_.version(11);

@@ -249,7 +249,7 @@ public:
         net::io_context& ioc,
         tcp::endpoint endpoint)
         : ioc_(ioc)
-        , acceptor_(beast::make_strand(ioc))
+        , acceptor_(net::make_strand(ioc))
     {
         beast::error_code ec;
 
@@ -301,7 +301,7 @@ public:
     {
         // The new connection gets its own strand
         acceptor_.async_accept(
-            beast::make_strand(ioc_),
+            net::make_strand(ioc_),
             beast::bind_front_handler(
                 &async_listener::on_accept,
                 shared_from_this()));

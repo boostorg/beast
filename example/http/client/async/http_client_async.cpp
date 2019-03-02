@@ -16,6 +16,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/asio/strand.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -50,8 +51,8 @@ public:
     // ensure that handlers do not execute concurrently.
     explicit
     session(net::io_context& ioc)
-        : resolver_(beast::make_strand(ioc))
-        , stream_(beast::make_strand(ioc))
+        : resolver_(net::make_strand(ioc))
+        , stream_(net::make_strand(ioc))
     {
     }
 

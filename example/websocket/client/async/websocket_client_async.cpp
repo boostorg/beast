@@ -15,6 +15,7 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/asio/strand.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -49,8 +50,8 @@ public:
     // Resolver and socket require an io_context
     explicit
     session(net::io_context& ioc)
-        : resolver_(beast::make_strand(ioc))
-        , ws_(beast::make_strand(ioc))
+        : resolver_(net::make_strand(ioc))
+        , ws_(net::make_strand(ioc))
     {
     }
 

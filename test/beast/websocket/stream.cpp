@@ -10,7 +10,6 @@
 // Test that header file is self-contained.
 #include <boost/beast/websocket/stream.hpp>
 
-#include <boost/beast/core/make_strand.hpp>
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/asio/strand.hpp>
 
@@ -158,7 +157,7 @@ public:
     {
         net::io_context ioc;
         {
-            websocket::stream<tcp_stream> ws{make_strand(ioc)};
+            websocket::stream<tcp_stream> ws{net::make_strand(ioc)};
         }
         {
             websocket::stream<tcp_stream> ws(ioc);

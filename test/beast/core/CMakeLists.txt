@@ -57,7 +57,6 @@ add_executable (tests-beast-core
     flat_stream.cpp
     handler_ptr.cpp
     make_printable.cpp
-    make_strand.cpp
     multi_buffer.cpp
     ostream.cpp
     rate_policy.cpp
