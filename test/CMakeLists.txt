@@ -15,8 +15,6 @@ file (GLOB_RECURSE EXTRAS_FILES
     ${PROJECT_SOURCE_DIR}/test/extras/include/*.ipp
     )
 
-set (TEST_MAIN ${PROJECT_SOURCE_DIR}/include/boost/beast/_experimental/unit_test/main.cpp)
-
 if (OPENSSL_FOUND)
     link_libraries (${OPENSSL_LIBRARIES})
 endif()
@@ -43,6 +41,12 @@ set (ZLIB_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/uncompr.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/zutil.c
 )
+
+set (TEST_MAIN ${PROJECT_SOURCE_DIR}/test/lib_beast.cpp)
+
+add_definitions (-DBOOST_BEAST_INCLUDE_TEST_MAIN)
+add_definitions (-DBOOST_ASIO_SEPARATE_COMPILATION)
+add_definitions (-DBOOST_BEAST_SPLIT_COMPILATION)
 
 add_subdirectory (beast)
 add_subdirectory (bench)

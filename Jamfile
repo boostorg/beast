@@ -53,7 +53,6 @@ path-constant TEST_MAIN : include/boost/beast/_experimental/unit_test/main.cpp ;
 
 lib static_beast
     : test/lib_beast.cpp
-      test/lib_asio.cpp
     : requirements
         [ requires
             cxx11_constexpr

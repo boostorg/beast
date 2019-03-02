@@ -12,6 +12,10 @@ GroupSources (example/common common)
 GroupSources (test/extras/include/boost/beast extras)
 GroupSources (test/bench/wsload "/")
 
+remove_definitions (-DBOOST_BEAST_INCLUDE_TEST_MAIN)
+remove_definitions (-DBOOST_ASIO_SEPARATE_COMPILATION)
+remove_definitions (-DBOOST_BEAST_SPLIT_COMPILATION)
+
 add_executable (bench-wsload
     ${BOOST_BEAST_FILES}
     ${COMMON_FILES}
