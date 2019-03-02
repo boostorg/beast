@@ -2,8 +2,8 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at http://boost.org/LICENSE_1_0.txt)
 
-#version: 1.0.{build}-{branch}
-version: "{branch} (#{build})"
+version: 1.0.{build}-{branch}
+#version: "{branch} (#{build})"
 
 shallow_clone: true
 
@@ -20,12 +20,31 @@ image:
 
 environment:
   OPENSSL_ROOT: C:\tools\vcpkg\installed\x64-windows
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      TOOLSET: msvc-14.0
+      ADDRMD: 64
+      CXXSTD: 11
+
+# VFALCO Appveyor has a 1 hour time limit, and
+#        I already test this configuration locally.
+#
+#    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#      TOOLSET: msvc-14.1
+#      CXXSTD: 11
+#      ADDRMD: 64
+
+# This configuration is not available yet
+#    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+#      TOOLSET: msvc-14.2
+#      CXXSTD: 11
+#      ADDRMD: 64
 
 install:
-  - vcpkg install openssl --triplet x64-windows
-  - ps: cp tools\user-config.jam ~\user-config.jam
   - SET BOOST_BRANCH=develop
   - IF "%APPVEYOR_REPO_BRANCH%" == "master" SET BOOST_BRANCH=master
+  - vcpkg install openssl --triplet x64-windows
+  - ps: cp tools\user-config.jam ~\user-config.jam
   - CD ..
   - git clone -b %BOOST_BRANCH% --depth 1 https://github.com/boostorg/boost.git boost-root
   - cd boost-root
@@ -103,8 +122,10 @@ install:
 build: off
 
 test_script:
-  - b2 variant=release cxxstd=11 address-model=64 toolset=msvc-14.0 libs/beast/example
-  - b2 variant=release cxxstd=11 address-model=64 toolset=msvc-14.0 --verbose-test libs/beast/test//run-fat-tests
+  - if not "%CXXSTD%" == "" set CXXSTD=cxxstd=%CXXSTD%
+  - if not "%ADDRMD%" == "" set ADDRMD=address-model=%ADDRMD%
+  - b2 --debug-configuration variant=release %CXXSTD% %ADDRMD% toolset=%TOOLSET% libs/beast/example
+  - b2 --debug-configuration variant=release %CXXSTD% %ADDRMD% toolset=%TOOLSET% --verbose-test libs/beast/test//run-fat-tests
 
 cache:
 - c:\tools\vcpkg\installed\
