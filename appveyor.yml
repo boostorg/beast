@@ -103,8 +103,8 @@ install:
 build: off
 
 test_script:
-  - b2 variant=release cxxstd=11 address-model=64 libs/beast/example
-  - b2 variant=release cxxstd=11 address-model=64 --verbose-test libs/beast/test//run-fat-tests
+  - b2 variant=release cxxstd=11 address-model=64 toolset=msvc-14.0 libs/beast/example
+  - b2 variant=release cxxstd=11 address-model=64 toolset=msvc-14.0 --verbose-test libs/beast/test//run-fat-tests
 
 cache:
 - c:\tools\vcpkg\installed\

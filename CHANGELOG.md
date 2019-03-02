@@ -4,6 +4,7 @@ Version 226:
 * make_strand is in net::
 * Fix HTTP parser static string calculation
 * Move parser definitions to .ipp
+* Appveyor uses msvc-14.0
 
 --------------------------------------------------------------------------------
 

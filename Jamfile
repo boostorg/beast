@@ -103,6 +103,7 @@ project /boost/beast
     <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
     <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc-14.1:<cxxflags>"/permissive-"
+    <toolset>msvc-14.2:<cxxflags>"/permissive-"
     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS=1
     <toolset>msvc:<define>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
