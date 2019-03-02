@@ -39,6 +39,7 @@ the program, with the macro BOOST_BEAST_SPLIT_COMPILATION defined.
 #include <boost/beast/core/impl/saved_handler.ipp>
 #include <boost/beast/core/impl/static_buffer.ipp>
 
+#include <boost/beast/http/detail/basic_parser.ipp>
 #include <boost/beast/http/impl/basic_parser.ipp>
 #include <boost/beast/http/impl/error.ipp>
 #include <boost/beast/http/impl/field.ipp>
