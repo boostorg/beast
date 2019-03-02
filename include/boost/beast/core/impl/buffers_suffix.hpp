@@ -71,8 +71,8 @@ public:
     operator*() const
     {
         if(it_ == b_->begin_)
-            return value_type{*it_} + b_->skip_;
-        return value_type{*it_};
+            return value_type(*it_) + b_->skip_;
+        return value_type(*it_);
     }
 
     pointer
