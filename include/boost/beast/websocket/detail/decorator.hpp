@@ -16,7 +16,6 @@
 #include <boost/core/exchange.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <algorithm>
-#include <functional>
 #include <memory>
 #include <new>
 #include <type_traits>
@@ -29,7 +28,16 @@ namespace detail {
 
 class decorator
 {
+    friend class decorator_test;
+
     struct incomplete;
+
+    struct exemplar
+    {
+        void(incomplete::*mf)();
+        std::shared_ptr<incomplete> sp;
+        void* param;
+    };
 
     static std::size_t constexpr Bytes =
         beast::detail::max_sizeof<
@@ -37,11 +45,7 @@ class decorator
             void const*,
             void(*)(),
             void(incomplete::*)(),
-            decltype(std::bind(
-                std::declval<
-                    void(incomplete::*)(request_type&)>(),
-                std::shared_ptr<incomplete>{},
-                std::placeholders::_1))
+            exemplar
         >();
 
     struct base
@@ -69,28 +73,29 @@ class decorator
 
     struct none
     {
+        void
+        operator()(request_type&)
+        {
+        }
+
+        void
+        operator()(response_type&)
+        {
+        }
     };
 
-    template<class T, class = void>
-    struct is_req_op : std::false_type
+    // VFALCO NOTE: When this is two traits, one for
+    //              request and one for response,
+    //              Visual Studio 2015 fails.
+
+    template<class T, class U, class = void>
+    struct is_op_of : std::false_type
     {
     };
 
-    template<class T>
-    struct is_req_op<T, boost::void_t<decltype(
-        std::declval<T&>()(std::declval<request_type&>())
-        )>> : std::true_type
-    {
-    };
-
-    template<class T, class = void>
-    struct is_res_op : std::false_type
-    {
-    };
-
-    template<class T>
-    struct is_res_op<T, boost::void_t<decltype(
-        std::declval<T&>()(std::declval<response_type&>())
+    template<class T, class U>
+    struct is_op_of<T, U, boost::void_t<decltype(
+        std::declval<T&>()(std::declval<U&>())
         )>> : std::true_type
     {
     };
@@ -120,7 +125,8 @@ class decorator
         void
         invoke(request_type& req) override
         {
-            this->invoke(req, is_req_op<F>{});
+            this->invoke(req,
+                is_op_of<F, request_type>{});
         }
 
         void
@@ -137,7 +143,8 @@ class decorator
         void
         invoke(response_type& res) override
         {
-            this->invoke(res, is_res_op<F>{});
+            this->invoke(res,
+                is_op_of<F, response_type>{});
         }
 
         void

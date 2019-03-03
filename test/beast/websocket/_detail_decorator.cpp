@@ -44,6 +44,9 @@ public:
         }
     };
 
+    BOOST_STATIC_ASSERT(decorator::is_op_of<
+        req_t, request_type>::value);
+
     struct res_t
     {
         bool pass_ = false;
@@ -67,6 +70,9 @@ public:
             pass_ = true;
         }
     };
+
+    BOOST_STATIC_ASSERT(decorator::is_op_of<
+        res_t, response_type>::value);
 
     struct both_t : res_t , req_t
     {
@@ -114,14 +120,6 @@ public:
             d2(req);
             decorator d3;
             d3 = std::move(d2);
-        }
-
-        {
-            // this would be leaner with bind_front
-            decorator d(std::bind(
-                &decorator_test::dec_req, this,
-                    std::placeholders::_1));
-            BEAST_EXPECT(d.is_inline());
         }
     }
 
