@@ -31,7 +31,7 @@ public:
             BEAST_EXPECT(pass_);
         }
 
-        req_t(req_t&& other)
+        req_t(req_t&& other) noexcept
             : pass_(boost::exchange(other.pass_, true))
         {
         }
@@ -58,7 +58,7 @@ public:
             BEAST_EXPECT(pass_);
         }
 
-        res_t(res_t&& other)
+        res_t(res_t&& other) noexcept
             : pass_(boost::exchange(other.pass_, true))
         {
         }
@@ -88,7 +88,11 @@ public:
 
     struct goldi // just right
     {
-        std::array<char, 48> a;
+        struct incomplete;
+        std::shared_ptr<incomplete> sp1;
+        std::shared_ptr<incomplete> sp2;
+        void* param;
+
         void operator()(request_type &) const
         {
         }
@@ -132,6 +136,8 @@ public:
 
         {
             decorator d{goldi{}};
+            bool is_inline = d.vtable_ == decorator::vtable_impl<goldi, true>::get();
+            BEAST_EXPECT(is_inline);
         }
     }
 
