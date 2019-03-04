@@ -4,6 +4,7 @@ Version 228:
 * Sync up convenience headers
 * The Fields concept is deprecated (API Change)
 * Fix includes.xsl for newer doxygen
+* Tidy up quick reference
 
 --------------------------------------------------------------------------------
 
