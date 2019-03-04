@@ -1,3 +1,9 @@
+Version 227:
+
+* Fix decorator for certain sizes
+
+--------------------------------------------------------------------------------
+
 Version 226:
 
 * Support -fno-exceptions

@@ -223,7 +223,7 @@ public:
     decorator(F&& f)
         : base_(construct(std::forward<F>(f),
             std::integral_constant<bool,
-                sizeof(F) <= sizeof(buf_)>{}))
+                sizeof(F) <= Bytes>{}))
     {
     }
 

@@ -86,6 +86,14 @@ public:
         char buf[2048];
     };
 
+    struct goldi // just right
+    {
+        std::array<char, 48> a;
+        void operator()(request_type &) const
+        {
+        }
+    };
+
     void
     dec_req(request_type&)
     {
@@ -120,6 +128,10 @@ public:
             d2(req);
             decorator d3;
             d3 = std::move(d2);
+        }
+
+        {
+            decorator d{goldi{}};
         }
     }
 
