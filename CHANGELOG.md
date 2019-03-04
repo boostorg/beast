@@ -1,6 +1,7 @@
 Version 227:
 
 * Fix decorator for certain sizes
+* Fix warning on Mac OS clang
 
 --------------------------------------------------------------------------------
 

@@ -149,7 +149,7 @@ public:
         std::integral_constant<bool, isRequest>;
 
     /// Destructor
-    ~basic_parser() = default;
+    virtual ~basic_parser() = default;
 
     /// Copy constructor
     basic_parser(basic_parser const&) = delete;
