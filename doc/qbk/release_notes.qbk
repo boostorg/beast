@@ -193,6 +193,10 @@
 
 [*API Changes]
 
+* The __Fields__ concept is deprecated and will be removed
+  in a future version. ['Actions Required]: Do not rely on
+  the ['Fields] concept.
+
 * On Windows, Visual Studio 2017 or later is required
 
 * OpenSSL is required to build the examples and tests
