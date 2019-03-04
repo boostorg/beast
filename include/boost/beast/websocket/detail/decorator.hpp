@@ -12,7 +12,6 @@
 
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/core/empty_value.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <algorithm>
@@ -34,240 +33,256 @@ class decorator
 
     struct exemplar
     {
-        void(incomplete::*mf)();
+        void (incomplete::*mf)();
         std::shared_ptr<incomplete> sp;
         void* param;
     };
 
-    static std::size_t constexpr Bytes =
-        beast::detail::max_sizeof<
-            void*,
-            void const*,
-            void(*)(),
-            void(incomplete::*)(),
-            exemplar
-        >();
-
-    struct base
+    union storage
     {
-        virtual ~base() = default;
-
-        virtual
-        base*
-        move(void* to) = 0;
-
-        virtual
-        void
-        invoke(request_type&) = 0;
-
-        virtual
-        void
-        invoke(response_type&) = 0;
+        void* p_;
+        void (*fn_)();
+        typename std::aligned_storage<
+            sizeof(exemplar),
+            alignof(exemplar)>::type buf_;
     };
 
-    using type = typename
-        std::aligned_storage<Bytes>::type;
-
-    type buf_;
-    base* base_;
-
-    struct none
+    struct vtable
     {
-        void
-        operator()(request_type&)
+        void (*move)(
+            storage& dst, storage& src) noexcept;
+        void (*destroy)(storage& dst) noexcept;
+        void (*invoke_req)(
+            storage& dst, request_type& req);
+        void (*invoke_res)(
+            storage& dst, response_type& req);
+
+        static void move_fn(
+            storage&, storage&) noexcept
         {
         }
 
-        void
-        operator()(response_type&)
+        static void destroy_fn(
+            storage&) noexcept
         {
         }
+
+        static void invoke_req_fn(
+            storage&, request_type&)
+        {
+        }
+
+        static void invoke_res_fn(
+            storage&, response_type&)
+        {
+        }
+
+        static vtable const* get_default()
+        {
+            static const vtable impl{
+                &move_fn,
+                &destroy_fn,
+                &invoke_req_fn,
+                &invoke_res_fn
+            };
+            return &impl;
+        }
     };
+
+    template<class F, bool Inline =
+        (sizeof(F) <= sizeof(storage) &&
+        alignof(F) <= alignof(storage) &&
+        std::is_nothrow_move_constructible<F>::value)>
+    struct vtable_impl;
+
+    storage storage_;
+    vtable const* vtable_ = vtable::get_default();
 
     // VFALCO NOTE: When this is two traits, one for
     //              request and one for response,
     //              Visual Studio 2015 fails.
 
     template<class T, class U, class = void>
-    struct is_op_of : std::false_type
+    struct maybe_invoke
     {
-    };
-
-    template<class T, class U>
-    struct is_op_of<T, U, boost::void_t<decltype(
-        std::declval<T&>()(std::declval<U&>())
-        )>> : std::true_type
-    {
-    };
-
-    template<class F>
-    struct impl : base,
-        boost::empty_value<F>
-    {
-        impl(impl&&) = default;
-
-        template<class F_>
-        explicit
-        impl(F_&& f)
-            : boost::empty_value<F>(
-                boost::empty_init_t{},
-                std::forward<F_>(f))
-        {
-        }
-
-        base*
-        move(void* to) override
-        {
-            return ::new(to) impl(
-                std::move(this->get()));
-        }
-
         void
-        invoke(request_type& req) override
-        {
-            this->invoke(req,
-                is_op_of<F, request_type>{});
-        }
-
-        void
-        invoke(request_type& req, std::true_type)
-        {
-            this->get()(req);
-        }
-
-        void
-        invoke(request_type&, std::false_type)
-        {
-        }
-
-        void
-        invoke(response_type& res) override
-        {
-            this->invoke(res,
-                is_op_of<F, response_type>{});
-        }
-
-        void
-        invoke(response_type& res, std::true_type)
-        {
-            this->get()(res);
-        }
-
-        void
-        invoke(response_type&, std::false_type)
+        operator()(T&, U&)
         {
         }
     };
 
-    void
-    destroy()
+    template<class T, class U>
+    struct maybe_invoke<T, U, boost::void_t<decltype(
+        std::declval<T&>()(std::declval<U&>()))>>
     {
-        if(is_inline())
-            base_->~base();
-        else if(base_)
-            delete base_;
-    }
-
-    template<class F>
-    base*
-    construct(F&& f, std::true_type)
-    {
-        return ::new(&buf_) impl<
-            typename std::decay<F>::type>(
-                std::forward<F>(f));
-    }
-
-    template<class F>
-    base*
-    construct(F&& f, std::false_type)
-    {
-        return new impl<
-            typename std::decay<F>::type>(
-                std::forward<F>(f));
-    }
+        void
+        operator()(T& t, U& u)
+        {
+            t(u);
+        }
+    };
 
 public:
+    decorator() = default;
     decorator(decorator const&) = delete;
     decorator& operator=(decorator const&) = delete;
 
     ~decorator()
     {
-        destroy();
+        vtable_->destroy(storage_);
     }
 
-    decorator()
-        : decorator(none{})
+    decorator(decorator&& other) noexcept
+        : vtable_(boost::exchange(
+            other.vtable_, vtable::get_default()))
     {
-    }
-
-    decorator(
-        decorator&& other)
-    {
-        if(other.is_inline())
-        {
-            base_ = other.base_->move(&buf_);
-            other.base_->~base();
-        }
-        else
-        {
-            base_ = other.base_;
-        }
-        other.base_ = ::new(&other.buf_)
-            impl<none>(none{});
+        vtable_->move(
+            storage_, other.storage_);
     }
 
     template<class F,
         class = typename std::enable_if<
-        ! std::is_convertible<F, decorator>::value>::type>
+        ! std::is_convertible<
+            F, decorator>::value>::type>
     explicit
     decorator(F&& f)
-        : base_(construct(std::forward<F>(f),
-            std::integral_constant<bool,
-                sizeof(F) <= Bytes>{}))
+      : vtable_(vtable_impl<
+          typename std::decay<F>::type>::
+        construct(storage_, std::forward<F>(f)))
     {
     }
 
     decorator&
-    operator=(decorator&& other)
+    operator=(decorator&& other) noexcept
     {
-        this->destroy();
-        base_ = nullptr;
-        if(other.is_inline())
-        {
-            base_ = other.base_->move(&buf_);
-            other.base_->~base();
-        }
-        else
-        {
-            base_ = other.base_;
-        }
-        other.base_ = ::new(&other.buf_)
-            impl<none>(none{});
+        vtable_->destroy(storage_);
+        vtable_ = boost::exchange(
+            other.vtable_, vtable::get_default());
+        vtable_->move(storage_, other.storage_);
         return *this;
-    }
-
-    bool
-    is_inline() const noexcept
-    {
-        return
-            ! std::less<void const*>()(
-                reinterpret_cast<void const*>(base_),
-                reinterpret_cast<void const*>(&buf_)) &&
-            std::less<void const*>()(
-                reinterpret_cast<void const*>(base_),
-                reinterpret_cast<void const*>(&buf_ + 1));
     }
 
     void
     operator()(request_type& req)
     {
-        base_->invoke(req);
+        vtable_->invoke_req(storage_, req);
     }
 
     void
     operator()(response_type& res)
     {
-        base_->invoke(res);
+        vtable_->invoke_res(storage_, res);
+    }
+};
+
+template<class F>
+struct decorator::vtable_impl<F, true>
+{
+    template<class Arg>
+    static
+    vtable const*
+    construct(storage& dst, Arg&& arg)
+    {
+        ::new (static_cast<void*>(&dst.buf_)) F(
+            std::forward<Arg>(arg));
+        return get();
+    }
+
+    static
+    void
+    move(storage& dst, storage& src) noexcept
+    {
+        auto& f = *reinterpret_cast<F*>(&src.buf_);
+        ::new (&dst.buf_) F(std::move(f));
+    }
+
+    static
+    void
+    destroy(storage& dst) noexcept
+    {
+        reinterpret_cast<F*>(&dst.buf_)->~F();
+    }
+
+    static
+    void
+    invoke_req(storage& dst, request_type& req)
+    {
+        maybe_invoke<F, request_type>{}(
+            *reinterpret_cast<F*>(&dst.buf_), req);
+    }
+
+    static
+    void
+    invoke_res(storage& dst, response_type& res)
+    {
+        maybe_invoke<F, response_type>{}(
+            *reinterpret_cast<F*>(&dst.buf_), res);
+    }
+
+    static
+    vtable
+    const* get()
+    {
+        static constexpr vtable impl{
+            &move,
+            &destroy,
+            &invoke_req,
+            &invoke_res};
+        return &impl;
+    }
+};
+
+template<class F>
+struct decorator::vtable_impl<F, false>
+{
+    template<class Arg>
+    static
+    vtable const*
+    construct(storage& dst, Arg&& arg)
+    {
+        dst.p_ = new F(std::forward<Arg>(arg));
+        return get();
+    }
+
+    static
+    void
+    move(storage& dst, storage& src) noexcept
+    {
+        dst.p_ = src.p_;
+    }
+
+    static
+    void
+    destroy(storage& dst) noexcept
+    {
+        delete static_cast<F*>(dst.p_);
+    }
+
+    static
+    void
+    invoke_req(
+        storage& dst, request_type& req)
+    {
+        maybe_invoke<F, request_type>{}(
+            *static_cast<F*>(dst.p_), req);
+    }
+
+    static
+    void
+    invoke_res(
+        storage& dst, response_type& res)
+    {
+        maybe_invoke<F, response_type>{}(
+            *static_cast<F*>(dst.p_), res);
+    }
+
+    static
+    vtable const*
+    get()
+    {
+        static constexpr vtable impl{&move,
+            &destroy, &invoke_req, &invoke_res};
+        return &impl;
     }
 };
 
