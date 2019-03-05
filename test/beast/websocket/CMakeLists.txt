@@ -32,6 +32,7 @@ add_executable (tests-beast-websocket
     read2.cpp
     read3.cpp
     rfc6455.cpp
+    ssl.cpp
     stream.cpp
     stream_base.cpp
     stream_explicit.cpp

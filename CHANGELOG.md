@@ -5,6 +5,7 @@ Version 228:
 * The Fields concept is deprecated (API Change)
 * Fix includes.xsl for newer doxygen
 * Tidy up quick reference
+* SSL teardowns are in an associated namespace
 
 --------------------------------------------------------------------------------
 

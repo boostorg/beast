@@ -14,7 +14,6 @@
 
 namespace boost {
 namespace beast {
-namespace websocket {
 
 /*
 
@@ -54,7 +53,6 @@ async_teardown(
         std::forward<TeardownHandler>(handler));
 }
 
-} // websocket
 } // beast
 } // boost
 

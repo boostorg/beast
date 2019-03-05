@@ -17,7 +17,6 @@
 
 namespace boost {
 namespace beast {
-namespace websocket {
 
 /** Tear down a `net::ssl::stream`.
 
@@ -79,7 +78,6 @@ async_teardown(
     net::ssl::stream<AsyncStream>& stream,
     TeardownHandler&& handler);
 
-} // websocket
 } // beast
 } // boost
 
