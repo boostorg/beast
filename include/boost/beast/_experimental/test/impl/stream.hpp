@@ -109,7 +109,7 @@ class stream::read_op : public stream::read_op_base
                             b_, sp->b.data(), sp->read_max);
                     sp->b.consume(bytes_transferred);
                 }
-                else if (buffer_size(b_) > 0)
+                else if (buffer_bytes(b_) > 0)
                 {
                     ec = net::error::eof;
                 }
@@ -177,7 +177,7 @@ struct stream::run_read_op
                     std::move(h),
                     in,
                     buffers)},
-            buffer_size(buffers));
+            buffer_bytes(buffers));
     }
 };
 
@@ -217,7 +217,7 @@ struct stream::run_write_op
             return upcall(ec, n);
 
         // A request to write 0 bytes to a stream is a no-op.
-        if(buffer_size(buffers) == 0)
+        if(buffer_bytes(buffers) == 0)
             return upcall(ec, n);
 
         // connection closed
@@ -227,7 +227,7 @@ struct stream::run_write_op
 
         // copy buffers
         n = std::min<std::size_t>(
-            buffer_size(buffers), in_->write_max);
+            buffer_bytes(buffers), in_->write_max);
         {
             std::lock_guard<std::mutex> lock(out->m);
             n = net::buffer_copy(out->b.prepare(n), buffers);
@@ -273,7 +273,7 @@ read_some(MutableBufferSequence const& buffers,
         return 0;
 
     // A request to read 0 bytes from a stream is a no-op.
-    if(buffer_size(buffers) == 0)
+    if(buffer_bytes(buffers) == 0)
     {
         ec = {};
         return 0;
@@ -357,7 +357,7 @@ write_some(
         return 0;
 
     // A request to write 0 bytes to a stream is a no-op.
-    if(buffer_size(buffers) == 0)
+    if(buffer_bytes(buffers) == 0)
     {
         ec = {};
         return 0;
@@ -373,7 +373,7 @@ write_some(
 
     // copy buffers
     auto n = std::min<std::size_t>(
-        buffer_size(buffers), in_->write_max);
+        buffer_bytes(buffers), in_->write_max);
     {
         std::lock_guard<std::mutex> lock(out->m);
         n = net::buffer_copy(out->b.prepare(n), buffers);

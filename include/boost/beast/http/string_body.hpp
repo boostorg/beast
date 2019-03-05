@@ -110,7 +110,7 @@ public:
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            auto const extra = buffer_size(buffers);
+            auto const extra = buffer_bytes(buffers);
             auto const size = body_.size();
             if (extra > body_.max_size() - size)
             {

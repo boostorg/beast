@@ -92,7 +92,7 @@ public:
             used += n;
             if(parser.is_done())
                 break;
-            if(buffer_size(cb) == 0)
+            if(buffer_bytes(cb) == 0)
                 break;
         }
         return used;

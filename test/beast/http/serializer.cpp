@@ -92,7 +92,7 @@ public:
         operator()(error_code&,
             ConstBufferSequence const& buffers)
         {
-            size = buffer_size(buffers);
+            size = buffer_bytes(buffers);
         }
     };
 

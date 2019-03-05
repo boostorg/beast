@@ -97,7 +97,7 @@ snippets()
         // This will cause the message to be broken up into multiple frames.
         for(;;)
         {
-            if(buffer_size(cb) > 512)
+            if(buffer_bytes(cb) > 512)
             {
                 // There are more than 512 bytes left to send, just
                 // send the next 512 bytes. The value `false` informs

@@ -211,7 +211,7 @@ public:
                             auto const b = buffers_prefix(
                                 clamp(impl.rd_fh.len),
                                     impl.rd_buf.data());
-                            auto const len = buffer_size(b);
+                            auto const len = buffer_bytes(b);
                             BOOST_ASSERT(len == impl.rd_fh.len);
                             ping_data payload;
                             detail::read_ping(payload, b);
@@ -278,7 +278,7 @@ public:
                         }
                         auto const cb = buffers_prefix(clamp(
                             impl.rd_fh.len), impl.rd_buf.data());
-                        auto const len = buffer_size(cb);
+                        auto const len = buffer_bytes(cb);
                         BOOST_ASSERT(len == impl.rd_fh.len);
                         ping_data payload;
                         detail::read_ping(payload, cb);
@@ -303,7 +303,7 @@ public:
                         }
                         auto const cb = buffers_prefix(clamp(
                             impl.rd_fh.len), impl.rd_buf.data());
-                        auto const len = buffer_size(cb);
+                        auto const len = buffer_bytes(cb);
                         BOOST_ASSERT(len == impl.rd_fh.len);
                         BOOST_ASSERT(! impl.rd_close);
                         impl.rd_close = true;
@@ -350,7 +350,7 @@ public:
                 {
                     if(impl.rd_buf.size() == 0 && impl.rd_buf.max_size() >
                         (std::min)(clamp(impl.rd_remain),
-                            buffer_size(cb_)))
+                            buffer_bytes(cb_)))
                     {
                         // Fill the read buffer first, otherwise we
                         // get fewer bytes at the cost of one I/O.
@@ -397,8 +397,8 @@ public:
                     {
                         // Read into caller's buffer
                         BOOST_ASSERT(impl.rd_remain > 0);
-                        BOOST_ASSERT(buffer_size(cb_) > 0);
-                        BOOST_ASSERT(buffer_size(buffers_prefix(
+                        BOOST_ASSERT(buffer_bytes(cb_) > 0);
+                        BOOST_ASSERT(buffer_bytes(buffers_prefix(
                             clamp(impl.rd_remain), cb_)) > 0);
                         BOOST_ASIO_CORO_YIELD
                         impl.stream().async_read_some(buffers_prefix(
@@ -435,7 +435,7 @@ public:
                 // Read compressed message frame payload:
                 // inflate even if rd_fh_.len == 0, otherwise we
                 // never emit the end-of-stream deflate block.
-                while(buffer_size(cb_) > 0)
+                while(buffer_bytes(cb_) > 0)
                 {
                     if( impl.rd_remain > 0 &&
                         impl.rd_buf.size() == 0 &&
@@ -976,7 +976,7 @@ loop:
             // Get control frame payload
             auto const b = buffers_prefix(
                 clamp(impl.rd_fh.len), impl.rd_buf.data());
-            auto const len = buffer_size(b);
+            auto const len = buffer_bytes(b);
             BOOST_ASSERT(len == impl.rd_fh.len);
 
             // Clear this otherwise the next
@@ -1059,7 +1059,7 @@ loop:
         {
             if(impl.rd_buf.size() == 0 && impl.rd_buf.max_size() >
                 (std::min)(clamp(impl.rd_remain),
-                    buffer_size(buffers)))
+                    buffer_bytes(buffers)))
             {
                 // Fill the read buffer first, otherwise we
                 // get fewer bytes at the cost of one I/O.
@@ -1103,8 +1103,8 @@ loop:
             {
                 // Read into caller's buffer
                 BOOST_ASSERT(impl.rd_remain > 0);
-                BOOST_ASSERT(buffer_size(buffers) > 0);
-                BOOST_ASSERT(buffer_size(buffers_prefix(
+                BOOST_ASSERT(buffer_bytes(buffers) > 0);
+                BOOST_ASSERT(buffer_bytes(buffers_prefix(
                     clamp(impl.rd_remain), buffers)) > 0);
                 auto const bytes_transferred =
                     impl.stream().read_some(buffers_prefix(
@@ -1144,7 +1144,7 @@ loop:
         //
         bool did_read = false;
         buffers_suffix<MutableBufferSequence> cb(buffers);
-        while(buffer_size(cb) > 0)
+        while(buffer_bytes(cb) > 0)
         {
             zlib::z_params zs;
             {

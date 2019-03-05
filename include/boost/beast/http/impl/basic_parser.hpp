@@ -40,7 +40,7 @@ put(ConstBufferSequence const& buffers,
         // single buffer
         return put(net::const_buffer(*p), ec);
     }
-    auto const size = buffer_size(buffers);
+    auto const size = buffer_bytes(buffers);
     if(size <= max_stack_buffer)
         return put_from_stack(size, buffers, ec);
     if(size > buf_len_)

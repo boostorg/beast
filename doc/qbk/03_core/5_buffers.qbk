@@ -21,7 +21,7 @@ transferred.
 [table Buffer Algorithms and Types
 [[Name][Description]]
 [[
-    [link beast.ref.boost__beast__buffer_size `buffer_size`]
+    [link beast.ref.boost__beast__buffer_bytes `buffer_bytes`]
 ][
     This is a more reliable version of
     [@boost:/doc/html/boost_asio/reference/buffer_size.html `net::buffer_size`]

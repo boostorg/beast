@@ -707,11 +707,11 @@ public:
                 multi_buffer mb2{std::move(b)};
                 BEAST_EXPECT(buffers_to_string(mb2.data()) == s);
                 BEAST_EXPECT(b.size() == 0);
-                BEAST_EXPECT(buffer_size(b.data()) == 0);
+                BEAST_EXPECT(buffer_bytes(b.data()) == 0);
                 b = std::move(mb2);
                 BEAST_EXPECT(buffers_to_string(b.data()) == s);
                 BEAST_EXPECT(mb2.size() == 0);
-                BEAST_EXPECT(buffer_size(mb2.data()) == 0);
+                BEAST_EXPECT(buffer_bytes(mb2.data()) == 0);
             }
         }
         }}}
@@ -734,68 +734,68 @@ public:
             multi_buffer b;
             {
                 auto d = b.prepare(z);
-                BEAST_EXPECT(buffer_size(d) == z);
+                BEAST_EXPECT(buffer_bytes(d) == z);
             }
             {
                 auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BEAST_EXPECT(buffer_bytes(d) == 0);
             }
             {
                 auto d = b.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
+                BEAST_EXPECT(buffer_bytes(d) == y);
             }
             {
                 auto d = b.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
+                BEAST_EXPECT(buffer_bytes(d) == x);
                 b.commit(buffer_copy(d, net::buffer(s.data(), x)));
             }
             BEAST_EXPECT(b.size() == x);
-            BEAST_EXPECT(buffer_size(b.data()) == b.size());
+            BEAST_EXPECT(buffer_bytes(b.data()) == b.size());
             {
                 auto d = b.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
+                BEAST_EXPECT(buffer_bytes(d) == x);
             }
             {
                 auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BEAST_EXPECT(buffer_bytes(d) == 0);
             }
             {
                 auto d = b.prepare(z);
-                BEAST_EXPECT(buffer_size(d) == z);
+                BEAST_EXPECT(buffer_bytes(d) == z);
             }
             {
                 auto d = b.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
+                BEAST_EXPECT(buffer_bytes(d) == y);
                 b.commit(buffer_copy(d, net::buffer(s.data()+x, y)));
             }
             b.commit(1);
             BEAST_EXPECT(b.size() == x + y);
-            BEAST_EXPECT(buffer_size(b.data()) == b.size());
+            BEAST_EXPECT(buffer_bytes(b.data()) == b.size());
             {
                 auto d = b.prepare(x);
-                BEAST_EXPECT(buffer_size(d) == x);
+                BEAST_EXPECT(buffer_bytes(d) == x);
             }
             {
                 auto d = b.prepare(y);
-                BEAST_EXPECT(buffer_size(d) == y);
+                BEAST_EXPECT(buffer_bytes(d) == y);
             }
             {
                 auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BEAST_EXPECT(buffer_bytes(d) == 0);
             }
             {
                 auto d = b.prepare(z);
-                BEAST_EXPECT(buffer_size(d) == z);
+                BEAST_EXPECT(buffer_bytes(d) == z);
                 b.commit(buffer_copy(d, net::buffer(s.data()+x+y, z)));
             }
             b.commit(2);
             BEAST_EXPECT(b.size() == x + y + z);
-            BEAST_EXPECT(buffer_size(b.data()) == b.size());
+            BEAST_EXPECT(buffer_bytes(b.data()) == b.size());
             BEAST_EXPECT(buffers_to_string(b.data()) == s);
             b.consume(t);
             {
                 auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BEAST_EXPECT(buffer_bytes(d) == 0);
             }
             BEAST_EXPECT(buffers_to_string(b.data()) ==
                 s.substr(t, std::string::npos));
@@ -807,7 +807,7 @@ public:
             b.consume(1);
             {
                 auto d = b.prepare(0);
-                BEAST_EXPECT(buffer_size(d) == 0);
+                BEAST_EXPECT(buffer_bytes(d) == 0);
             }
         }
         }}}}}

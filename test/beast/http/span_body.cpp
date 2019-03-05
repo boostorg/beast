@@ -43,7 +43,7 @@ struct span_body_test
             BEAST_EXPECTS(! ec, ec.message());
             if(! BEAST_EXPECT(buf != boost::none))
                 return;
-            BEAST_EXPECT(buffer_size(buf->first) == 3);
+            BEAST_EXPECT(buffer_bytes(buf->first) == 3);
             BEAST_EXPECT(! buf->second);
         }
         {

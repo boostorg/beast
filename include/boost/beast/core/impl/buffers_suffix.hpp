@@ -208,7 +208,7 @@ consume(std::size_t amount)
     for(;amount > 0 && begin_ != end; ++begin_)
     {
         auto const len =
-            buffer_size(*begin_) - skip_;
+            buffer_bytes(*begin_) - skip_;
         if(amount < len)
         {
             skip_ += amount;

@@ -165,7 +165,7 @@ next(error_code& ec, Visit&& visit)
             v_.template emplace<7>(
                 boost::in_place_init,
                 fwr_->get(),
-                buffer_size(result->first),
+                buffer_bytes(result->first),
                 net::const_buffer{nullptr, 0},
                 chunk_crlf{},
                 result->first,
@@ -178,7 +178,7 @@ next(error_code& ec, Visit&& visit)
         v_.template emplace<4>(
             boost::in_place_init,
             fwr_->get(),
-            buffer_size(result->first),
+            buffer_bytes(result->first),
             net::const_buffer{nullptr, 0},
             chunk_crlf{},
             result->first,
@@ -217,7 +217,7 @@ next(error_code& ec, Visit&& visit)
             // do it all in one buffer
             v_.template emplace<6>(
                 boost::in_place_init,
-                buffer_size(result->first),
+                buffer_bytes(result->first),
                 net::const_buffer{nullptr, 0},
                 chunk_crlf{},
                 result->first,
@@ -229,7 +229,7 @@ next(error_code& ec, Visit&& visit)
         }
         v_.template emplace<5>(
             boost::in_place_init,
-            buffer_size(result->first),
+            buffer_bytes(result->first),
             net::const_buffer{nullptr, 0},
             chunk_crlf{},
             result->first,
@@ -293,9 +293,9 @@ consume(std::size_t n)
     {
     case do_header:
         BOOST_ASSERT(
-            n <= buffer_size(v_.template get<2>()));
+            n <= buffer_bytes(v_.template get<2>()));
         v_.template get<2>().consume(n);
-        if(buffer_size(v_.template get<2>()) > 0)
+        if(buffer_bytes(v_.template get<2>()) > 0)
             break;
         header_done_ = true;
         v_.reset();
@@ -306,9 +306,9 @@ consume(std::size_t n)
 
     case do_header_only:
         BOOST_ASSERT(
-            n <= buffer_size(v_.template get<1>()));
+            n <= buffer_bytes(v_.template get<1>()));
         v_.template get<1>().consume(n);
-        if(buffer_size(v_.template get<1>()) > 0)
+        if(buffer_bytes(v_.template get<1>()) > 0)
             break;
         fwr_ = boost::none;
         header_done_ = true;
@@ -320,9 +320,9 @@ consume(std::size_t n)
     case do_body + 2:
     {
         BOOST_ASSERT(
-            n <= buffer_size(v_.template get<3>()));
+            n <= buffer_bytes(v_.template get<3>()));
         v_.template get<3>().consume(n);
-        if(buffer_size(v_.template get<3>()) > 0)
+        if(buffer_bytes(v_.template get<3>()) > 0)
             break;
         v_.reset();
         if(! more_)
@@ -335,9 +335,9 @@ consume(std::size_t n)
 
     case do_header_c:
         BOOST_ASSERT(
-            n <= buffer_size(v_.template get<4>()));
+            n <= buffer_bytes(v_.template get<4>()));
         v_.template get<4>().consume(n);
-        if(buffer_size(v_.template get<4>()) > 0)
+        if(buffer_bytes(v_.template get<4>()) > 0)
             break;
         header_done_ = true;
         v_.reset();
@@ -350,9 +350,9 @@ consume(std::size_t n)
     case do_header_only_c:
     {
         BOOST_ASSERT(
-            n <= buffer_size(v_.template get<1>()));
+            n <= buffer_bytes(v_.template get<1>()));
         v_.template get<1>().consume(n);
-        if(buffer_size(v_.template get<1>()) > 0)
+        if(buffer_bytes(v_.template get<1>()) > 0)
             break;
         fwr_ = boost::none;
         header_done_ = true;
@@ -367,9 +367,9 @@ consume(std::size_t n)
 
     case do_body_c + 2:
         BOOST_ASSERT(
-            n <= buffer_size(v_.template get<5>()));
+            n <= buffer_bytes(v_.template get<5>()));
         v_.template get<5>().consume(n);
-        if(buffer_size(v_.template get<5>()) > 0)
+        if(buffer_bytes(v_.template get<5>()) > 0)
             break;
         v_.reset();
         if(more_)
@@ -381,9 +381,9 @@ consume(std::size_t n)
     case do_body_final_c:
     {
         BOOST_ASSERT(
-            n <= buffer_size(v_.template get<6>()));
+            n <= buffer_bytes(v_.template get<6>()));
         v_.template get<6>().consume(n);
-        if(buffer_size(v_.template get<6>()) > 0)
+        if(buffer_bytes(v_.template get<6>()) > 0)
             break;
         v_.reset();
         s_ = do_complete;
@@ -393,9 +393,9 @@ consume(std::size_t n)
     case do_all_c:
     {
         BOOST_ASSERT(
-            n <= buffer_size(v_.template get<7>()));
+            n <= buffer_bytes(v_.template get<7>()));
         v_.template get<7>().consume(n);
-        if(buffer_size(v_.template get<7>()) > 0)
+        if(buffer_bytes(v_.template get<7>()) > 0)
             break;
         header_done_ = true;
         v_.reset();
@@ -404,9 +404,9 @@ consume(std::size_t n)
     }
 
     case do_final_c + 1:
-        BOOST_ASSERT(buffer_size(v_.template get<8>()));
+        BOOST_ASSERT(buffer_bytes(v_.template get<8>()));
         v_.template get<8>().consume(n);
-        if(buffer_size(v_.template get<8>()) > 0)
+        if(buffer_bytes(v_.template get<8>()) > 0)
             break;
         v_.reset();
         goto go_complete;

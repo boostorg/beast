@@ -75,7 +75,7 @@ operator<<(std::ostream& os,
     print (ConstBufferSequence const& buffers)
     {
         std::cout <<
-            "Buffer size: " << buffer_size(buffers) << " bytes\n"
+            "Buffer size: " << buffer_bytes(buffers) << " bytes\n"
             "Buffer data: '" << make_printable(buffers) << "'\n";
     }
     @endcode

@@ -90,7 +90,7 @@ template<class ConstBufferSequence>
 chunk_body<ConstBufferSequence>::
 chunk_body(ConstBufferSequence const& buffers)
     : view_(
-        buffer_size(buffers),
+        buffer_bytes(buffers),
         net::const_buffer{nullptr, 0},
         chunk_crlf{},
         buffers,
@@ -104,7 +104,7 @@ chunk_body(
     ConstBufferSequence const& buffers,
     string_view extensions)
     : view_(
-        buffer_size(buffers),
+        buffer_bytes(buffers),
         net::const_buffer{
             extensions.data(), extensions.size()},
         chunk_crlf{},
@@ -123,7 +123,7 @@ chunk_body(
         typename std::decay<ChunkExtensions>::type>>(
             std::forward<ChunkExtensions>(extensions)))
     , view_(
-        buffer_size(buffers),
+        buffer_bytes(buffers),
         exts_->str(),
         chunk_crlf{},
         buffers,
@@ -142,7 +142,7 @@ chunk_body(
         typename std::decay<ChunkExtensions>::type>>(allocator,
             std::forward<ChunkExtensions>(extensions)))
     , view_(
-        buffer_size(buffers),
+        buffer_bytes(buffers),
         exts_->str(),
         chunk_crlf{},
         buffers,

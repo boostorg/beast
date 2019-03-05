@@ -115,7 +115,7 @@ public:
             bs[0] = net::const_buffer(b, 100);
             bs[1] = net::const_buffer(b + 100, 200);
             bs[2] = net::const_buffer(b + 100 + 200, 300);
-            BEAST_EXPECT(buffer_size(bs) <=
+            BEAST_EXPECT(buffer_bytes(bs) <=
                 detail::flat_stream_base::max_stack);
             flat_stream<test::stream> s(ioc);
             error_code ec;
@@ -130,7 +130,7 @@ public:
             bs[0] = net::const_buffer(b,
                 detail::flat_stream_base::max_stack);
             bs[1] = net::const_buffer(b + bs[0].size(), 1024);
-            BEAST_EXPECT(buffer_size(bs) <=
+            BEAST_EXPECT(buffer_bytes(bs) <=
                 detail::flat_stream_base::max_size);
             flat_stream<test::stream> s(ioc);
             error_code ec;
@@ -145,7 +145,7 @@ public:
             bs[0] = net::const_buffer(b,
                 detail::flat_stream_base::max_stack);
             bs[1] = net::const_buffer(b + bs[0].size(), 1024);
-            BEAST_EXPECT(buffer_size(bs) <=
+            BEAST_EXPECT(buffer_bytes(bs) <=
                 detail::flat_stream_base::max_size);
             flat_stream<test::stream> s(ioc);
             error_code ec;

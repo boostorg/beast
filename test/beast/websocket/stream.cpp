@@ -72,12 +72,12 @@ public:
 
         stream<test::stream> ws{ioc_};
         ws.auto_fragment(true);
-        ws.write_buffer_size(2048);
+        ws.write_buffer_bytes(2048);
         ws.binary(false);
         ws.read_message_max(1 * 1024 * 1024);
         try
         {
-            ws.write_buffer_size(7);
+            ws.write_buffer_bytes(7);
             fail();
         }
         catch(std::exception const&)

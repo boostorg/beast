@@ -1,3 +1,9 @@
+Version 229:
+
+* Rename to buffer_bytes
+
+--------------------------------------------------------------------------------
+
 Version 228:
 
 * Fix UB in decorator:

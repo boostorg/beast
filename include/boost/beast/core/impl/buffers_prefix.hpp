@@ -150,7 +150,7 @@ setup(std::size_t size)
     auto const last = bs_.end();
     while(end_ != last)
     {
-        auto const len = buffer_size(*end_++);
+        auto const len = buffer_bytes(*end_++);
         if(len >= size)
         {
             size_ += size;
@@ -282,12 +282,6 @@ public:
                 std::forward<Args>(args)...))
     {
     }
-
-    std::size_t
-    buffer_size_impl() const noexcept
-    {
-        return this->size();
-    }
 };
 
 //------------------------------------------------------------------------------
@@ -323,12 +317,6 @@ public:
             net::mutable_buffer(
                 std::forward<Args>(args)...))
     {
-    }
-
-    std::size_t
-    buffer_size_impl() const noexcept
-    {
-        return this->size();
     }
 };
 

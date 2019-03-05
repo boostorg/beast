@@ -55,7 +55,7 @@ public:
             BEAST_EXPECT(buffers_to_string(b.data()) == s);
             b.clear();
             BEAST_EXPECT(b.size() == 0);
-            BEAST_EXPECT(buffer_size(b.data()) == 0);
+            BEAST_EXPECT(buffer_bytes(b.data()) == 0);
         }
 
         // static_buffer

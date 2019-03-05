@@ -45,11 +45,11 @@ public:
     {
         char s1[13];
         buffers_triple tb1(s1, sizeof(s1));
-        BEAST_EXPECT(buffer_size(tb1) == sizeof(s1));
+        BEAST_EXPECT(buffer_bytes(tb1) == sizeof(s1));
 
         char s2[15];
         buffers_triple tb2(s2, sizeof(s2));
-        BEAST_EXPECT(buffer_size(tb2) == sizeof(s2));
+        BEAST_EXPECT(buffer_bytes(tb2) == sizeof(s2));
 
         {
             // construction

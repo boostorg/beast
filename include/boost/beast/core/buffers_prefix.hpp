@@ -129,7 +129,7 @@ public:
 
 #if ! BOOST_BEAST_DOXYGEN
     std::size_t
-    buffer_size_impl() const noexcept
+    buffer_bytes_impl() const noexcept
     {
         return size_;
     }

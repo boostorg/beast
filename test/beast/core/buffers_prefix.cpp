@@ -65,7 +65,7 @@ public:
             };
             buffers_prefix_view<test_buffers> v(
                 2, boost::in_place_init, std::true_type{});
-            BEAST_EXPECT(buffer_size(v) == 0);
+            BEAST_EXPECT(buffer_bytes(v) == 0);
         }
 
         {
@@ -74,14 +74,14 @@ public:
             c[1] = 0;
             buffers_prefix_view<net::const_buffer> v(
                 2, boost::in_place_init, c, sizeof(c));
-            BEAST_EXPECT(buffer_size(v) == 2);
+            BEAST_EXPECT(buffer_bytes(v) == 2);
         }
 
         {
             char c[2];
             buffers_prefix_view<net::mutable_buffer> v(
                 2, boost::in_place_init, c, sizeof(c));
-            BEAST_EXPECT(buffer_size(v) == 2);
+            BEAST_EXPECT(buffer_bytes(v) == 2);
         }
     }
 
@@ -107,7 +107,7 @@ public:
                 BEAST_EXPECT(buffers_to_string(pb2) == buffers_to_string(pb));
                 pb = buffers_prefix(0, bs);
                 pb2 = pb;
-                BEAST_EXPECT(buffer_size(pb2) == 0);
+                BEAST_EXPECT(buffer_bytes(pb2) == 0);
                 pb2 = buffers_prefix(i, bs);
                 BEAST_EXPECT(buffers_to_string(pb2) == s.substr(0, i));
             }
@@ -118,9 +118,9 @@ public:
     void testEmpty()
     {
         auto pb0 = buffers_prefix(0, net::mutable_buffer{});
-        BEAST_EXPECT(buffer_size(pb0) == 0);
+        BEAST_EXPECT(buffer_bytes(pb0) == 0);
         auto pb1 = buffers_prefix(1, net::mutable_buffer{});
-        BEAST_EXPECT(buffer_size(pb1) == 0);
+        BEAST_EXPECT(buffer_bytes(pb1) == 0);
         BEAST_EXPECT(net::buffer_copy(pb0, pb1) == 0);
     }
 

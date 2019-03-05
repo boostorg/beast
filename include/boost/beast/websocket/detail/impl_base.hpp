@@ -121,7 +121,7 @@ struct impl_base<true>
         cb.consume(zs.total_in);
         if(zs.avail_out > 0 && fin)
         {
-            auto const remain = buffer_size(cb);
+            auto const remain = buffer_bytes(cb);
             if(remain == 0)
             {
                 // Inspired by Mark Adler

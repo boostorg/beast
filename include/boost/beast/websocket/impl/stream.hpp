@@ -279,7 +279,7 @@ secure_prng(bool value)
 template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
-write_buffer_size(std::size_t amount)
+write_buffer_bytes(std::size_t amount)
 {
     if(amount < 8)
         BOOST_THROW_EXCEPTION(std::invalid_argument{
@@ -290,7 +290,7 @@ write_buffer_size(std::size_t amount)
 template<class NextLayer, bool deflateSupported>
 std::size_t
 stream<NextLayer, deflateSupported>::
-write_buffer_size() const
+write_buffer_bytes() const
 {
     return impl_->wr_buf_opt;
 }

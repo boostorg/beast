@@ -46,65 +46,35 @@ struct buffers_iterator_type_helper<
 
 #endif
 
-template<class T, class = void>
-struct has_buffer_size_impl : std::false_type
+struct buffer_bytes_impl
 {
-};
-
-template<class T>
-struct has_buffer_size_impl<T, boost::void_t<
-    decltype(std::declval<std::size_t&>() =
-        std::declval<T const&>().buffer_size_impl())>>
-    : std::true_type
-{
-};
-
-struct buffer_size_impl
-{
-    template<
-        class B,
-        class = typename std::enable_if<
-            std::is_convertible<
-                B, net::const_buffer>::value>::type>
     std::size_t
-    operator()(B const& b) const
+    operator()(net::const_buffer b) const noexcept
     {
         return net::const_buffer(b).size();
     }
 
-    template<
-        class B,
-        class = typename std::enable_if<
-            ! std::is_convertible<
-                B, net::const_buffer>::value>::type,
-        class = typename std::enable_if<
-            net::is_const_buffer_sequence<B>::value &&
-            ! has_buffer_size_impl<B>::value>::type>
     std::size_t
-    operator()(B const& b) const
+    operator()(net::mutable_buffer b) const noexcept
     {
-        using net::buffer_size;
-        return buffer_size(b);
+        return net::mutable_buffer(b).size();
     }
 
     template<
         class B,
         class = typename std::enable_if<
-            ! std::is_convertible<B, net::const_buffer>::value>::type,
-        class = typename std::enable_if<
-            net::is_const_buffer_sequence<B>::value>::type,
-        class = typename std::enable_if<
-            has_buffer_size_impl<B>::value>::type>
+            net::is_const_buffer_sequence<B>::value>::type>
     std::size_t
-    operator()(B const& b) const
+    operator()(B const& b) const noexcept
     {
-        return b.buffer_size_impl();
+        using net::buffer_size;
+        return buffer_size(b);
     }
 };
 
 /** Return `true` if a buffer sequence is empty
 
-    This is sometimes faster than using @ref buffer_size
+    This is sometimes faster than using @ref buffer_bytes
 */
 template<class ConstBufferSequence>
 bool

@@ -273,9 +273,9 @@ void fxx() {
 
     // Manually emit a chunk by first writing the chunk-size header with the correct size
     net::write(sock, chunk_header{
-        buffer_size(cb1) +
-        buffer_size(cb2) +
-        buffer_size(cb3)});
+        buffer_bytes(cb1) +
+        buffer_bytes(cb2) +
+        buffer_bytes(cb3)});
 
     // And then output the chunk body in three pieces ("chunk the chunk")
     net::write(sock, cb1);
@@ -367,7 +367,7 @@ print_cxx14(message<isRequest, Body, Fields> const& m)
             {
                 ec = {};
                 std::cout << buffers(buffer);
-                sr.consume(buffer_size(buffer));
+                sr.consume(buffer_bytes(buffer));
             });
     }
     while(! ec && ! sr.is_done());
@@ -394,7 +394,7 @@ struct lambda
     {
         ec = {};
         std::cout << buffers(buffer);
-        sr.consume(buffer_size(buffer));
+        sr.consume(buffer_bytes(buffer));
     }
 };
 
@@ -435,7 +435,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
             {
                 ec = {};
                 std::cout << buffers(buffer);
-                sr.consume(buffer_size(buffer));
+                sr.consume(buffer_bytes(buffer));
             });
     }
     while(! sr.is_header_done());
@@ -449,7 +449,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
                 {
                     ec = {};
                     std::cout << buffers(buffer);
-                    sr.consume(buffer_size(buffer));
+                    sr.consume(buffer_bytes(buffer));
                 });
         }
         while(! ec && ! sr.is_done());

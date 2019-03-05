@@ -196,7 +196,7 @@ public:
     const_iterator end() const noexcept;
 
     std::size_t
-    buffer_size() const noexcept
+    buffer_bytes() const noexcept
     {
         return b_->size();
     }
@@ -1242,7 +1242,7 @@ basic_multi_buffer<Allocator>::
 debug_check() const
 {
 #ifndef NDEBUG
-    BOOST_ASSERT(buffer_size(data()) == in_size_);
+    BOOST_ASSERT(buffer_bytes(data()) == in_size_);
     if(list_.empty())
     {
         BOOST_ASSERT(in_pos_ == 0);

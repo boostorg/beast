@@ -53,7 +53,7 @@ snippets()
     //[code_websocket_5_3
 
         ws.auto_fragment(true);
-        ws.write_buffer_size(16384);
+        ws.write_buffer_bytes(16384);
 
     //]
     }

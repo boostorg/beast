@@ -124,7 +124,7 @@ public:
         [&](ws_type_t<deflateSupported>& ws)
         {
             ws.auto_fragment(false);
-            ws.write_buffer_size(16);
+            ws.write_buffer_bytes(16);
             std::string const s(32, '*');
             w.write(ws, net::buffer(s));
             flat_buffer b;

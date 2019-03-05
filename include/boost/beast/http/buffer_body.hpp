@@ -133,7 +133,7 @@ struct buffer_body
             body_.data = static_cast<char*>(
                 body_.data) + bytes_transferred;
             body_.size -= bytes_transferred;
-            if(bytes_transferred == buffer_size(buffers))
+            if(bytes_transferred == buffer_bytes(buffers))
                 ec = {};
             else
                 ec = error::need_buffer;

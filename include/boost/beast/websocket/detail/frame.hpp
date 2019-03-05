@@ -238,8 +238,8 @@ template<class Buffers>
 void
 read_ping(ping_data& data, Buffers const& bs)
 {
-    BOOST_ASSERT(buffer_size(bs) <= data.max_size());
-    data.resize(buffer_size(bs));
+    BOOST_ASSERT(buffer_bytes(bs) <= data.max_size());
+    data.resize(buffer_bytes(bs));
     net::buffer_copy(net::mutable_buffer{
         data.data(), data.size()}, bs);
 }
@@ -255,7 +255,7 @@ read_close(
     error_code& ec)
 {
     using namespace boost::endian;
-    auto n = buffer_size(bs);
+    auto n = buffer_bytes(bs);
     BOOST_ASSERT(n <= 125);
     if(n == 0)
     {

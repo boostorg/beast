@@ -99,7 +99,7 @@ void stream::initiate_read(
     }
 
     // A request to read 0 bytes from a stream is a no-op.
-    if(buf_size == 0 || buffer_size(in_->b.data()) > 0)
+    if(buf_size == 0 || buffer_bytes(in_->b.data()) > 0)
     {
         lock.unlock();
         (*op)(ec);
@@ -273,7 +273,7 @@ stream::
 str() const
 {
     auto const bs = in_->b.data();
-    if(buffer_size(bs) == 0)
+    if(buffer_bytes(bs) == 0)
         return {};
     auto const b = beast::buffers_front(bs);
     return {static_cast<char const*>(b.data()), b.size()};

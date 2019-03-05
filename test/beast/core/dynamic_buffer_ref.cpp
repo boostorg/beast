@@ -54,7 +54,7 @@ public:
         db.commit(12);
         BEAST_EXPECT(db.size() == 12);
         BEAST_EXPECT(db.capacity() == 512);
-        BEAST_EXPECT(buffer_size(db.data()) == 12);
+        BEAST_EXPECT(buffer_bytes(db.data()) == 12);
         db.consume(12);
         BEAST_EXPECT(db.size() == 0);
         BEAST_EXPECT(db.capacity() == 512);

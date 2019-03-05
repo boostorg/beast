@@ -206,26 +206,26 @@ public:
     void
     testFunction()
     {
-        BEAST_EXPECT(buffer_size(
+        BEAST_EXPECT(buffer_bytes(
             net::const_buffer("Hello, world!", 13)) == 13);
 
-        BEAST_EXPECT(buffer_size(
+        BEAST_EXPECT(buffer_bytes(
             net::mutable_buffer{}) == 0);
 
         {
             sequence s;
-            BEAST_EXPECT(buffer_size(s) == 13);
+            BEAST_EXPECT(buffer_bytes(s) == 13);
         }
 
         {
             std::array<net::const_buffer, 2> s({{
                 net::const_buffer("Hello, world!", 13),
                 net::const_buffer("Hello, world!", 13)}});
-            BEAST_EXPECT(buffer_size(s) == 26);
+            BEAST_EXPECT(buffer_bytes(s) == 26);
         }
 
         BOOST_STATIC_ASSERT(! detail::is_invocable<
-            detail::buffer_size_impl,
+            detail::buffer_bytes_impl,
             std::size_t(not_sequence const&)>::value);
     }
 

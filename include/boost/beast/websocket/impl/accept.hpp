@@ -271,7 +271,7 @@ public:
         error_code ec;
         auto const mb =
             beast::detail::dynamic_buffer_prepare(
-            impl.rd_buf, buffer_size(buffers),
+            impl.rd_buf, buffer_bytes(buffers),
                 ec, error::buffer_overflow);
         if(! ec)
             impl.rd_buf.commit(
@@ -433,7 +433,7 @@ do_accept(
     impl_->reset();
     auto const mb =
         beast::detail::dynamic_buffer_prepare(
-        impl_->rd_buf, buffer_size(buffers), ec,
+        impl_->rd_buf, buffer_bytes(buffers), ec,
             error::buffer_overflow);
     if(ec)
         return;

@@ -88,7 +88,7 @@ struct basic_dynamic_body
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            auto const n = buffer_size(buffers);
+            auto const n = buffer_bytes(buffers);
             if(body_.size() > body_.max_size() - n)
             {
                 ec = error::buffer_overflow;

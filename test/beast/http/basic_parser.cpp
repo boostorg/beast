@@ -157,7 +157,7 @@ public:
     parsegrind(ConstBufferSequence const& buffers,
         Test const& test, bool skip = false)
     {
-        auto const size = buffer_size(buffers);
+        auto const size = buffer_bytes(buffers);
         for(std::size_t i = 1; i < size - 1; ++i)
         {
             Parser p;
@@ -175,7 +175,7 @@ public:
             n = p.put(cb, ec);
             if(! BEAST_EXPECTS(! ec, ec.message()))
                 continue;
-            if(! BEAST_EXPECT(n == buffer_size(cb)))
+            if(! BEAST_EXPECT(n == buffer_bytes(cb)))
                 continue;
             if(p.need_eof())
             {

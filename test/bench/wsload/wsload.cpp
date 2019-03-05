@@ -138,7 +138,7 @@ public:
         ws_.set_option(pmd);
         ws_.binary(true);
         ws_.auto_fragment(false);
-        ws_.write_buffer_size(64 * 1024);
+        ws_.write_buffer_bytes(64 * 1024);
     }
 
     ~connection()
@@ -183,7 +183,7 @@ private:
     do_write()
     {
         std::geometric_distribution<std::size_t> dist{
-            double(4) / beast::buffer_size(tb_)};
+            double(4) / beast::buffer_bytes(tb_)};
         ws_.async_write_some(true,
             beast::buffers_prefix(dist(rng_), tb_),
             beast::bind_front_handler(

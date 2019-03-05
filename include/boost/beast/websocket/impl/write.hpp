@@ -114,7 +114,7 @@ public:
             else
             {
                 BOOST_ASSERT(impl.wr_buf_size != 0);
-                remain_ = buffer_size(cb_);
+                remain_ = buffer_bytes(cb_);
                 if(remain_ > impl.wr_buf_size)
                     how_ = do_nomask_frag;
                 else
@@ -130,7 +130,7 @@ public:
             else
             {
                 BOOST_ASSERT(impl.wr_buf_size != 0);
-                remain_ = buffer_size(cb_);
+                remain_ = buffer_bytes(cb_);
                 if(remain_ > impl.wr_buf_size)
                     how_ = do_mask_frag;
                 else
@@ -186,7 +186,7 @@ operator()(
         {
             // send a single frame
             fh_.fin = fin_;
-            fh_.len = buffer_size(cb_);
+            fh_.len = buffer_bytes(cb_);
             impl.wr_fb.clear();
             detail::write<flat_static_buffer_base>(
                 impl.wr_fb, fh_);
@@ -252,7 +252,7 @@ operator()(
         if(how_ == do_mask_nofrag)
         {
             // send a single frame using multiple writes
-            remain_ = beast::buffer_size(cb_);
+            remain_ = beast::buffer_bytes(cb_);
             fh_.fin = fin_;
             fh_.len = remain_;
             fh_.key = impl.create_mask();
@@ -362,13 +362,13 @@ operator()(
                 more_ = impl.deflate(b, cb_, fin_, in_, ec);
                 if(impl.check_stop_now(ec))
                     goto upcall;
-                n = buffer_size(b);
+                n = buffer_bytes(b);
                 if(n == 0)
                 {
                     // The input was consumed, but there is
                     // no output due to compression latency.
                     BOOST_ASSERT(! fin_);
-                    BOOST_ASSERT(buffer_size(cb_) == 0);
+                    BOOST_ASSERT(buffer_bytes(cb_) == 0);
                     goto upcall;
                 }
                 if(fh_.mask)
@@ -517,7 +517,7 @@ write_some(bool fin,
     fh.op = impl.wr_cont ?
         detail::opcode::cont : impl.wr_opcode;
     fh.mask = impl.role == role_type::client;
-    auto remain = buffer_size(buffers);
+    auto remain = buffer_bytes(buffers);
     if(impl.wr_compress)
     {
 
@@ -531,14 +531,14 @@ write_some(bool fin,
                 b, cb, fin, bytes_transferred, ec);
             if(impl.check_stop_now(ec))
                 return bytes_transferred;
-            auto const n = buffer_size(b);
+            auto const n = buffer_bytes(b);
             if(n == 0)
             {
                 // The input was consumed, but there
                 // is no output due to compression
                 // latency.
                 BOOST_ASSERT(! fin);
-                BOOST_ASSERT(buffer_size(cb) == 0);
+                BOOST_ASSERT(buffer_bytes(cb) == 0);
                 fh.fin = false;
                 break;
             }

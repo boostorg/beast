@@ -645,7 +645,7 @@ parse_fh(
     DynamicBuffer& b,
     error_code& ec)
 {
-    if(buffer_size(b.data()) < 2)
+    if(buffer_bytes(b.data()) < 2)
     {
         // need more bytes
         ec = {};
@@ -670,7 +670,7 @@ parse_fh(
         fh.mask = (tmp[1] & 0x80) != 0;
         if(fh.mask)
             need += 4;
-        if(buffer_size(cb) < need)
+        if(buffer_bytes(cb) < need)
         {
             // need more bytes
             ec = {};
@@ -757,7 +757,7 @@ parse_fh(
         return false;
     }
     if(detail::is_control(fh.op) &&
-        buffer_size(cb) < need + fh.len)
+        buffer_bytes(cb) < need + fh.len)
     {
         // Make the entire control frame payload
         // get read in before we return `true`
@@ -768,7 +768,7 @@ parse_fh(
     case 126:
     {
         std::uint8_t tmp[2];
-        BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
+        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(tmp));
         cb.consume(net::buffer_copy(net::buffer(tmp), cb));
         fh.len = detail::big_uint16_to_native(&tmp[0]);
         if(fh.len < 126)
@@ -782,7 +782,7 @@ parse_fh(
     case 127:
     {
         std::uint8_t tmp[8];
-        BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
+        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(tmp));
         cb.consume(net::buffer_copy(net::buffer(tmp), cb));
         fh.len = detail::big_uint64_to_native(&tmp[0]);
         if(fh.len < 65536)
@@ -797,7 +797,7 @@ parse_fh(
     if(fh.mask)
     {
         std::uint8_t tmp[4];
-        BOOST_ASSERT(buffer_size(cb) >= sizeof(tmp));
+        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(tmp));
         cb.consume(net::buffer_copy(net::buffer(tmp), cb));
         fh.key = detail::little_uint32_to_native(&tmp[0]);
         detail::prepare_key(rd_key, fh.key);
@@ -837,7 +837,7 @@ parse_fh(
         rd_cont = ! fh.fin;
         rd_remain = fh.len;
     }
-    b.consume(b.size() - buffer_size(cb));
+    b.consume(b.size() - buffer_bytes(cb));
     ec = {};
     return true;
 }

@@ -546,17 +546,17 @@ public:
         @par Example
         Setting the write buffer size.
         @code
-            ws.write_buffer_size(8192);
+            ws.write_buffer_bytes(8192);
         @endcode
 
         @param amount The size of the write buffer in bytes.
     */
     void
-    write_buffer_size(std::size_t amount);
+    write_buffer_bytes(std::size_t amount);
 
     /// Returns the size of the write buffer.
     std::size_t
-    write_buffer_size() const;
+    write_buffer_bytes() const;
 
     /** Set the text message write option.
 

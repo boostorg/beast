@@ -144,7 +144,7 @@
       </entry><entry valign="top">
         <bridgehead renderas="sect3">Functions</bridgehead>
         <simplelist type="vert" columns="1">
-          <member><link linkend="beast.ref.boost__beast__buffer_size">buffer_size</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__buffer_bytes">buffer_bytes</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__buffers_cat">buffers_cat</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_front">buffers_front</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_prefix">buffers_prefix</link></member>

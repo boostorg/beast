@@ -143,11 +143,11 @@ using buffers_iterator_type =
 
     This function is designed as an easier-to-use replacement for
     `net::buffer_size`. It recognizes customization points found through
-    argument-dependent lookup. The call `beast::buffer_size(b)` is
+    argument-dependent lookup. The call `beast::buffer_bytes(b)` is
     equivalent to performing:
     @code
     using namespace net;
-    buffer_size(b);
+    buffer_bytes(b);
     @endcode
     In addition this handles types which are convertible to
     `net::const_buffer`; these are not handled by `net::buffer_size`.
@@ -162,9 +162,9 @@ using buffers_iterator_type =
 #if BOOST_BEAST_DOXYGEN
 template<class Buffers>
 void
-buffer_size(Buffers const& buffers);
+buffer_bytes(Buffers const& buffers);
 #else
-BOOST_BEAST_INLINE_VARIABLE(buffer_size, detail::buffer_size_impl)
+BOOST_BEAST_INLINE_VARIABLE(buffer_bytes, detail::buffer_bytes_impl)
 #endif
 
 } // beast

@@ -165,7 +165,7 @@ struct BodyReader
         // The specification requires this to indicate "no error"
         ec = {};
 
-        return buffer_size(buffers);
+        return buffer_bytes(buffers);
     }
 
     /** Called when the body is complete.

@@ -116,9 +116,9 @@ void test_mutable_buffers(
     net::mutable_buffer)
 {
     string_view src = "Hello, world!";
-    BOOST_ASSERT(buffer_size(b) <= src.size());
-    if(src.size() > buffer_size(b))
-        src = {src.data(), buffer_size(b)};
+    BOOST_ASSERT(buffer_bytes(b) <= src.size());
+    if(src.size() > buffer_bytes(b))
+        src = {src.data(), buffer_bytes(b)};
     net::buffer_copy(b, net::const_buffer(
         src.data(), src.size()));
     BEAST_EXPECT(beast::buffers_to_string(b) == src);
@@ -141,7 +141,7 @@ test_buffer_sequence(
         net::buffer_sequence_begin(buffers));
     BEAST_EXPECT(sizeof(iterator) > 0);
 
-    auto const size = buffer_size(buffers);
+    auto const size = buffer_bytes(buffers);
     BEAST_EXPECT(size > 0 );
 
     // begin, end
@@ -155,12 +155,12 @@ test_buffer_sequence(
 
     // copy construction
     ConstBufferSequence b1(buffers);
-    BEAST_EXPECT(buffer_size(b1) == size);
+    BEAST_EXPECT(buffer_bytes(b1) == size);
 
     // copy assignment
     ConstBufferSequence b2(buffers);
     b2 = b1;
-    BEAST_EXPECT(buffer_size(b2) == size);
+    BEAST_EXPECT(buffer_bytes(b2) == size);
 
     // iterators
     {
@@ -190,7 +190,7 @@ test_buffer_sequence(
         m = 0;
         n = length;
         for(it = first; n--; ++it)
-            m += buffer_size(*it);
+            m += buffer_bytes(*it);
         BEAST_EXPECT(it == last);
         BEAST_EXPECT(m == size);
 
@@ -198,7 +198,7 @@ test_buffer_sequence(
         m = 0;
         n = length;
         for(it = first; n--;)
-            m += buffer_size(*it++);
+            m += buffer_bytes(*it++);
         BEAST_EXPECT(it == last);
         BEAST_EXPECT(m == size);
 
@@ -206,7 +206,7 @@ test_buffer_sequence(
         m = 0;
         n = length;
         for(it = last; n--;)
-            m += buffer_size(*--it);
+            m += buffer_bytes(*--it);
         BEAST_EXPECT(it == first);
         BEAST_EXPECT(m == size);
 
@@ -216,7 +216,7 @@ test_buffer_sequence(
         for(it = last; n--;)
         {
             it--;
-            m += buffer_size(*it);
+            m += buffer_bytes(*it);
         }
         BEAST_EXPECT(it == first);
         BEAST_EXPECT(m == size);
@@ -302,7 +302,7 @@ test_mutable_dynamic_buffer(
     {
         MutableDynamicBuffer b(b0);
         auto const mb = b.prepare(src.size());
-        BEAST_EXPECT(buffer_size(mb) == src.size());
+        BEAST_EXPECT(buffer_bytes(mb) == src.size());
         buffers_fill(mb, '*');
         b.commit(src.size());
         BEAST_EXPECT(b.size() == src.size());
@@ -377,7 +377,7 @@ test_dynamic_buffer(
             DynamicBuffer::mutable_buffers_type>::value);
 
     BEAST_EXPECT(b0.size() == 0);
-    BEAST_EXPECT(buffer_size(b0.data()) == 0);
+    BEAST_EXPECT(buffer_bytes(b0.data()) == 0);
 
     // members
     {
@@ -463,7 +463,7 @@ test_dynamic_buffer(
         DynamicBuffer b(b0);
         b.commit(1);
         BEAST_EXPECT(b.size() == 0);
-        BEAST_EXPECT(buffer_size(b.prepare(0)) == 0);
+        BEAST_EXPECT(buffer_bytes(b.prepare(0)) == 0);
         b.commit(0);
         BEAST_EXPECT(b.size() == 0);
         b.commit(1);
@@ -508,7 +508,7 @@ test_dynamic_buffer(
         src = {src.data(), b0.max_size()};
     BEAST_EXPECT(b0.max_size() >= src.size());
     BEAST_EXPECT(b0.size() == 0);
-    BEAST_EXPECT(buffer_size(b0.data()) == 0);
+    BEAST_EXPECT(buffer_bytes(b0.data()) == 0);
     auto const make_new_src =
         [&buf, &k0, &src]
         {
@@ -523,12 +523,12 @@ test_dynamic_buffer(
         DynamicBuffer b(b0);
         auto const& bc(b);
         auto const mb = b.prepare(src.size());
-        BEAST_EXPECT(buffer_size(mb) == src.size());
+        BEAST_EXPECT(buffer_bytes(mb) == src.size());
         beast::test_buffer_sequence(mb);
         b.commit(net::buffer_copy(mb,
             net::const_buffer(src.data(), src.size())));
         BEAST_EXPECT(
-            buffer_size(bc.data()) == src.size());
+            buffer_bytes(bc.data()) == src.size());
         beast::test_buffer_sequence(bc.data());
     }
 
@@ -561,12 +561,12 @@ test_dynamic_buffer(
             }
             BEAST_EXPECT(b.size() == in.size());
             BEAST_EXPECT(
-                buffer_size(bc.data()) == in.size());
+                buffer_bytes(bc.data()) == in.size());
             BEAST_EXPECT(beast::buffers_to_string(
                 bc.data()) == in);
             while(b.size() > 0)
                 b.consume(k);
-            BEAST_EXPECT(buffer_size(bc.data()) == 0);
+            BEAST_EXPECT(buffer_bytes(bc.data()) == 0);
         }
         } } }
     }

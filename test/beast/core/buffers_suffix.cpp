@@ -83,7 +83,7 @@ public:
         {
             buffers_suffix<net::mutable_buffer> cb(
                 net::mutable_buffer{});
-            BEAST_EXPECT(buffer_size(cb) == 0);
+            BEAST_EXPECT(buffer_bytes(cb) == 0);
             buffers_suffix<net::mutable_buffer> cb2(
                 net::mutable_buffer{});
             BEAST_EXPECT(net::buffer_copy(cb2, cb) == 0);
@@ -131,11 +131,11 @@ public:
                 net::const_buffer{&buf[i+j], k}}};
             buffers_suffix<decltype(bs)> cb(bs);
             BEAST_EXPECT(buffers_to_string(cb) == s);
-            BEAST_EXPECT(buffer_size(cb) == s.size());
+            BEAST_EXPECT(buffer_bytes(cb) == s.size());
             cb.consume(0);
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, 0)));
             BEAST_EXPECT(buffers_to_string(cb) == s);
-            BEAST_EXPECT(buffer_size(cb) == s.size());
+            BEAST_EXPECT(buffer_bytes(cb) == s.size());
             cb.consume(x);
             BEAST_EXPECT(buffers_to_string(cb) == s.substr(x));
             BEAST_EXPECT(eq(cb, consumed_buffers(bs, x)));

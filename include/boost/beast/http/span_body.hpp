@@ -96,7 +96,7 @@ public:
         put(ConstBufferSequence const& buffers,
             error_code& ec)
         {
-            auto const n = buffer_size(buffers);
+            auto const n = buffer_bytes(buffers);
             auto const len = body_.size();
             if(n > len)
             {

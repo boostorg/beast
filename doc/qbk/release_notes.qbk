@@ -154,7 +154,7 @@
     is preferred over `handler_ptr`
 
 * New
-  `buffer_size`
+  `buffer_bytes`
   replacement for `net::buffer_size`
 
 * New:

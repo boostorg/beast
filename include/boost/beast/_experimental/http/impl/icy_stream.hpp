@@ -45,7 +45,7 @@ buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
     auto out_pos = net::buffer_sequence_end(out);
     auto const in_begin  = net::buffer_sequence_begin(in);
     auto const out_begin = net::buffer_sequence_begin(out);
-    BOOST_ASSERT(buffer_size(in) == buffer_size(out));
+    BOOST_ASSERT(buffer_bytes(in) == buffer_bytes(out));
     if(in_pos == in_begin || out_pos == out_begin)
         return;
     net::const_buffer cb{*--in_pos};

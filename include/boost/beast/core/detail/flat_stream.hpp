@@ -46,14 +46,14 @@ public:
         auto last = net::buffer_sequence_end(buffers);
         if(first != last)
         {
-            result.size = buffer_size(*first);
+            result.size = buffer_bytes(*first);
             if(result.size < limit)
             {
                 auto it = first;
                 auto prev = first;
                 while(++it != last)
                 {
-                    auto const n = buffer_size(*it);
+                    auto const n = buffer_bytes(*it);
                     if(result.size + n > limit)
                         break;
                     result.size += n;

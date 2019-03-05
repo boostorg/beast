@@ -185,12 +185,12 @@ public:
 
             {
                 auto const b = beast::buffers_cat(b0, b0);
-                BEAST_EXPECT(buffer_size(b) == 0);
+                BEAST_EXPECT(buffer_bytes(b) == 0);
                 BEAST_EXPECT(buffers_length(b) == 0);
             }
             {
                 auto const b = beast::buffers_cat(b0, b0, b0, b0);
-                BEAST_EXPECT(buffer_size(b) == 0);
+                BEAST_EXPECT(buffer_bytes(b) == 0);
                 BEAST_EXPECT(buffers_length(b) == 0);
             }
             {

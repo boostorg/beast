@@ -60,7 +60,7 @@ public:
             if(ec)
                 return;
             if(p.need_eof() &&
-                buffer_size(cb) == 0)
+                buffer_bytes(cb) == 0)
             {
                 p.put_eof(ec);
                 if(ec)
