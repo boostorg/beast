@@ -12,7 +12,7 @@
 
 #include "test_buffer.hpp"
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/buffer.hpp>

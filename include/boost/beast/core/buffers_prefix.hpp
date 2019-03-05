@@ -11,7 +11,6 @@
 #define BOOST_BEAST_BUFFERS_PREFIX_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/buffer_size.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/optional/optional.hpp> // for in_place_init_t
 #include <algorithm>

@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_SERIALIZER_HPP
 #define BOOST_BEAST_HTTP_IMPL_SERIALIZER_HPP
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/status.hpp>

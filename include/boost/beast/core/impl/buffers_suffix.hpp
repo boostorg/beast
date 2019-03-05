@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_SUFFIX_HPP
 #define BOOST_BEAST_IMPL_BUFFERS_SUFFIX_HPP
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/type_traits.hpp>
 #include <algorithm>

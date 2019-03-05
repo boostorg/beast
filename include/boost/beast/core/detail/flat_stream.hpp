@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_CORE_DETAIL_FLAT_STREAM_HPP
 #define BOOST_BEAST_CORE_DETAIL_FLAT_STREAM_HPP
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <cstdlib>
 

@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_BASIC_PARSER_HPP
 #define BOOST_BEAST_HTTP_IMPL_BASIC_PARSER_HPP
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/make_unique.hpp>
 

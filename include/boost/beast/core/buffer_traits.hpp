@@ -11,6 +11,8 @@
 #define BOOST_BEAST_BUFFER_TRAITS_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/buffer_traits.hpp>
+#include <boost/beast/core/detail/static_const.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/mp11/function.hpp>
@@ -104,35 +106,6 @@ using buffers_type = typename std::conditional<
     net::mutable_buffer, net::const_buffer>::type;
 #endif
 
-#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-
-namespace detail {
-template<class T>
-struct buffers_iterator_type_helper
-{
-    using type = decltype(
-        net::buffer_sequence_begin(
-            std::declval<T const&>()));
-};
-
-template<>
-struct buffers_iterator_type_helper<
-    net::const_buffer>
-{
-    using type = net::const_buffer const*;
-};
-
-template<>
-struct buffers_iterator_type_helper<
-    net::mutable_buffer>
-{
-    using type = net::mutable_buffer const*;
-};
-
-} // detail
-
-#endif
-
 /** Type alias for the iterator type of a buffer sequence type.
 
     This metafunction is used to determine the type of iterator
@@ -154,6 +127,44 @@ using buffers_iterator_type = typename
 using buffers_iterator_type =
     decltype(net::buffer_sequence_begin(
         std::declval<T const&>()));
+#endif
+
+/** Return the total number of bytes in a buffer or buffer sequence
+
+    This function returns the total number of bytes in a buffer,
+    buffer sequence, or object convertible to a buffer. Specifically
+    it may be passed:
+
+    @li A <em>ConstBufferSequence</em> or <em>MutableBufferSequence</em>
+
+    @li A `net::const_buffer` or `net::mutable_buffer`
+
+    @li An object convertible to `net::const_buffer`
+
+    This function is designed as an easier-to-use replacement for
+    `net::buffer_size`. It recognizes customization points found through
+    argument-dependent lookup. The call `beast::buffer_size(b)` is
+    equivalent to performing:
+    @code
+    using namespace net;
+    buffer_size(b);
+    @endcode
+    In addition this handles types which are convertible to
+    `net::const_buffer`; these are not handled by `net::buffer_size`.
+
+    @note It is expected that a future version of Networking will
+    incorporate the features of this function.
+
+    @param buffers The buffer or buffer sequence to calculate the size of.
+
+    @return The total number of bytes in the buffer or sequence.
+*/
+#if BOOST_BEAST_DOXYGEN
+template<class Buffers>
+void
+buffer_size(Buffers const& buffers);
+#else
+BOOST_BEAST_INLINE_VARIABLE(buffer_size, detail::buffer_size_impl)
 #endif
 
 } // beast

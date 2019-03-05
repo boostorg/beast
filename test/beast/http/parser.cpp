@@ -14,7 +14,7 @@
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/test/yield_to.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/multi_buffer.hpp>

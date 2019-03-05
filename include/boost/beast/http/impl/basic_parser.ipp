@@ -13,7 +13,7 @@
 #include <boost/beast/http/basic_parser.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/rfc7230.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>

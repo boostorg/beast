@@ -12,7 +12,7 @@
 
 #include "test_buffer.hpp"
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>

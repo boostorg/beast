@@ -11,7 +11,7 @@
 #define BOOST_BEAST_BUFFERS_TO_STRING_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/asio/buffer.hpp>
 #include <string>

@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 #define BOOST_BEAST_IMPL_BUFFERS_PREFIX_HPP
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/config/workaround.hpp>
 #include <algorithm>
 #include <cstdint>

@@ -10,7 +10,7 @@
 // Test that header file is self-contained.
 #include <boost/beast/http/span_body.hpp>
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 

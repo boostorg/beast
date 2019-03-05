@@ -11,7 +11,7 @@
 #define BOOST_BEAST_HTTP_VECTOR_BODY_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/core/detail/clamp.hpp>

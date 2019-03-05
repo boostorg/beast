@@ -13,7 +13,7 @@
 #include "message_fuzz.hpp"
 #include "test_parser.hpp"
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>

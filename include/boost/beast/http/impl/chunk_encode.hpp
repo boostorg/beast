@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_HTTP_IMPL_CHUNK_ENCODE_HPP
 #define BOOST_BEAST_HTTP_IMPL_CHUNK_ENCODE_HPP
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/varint.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/detail/rfc7230.hpp>

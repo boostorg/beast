@@ -11,7 +11,7 @@
 #include <boost/beast/core/make_printable.hpp>
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <iostream>
 #include <sstream>
 

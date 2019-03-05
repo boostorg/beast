@@ -12,7 +12,7 @@
 
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/bind_handler.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/make_shared.hpp>
 #include <stdexcept>

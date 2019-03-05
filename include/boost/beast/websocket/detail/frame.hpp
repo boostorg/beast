@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_DETAIL_FRAME_HPP
 #define BOOST_BEAST_WEBSOCKET_DETAIL_FRAME_HPP
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/websocket/error.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>

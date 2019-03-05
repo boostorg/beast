@@ -18,7 +18,7 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/core/async_base.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>

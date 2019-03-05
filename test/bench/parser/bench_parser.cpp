@@ -12,7 +12,7 @@
 #include "test/beast/http/message_fuzz.hpp"
 
 #include <boost/beast/http.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>

@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
 #define BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
 
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/core/exchange.hpp>

@@ -13,7 +13,7 @@
 #include <boost/beast/websocket/option.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
-#include <boost/beast/core/buffer_size.hpp>
+#include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/role.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/message.hpp>
