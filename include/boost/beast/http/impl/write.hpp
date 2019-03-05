@@ -463,8 +463,7 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_some_impl(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -527,8 +526,7 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_some(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -610,8 +608,7 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_header(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -684,8 +681,7 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -807,8 +803,7 @@ template<
     class WriteHandler>
 typename std::enable_if<
     is_mutable_body_writer<Body>::value,
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))>::type
+    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)>::type
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields>& msg,
@@ -837,8 +832,7 @@ template<
     class WriteHandler>
 typename std::enable_if<
     ! is_mutable_body_writer<Body>::value,
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))>::type
+    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)>::type
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,

@@ -877,8 +877,7 @@ public:
         @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class HandshakeHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        HandshakeHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
     async_handshake(
         string_view host,
         string_view target,
@@ -961,8 +960,7 @@ public:
         @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<class HandshakeHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        HandshakeHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
     async_handshake(
         response_type& res,
         string_view host,
@@ -1283,8 +1281,7 @@ public:
         @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<class AcceptHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        AcceptHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept(AcceptHandler&& handler);
 
     /** Perform the WebSocket handshake asynchronously in the server role.
@@ -1354,8 +1351,7 @@ public:
 #else
     typename std::enable_if<
         ! http::detail::is_header<ConstBufferSequence>::value,
-        BOOST_ASIO_INITFN_RESULT_TYPE(
-            AcceptHandler, void(error_code))>::type
+        BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)>::type
 #endif
     async_accept(
         ConstBufferSequence const& buffers,
@@ -1413,8 +1409,7 @@ public:
     template<
         class Body, class Allocator,
         class AcceptHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        AcceptHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept(
         http::request<Body,
             http::basic_fields<Allocator>> const& req,
@@ -1546,8 +1541,7 @@ public:
         @li <a href="https://tools.ietf.org/html/rfc6455#section-7.1.2">Websocket Closing Handshake (RFC6455)</a>
     */
     template<class CloseHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        CloseHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(CloseHandler)
     async_close(close_reason const& cr, CloseHandler&& handler);
 
     //--------------------------------------------------------------------------
@@ -1644,8 +1638,7 @@ public:
         manner equivalent to using `net::post`.
     */
     template<class WriteHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
     async_ping(ping_data const& payload, WriteHandler&& handler);
 
     /** Send a websocket pong control frame.
@@ -1748,8 +1741,7 @@ public:
         manner equivalent to using `net::post`.
     */
     template<class WriteHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
     async_pong(ping_data const& payload, WriteHandler&& handler);
 
     //--------------------------------------------------------------------------
@@ -1905,8 +1897,7 @@ public:
         manner equivalent to using `net::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        ReadHandler, void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
     async_read(
         DynamicBuffer& buffer,
         ReadHandler&& handler);
@@ -2081,8 +2072,7 @@ public:
         manner equivalent to using `net::post`.
     */
     template<class DynamicBuffer, class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        ReadHandler, void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
     async_read_some(
         DynamicBuffer& buffer,
         std::size_t limit,
@@ -2253,8 +2243,7 @@ public:
         manner equivalent to using `net::post`.
     */
     template<class MutableBufferSequence, class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        ReadHandler, void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
     async_read_some(
         MutableBufferSequence const& buffers,
         ReadHandler&& handler);
@@ -2375,8 +2364,7 @@ public:
     template<
         class ConstBufferSequence,
         class WriteHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
     async_write(
         ConstBufferSequence const& buffers,
         WriteHandler&& handler);
@@ -2495,8 +2483,7 @@ public:
         manner equivalent to using `net::post`.
     */
     template<class ConstBufferSequence, class WriteHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
     async_write_some(bool fin,
         ConstBufferSequence const& buffers, WriteHandler&& handler);
 
@@ -2538,8 +2525,7 @@ public:
         error_code& ec);
 
     template<class RequestDecorator, class HandshakeHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        HandshakeHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
     async_handshake_ex(
         string_view host,
         string_view target,
@@ -2547,8 +2533,7 @@ public:
         HandshakeHandler&& handler);
 
     template<class RequestDecorator, class HandshakeHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        HandshakeHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
     async_handshake_ex(
         response_type& res,
         string_view host,
@@ -2600,8 +2585,7 @@ public:
     template<
         class ResponseDecorator,
         class AcceptHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        AcceptHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept_ex(
         ResponseDecorator const& decorator,
         AcceptHandler&& handler);
@@ -2612,8 +2596,7 @@ public:
         class AcceptHandler>
     typename std::enable_if<
         ! http::detail::is_header<ConstBufferSequence>::value,
-        BOOST_ASIO_INITFN_RESULT_TYPE(
-            AcceptHandler, void(error_code))>::type
+        BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)>::type
     async_accept_ex(
         ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator,
@@ -2623,8 +2606,7 @@ public:
         class Body, class Allocator,
         class ResponseDecorator,
         class AcceptHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        AcceptHandler, void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept_ex(
         http::request<Body,
             http::basic_fields<Allocator>> const& req,

@@ -381,8 +381,7 @@ close(close_reason const& cr, error_code& ec)
 
 template<class NextLayer, bool deflateSupported>
 template<class CloseHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    CloseHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(CloseHandler)
 stream<NextLayer, deflateSupported>::
 async_close(close_reason const& cr, CloseHandler&& handler)
 {

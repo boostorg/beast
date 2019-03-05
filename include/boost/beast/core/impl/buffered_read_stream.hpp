@@ -142,8 +142,7 @@ buffered_read_stream(Args&&... args)
 
 template<class Stream, class DynamicBuffer>
 template<class ConstBufferSequence, class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 buffered_read_stream<Stream, DynamicBuffer>::
 async_write_some(
     ConstBufferSequence const& buffers,
@@ -214,8 +213,7 @@ read_some(MutableBufferSequence const& buffers,
 
 template<class Stream, class DynamicBuffer>
 template<class MutableBufferSequence, class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 buffered_read_stream<Stream, DynamicBuffer>::
 async_read_some(
     MutableBufferSequence const& buffers,

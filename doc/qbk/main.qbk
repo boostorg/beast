@@ -87,6 +87,7 @@
 [def __Body__                   [link beast.concepts.Body ['Body]]]
 [def __BodyReader__             [link beast.concepts.BodyReader ['BodyReader]]]
 [def __BodyWriter__             [link beast.concepts.BodyWriter ['BodyWriter]]]
+[def __BufferSequence__         [link beast.concepts.BufferSequence ['BufferSequence]]]
 [def __DynamicBuffer__          [link beast.concepts.DynamicBuffer ['DynamicBuffer]]]
 [def __Fields__                 [link beast.concepts.Fields ['Fields]]]
 [def __FieldsWriter__           [link beast.concepts.FieldsWriter ['FieldsWriter]]]

@@ -231,8 +231,7 @@ template<
     >::type
 #endif
 >
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,

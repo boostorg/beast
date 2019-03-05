@@ -286,8 +286,7 @@ pong(ping_data const& payload, error_code& ec)
 
 template<class NextLayer, bool deflateSupported>
 template<class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
 stream<NextLayer, deflateSupported>::
 async_ping(ping_data const& payload, WriteHandler&& handler)
 {
@@ -305,8 +304,7 @@ async_ping(ping_data const& payload, WriteHandler&& handler)
 
 template<class NextLayer, bool deflateSupported>
 template<class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
 stream<NextLayer, deflateSupported>::
 async_pong(ping_data const& payload, WriteHandler&& handler)
 {

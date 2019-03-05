@@ -267,8 +267,7 @@ do_handshake(
 
 template<class NextLayer, bool deflateSupported>
 template<class HandshakeHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    HandshakeHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
 stream<NextLayer, deflateSupported>::
 async_handshake(
     string_view host,
@@ -293,8 +292,7 @@ async_handshake(
 
 template<class NextLayer, bool deflateSupported>
 template<class HandshakeHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    HandshakeHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
 stream<NextLayer, deflateSupported>::
 async_handshake(
     response_type& res,
@@ -470,8 +468,7 @@ handshake_ex(response_type& res,
 
 template<class NextLayer, bool deflateSupported>
 template<class RequestDecorator, class HandshakeHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    HandshakeHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
 stream<NextLayer, deflateSupported>::
 async_handshake_ex(string_view host,
     string_view target,
@@ -503,8 +500,7 @@ async_handshake_ex(string_view host,
 
 template<class NextLayer, bool deflateSupported>
 template<class RequestDecorator, class HandshakeHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    HandshakeHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
 stream<NextLayer, deflateSupported>::
 async_handshake_ex(response_type& res,
     string_view host,

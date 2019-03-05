@@ -698,8 +698,7 @@ write_some(bool fin,
 
 template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence, class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 stream<NextLayer, deflateSupported>::
 async_write_some(bool fin,
     ConstBufferSequence const& bs, WriteHandler&& handler)
@@ -755,8 +754,7 @@ write(ConstBufferSequence const& buffers, error_code& ec)
 
 template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence, class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 stream<NextLayer, deflateSupported>::
 async_write(
     ConstBufferSequence const& bs, WriteHandler&& handler)

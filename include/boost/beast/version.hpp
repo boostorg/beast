@@ -13,7 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/config.hpp>
 
-/** @def BOOST_BEAST_API_VERSION 
+/*  BOOST_BEAST_VERSION
 
     Identifies the API version of Beast.
 

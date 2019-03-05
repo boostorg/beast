@@ -905,8 +905,7 @@ public:
         @see @ref async_connect
     */
     template<class ConnectHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ConnectHandler,
-        void(error_code))
+    BOOST_BEAST_ASYNC_RESULT1(ConnectHandler)
     async_connect(
         endpoint_type const& ep,
         ConnectHandler&& handler);
@@ -963,8 +962,7 @@ public:
                 EndpointSequence>::value>::type
     #endif
     >
-    BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-        void (error_code, typename Protocol::endpoint))
+    BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void (error_code, typename Protocol::endpoint))
     async_connect(
         EndpointSequence const& endpoints,
         RangeConnectHandler&& handler);
@@ -1053,8 +1051,7 @@ public:
                 EndpointSequence>::value>::type
     #endif
     >
-    BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-        void (error_code, typename Protocol::endpoint))
+    BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void (error_code, typename Protocol::endpoint))
     async_connect(
         EndpointSequence const& endpoints,
         ConnectCondition connect_condition,
@@ -1107,8 +1104,7 @@ public:
     template<
         class Iterator,
         class IteratorConnectHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-        void (error_code, Iterator))
+    BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
     async_connect(
         Iterator begin, Iterator end,
         IteratorConnectHandler&& handler);
@@ -1165,8 +1161,7 @@ public:
         class Iterator,
         class ConnectCondition,
         class IteratorConnectHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-        void (error_code, Iterator))
+    BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
     async_connect(
         Iterator begin, Iterator end,
         ConnectCondition connect_condition,
@@ -1286,8 +1281,7 @@ public:
         operation completes.
     */
     template<class MutableBufferSequence, class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
-        void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
     async_read_some(
         MutableBufferSequence const& buffers,
         ReadHandler&& handler);
@@ -1406,8 +1400,7 @@ public:
         operation completes.
     */
     template<class ConstBufferSequence, class WriteHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-        void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
     async_write_some(
         ConstBufferSequence const& buffers,
         WriteHandler&& handler);

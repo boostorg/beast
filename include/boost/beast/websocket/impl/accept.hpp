@@ -545,8 +545,7 @@ accept(
 template<class NextLayer, bool deflateSupported>
 template<
     class AcceptHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    AcceptHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept(
     AcceptHandler&& handler)
@@ -568,8 +567,7 @@ template<class NextLayer, bool deflateSupported>
 template<
     class ResponseDecorator,
     class AcceptHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    AcceptHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept_ex(
     ResponseDecorator const& decorator,
@@ -597,8 +595,7 @@ template<
     class AcceptHandler>
 typename std::enable_if<
     ! http::detail::is_header<ConstBufferSequence>::value,
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        AcceptHandler, void(error_code))>::type
+    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)>::type
 stream<NextLayer, deflateSupported>::
 async_accept(
     ConstBufferSequence const& buffers,
@@ -627,8 +624,7 @@ template<
     class AcceptHandler>
 typename std::enable_if<
     ! http::detail::is_header<ConstBufferSequence>::value,
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        AcceptHandler, void(error_code))>::type
+    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)>::type
 stream<NextLayer, deflateSupported>::
 async_accept_ex(
     ConstBufferSequence const& buffers,
@@ -658,8 +654,7 @@ template<class NextLayer, bool deflateSupported>
 template<
     class Body, class Allocator,
     class AcceptHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    AcceptHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept(
     http::request<Body, http::basic_fields<Allocator>> const& req,
@@ -683,8 +678,7 @@ template<
     class Body, class Allocator,
     class ResponseDecorator,
     class AcceptHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    AcceptHandler, void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept_ex(
     http::request<Body, http::basic_fields<Allocator>> const& req,

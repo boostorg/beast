@@ -544,8 +544,7 @@ template<
     class Protocol, class Executor,
     bool isRequest, class Fields,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_some(
     net::basic_stream_socket<
         Protocol, Executor>& sock,

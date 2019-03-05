@@ -83,4 +83,14 @@ namespace net = boost::asio;
 # define BOOST_BEAST_DECL
 #endif
 
+#ifndef BOOST_BEAST_ASYNC_RESULT1
+#define BOOST_BEAST_ASYNC_RESULT1(type) \
+    BOOST_ASIO_INITFN_RESULT_TYPE(type, void(::boost::beast::error_code))
+#endif
+
+#ifndef BOOST_BEAST_ASYNC_RESULT2
+#define BOOST_BEAST_ASYNC_RESULT2(type) \
+    BOOST_ASIO_INITFN_RESULT_TYPE(type, void(::boost::beast::error_code, std::size_t))
+#endif
+
 #endif

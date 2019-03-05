@@ -801,8 +801,7 @@ close()
 
 template<class Protocol, class Executor, class RatePolicy>
 template<class ConnectHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(ConnectHandler,
-    void(error_code))
+BOOST_BEAST_ASYNC_RESULT1(ConnectHandler)
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
     endpoint_type const& ep,
@@ -822,8 +821,7 @@ template<
     class EndpointSequence,
     class RangeConnectHandler,
     class>
-BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-    void(error_code, typename Protocol::endpoint))
+BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void(error_code, typename Protocol::endpoint))
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
     EndpointSequence const& endpoints,
@@ -845,8 +843,7 @@ template<
     class ConnectCondition,
     class RangeConnectHandler,
     class>
-BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,
-    void (error_code, typename Protocol::endpoint))
+BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void (error_code, typename Protocol::endpoint))
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
     EndpointSequence const& endpoints,
@@ -867,8 +864,7 @@ template<class Protocol, class Executor, class RatePolicy>
 template<
     class Iterator,
     class IteratorConnectHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-    void (error_code, Iterator))
+BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
     Iterator begin, Iterator end,
@@ -889,8 +885,7 @@ template<
     class Iterator,
     class ConnectCondition,
     class IteratorConnectHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,
-    void (error_code, Iterator))
+BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
     Iterator begin, Iterator end,
@@ -911,8 +906,7 @@ async_connect(
 
 template<class Protocol, class Executor, class RatePolicy>
 template<class MutableBufferSequence, class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
-    void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 basic_stream<Protocol, Executor, RatePolicy>::
 async_read_some(
     MutableBufferSequence const& buffers,
@@ -932,8 +926,7 @@ async_read_some(
 
 template<class Protocol, class Executor, class RatePolicy>
 template<class ConstBufferSequence, class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-    void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 basic_stream<Protocol, Executor, RatePolicy>::
 async_write_some(
     ConstBufferSequence const& buffers,

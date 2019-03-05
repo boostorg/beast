@@ -15,8 +15,8 @@ scheduled to become an official part of C++ no sooner than the year
 2023. Three implementations exist, with cosmetic differences but
 otherwise using the same function signatures and type declarations:
 Boost.Asio, stand-alone Asio, and networking-ts-impl. This table shows
-how a variable of the each library's `io_context` type is declared by
-including the appropriate header and using a suitable namespace alias:
+how a variable of type `io_context` is declared in each implementation
+by including the appropriate header and using a suitable namespace alias:
 
 [table Networking Implementations
 [[Name][Namespace and Header Example ]]

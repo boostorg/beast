@@ -795,8 +795,7 @@ read(DynamicBuffer& buffer, error_code& ec)
 
 template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer, class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 stream<NextLayer, deflateSupported>::
 async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 {
@@ -870,8 +869,7 @@ read_some(
 
 template<class NextLayer, bool deflateSupported>
 template<class DynamicBuffer, class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 stream<NextLayer, deflateSupported>::
 async_read_some(
     DynamicBuffer& buffer,
@@ -1254,8 +1252,7 @@ loop:
 
 template<class NextLayer, bool deflateSupported>
 template<class MutableBufferSequence, class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 stream<NextLayer, deflateSupported>::
 async_read_some(
     MutableBufferSequence const& buffers,

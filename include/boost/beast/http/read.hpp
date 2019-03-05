@@ -207,8 +207,7 @@ template<
     class DynamicBuffer,
     bool isRequest,
     class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -403,8 +402,7 @@ template<
     class DynamicBuffer,
     bool isRequest,
     class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read_header(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -599,8 +597,7 @@ template<
     class DynamicBuffer,
     bool isRequest,
     class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -804,8 +801,7 @@ template<
     class DynamicBuffer,
     bool isRequest, class Body, class Allocator,
     class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,

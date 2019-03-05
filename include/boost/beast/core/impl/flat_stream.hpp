@@ -147,8 +147,7 @@ template<class NextLayer>
 template<
     class MutableBufferSequence,
     class ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    ReadHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 flat_stream<NextLayer>::
 async_read_some(
     MutableBufferSequence const& buffers,
@@ -229,8 +228,7 @@ template<class NextLayer>
 template<
     class ConstBufferSequence,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 flat_stream<NextLayer>::
 async_write_some(
     ConstBufferSequence const& buffers,

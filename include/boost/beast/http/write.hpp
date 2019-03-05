@@ -172,8 +172,7 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_some(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -301,8 +300,7 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_header(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -421,8 +419,7 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
@@ -646,13 +643,11 @@ template<
     bool isRequest, class Body, class Fields,
     class WriteHandler>
 #if BOOST_BEAST_DOXYGEN
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 #else
 typename std::enable_if<
     is_mutable_body_writer<Body>::value,
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))>::type
+    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)>::type
 #endif
 async_write(
     AsyncWriteStream& stream,
@@ -709,13 +704,11 @@ template<
     bool isRequest, class Body, class Fields,
     class WriteHandler>
 #if BOOST_BEAST_DOXYGEN
-BOOST_ASIO_INITFN_RESULT_TYPE(
-    WriteHandler, void(error_code, std::size_t))
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 #else
 typename std::enable_if<
     ! is_mutable_body_writer<Body>::value,
-    BOOST_ASIO_INITFN_RESULT_TYPE(
-        WriteHandler, void(error_code, std::size_t))>::type
+    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)>::type
 #endif
 async_write(
     AsyncWriteStream& stream,

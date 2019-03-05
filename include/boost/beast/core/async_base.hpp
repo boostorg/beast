@@ -78,7 +78,7 @@ namespace beast {
 
     // Asynchronously read into a buffer until the buffer is full, or an error occurs
     template<class AsyncReadStream, class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void (error_code, std::size_t))
+    typename net::async_result<ReadHandler, void(error_code, std::size_t)>::return_type
     async_read(AsyncReadStream& stream, net::mutable_buffer buffer, ReadHandler&& handler)
     {
         using handler_type = BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t));

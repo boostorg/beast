@@ -244,8 +244,7 @@ public:
 
     /// Read some data from the stream asynchronously
     template <class MutableBufferSequence, class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
-        void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
     async_read_some(
         MutableBufferSequence const& buffers,
         ReadHandler&& handler)
@@ -261,8 +260,7 @@ public:
 
     /// Write some data to the stream asynchronously
     template <class ConstBufferSequence, class WriteHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-        void(error_code, std::size_t))
+    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
     async_write_some(
         ConstBufferSequence const& buffers,
         WriteHandler&& handler)
