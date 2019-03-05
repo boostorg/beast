@@ -79,7 +79,7 @@ using lowest_layer_type = detail::lowest_layer_type<T>;
 
     @param t The layer in a stack of layered objects for which the lowest layer is returned.
 
-    @see @ref close_socket, @ref lowest_layer_type
+    @see close_socket, lowest_layer_type
 */
 template<class T>
 lowest_layer_type<T>&
@@ -163,7 +163,7 @@ using executor_type =
 */
 #if BOOST_BEAST_DOXYGEN
 template<class T>
-struct has_get_executor : std::integral_constant<bool, ...>{};
+using has_get_executor = __see_below__;
 #else
 template<class T, class = void>
 struct has_get_executor : std::false_type {};
@@ -175,16 +175,14 @@ struct has_get_executor<T, boost::void_t<decltype(
 
 //------------------------------------------------------------------------------
 
-/** Determine if `T` meets the requirements of @b SyncReadStream.
+/** Determine if at type meets the requirements of <em>SyncReadStream</em>.
 
     Metafunctions are used to perform compile time checking of template
     types. This type will be `std::true_type` if `T` meets the requirements,
     else the type will be `std::false_type`. 
 
     @par Example
-
     Use with `static_assert`:
-
     @code
     template<class SyncReadStream>
     void f(SyncReadStream& stream)
@@ -195,7 +193,6 @@ struct has_get_executor<T, boost::void_t<decltype(
     @endcode
 
     Use with `std::enable_if` (SFINAE):
-
     @code
     template<class SyncReadStream>
     typename std::enable_if<is_sync_read_stream<SyncReadStream>::value>::type
@@ -204,7 +201,7 @@ struct has_get_executor<T, boost::void_t<decltype(
 */
 #if BOOST_BEAST_DOXYGEN
 template<class T>
-struct is_sync_read_stream : std::integral_constant<bool, ...>{};
+using is_sync_read_stream = __see_below__;
 #else
 template<class T, class = void>
 struct is_sync_read_stream : std::false_type {};
@@ -219,7 +216,7 @@ struct is_sync_read_stream<T, boost::void_t<decltype(
             )>> : std::true_type {};
 #endif
 
-/** Determine if `T` meets the requirements of @b SyncWriteStream.
+/** Determine if `T` meets the requirements of <em>SyncWriteStream</em>.
 
     Metafunctions are used to perform compile time checking of template
     types. This type will be `std::true_type` if `T` meets the requirements,
@@ -248,7 +245,7 @@ struct is_sync_read_stream<T, boost::void_t<decltype(
 */
 #if BOOST_BEAST_DOXYGEN
 template<class T>
-struct is_sync_write_stream : std::integral_constant<bool, ...>{};
+using is_sync_write_stream = __see_below__;
 #else
 template<class T, class = void>
 struct is_sync_write_stream : std::false_type {};
@@ -293,7 +290,7 @@ struct is_sync_write_stream<T, boost::void_t<decltype(
 */
 #if BOOST_BEAST_DOXYGEN
 template<class T>
-struct is_sync_stream : std::integral_constant<bool, ...>{};
+using is_sync_stream = __see_below__;
 #else
 template<class T>
 using is_sync_stream = std::integral_constant<bool,
@@ -302,7 +299,7 @@ using is_sync_stream = std::integral_constant<bool,
 
 //------------------------------------------------------------------------------
 
-/** Determine if `T` meets the requirements of @b AsyncReadStream.
+/** Determine if `T` meets the requirements of <em>AsyncReadStream</em>.
 
     Metafunctions are used to perform compile time checking of template
     types. This type will be `std::true_type` if `T` meets the requirements,
@@ -331,7 +328,7 @@ using is_sync_stream = std::integral_constant<bool,
 */
 #if BOOST_BEAST_DOXYGEN
 template<class T>
-struct is_async_read_stream : std::integral_constant<bool, ...>{};
+using is_async_read_stream = __see_below__;
 #else
 template<class T, class = void>
 struct is_async_read_stream : std::false_type {};
@@ -346,7 +343,7 @@ struct is_async_read_stream<T, boost::void_t<decltype(
         > {};
 #endif
 
-/** Determine if `T` meets the requirements of @b AsyncWriteStream.
+/** Determine if `T` meets the requirements of <em>AsyncWriteStream</em>.
 
     Metafunctions are used to perform compile time checking of template
     types. This type will be `std::true_type` if `T` meets the requirements,
@@ -375,7 +372,7 @@ struct is_async_read_stream<T, boost::void_t<decltype(
 */
 #if BOOST_BEAST_DOXYGEN
 template<class T>
-struct is_async_write_stream : std::integral_constant<bool, ...>{};
+using is_async_write_stream = __see_below__;
 #else
 template<class T, class = void>
 struct is_async_write_stream : std::false_type {};
@@ -419,7 +416,7 @@ struct is_async_write_stream<T, boost::void_t<decltype(
 */
 #if BOOST_BEAST_DOXYGEN
 template<class T>
-struct is_async_stream : std::integral_constant<bool, ...>{};
+using is_async_stream = __see_below__;
 #else
 template<class T>
 using is_async_stream = std::integral_constant<bool,

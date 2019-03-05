@@ -30,7 +30,7 @@ namespace boost {
 namespace beast {
 namespace http {
 
-/** A @b Body using `std::basic_string`
+/** A <em>Body</em> using `std::basic_string`
 
     This body uses `std::basic_string` as a memory-based container
     for holding message payloads. Messages using this body type
@@ -72,7 +72,7 @@ public:
 
     /** The algorithm for parsing the body
 
-        Meets the requirements of @b BodyReader.
+        Meets the requirements of <em>BodyReader</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using reader = __implementation_defined__;
@@ -140,7 +140,7 @@ public:
 
     /** The algorithm for serializing the body
 
-        Meets the requirements of @b BodyWriter.
+        Meets the requirements of <em>BodyWriter</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using writer = __implementation_defined__;
@@ -177,7 +177,7 @@ public:
 #endif
 };
 
-/// A @b Body using `std::string`
+/// A <em>Body</em> using `std::string`
 using string_body = basic_string_body<char>;
 
 } // http

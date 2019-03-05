@@ -516,7 +516,7 @@ public:
 
         @throws system_error Thrown on failure.
 
-        @see @ref connect
+        @see connect
     */
     void
     connect(endpoint_type const& ep)
@@ -537,7 +537,7 @@ public:
         
         @param ec Set to indicate what error occurred, if any.
 
-        @see @ref connect
+        @see connect
     */
     void
     connect(endpoint_type const& ep, error_code& ec)
@@ -890,19 +890,17 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code ec         // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
 
-        @see @ref async_connect
+        @see async_connect
     */
     template<class ConnectHandler>
     BOOST_BEAST_ASYNC_RESULT1(ConnectHandler)
@@ -934,7 +932,6 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             // Result of operation. if the sequence is empty, set to
@@ -947,7 +944,6 @@ public:
             typename Protocol::endpoint const& endpoint
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1004,7 +1000,6 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             // Result of operation. if the sequence is empty, set to
@@ -1017,7 +1012,6 @@ public:
             typename Protocol::endpoint const& endpoint
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1082,7 +1076,6 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             // Result of operation. if the sequence is empty, set to
@@ -1095,7 +1088,6 @@ public:
             Iterator iterator
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1138,7 +1130,6 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             // Result of operation. if the sequence is empty, set to
@@ -1151,7 +1142,6 @@ public:
             Iterator iterator
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1262,14 +1252,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code error,               // Result of operation.
             std::size_t bytes_transferred   // Number of bytes read.
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1381,14 +1369,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code error,               // Result of operation.
             std::size_t bytes_transferred   // Number of bytes written.
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a

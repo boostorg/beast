@@ -55,7 +55,7 @@ namespace http {
     stream.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param sr The serializer to use.
 
@@ -97,7 +97,7 @@ write_some(
     stream.
     
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param sr The serializer to use.
 
@@ -105,7 +105,7 @@ write_some(
 
     @return The number of bytes written to the stream.
 
-    @see @ref async_write_some, @ref serializer
+    @see async_write_some, serializer
 */
 template<
     class SyncWriteStream,
@@ -143,7 +143,7 @@ write_some(
     stream.
     
     @param stream The stream to which the data is to be written.
-    The type must support the @b AsyncWriteStream concept.
+    The type must support the <em>AsyncWriteStream</em> concept.
 
     @param sr The serializer to use.
     The object must remain valid at least until the
@@ -153,20 +153,18 @@ write_some(
     completes. The implementation takes ownership of the handler by
     performing a decay-copy. The equivalent function signature of
     the handler must be:
-
     @code
     void handler(
         error_code const& error,        // result of operation
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
-    @see @ref serializer
+    @see serializer
 */
 template<
     class AsyncWriteStream,
@@ -194,7 +192,7 @@ async_write_some(
     to the stream's `write_some` function.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param sr The serializer to use.
 
@@ -205,7 +203,7 @@ async_write_some(
     @note The implementation will call @ref serializer::split with
     the value `true` on the serializer passed in.
 
-    @see @ref serializer
+    @see serializer
 */
 template<
     class SyncWriteStream,
@@ -229,7 +227,7 @@ write_header(
     to the stream's `write_some` function.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param sr The serializer to use.
 
@@ -240,7 +238,7 @@ write_header(
     @note The implementation will call @ref serializer::split with
     the value `true` on the serializer passed in.
 
-    @see @ref serializer
+    @see serializer
 */
 template<
     class SyncWriteStream,
@@ -268,7 +266,7 @@ write_header(
     until this operation completes.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b AsyncWriteStream concept.
+    The type must support the <em>AsyncWriteStream</em> concept.
 
     @param sr The serializer to use.
     The object must remain valid at least until the
@@ -278,14 +276,12 @@ write_header(
     completes. The implementation takes ownership of the handler by
     performing a decay-copy. The equivalent function signature of
     the handler must be:
-
     @code
     void handler(
         error_code const& error,        // result of operation
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -294,7 +290,7 @@ write_header(
     @note The implementation will call @ref serializer::split with
     the value `true` on the serializer passed in.
 
-    @see @ref serializer
+    @see serializer
 */
 template<
     class AsyncWriteStream,
@@ -322,7 +318,7 @@ async_write_header(
     to the stream's `write_some` function.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param sr The serializer to use.
 
@@ -330,7 +326,7 @@ async_write_header(
 
     @throws system_error Thrown on failure.
 
-    @see @ref serializer
+    @see serializer
 */
 template<
     class SyncWriteStream,
@@ -354,7 +350,7 @@ write(
     to the stream's `write_some` function.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param sr The serializer to use.
 
@@ -362,7 +358,7 @@ write(
 
     @return The number of bytes written to the stream.
 
-    @see @ref serializer
+    @see serializer
 */
 template<
     class SyncWriteStream,
@@ -390,7 +386,7 @@ write(
     until this operation completes.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b AsyncWriteStream concept.
+    The type must support the <em>AsyncWriteStream</em> concept.
 
     @param sr The serializer to use.
     The object must remain valid at least until the
@@ -400,20 +396,18 @@ write(
     completes. The implementation takes ownership of the handler by
     performing a decay-copy. The equivalent function signature of
     the handler must be:
-
     @code
     void handler(
         error_code const& error,        // result of operation
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
-    @see @ref serializer
+    @see serializer
 */
 template<
     class AsyncWriteStream,
@@ -441,10 +435,10 @@ async_write(
     with an empty chunk decorator to produce buffers.
 
     @note This function only participates in overload resolution
-    if @ref is_mutable_body_writer for @b Body returns `true`.
+    if @ref is_mutable_body_writer for <em>Body</em> returns `true`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param msg The message to write.
 
@@ -452,7 +446,7 @@ async_write(
 
     @throws system_error Thrown on failure.
 
-    @see @ref message
+    @see message
 */
 template<
     class SyncWriteStream,
@@ -482,10 +476,10 @@ write(
     with an empty chunk decorator to produce buffers.
 
     @note This function only participates in overload resolution
-    if @ref is_mutable_body_writer for @b Body returns `false`.
+    if @ref is_mutable_body_writer for <em>Body</em> returns `false`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param msg The message to write.
 
@@ -493,7 +487,7 @@ write(
 
     @throws system_error Thrown on failure.
 
-    @see @ref message
+    @see message
 */
 template<
     class SyncWriteStream,
@@ -523,10 +517,10 @@ write(
     with an empty chunk decorator to produce buffers.
 
     @note This function only participates in overload resolution
-    if @ref is_mutable_body_writer for @b Body returns `true`.
+    if @ref is_mutable_body_writer for <em>Body</em> returns `true`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param msg The message to write.
 
@@ -534,7 +528,7 @@ write(
 
     @return The number of bytes written to the stream.
 
-    @see @ref message
+    @see message
 */
 template<
     class SyncWriteStream,
@@ -565,10 +559,10 @@ write(
     with an empty chunk decorator to produce buffers.
 
     @note This function only participates in overload resolution
-    if @ref is_mutable_body_writer for @b Body returns `false`.
+    if @ref is_mutable_body_writer for <em>Body</em> returns `false`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b SyncWriteStream concept.
+    The type must support the <em>SyncWriteStream</em> concept.
 
     @param msg The message to write.
 
@@ -576,7 +570,7 @@ write(
 
     @return The number of bytes written to the stream.
 
-    @see @ref message
+    @see message
 */
 template<
     class SyncWriteStream,
@@ -610,10 +604,10 @@ write(
     @ref serializer with an empty chunk decorator to produce buffers.
 
     @note This function only participates in overload resolution
-    if @ref is_mutable_body_writer for @b Body returns `true`.
+    if @ref is_mutable_body_writer for <em>Body</em> returns `true`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b AsyncWriteStream concept.
+    The type must support the <em>AsyncWriteStream</em> concept.
 
     @param msg The message to write.
     The object must remain valid at least until the
@@ -623,20 +617,18 @@ write(
     completes. The implementation takes ownership of the handler by
     performing a decay-copy. The equivalent function signature of
     the handler must be:
-
     @code
     void handler(
         error_code const& error,        // result of operation
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
-    @see @ref message
+    @see message
 */
 template<
     class AsyncWriteStream,
@@ -671,10 +663,10 @@ async_write(
     @ref serializer with an empty chunk decorator to produce buffers.
 
     @note This function only participates in overload resolution
-    if @ref is_mutable_body_writer for @b Body returns `false`.
+    if @ref is_mutable_body_writer for <em>Body</em> returns `false`.
 
     @param stream The stream to which the data is to be written.
-    The type must support the @b AsyncWriteStream concept.
+    The type must support the <em>AsyncWriteStream</em> concept.
 
     @param msg The message to write.
     The object must remain valid at least until the
@@ -684,20 +676,18 @@ async_write(
     completes. The implementation takes ownership of the handler by
     performing a decay-copy. The equivalent function signature of
     the handler must be:
-
     @code
     void handler(
         error_code const& error,        // result of operation
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
-    @see @ref message
+    @see message
 */
 template<
     class AsyncWriteStream,

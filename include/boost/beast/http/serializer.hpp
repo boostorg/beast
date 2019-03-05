@@ -65,7 +65,7 @@ public:
     /** The type of message this serializer uses
 
         This may be const or non-const depending on the
-        implementation of the corresponding @b BodyWriter.
+        implementation of the corresponding <em>BodyWriter</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
@@ -294,7 +294,7 @@ public:
     /** Returns the next set of buffers in the serialization.
 
         This function will attempt to call the `visit` function
-        object with a @b ConstBufferSequence of unspecified type
+        object with a <em>ConstBufferSequence</em> of unspecified type
         representing the next set of buffers in the serialization
         of the message represented by this object. 
 
@@ -336,7 +336,7 @@ public:
     void
     consume(std::size_t n);
 
-    /** Provides low-level access to the associated @b BodyWriter
+    /** Provides low-level access to the associated <em>BodyWriter</em>
 
         This function provides access to the instance of the writer
         associated with the body and created by the serializer

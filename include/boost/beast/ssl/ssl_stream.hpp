@@ -401,8 +401,7 @@ public:
         ); @endcode
     */
     template<class HandshakeHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(HandshakeHandler,
-        void(boost::system::error_code))
+    BOOST_ASIO_INITFN_RESULT_TYPE(HandshakeHandler, void(boost::system::error_code))
     async_handshake(handshake_type type,
         BOOST_ASIO_MOVE_ARG(HandshakeHandler) handler)
     {
@@ -432,8 +431,7 @@ public:
         ); @endcode
     */
     template<class ConstBufferSequence, class BufferedHandshakeHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(BufferedHandshakeHandler,
-        void(boost::system::error_code, std::size_t))
+    BOOST_ASIO_INITFN_RESULT_TYPE(BufferedHandshakeHandler, void(boost::system::error_code, std::size_t))
     async_handshake(handshake_type type, ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler)
     {
@@ -480,8 +478,7 @@ public:
         ); @endcode
     */
     template<class ShutdownHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ShutdownHandler,
-        void(boost::system::error_code))
+    BOOST_ASIO_INITFN_RESULT_TYPE(ShutdownHandler, void(boost::system::error_code))
     async_shutdown(BOOST_ASIO_MOVE_ARG(ShutdownHandler) handler)
     {
         return p_->next_layer().async_shutdown(
@@ -559,8 +556,7 @@ public:
         completes.
     */
     template<class ConstBufferSequence, class WriteHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler,
-        void(boost::system::error_code, std::size_t))
+    BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler, void(boost::system::error_code, std::size_t))
     async_write_some(ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(WriteHandler) handler)
     {
@@ -641,8 +637,7 @@ public:
         the asynchronous operation completes.
     */
     template<class MutableBufferSequence, class ReadHandler>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler,
-        void(boost::system::error_code, std::size_t))
+    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void(boost::system::error_code, std::size_t))
     async_read_some(MutableBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(ReadHandler) handler)
     {

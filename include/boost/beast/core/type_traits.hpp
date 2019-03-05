@@ -23,12 +23,14 @@ BOOST_PRAGMA_MESSAGE("<boost/beast/core/type_traits.hpp> is DEPRECATED and will 
 namespace boost {
 namespace beast {
 
-/** Determine if `T` meets the requirements of @b CompletionHandler.
+/** Determine if `T` meets the requirements of <em>CompletionHandler</em>.
+
     This trait checks whether a type meets the requirements for a completion
     handler, and is also callable with the specified signature.
     Metafunctions are used to perform compile time checking of template
     types. This type will be `std::true_type` if `T` meets the requirements,
     else the type will be `std::false_type`. 
+
     @par Example
     Use with `static_assert`:
     @code
@@ -42,7 +44,7 @@ namespace beast {
 */
 template<class T, class Signature>
 #if BOOST_BEAST_DOXYGEN
-using is_completion_handler = std::integral_constant<bool, ...>;
+using is_completion_handler = __see_below__
 #else
 using is_completion_handler = std::integral_constant<bool,
     std::is_move_constructible<typename std::decay<T>::type>::value &&

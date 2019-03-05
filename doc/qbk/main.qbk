@@ -37,6 +37,10 @@
 [def __Asio__                   [@boost:/libs/asio/index.html Boost.Asio]]
 [def __async_initfn__           [@boost:/doc/html/boost_asio/reference/asynchronous_operations.html initiating function]]
 
+[/ C++ Named Requirements ]
+
+[def __Allocator__              [@https://en.cppreference.com/w/cpp/named_req/Allocator ['Allocator]]]
+
 [/ Networking Identifiers ]
 
 [def __asio_handler_allocate__  [@boost:/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]]
@@ -70,6 +74,8 @@
 [def __ConstBufferSequence__    [@boost:/doc/html/boost_asio/reference/ConstBufferSequence.html ['ConstBufferSequence]]]
 [def __EndpointSequence__       [@boost:/doc/html/boost_asio/reference/EndpointSequence.html ['EndpointSequence]]]
 [def __Executor__               [@boost:/doc/html/boost_asio/reference/Executor1.html ['Executor]]]
+[def __Executor1__              [@boost:/doc/html/boost_asio/reference/Executor1.html ['Executor1]]]
+[def __Executor2__              [@boost:/doc/html/boost_asio/reference/Executor1.html ['Executor2]]]
 [def __ExecutionContext__       [@boost:/doc/html/boost_asio/reference/ExecutionContext.html ['ExecutionContext]]]
 [def __Handler__                [@boost:/doc/html/boost_asio/reference/Handler.html ['Handler]]]
 [def __IteratorConnectHandler__ [@boost:/doc/html/boost_asio/reference/IteratorConnectHandler.html ['IteratorConnectHandler]]]

@@ -80,7 +80,7 @@ struct has_value_type<T, beast::detail::void_t<
     typename T::value_type
         > > : std::true_type {};
 
-/** Determine if a @b Body type has a size
+/** Determine if a <em>Body</em> type has a size
 
     This metafunction is equivalent to `std::true_type` if
     Body contains a static member function called `size`.

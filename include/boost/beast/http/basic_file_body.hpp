@@ -38,7 +38,7 @@ namespace http {
     content from a directory as part of a web service.
 
     @tparam File The implementation to use for accessing files.
-    This type must meet the requirements of @b File.
+    This type must meet the requirements of <em>File</em>.
 */
 template<class File>
 struct basic_file_body

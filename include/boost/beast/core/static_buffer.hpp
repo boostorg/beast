@@ -32,7 +32,7 @@ namespace beast {
     is provided to permit them to be efficiently used with
     I/O operations.
 
-    Objects of this type meet the requirements of @b DynamicBuffer
+    Objects of this type meet the requirements of <em>DynamicBuffer</em>
     and have the following additional properties:
 
     @li A mutable buffer sequence representing the readable
@@ -51,7 +51,7 @@ namespace beast {
     @ref static_buffer; however, to reduce the number of template
     instantiations, objects should be passed `static_buffer_base&`.
 
-    @see @ref static_buffer
+    @see static_buffer
 */
 class static_buffer_base
 {
@@ -84,7 +84,7 @@ public:
         Buffer sequences previously obtained using @ref data or
         @ref prepare become invalid.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -161,7 +161,7 @@ public:
 
         @throws std::length_error if `size() + n` exceeds `max_size()`.
 
-        @par Exception Safety
+        @esafe
 
         Strong guarantee.
     */
@@ -183,7 +183,7 @@ public:
         is greater than the number of writable bytes, all
         writable bytes are appended.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -202,7 +202,7 @@ public:
         is greater than the number of readable bytes, all
         readable bytes are removed.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -223,7 +223,7 @@ public:
     is provided to permit them to be efficiently used with
     I/O operations.
 
-    Objects of this type meet the requirements of @b DynamicBuffer
+    Objects of this type meet the requirements of <em>DynamicBuffer</em>
     and have the following additional properties:
 
     @li A mutable buffer sequence representing the readable
@@ -241,7 +241,7 @@ public:
     objects of this type in a deduced context, the signature of the
     receiving function should use @ref static_buffer_base instead.
 
-    @see @ref static_buffer_base
+    @see static_buffer_base
 */
 template<std::size_t N>
 class static_buffer : public static_buffer_base

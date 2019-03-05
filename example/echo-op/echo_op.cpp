@@ -61,7 +61,7 @@ async_echo (AsyncStream& stream, DynamicBuffer& buffer, CompletionToken&& token)
     to provide the implementation with any leftover bytes.
 
     @param stream The stream to operate on. The type must meet the
-    requirements of @b AsyncReadStream and @AsyncWriteStream
+    requirements of <em>AsyncReadStream</em> and @AsyncWriteStream
 
     @param buffer A dynamic buffer to hold implementation-defined
     temporary data. Ownership is not transferred; the caller is

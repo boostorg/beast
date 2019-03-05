@@ -34,7 +34,7 @@ namespace beast {
 
 /** An implementation of File for Win32.
 
-    This class implements a @b File using Win32 native interfaces.
+    This class implements a <em>File</em> using Win32 native interfaces.
 */
 class file_win32
 {

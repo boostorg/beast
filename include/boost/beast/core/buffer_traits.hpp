@@ -28,18 +28,16 @@ namespace beast {
     will be `std::true_type` if each specified type meets the requirements,
     otherwise, this type alias will be `std::false_type`.
 
-    @tparam TN A list of zero or more types to check. If this list is
-    empty, the resulting type alias will be `std::true_type`.
+    @tparam BufferSequence A list of zero or more types to check. If this
+    list is empty, the resulting type alias will be `std::true_type`.
 */
+template<class... BufferSequence>
 #if BOOST_BEAST_DOXYGEN
-template<class... TN>
-struct is_const_buffer_sequence : __see_below__ {};
-//using is_const_buffer_sequence = __see_below__;
+using is_const_buffer_sequence = __see_below__;
 #else
-template<class... TN>
 using is_const_buffer_sequence = mp11::mp_all<
     net::is_const_buffer_sequence<
-        typename std::decay<TN>::type>...>;
+        typename std::decay<BufferSequence>::type>...>;
 #endif
 
 /** Determine if a list of types satisfy the <em>MutableBufferSequence</em> requirements.
@@ -49,18 +47,16 @@ using is_const_buffer_sequence = mp11::mp_all<
     will be `std::true_type` if each specified type meets the requirements,
     otherwise, this type alias will be `std::false_type`.
 
-    @tparam TN A list of zero or more types to check. If this list is
-    empty, the resulting type alias will be `std::true_type`.
+    @tparam BufferSequence A list of zero or more types to check. If this
+    list is empty, the resulting type alias will be `std::true_type`.
 */
+template<class... BufferSequence>
 #if BOOST_BEAST_DOXYGEN
-template<class... TN>
-struct is_mutable_buffer_sequence : __see_below__ {};
-//using is_mutable_buffer_sequence = __see_below__;
+using is_mutable_buffer_sequence = __see_below__;
 #else
-template<class... TN>
 using is_mutable_buffer_sequence = mp11::mp_all<
     net::is_mutable_buffer_sequence<
-        typename std::decay<TN>::type>...>;
+        typename std::decay<BufferSequence>::type>...>;
 #endif
 
 /** Type alias for the underlying buffer type of a list of buffer sequence types.
@@ -93,16 +89,15 @@ using is_mutable_buffer_sequence = mp11::mp_all<
     }
     @endcode
 
-    @tparam TN A list of zero or more types to check. If this list is
-    empty, the resulting type alias will be `net::mutable_buffer`.
+    @tparam BufferSequence A list of zero or more types to check. If this
+    list is empty, the resulting type alias will be `net::mutable_buffer`.
 */
-template<class... TN>
+template<class... BufferSequence>
 #if BOOST_BEAST_DOXYGEN
-struct buffers_type : __see_below__ {};
-//using buffers_type = __see_below__;
+using buffers_type = __see_below__;
 #else
 using buffers_type = typename std::conditional<
-    is_mutable_buffer_sequence<TN...>::value,
+    is_mutable_buffer_sequence<BufferSequence...>::value,
     net::mutable_buffer, net::const_buffer>::type;
 #endif
 
@@ -115,18 +110,17 @@ using buffers_type = typename std::conditional<
     type alias will be equal to the iterator type used by
     the buffer sequence.
 */
-template <class T>
+template <class BufferSequence>
 #if BOOST_BEAST_DOXYGEN
-struct buffers_iterator_type : __see_below__ {};
-//using buffers_iterator_type = __see_below__;
+using buffers_iterator_type = __see_below__;
 #elif BOOST_WORKAROUND(BOOST_MSVC, < 1910)
 using buffers_iterator_type = typename
     detail::buffers_iterator_type_helper<
-        typename std::decay<T>::type>::type;
+        typename std::decay<BufferSequence>::type>::type;
 #else
 using buffers_iterator_type =
     decltype(net::buffer_sequence_begin(
-        std::declval<T const&>()));
+        std::declval<BufferSequence const&>()));
 #endif
 
 /** Return the total number of bytes in a buffer or buffer sequence
@@ -152,17 +146,14 @@ using buffers_iterator_type =
     In addition this handles types which are convertible to
     `net::const_buffer`; these are not handled by `net::buffer_size`.
 
-    @note It is expected that a future version of Networking will
-    incorporate the features of this function.
-
     @param buffers The buffer or buffer sequence to calculate the size of.
 
     @return The total number of bytes in the buffer or sequence.
 */
 #if BOOST_BEAST_DOXYGEN
-template<class Buffers>
-void
-buffer_bytes(Buffers const& buffers);
+template<class BufferSequence>
+std::size_t
+buffer_bytes(BufferSequence const& buffers);
 #else
 BOOST_BEAST_INLINE_VARIABLE(buffer_bytes, detail::buffer_bytes_impl)
 #endif

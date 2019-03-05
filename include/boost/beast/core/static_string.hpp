@@ -35,7 +35,7 @@ namespace beast {
 
     @note The stored string is always null-terminated.
 
-    @see @ref to_static_string 
+    @see to_static_string 
 */
 template<
     std::size_t N,

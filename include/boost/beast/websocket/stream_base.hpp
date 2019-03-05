@@ -57,8 +57,14 @@ struct stream_base
         friend class stream;
 
     public:
+        // Move Constructor
         decorator(decorator&&) = default;
 
+        /** Construct a decorator option.
+            
+            @param f An invocable function object. Ownership of
+            the function object is transferred by decay-copy.
+        */
         template<class Decorator>
         decorator(Decorator&& f)
             : d_(std::forward<Decorator>(f))

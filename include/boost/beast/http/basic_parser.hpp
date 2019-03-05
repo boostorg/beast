@@ -377,7 +377,7 @@ public:
         the parser may not be restarted.
 
         @param buffers An object meeting the requirements of
-        @b ConstBufferSequence that represents the next chunk of
+        <em>ConstBufferSequence</em> that represents the next chunk of
         message data. If the length of this buffer sequence is
         one, the implementation will not allocate additional memory.
         The class @ref beast::basic_flat_buffer is provided as one way to

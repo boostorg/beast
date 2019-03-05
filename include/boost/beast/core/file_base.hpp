@@ -35,7 +35,7 @@ append_existing     write-only      exclusive   sequential  must exist          
 /** File open modes
 
     These modes are used when opening files using
-    instances of the @b File concept.
+    instances of the <em>File</em> concept.
 
     @see file_stdio
 */
@@ -95,7 +95,7 @@ enum class file_mode
     append_existing
 };
 
-/** Determine if `T` meets the requirements of @b File.
+/** Determine if `T` meets the requirements of <em>File</em>.
 
     Metafunctions are used to perform compile time checking of template
     types. This type will be `std::true_type` if `T` meets the requirements,

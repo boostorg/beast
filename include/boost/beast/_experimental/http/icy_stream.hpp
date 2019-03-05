@@ -39,26 +39,23 @@ namespace http {
     operations are performed within the same implicit or explicit strand.
 
     @par Example
-
     To use the @ref icy_stream template with an @ref tcp_stream
     you would write:
-
     @code
     http::icy_stream<tcp_stream> is(ioc);
     @endcode
 
     @tparam NextLayer The type representing the next layer, to which
     data will be read and written during operations. For synchronous
-    operations, the type must support the @b SyncStream concept.
+    operations, the type must support the <em>SyncStream</em> concept.
     For asynchronous operations, the type must support the
-    @b AsyncStream concept.
+    <em>AsyncStream</em> concept.
 
     @note A stream object must not be moved or destroyed while there
     are pending asynchronous operations associated with it.
 
     @par Concepts
-        @b AsyncStream,
-        @b SyncStream
+    <em>AsyncStream</em>, <em>SyncStream</em>
 */
 template<class NextLayer>
 class icy_stream
@@ -208,12 +205,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
-        @code void handler(
+        @code
+        void handler(
           const boost::system::error_code& error, // Result of operation.
           std::size_t bytes_transferred           // Number of bytes read.
-        ); @endcode
-
+        );
+        @endcode
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -288,14 +285,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
           error_code const& error,          // Result of operation.
           std::size_t bytes_transferred     // Number of bytes written.
         );
         @endcode
-
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a

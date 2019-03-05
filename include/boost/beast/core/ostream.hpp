@@ -23,9 +23,9 @@
 namespace boost {
 namespace beast {
 
-/** Return an output stream that formats values into a @b DynamicBuffer.
+/** Return an output stream that formats values into a <em>DynamicBuffer</em>.
 
-    This function wraps the caller provided @b DynamicBuffer into
+    This function wraps the caller provided <em>DynamicBuffer</em> into
     a `std::ostream` derived class, to allow `operator<<` stream style
     formatting operations.
 
@@ -37,7 +37,7 @@ namespace beast {
     @note Calling members of the underlying buffer before the output
     stream is destroyed results in undefined behavior.
 
-    @param buffer An object meeting the requirements of @b DynamicBuffer
+    @param buffer An object meeting the requirements of <em>DynamicBuffer</em>
     into which the formatted output will be placed.
 
     @return An object derived from `std::ostream` which redirects output

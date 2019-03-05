@@ -51,7 +51,7 @@ enum class error
         octets into a message container which has the
         @ref empty_body body type.
 
-        @see @ref empty_body
+        @see empty_body
     */
     unexpected_body,
 

@@ -19,7 +19,7 @@ namespace boost {
 namespace beast {
 namespace http {
 
-/** An empty @b Body
+/** An empty <em>Body</em>
 
     This body is used to represent messages which do not have a
     message body. If this body is used with a parser, and the
@@ -54,7 +54,7 @@ struct empty_body
 
     /** The algorithm for parsing the body
 
-        Meets the requirements of @b BodyReader.
+        Meets the requirements of <em>BodyReader</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using reader = __implementation_defined__;
@@ -92,7 +92,7 @@ struct empty_body
 
     /** The algorithm for serializing the body
 
-        Meets the requirements of @b BodyWriter.
+        Meets the requirements of <em>BodyWriter</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using writer = __implementation_defined__;

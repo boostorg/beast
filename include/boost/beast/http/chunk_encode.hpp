@@ -25,7 +25,7 @@ namespace http {
 
 /** A chunked encoding crlf
 
-    This implements a @b ConstBufferSequence holding the CRLF
+    This implements a <em>ConstBufferSequence</em> holding the CRLF
     (`"\r\n"`) used as a delimiter in a @em chunk.
 
     To use this class, pass an instance of it to a
@@ -44,20 +44,20 @@ struct chunk_crlf
 
     //-----
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
 #else
     using value_type = net::const_buffer;
 #endif
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     using const_iterator = value_type const*;
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     chunk_crlf(chunk_crlf const&) = default;
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     const_iterator
     begin() const
     {
@@ -65,7 +65,7 @@ struct chunk_crlf
         return &cb;
     }
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     const_iterator
     end() const
     {
@@ -77,7 +77,7 @@ struct chunk_crlf
 
 /** A @em chunk header
 
-    This implements a @b ConstBufferSequence representing the
+    This implements a <em>ConstBufferSequence</em> representing the
     header of a @em chunk. The serialized format is as follows:
     @code
         chunk-header    = 1*HEXDIG chunk-ext CRLF       
@@ -228,31 +228,31 @@ public:
 
     //-----
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
 #else
     using value_type = typename view_type::value_type;
 #endif
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
 #if BOOST_BEAST_DOXYGEN
     using const_iterator = __implementation_defined__;
 #else
     using const_iterator = typename view_type::const_iterator;
 #endif
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     chunk_header(chunk_header const&) = default;
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     const_iterator
     begin() const
     {
         return view_.begin();
     }
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     const_iterator
     end() const
     {
@@ -264,7 +264,7 @@ public:
 
 /** A @em chunk
 
-    This implements a @b ConstBufferSequence representing
+    This implements a <em>ConstBufferSequence</em> representing
     a @em chunk. The serialized format is as follows:
     @code
         chunk           = chunk-size [ chunk-ext ] CRLF chunk-data CRLF
@@ -422,28 +422,28 @@ public:
 
     //-----
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
 #else
     using value_type = typename view_type::value_type;
 #endif
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
 #if BOOST_BEAST_DOXYGEN
     using const_iterator = __implementation_defined__;
 #else
     using const_iterator = typename view_type::const_iterator;
 #endif
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     const_iterator
     begin() const
     {
         return view_.begin();
     }
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     const_iterator
     end() const
     {
@@ -524,10 +524,10 @@ public:
 
     //-----
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     chunk_last(chunk_last const&) = default;
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
 #if BOOST_BEAST_DOXYGEN
     using value_type = __implementation_defined__;
 #else
@@ -535,7 +535,7 @@ public:
         typename view_type::value_type;
 #endif
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
 #if BOOST_BEAST_DOXYGEN
     using const_iterator = __implementation_defined__;
 #else
@@ -543,14 +543,14 @@ public:
         typename view_type::const_iterator;
 #endif
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     const_iterator
     begin() const
     {
         return view_.begin();
     }
 
-    /// Required for @b ConstBufferSequence
+    /// Required for <em>ConstBufferSequence</em>
     const_iterator
     end() const
     {

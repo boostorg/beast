@@ -29,7 +29,7 @@
 namespace boost {
 namespace beast {
 
-/** Base class to provide completion handler boilerplate for composed operations.
+/** Base class to assist writing composed operations.
 
     A function object submitted to intermediate initiating functions during
     a composed operation may derive from this type to inherit all of the
@@ -169,7 +169,7 @@ namespace beast {
     not default constructible, an instance of the type must be provided
     upon construction.
 
-    @see @ref stable_async_base
+    @see stable_async_base
 */
 template<
     class Handler,
@@ -377,43 +377,10 @@ public:
     }
 
 #if ! BOOST_BEAST_DOXYGEN
-    template<
-        class Handler_,
-        class Executor1_,
-        class Allocator_,
-        class Function>
-    friend
-    void asio_handler_invoke(
-        Function&& f,
-        async_base<
-            Handler_, Executor1_, Allocator_>* p);
-
-    friend
-    void* asio_handler_allocate(
-        std::size_t size, async_base* p)
+    Handler*
+    get_legacy_handler_pointer() noexcept
     {
-        using net::asio_handler_allocate;
-        return asio_handler_allocate(
-            size, std::addressof(p->h_));
-    }
-
-    friend
-    void asio_handler_deallocate(
-        void* mem, std::size_t size,
-            async_base* p)
-    {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(mem, size,
-            std::addressof(p->h_));
-    }
-
-    friend
-    bool asio_handler_is_continuation(
-        async_base* p)
-    {
-        using net::asio_handler_is_continuation;
-        return asio_handler_is_continuation(
-            std::addressof(p->h_));
+        return std::addressof(h_);
     }
 #endif
 };
@@ -701,63 +668,19 @@ public:
         Args&&... args);
 };
 
-#if ! BOOST_BEAST_DOXYGEN
-template<
-    class Handler,
-    class Executor1,
-    class Allocator,
-    class Function>
-void asio_handler_invoke(
-    Function&& f,
-    async_base<
-        Handler, Executor1, Allocator>* p)
-{
-    using net::asio_handler_invoke;
-    asio_handler_invoke(
-        f, std::addressof(p->h_));
-}
-#endif
-
-namespace detail {
-
-template<class State, class Allocator>
-struct allocate_stable_state final
-    : stable_base
-    , boost::empty_value<Allocator>
-{
-    State value;
-
-    template<class... Args>
-    explicit
-    allocate_stable_state(
-        Allocator const& alloc,
-        Args&&... args)
-        : boost::empty_value<Allocator>(
-            boost::empty_init_t{}, alloc)
-        , value{std::forward<Args>(args)...}
-    {
-    }
-
-    void destroy() override
-    {
-        using A = typename allocator_traits<
-            Allocator>::template rebind_alloc<
-                allocate_stable_state>;
-
-        A a(this->get());
-        detail::allocator_traits<A>::destroy(a, this);
-        detail::allocator_traits<A>::deallocate(a, this, 1);
-    }
-};
-
-} // detail
-
 /** Allocate a temporary object to hold stable asynchronous operation state.
 
     The object will be destroyed just before the completion
     handler is invoked, or when the base is destroyed.
 
-    @see @ref stable_async_base
+    @tparam State The type of object to allocate.
+
+    @param base The helper to allocate from.
+
+    @param args An optional list of parameters to forward to the
+    constructor of the object being allocated.
+
+    @see stable_async_base
 */
 template<
     class State,
@@ -769,43 +692,11 @@ State&
 allocate_stable(
     stable_async_base<
         Handler, Executor1, Allocator>& base,
-    Args&&... args)
-{
-    using allocator_type = typename stable_async_base<
-        Handler, Executor1, Allocator>::allocator_type;
-
-    using A = typename detail::allocator_traits<
-        allocator_type>::template rebind_alloc<
-            detail::allocate_stable_state<
-                State, allocator_type>>;
-
-    struct deleter
-    {
-        allocator_type alloc;
-        detail::allocate_stable_state<
-            State, allocator_type>* ptr;
-
-        ~deleter()
-        {
-            if(ptr)
-            {
-                A a(alloc);
-                detail::allocator_traits<A>::deallocate(a, ptr, 1);
-            }
-        }
-    };
-
-    A a(base.get_allocator());
-    deleter d{base.get_allocator(), nullptr};
-    d.ptr = detail::allocator_traits<A>::allocate(a, 1);
-    detail::allocator_traits<A>::construct(a, d.ptr,
-        d.alloc, std::forward<Args>(args)...);
-    d.ptr->next_ = base.list_;
-    base.list_ = d.ptr;
-    return boost::exchange(d.ptr, nullptr)->value;
-}
+    Args&&... args);
 
 } // beast
 } // boost
+
+#include <boost/beast/core/impl/async_base.hpp>
 
 #endif

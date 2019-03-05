@@ -20,7 +20,7 @@ namespace beast {
 
 /** A buffer sequence representing a concatenation of buffer sequences.
 
-    @see @ref buffers_cat
+    @see buffers_cat
 */
 template<class... Buffers>
 class buffers_cat_view
@@ -85,7 +85,7 @@ public:
     also a <em>MutableBufferSequence</em>; otherwise the returned buffer
     sequence will be a <em>ConstBufferSequence</em>.
 
-    @see @ref buffers_cat_view
+    @see buffers_cat_view
 */
 #if BOOST_BEAST_DOXYGEN
 template<class... BufferSequence>

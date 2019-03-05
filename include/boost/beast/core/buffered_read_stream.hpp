@@ -23,11 +23,11 @@
 namespace boost {
 namespace beast {
 
-/** A @b Stream with attached @b DynamicBuffer to buffer reads.
+/** A <em>Stream</em> with attached <em>DynamicBuffer</em> to buffer reads.
 
-    This wraps a @b Stream implementation so that calls to write are
+    This wraps a <em>Stream</em> implementation so that calls to write are
     passed through to the underlying stream, while calls to read will
-    first consume the input sequence stored in a @b DynamicBuffer which
+    first consume the input sequence stored in a <em>DynamicBuffer</em> which
     is part of the object.
 
     The use-case for this class is different than that of the
@@ -250,14 +250,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& error,      // result of operation
             std::size_t bytes_transferred // number of bytes transferred
         );
-        @endcode
-        
+        @endcode        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -326,14 +324,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& error,      // result of operation
             std::size_t bytes_transferred // number of bytes transferred
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a

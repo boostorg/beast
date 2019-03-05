@@ -1,6 +1,8 @@
 #---------------------------------------------------------------------------
 # Configuration options related to the input files
 #---------------------------------------------------------------------------
+#INPUT = $(LIB_DIR)/include/boost/beast/_experimental/http/icy_stream.hpp
+
 INPUT = \
         $(LIB_DIR)/include/boost/beast/ \
         $(LIB_DIR)/include/boost/beast/_experimental/http \
@@ -11,6 +13,7 @@ INPUT = \
         $(LIB_DIR)/include/boost/beast/websocket \
         $(LIB_DIR)/include/boost/beast/zlib
 
+ALIASES               += esafe="@par Exception Safety"
 
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          =
@@ -79,7 +82,6 @@ MULTILINE_CPP_IS_BRIEF = NO
 INHERIT_DOCS           = YES
 SEPARATE_MEMBER_PAGES  = NO
 TAB_SIZE               = 4
-ALIASES                =
 TCL_SUBST              =
 OPTIMIZE_OUTPUT_FOR_C  = NO
 OPTIMIZE_OUTPUT_JAVA   = NO

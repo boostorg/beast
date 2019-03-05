@@ -87,7 +87,7 @@ public:
             body, no more buffers are present.
 
         @li If the optional contains a value, the first element of the
-            pair represents a @b ConstBufferSequence containing one or
+            pair represents a <em>ConstBufferSequence</em> containing one or
             more octets of the body data. The second element indicates
             whether or not there are additional octets of body data.
             A value of `true` means there is more data, and that the

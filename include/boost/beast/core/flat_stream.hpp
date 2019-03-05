@@ -235,14 +235,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& error,        // Result of operation.
             std::size_t bytes_transferred   // Number of bytes read.
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -317,14 +315,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec,           // Result of operation.
             std::size_t bytes_transferred   // Number of bytes written.
         );
-        @endcode
-        
+        @endcode     
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a

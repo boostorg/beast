@@ -45,10 +45,9 @@ namespace http {
     is iterated the fields are presented in the order of insertion, with
     fields having the same name following each other consecutively.
 
-    Meets the requirements of @b Fields
+    Meets the requirements of <em>Fields</em>
 
-    @tparam Allocator The allocator to use. This must meet the
-    requirements of @b Allocator.
+    @tparam Allocator The allocator to use.
 */
 template<class Allocator>
 class basic_fields

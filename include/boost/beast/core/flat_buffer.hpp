@@ -31,7 +31,7 @@ namespace beast {
     is provided to permit them to be efficiently used with
     I/O operations.
 
-    Objects of this type meet the requirements of @b DynamicBuffer
+    Objects of this type meet the requirements of <em>DynamicBuffer</em>
     and have the following additional properties:
 
     @li A mutable buffer sequence representing the readable
@@ -129,7 +129,7 @@ public:
 
         @param alloc The allocator to use for the object.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -145,7 +145,7 @@ public:
 
         @param alloc The allocator to use for the object.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -166,7 +166,7 @@ public:
         moved-from object will have zero capacity, zero readable
         bytes, and zero writable bytes.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -272,7 +272,7 @@ public:
         the moved-from object will have zero capacity, zero readable
         bytes, and zero writable bytes.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -326,7 +326,7 @@ public:
 
         @param n The maximum number of bytes ever allowed for capacity.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -348,7 +348,7 @@ public:
         If this value is greater than the maximum size, then the
         maximum size will be adjusted upwards to this value.
 
-        @par Exception Safety
+        @esafe
 
         Basic guarantee.
 
@@ -363,7 +363,7 @@ public:
         Buffer sequences previously obtained using @ref data or
         @ref prepare become invalid.
 
-        @par Exception Safety
+        @esafe
 
         Strong guarantee.
     */
@@ -376,7 +376,7 @@ public:
         Buffer sequences previously obtained using @ref data or
         @ref prepare become invalid.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -459,7 +459,7 @@ public:
         @throws std::length_error if `size() + n` exceeds either
         `max_size()` or the allocator's maximum allocation size.
 
-        @par Exception Safety
+        @esafe
 
         Strong guarantee.
     */
@@ -480,7 +480,7 @@ public:
         is greater than the number of writable bytes, all
         writable bytes are appended.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -501,7 +501,7 @@ public:
         is greater than the number of readable bytes, all
         readable bytes are removed.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */

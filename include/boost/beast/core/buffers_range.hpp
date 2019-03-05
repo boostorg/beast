@@ -51,7 +51,7 @@ namespace beast {
     sequence, the returned object will also meet the requirements of
     <em>MutableBufferSequence</em>.
 
-    @see @ref buffers_range_ref
+    @see buffers_range_ref
 */
 template<class BufferSequence>
 #if BOOST_BEAST_DOXYGEN
@@ -104,7 +104,7 @@ buffers_range(BufferSequence const& buffers)
     sequence, the returned object will also meet the requirements of
     <em>MutableBufferSequence</em>.
 
-    @see @ref buffers_range
+    @see buffers_range
 */
 template<class BufferSequence>
 #if BOOST_BEAST_DOXYGEN

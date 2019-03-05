@@ -30,22 +30,19 @@
           <member><link linkend="beast.ref.boost__beast__file_posix">file_posix</link></member>
           <member><link linkend="beast.ref.boost__beast__file_stdio">file_stdio</link></member>
           <member><link linkend="beast.ref.boost__beast__file_win32">file_win32</link></member>
-          <member><link linkend="beast.ref.boost__beast__flat_buffer">flat_buffer</link></member>
-          <member><link linkend="beast.ref.boost__beast__flat_static_buffer">flat_static_buffer</link></member>
-          <member><link linkend="beast.ref.boost__beast__flat_static_buffer_base">flat_static_buffer_base</link></member>
           <member><link linkend="beast.ref.boost__beast__flat_stream">flat_stream</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__handler_ptr">handler_ptr</link></member>
           <member><link linkend="beast.ref.boost__beast__iequal">iequal</link></member>
           <member><link linkend="beast.ref.boost__beast__iless">iless</link></member>
           <member><link linkend="beast.ref.boost__beast__rate_policy_access">rate_policy_access</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__saved_handler">saved_handler</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__simple_rate_policy">simple_rate_policy</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
         </simplelist>
       </entry>
       <entry valign="top">
         <bridgehead renderas="sect3">Classes&nbsp;<emphasis role="normal">(2 of 2)</emphasis></bridgehead>
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.ref.boost__beast__span">span</link></member>
-          <member><link linkend="beast.ref.boost__beast__simple_rate_policy">simple_rate_policy</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__static_string">static_string</link></member>
           <member><link linkend="beast.ref.boost__beast__stable_async_base">stable_async_base</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__string_param">string_param</link></member>
@@ -129,17 +126,20 @@
       <entry valign="top">
         <bridgehead renderas="sect3">Classes</bridgehead>
         <simplelist type="vert" columns="1">
-            <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
-            <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffers_adaptor">buffers_adaptor</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffers_cat_view">buffers_cat_view</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffers_prefix_view">buffers_prefix_view</link></member>
-            <member><link linkend="beast.ref.boost__beast__buffers_suffix">buffers_suffix</link></member>
-            <member><link linkend="beast.ref.boost__beast__dynamic_buffer_ref_wrapper">dynamic_buffer_ref_wrapper</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
-            <member><link linkend="beast.ref.boost__beast__multi_buffer">multi_buffer</link></member>
-            <member><link linkend="beast.ref.boost__beast__static_buffer">static_buffer</link></member>
-            <member><link linkend="beast.ref.boost__beast__static_buffer_base">static_buffer_base</link></member>
+          <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
+          <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
+          <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
+          <member><link linkend="beast.ref.boost__beast__buffers_adaptor">buffers_adaptor</link></member>
+          <member><link linkend="beast.ref.boost__beast__buffers_cat_view">buffers_cat_view</link></member>
+          <member><link linkend="beast.ref.boost__beast__buffers_prefix_view">buffers_prefix_view</link></member>
+          <member><link linkend="beast.ref.boost__beast__buffers_suffix">buffers_suffix</link></member>
+          <member><link linkend="beast.ref.boost__beast__dynamic_buffer_ref_wrapper">dynamic_buffer_ref_wrapper</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
+          <member><link linkend="beast.ref.boost__beast__flat_buffer">flat_buffer</link></member>
+          <member><link linkend="beast.ref.boost__beast__flat_static_buffer">flat_static_buffer</link></member>
+          <member><link linkend="beast.ref.boost__beast__flat_static_buffer_base">flat_static_buffer_base</link></member>
+          <member><link linkend="beast.ref.boost__beast__multi_buffer">multi_buffer</link></member>
+          <member><link linkend="beast.ref.boost__beast__static_buffer">static_buffer</link></member>
+          <member><link linkend="beast.ref.boost__beast__static_buffer_base">static_buffer_base</link></member>
         </simplelist>
       </entry><entry valign="top">
         <bridgehead renderas="sect3">Functions</bridgehead>

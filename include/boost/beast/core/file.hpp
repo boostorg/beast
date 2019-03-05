@@ -22,7 +22,7 @@ namespace beast {
 /** An implementation of File.
 
     This alias is set to the best available implementation
-    of @b File given the platform and build settings.
+    of <em>File</em> given the platform and build settings.
 */
 #if BOOST_BEAST_DOXYGEN
 struct file : file_stdio

@@ -19,7 +19,7 @@ namespace http {
 
 /** A dynamic message body represented by a @ref multi_buffer
 
-    Meets the requirements of @b Body.
+    Meets the requirements of <em>Body</em>.
 */
 using dynamic_body = basic_dynamic_body<multi_buffer>;
 

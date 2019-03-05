@@ -24,9 +24,9 @@ namespace boost {
 namespace beast {
 namespace http {
 
-/** A @b Body using a @b DynamicBuffer
+/** A <em>Body</em> using a <em>DynamicBuffer</em>
 
-    This body uses a @b DynamicBuffer as a memory-based container
+    This body uses a <em>DynamicBuffer</em> as a memory-based container
     for holding message payloads. Messages using this body type
     may be serialized and parsed.
 */
@@ -59,7 +59,7 @@ struct basic_dynamic_body
 
     /** The algorithm for parsing the body
 
-        Meets the requirements of @b BodyReader.
+        Meets the requirements of <em>BodyReader</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using reader = __implementation_defined__;
@@ -117,7 +117,7 @@ struct basic_dynamic_body
 
     /** The algorithm for serializing the body
 
-        Meets the requirements of @b BodyWriter.
+        Meets the requirements of <em>BodyWriter</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using writer = __implementation_defined__;

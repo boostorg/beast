@@ -73,13 +73,11 @@ teardown(
     completes. The implementation takes ownership of the handler by
     performing a decay-copy. The equivalent function signature of
     the handler must be:
-
     @code
     void handler(
         error_code const& error // result of operation
     );
     @endcode
-    
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -155,13 +153,11 @@ teardown(
     completes. The implementation takes ownership of the handler by
     performing a decay-copy. The equivalent function signature of
     the handler must be:
-
     @code
     void handler(
         error_code const& error // result of operation
     );
-    @endcode
-    
+    @endcode   
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a

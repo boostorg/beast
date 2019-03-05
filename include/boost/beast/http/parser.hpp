@@ -35,7 +35,7 @@ namespace http {
     will be parsed.
 
     @tparam Body The type used to represent the body. This must
-    meet the requirements of @b Body.
+    meet the requirements of <em>Body</em>.
 
     @tparam Allocator The type of allocator used with the
     @ref basic_fields container.
@@ -120,7 +120,7 @@ public:
         This constructs a new parser by move constructing the
         header from another parser with a different body type. The
         constructed-from parser must not have any parsed body octets or
-        initialized @b BodyReader, otherwise an exception is generated.
+        initialized <em>BodyReader</em>, otherwise an exception is generated.
 
         @par Example
         @code

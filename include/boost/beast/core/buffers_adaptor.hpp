@@ -170,7 +170,7 @@ public:
 
         @throws std::length_error if `size() + n` exceeds `max_size()`.
 
-        @par Exception Safety
+        @esafe
 
         Strong guarantee.
     */
@@ -192,7 +192,7 @@ public:
         is greater than the number of writable bytes, all
         writable bytes are appended.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */
@@ -210,7 +210,7 @@ public:
         is greater than the number of readable bytes, all
         readable bytes are removed.
 
-        @par Exception Safety
+        @esafe
 
         No-throw guarantee.
     */

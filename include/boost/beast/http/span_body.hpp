@@ -21,7 +21,7 @@ namespace boost {
 namespace beast {
 namespace http {
 
-/** A @b Body using @ref span
+/** A <em>Body</em> using @ref span
 
     This body uses @ref span as a memory-based container for
     holding message payloads. The container represents a
@@ -62,7 +62,7 @@ public:
 
     /** The algorithm for parsing the body
 
-        Meets the requirements of @b BodyReader.
+        Meets the requirements of <em>BodyReader</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using reader = __implementation_defined__;
@@ -121,7 +121,7 @@ public:
 
     /** The algorithm for serializing the body
 
-        Meets the requirements of @b BodyWriter.
+        Meets the requirements of <em>BodyWriter</em>.
     */
 #if BOOST_BEAST_DOXYGEN
     using writer = __implementation_defined__;

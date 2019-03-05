@@ -91,9 +91,9 @@ class frame_test;
 
     @tparam NextLayer The type representing the next layer, to which
     data will be read and written during operations. For synchronous
-    operations, the type must support the @b SyncStream concept.
+    operations, the type must support the <em>SyncStream</em> concept.
     For asynchronous operations, the type must support the
-    @b AsyncStream concept.
+    <em>AsyncStream</em> concept.
 
     @tparam deflateSupported A `bool` indicating whether or not the
     stream will be capable of negotiating the permessage-deflate websocket
@@ -105,9 +105,9 @@ class frame_test;
     are pending asynchronous operations associated with it.
 
     @par Concepts
-        @b AsyncStream,
-        @b DynamicBuffer,
-        @b SyncStream
+        @li <em>AsyncStream</em>
+        @li <em>DynamicBuffer</em>
+        @li <em>SyncStream</em>
 
     @see
         @li <a href="https://tools.ietf.org/html/rfc6455#section-4.1">Websocket Opening Handshake Client Requirements (RFC6455)</a>
@@ -848,13 +848,11 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec    // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -927,13 +925,11 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec    // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1265,13 +1261,11 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec    // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1328,13 +1322,11 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec    // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1391,13 +1383,11 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec    // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1525,13 +1515,11 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec     // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1625,13 +1613,11 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec     // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1728,13 +1714,11 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec     // Result of operation
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -1883,14 +1867,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec,       // Result of operation
             std::size_t bytes_written   // Number of bytes appended to buffer
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -2058,14 +2040,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec,       // Result of operation
             std::size_t bytes_written   // Number of bytes appended to buffer
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -2229,14 +2209,12 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec,       // Result of operation
             std::size_t bytes_written   // Number of bytes written to the buffers
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -2346,7 +2324,6 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec,           // Result of operation
@@ -2355,7 +2332,6 @@ public:
                                             // this will be less than the buffer_size.
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
@@ -2467,7 +2443,6 @@ public:
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
         the handler must be:
-
         @code
         void handler(
             error_code const& ec,           // Result of operation
@@ -2476,7 +2451,6 @@ public:
                                             // this will be less than the buffer_size.
         );
         @endcode
-        
         Regardless of whether the asynchronous operation completes
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a

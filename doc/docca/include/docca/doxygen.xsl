@@ -203,6 +203,7 @@
 <xsl:template name="make-id">
   <xsl:param name="name"/>
   <xsl:choose>
+    <!--
     <xsl:when test="contains($name, 'boost::system::')">
       <xsl:call-template name="make-id">
         <xsl:with-param name="name"
@@ -215,6 +216,7 @@
          select="concat(substring-before($name, 'boost::asio::error::'), substring-after($name, 'boost::asio::error::'))"/>
       </xsl:call-template>
     </xsl:when>
+  -->
     <xsl:when test="contains($name, '::')">
       <xsl:call-template name="make-id">
         <xsl:with-param name="name"
@@ -317,30 +319,27 @@
          select="concat(substring-before($name, ' '), '_', substring-after($name, ' '))"/>
       </xsl:call-template>
     </xsl:when>
-    <xsl:when test="contains($name, 'boost__posix_time__ptime')">
-      <xsl:call-template name="make-id">
-        <xsl:with-param name="name"
-         select="concat(substring-before($name, 'boost__posix_time__ptime'), 'ptime', substring-after($name, 'boost__posix_time__ptime'))"/>
-      </xsl:call-template>
-    </xsl:when>
     <xsl:otherwise>
       <xsl:value-of select="$name"/>
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
 
-<!--========== Markup ==========-->
+<!--=========================================================================-->
+
+<!-- Markup -->
 
 <xsl:template match="para" mode="markup">
 <xsl:value-of select="$newline"/>
 <xsl:apply-templates mode="markup"/>
-<xsl:value-of select="$newline"/>
+<!--<xsl:value-of select="$newline"/>-->
 </xsl:template>
 
 <xsl:template match="para" mode="markup-nested">
   <xsl:apply-templates mode="markup-nested"/>
 </xsl:template>
 
+<!-- @par Command -->
 <xsl:template match="title" mode="markup">
   <xsl:variable name="title">
     <xsl:value-of select="."/>
@@ -360,15 +359,16 @@
   <xsl:text>]</xsl:text>
 </xsl:template>
 
+<!-- Program listings -->
 <xsl:template match="programlisting" mode="markup">
-  <xsl:value-of select="$newline"/>
-  <xsl:value-of select="$newline"/>
+  <xsl:text>&#xd;```&#xd;</xsl:text>
   <xsl:apply-templates mode="codeline"/>
-  <xsl:value-of select="$newline"/>
-  <xsl:value-of select="$newline"/>
+  <xsl:text>```&#xd;</xsl:text>
 </xsl:template>
 
 <xsl:template match="programlisting" mode="markup-nested">
+  <xsl:text>[role red error.programlisting]</xsl:text>
+  <!--
   <xsl:value-of select="$newline"/>
   <xsl:text>``</xsl:text>
   <xsl:value-of select="$newline"/>
@@ -378,6 +378,7 @@
   </xsl:if>
   <xsl:text>``</xsl:text>
   <xsl:value-of select="$newline"/>
+-->
 </xsl:template>
 
 <xsl:template match="codeline" mode="codeline">
@@ -408,18 +409,17 @@
   <xsl:text>&#xd;&#xd;</xsl:text>
 </xsl:template>
 
+<!-- Backtick-quoted string -->
 <xsl:template match="computeroutput" mode="markup">
   <xsl:text>`</xsl:text>
   <xsl:value-of select="."/>
   <xsl:text>`</xsl:text>
 </xsl:template>
-
 <xsl:template match="computeroutput" mode="markup-nested">
   <xsl:text>`</xsl:text>
   <xsl:value-of select="."/>
   <xsl:text>`</xsl:text>
 </xsl:template>
-
 
 <!-- Ensure the list starts on its own line -->
 <xsl:template match="orderedlist | itemizedlist" mode="markup">
@@ -483,7 +483,9 @@
   <xsl:text>  [[`</xsl:text>
   <xsl:value-of select="parameternamelist"/>
   <xsl:text>`][&#xd;    </xsl:text>
-  <xsl:apply-templates select="parameterdescription" mode="markup-nested"/>
+  <!-- No idea why this was using markup-nested instead of markup -->
+  <xsl:apply-templates select="parameterdescription" mode="markup"/>
+  
   <xsl:text>&#xd;  ]]&#xd;</xsl:text>
 </xsl:template>
 
@@ -963,8 +965,8 @@
   </xsl:for-each>
   <xsl:text>```&#xd;</xsl:text>
   <xsl:call-template name="class-tables">
-    <xsl:with-param name="class-name" select="$class-name"/>
     <xsl:with-param name="class-id" select="$class-id"/>
+    <xsl:with-param name="class-name" select="$class-name"/>
   </xsl:call-template>
   <xsl:text>&#xd;[heading Description]&#xd;</xsl:text>
   <xsl:apply-templates select="detaileddescription" mode="markup"/>
@@ -1250,8 +1252,15 @@
       </xsl:variable>
       <xsl:if test="$overload-position = 1">
         <xsl:text>  [&#xd;</xsl:text>
-        <xsl:text>    [[link </xsl:text><xsl:value-of select="$doc-ref"/>
-        <xsl:value-of select="$class-id"/>.<xsl:value-of select="$id"/>
+        <xsl:text>    [[link </xsl:text>
+        <xsl:variable name="friend-link">
+        <!-- VFALCO This forms a link to a class member instead of a friend free function -->
+          <xsl:value-of select="$doc-ref"/>
+          <xsl:value-of select="$class-id"/>
+          <xsl:text>.</xsl:text>
+          <xsl:value-of select="$id"/>
+        </xsl:variable>
+        <xsl:value-of select="$friend-link"/>
         <xsl:text> [*</xsl:text>
         <xsl:value-of select="$name"/>
         <xsl:text>]]]&#xd;    [&#xd;      </xsl:text>
@@ -1572,7 +1581,9 @@
 
 <xsl:template name="typedef">
   <xsl:param name="class-name"/>
-  <xsl:text>```&#xd;using </xsl:text>
+  <xsl:text>&#xd;```&#xd;</xsl:text>
+  <xsl:apply-templates select="templateparamlist" mode="class-detail"/>
+  <xsl:text>using </xsl:text>
   <xsl:value-of select="name"/>
   <xsl:text> = </xsl:text>
   <xsl:variable name="stripped-type">
@@ -1583,7 +1594,8 @@
   <xsl:if test="string-length($stripped-type) &gt; 0">
     <xsl:value-of select="$stripped-type"/>
   </xsl:if>
-  <xsl:text>;&#xd;```&#xd;</xsl:text>
+  <xsl:text>;&#xd;</xsl:text>
+  <xsl:text>```&#xd;</xsl:text>
   <xsl:if test="count(type/ref) &gt; 0 and not(contains(type, '*'))">
     <xsl:variable name="class-refid">
       <xsl:for-each select="type/ref[1]">
@@ -1701,7 +1713,7 @@
 </xsl:template>
 
 
-
+<!-- Template parameter list synopsis -->
 <xsl:template match="templateparamlist" mode="class-detail">
   <xsl:text>template&lt;&#xd;</xsl:text>
   <xsl:apply-templates select="param" mode="class-detail-template"/>
@@ -1712,31 +1724,45 @@
 
 <xsl:template match="param" mode="class-detail-template">
   <xsl:text>    </xsl:text>
+  <!-- Normalize 'class', 'class...' or NTTP type -->
   <xsl:choose>
-<!-- CLASS_DETAIL_TEMPLATE -->
-    <xsl:when test="declname = 'T'">
-      <xsl:value-of select="declname"/>
-    </xsl:when>
-    <xsl:when test="declname = 'T1'">
-      <xsl:value-of select="declname"/>
-    </xsl:when>
-    <xsl:when test="declname = 'TN'">
-      <xsl:value-of select="declname"/>
-    </xsl:when>
     <xsl:when test="count(declname) &gt; 0">
       <xsl:value-of select="type"/>
       <xsl:text> </xsl:text>
-      <xsl:value-of select="declname"/>
+    </xsl:when>
+    <xsl:when test="starts-with(type, 'class ')">
+      <xsl:text>class </xsl:text>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:value-of select="type"/>
-      <!--<xsl:value-of select="concat(' ``[link beast.ref.', declname, ' ', declname, ']``')"/>-->
+      <xsl:text>[role red error.class-detail-template.1]</xsl:text>
     </xsl:otherwise>
   </xsl:choose>
+  <!-- Normalize the <param> -->
+  <xsl:variable name="normal-tparam">
+    <xsl:choose>
+      <xsl:when test="count(declname) &gt; 0">
+        <xsl:value-of select="declname"/>
+      </xsl:when>
+      <xsl:when test="starts-with(type, 'class ')">
+        <xsl:value-of select="substring(type, 7)"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>[role red error.class-detail-template.2]</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+  <xsl:choose>
+    <!-- CLASS_DETAIL_TEMPLATE -->
+    <xsl:otherwise>
+      <xsl:value-of select="$normal-tparam"/>
+    </xsl:otherwise>
+  </xsl:choose>
+  <!-- default template parameter value -->
   <xsl:if test="count(defval) &gt; 0">
     <xsl:text> = </xsl:text>
     <xsl:value-of select="defval"/>
   </xsl:if>
+  <!-- comma separator -->
   <xsl:if test="not(position() = last())">
     <xsl:text>,&#xd;</xsl:text>
   </xsl:if>
@@ -1909,11 +1935,15 @@
     </xsl:call-template>
   </xsl:if>
   <xsl:choose>
+    <!-- Handles using/typedef at namespace scope -->
     <xsl:when test="@kind='typedef'">
       <xsl:call-template name="typedef">
         <xsl:with-param name="class-name" select="$name"/>
       </xsl:call-template>
+      <xsl:text>&#xd;[heading Description]&#xd;</xsl:text>
+      <xsl:apply-templates select="detaileddescription" mode="markup"/>
     </xsl:when>
+    <!-- Everything else at namespace scope-->
     <xsl:otherwise>
       <xsl:choose>
         <xsl:when test="@kind='variable'">

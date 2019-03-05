@@ -29,7 +29,7 @@ namespace test {
     not instantiated directly; instances of this class are returned
     by the helper functions listed below.
 
-    @see @ref success_handler, @ref fail_handler, @ref any_handler
+    @see success_handler, @ref fail_handler, @ref any_handler
 */
 class handler
 {

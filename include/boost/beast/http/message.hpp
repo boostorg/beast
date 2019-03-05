@@ -129,7 +129,7 @@ public:
 
         @note This function is only available when `isRequest == true`.
 
-        @see @ref method_string
+        @see method_string
     */
     verb
     method() const;
@@ -152,7 +152,7 @@ public:
 
         @note This function is only available when `isRequest == true`.
 
-        @see @ref method
+        @see method
     */
     string_view
     method_string() const;
@@ -824,7 +824,7 @@ public:
 
     /** Returns the payload size of the body in octets if possible.
 
-        This function invokes the @b Body algorithm to measure
+        This function invokes the <em>Body</em> algorithm to measure
         the number of octets in the serialized body container. If
         there is no body, this will return zero. Otherwise, if the
         body exists but is not known ahead of time, `boost::none`

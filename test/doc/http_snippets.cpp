@@ -296,10 +296,10 @@ void fxx() {
 /** Send a message to a stream synchronously.
 
     @param stream The stream to write to. This type must support
-    the @b SyncWriteStream concept.
+    the <em>SyncWriteStream</em> concept.
 
     @param m The message to send. The Body type must support
-    the @b BodyWriter concept.
+    the <em>BodyWriter</em> concept.
 */
 template<
     class SyncWriteStream,

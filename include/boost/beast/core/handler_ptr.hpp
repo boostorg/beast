@@ -103,7 +103,7 @@ public:
             T::T(Handler const&, Args&&...)
         @endcode
 
-        @par Exception Safety
+        @esafe
         Strong guarantee.
 
         @param handler The handler to associate with the owned object.

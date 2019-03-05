@@ -37,7 +37,7 @@ namespace beast {
 
 /** An implementation of File for POSIX systems.
 
-    This class implements a @b File using POSIX interfaces.
+    This class implements a <em>File</em> using POSIX interfaces.
 */
 class file_posix
 {

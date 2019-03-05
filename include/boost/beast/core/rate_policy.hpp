@@ -17,7 +17,7 @@
 namespace boost {
 namespace beast {
 
-/** Helper class to assist implementing a RatePolicy.
+/** Helper class to assist implementing a <em>RatePolicy</em>.
 
     This class is used by the implementation to gain access to the
     private members of a user-defined object meeting the requirements
@@ -36,7 +36,7 @@ namespace beast {
 
     @li <em>RatePolicy</em>
 
-    @see @ref beast::basic_stream
+    @see beast::basic_stream
 */
 class rate_policy_access
 {
@@ -145,7 +145,7 @@ class unlimited_rate_policy
 
     @li <em>RatePolicy</em>
 
-    @see @ref beast::basic_stream
+    @see beast::basic_stream
 */
 class simple_rate_policy
 {
