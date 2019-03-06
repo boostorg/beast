@@ -19,10 +19,12 @@
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/ssl/ssl_stream.hpp>
-#include <boost/asio/spawn.hpp>
+#include <boost/asio/buffer.hpp>
 #include <boost/asio/read.hpp>
+#include <boost/asio/spawn.hpp>
 #include <cstdlib>
 #include <utility>
+#include <string>
 
 namespace boost {
 namespace beast {
@@ -128,21 +130,21 @@ core_3_timeouts_snippets()
 
         tcp_stream stream(std::move(s));
     //]
+    }
+
+    {
+        tcp_stream stream(ioc);
 
     //[code_core_3_timeouts_6
 
-        flat_buffer b;
+        std::string s;
 
         // Set the logical operation timer to 30 seconds.
         stream.expires_after (std::chrono::seconds(30));
 
-        // Read a line from the stream into our dynamic buffer.
-        // The function dynamic_buffer_ref is used because Asio
-        // treats these buffers as non-owning references, but
-        // Beast uses them as first-class containers.
-
-        net::async_read_until(stream, dynamic_buffer_ref(b), '\n',
-            [&b, &stream](error_code ec, std::size_t bytes_transferred)
+        // Read a line from the stream into the string.
+        net::async_read_until(stream, net::dynamic_buffer(s), '\n',
+            [&s, &stream](error_code ec, std::size_t bytes_transferred)
             {
                 if(ec)
                     return;
@@ -153,21 +155,26 @@ core_3_timeouts_snippets()
                 // up to and including the '\n'. We use `buffers_prefix` so
                 // that extra data is not written.
 
-                net::async_write(stream, buffers_prefix(bytes_transferred, b.data()),
-                    [&b](error_code ec, std::size_t bytes_transferred)
+                net::async_write(stream, buffers_prefix(bytes_transferred, net::buffer(s)),
+                    [&s](error_code ec, std::size_t bytes_transferred)
                     {
                         // Consume the line from the buffer
-                        b.consume(bytes_transferred);
+                        s.erase(s.begin(), s.begin() + bytes_transferred);
 
                         if(ec)
                             std::cerr << "Error: " << ec.message() << "\n";
                     });
             });
     //]
+    }
+
+    {
+        tcp_stream stream(ioc);
 
     //[code_core_3_timeouts_7
 
-        flat_buffer b2;
+        std::string s1;
+        std::string s2;
 
         // Set the logical operation timer to 15 seconds.
         stream.expires_after (std::chrono::seconds(15));
@@ -175,7 +182,7 @@ core_3_timeouts_snippets()
         // Read another line from the stream into our dynamic buffer.
         // The operation will time out after 15 seconds.
 
-        net::async_read_until(stream, dynamic_buffer_ref(b2), '\n', handler);
+        net::async_read_until(stream, net::dynamic_buffer(s1), '\n', handler);
 
         // Set the logical operation timer to 30 seconds.
         stream.expires_after (std::chrono::seconds(30));
@@ -183,7 +190,7 @@ core_3_timeouts_snippets()
         // Write the contents of the other buffer.
         // This operation will time out after 30 seconds.
 
-        net::async_write(stream, b.data(), handler);
+        net::async_write(stream, net::buffer(s2), handler);
 
     //]
     }
@@ -229,8 +236,8 @@ void do_async_echo (basic_stream<Protocol, Executor>& stream)
         basic_stream<Protocol, Executor>& stream;
 
         // The shared pointer is used to extend the lifetime of the
-        // buffer until the last asynchronous operation completes.
-        std::shared_ptr<flat_buffer> buffer;
+        // string until the last asynchronous operation completes.
+        std::shared_ptr<std::string> s;
 
         // This starts a new operation to read and echo a line
         void operator()()
@@ -241,7 +248,7 @@ void do_async_echo (basic_stream<Protocol, Executor>& stream)
             stream.expires_after(std::chrono::seconds(30));
 
             // Read a line from the stream into our dynamic buffer, with a timeout
-            net::async_read_until(stream, dynamic_buffer_ref(*buffer), '\n', std::move(*this));
+            net::async_read_until(stream, net::dynamic_buffer(*s), '\n', std::move(*this));
         }
 
         // This function is called when the read completes
@@ -250,15 +257,15 @@ void do_async_echo (basic_stream<Protocol, Executor>& stream)
             if(ec)
                 return;
 
-            net::async_write(stream, buffers_prefix(bytes_transferred, buffer->data()),
+            net::async_write(stream, buffers_prefix(bytes_transferred, net::buffer(*s)),
                 [this](error_code ec, std::size_t bytes_transferred)
                 {
-                    buffer->consume(bytes_transferred);
+                    s->erase(s->begin(), s->begin() + bytes_transferred);
 
                     if(! ec)
                     {
                         // Run this algorithm again
-                        echo_line{stream, std::move(buffer)}();
+                        echo_line{stream, std::move(s)}();
                     }
                     else
                     {
@@ -269,7 +276,7 @@ void do_async_echo (basic_stream<Protocol, Executor>& stream)
     };
 
     // Create the operation and run it
-    echo_line{stream, std::make_shared<flat_buffer>()}();
+    echo_line{stream, std::make_shared<std::string>()}();
 }
 
 //]

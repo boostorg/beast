@@ -83,19 +83,16 @@ snippets()
     {
     //[code_websocket_2_4
 
-        // This buffer is required for reading HTTP messages
-        flat_buffer buffer;
+        // This buffer will hold the HTTP request as raw characters
+        std::string s;
 
         // Read into our buffer until we reach the end of the HTTP request.
         // No parsing takes place here, we are just accumulating data.
-        // We use beast::dynamic_buffer_ref to pass a lightweight, movable
-        // reference to our buffer, because Networking expects to take
-        // ownership, while Beast algorithms only use a reference.
 
-        net::read_until(sock, dynamic_buffer_ref(buffer), "\r\n\r\n");
+        net::read_until(sock, net::dynamic_buffer(s), "\r\n\r\n");
 
         // Now accept the connection, using the buffered data.
-        ws.accept(buffer.data());
+        ws.accept(net::buffer(s));
 
     //]
     }
