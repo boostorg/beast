@@ -71,7 +71,7 @@ public:
         boost::system::error_code ec,
         std::size_t bytes_transferred)
     {
-        this->invoke_now(ec, bytes_transferred);
+        this->complete_now(ec, bytes_transferred);
     }
 };
 

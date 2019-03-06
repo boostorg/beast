@@ -304,7 +304,7 @@ async_echo(
                 // calling the final completion handler, using post if the
                 // first argument is false, otherwise invoking it directly.
 
-                this->invoke(cont, ec);
+                this->complete(cont, ec);
             }
         }
     };

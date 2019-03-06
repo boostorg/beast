@@ -209,7 +209,7 @@ public:
         boost::ignore_unused(bytes_transferred);
         auto sp = wp_.lock();
         if(! sp)
-            return this->invoke(cont,
+            return this->complete(cont,
                 net::error::operation_aborted);
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
@@ -231,7 +231,7 @@ public:
                 impl.open(role_type::server);
             }
         upcall:
-            this->invoke(cont, ec);
+            this->complete(cont, ec);
         }
     }
 };
@@ -287,7 +287,7 @@ public:
         boost::ignore_unused(bytes_transferred);
         auto sp = wp_.lock();
         if(! sp)
-            return this->invoke(cont,
+            return this->complete(cont,
                 net::error::operation_aborted);
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
@@ -320,7 +320,7 @@ public:
             }
 
         upcall:
-            this->invoke(cont, ec);
+            this->complete(cont, ec);
         }
     }
 };
@@ -709,7 +709,7 @@ void
 stream<NextLayer, deflateSupported>::
 accept_ex(ResponseDecorator const& decorator)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(ResponseDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -730,7 +730,7 @@ void
 stream<NextLayer, deflateSupported>::
 accept_ex(ResponseDecorator const& decorator, error_code& ec)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(ResponseDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -755,7 +755,7 @@ accept_ex(
     ConstBufferSequence const& buffers,
     ResponseDecorator const &decorator)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(ResponseDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -785,7 +785,7 @@ accept_ex(
     ResponseDecorator const& decorator,
     error_code& ec)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(ResponseDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -811,7 +811,7 @@ accept_ex(
         http::basic_fields<Allocator>> const& req,
     ResponseDecorator const& decorator)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(ResponseDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -838,7 +838,7 @@ accept_ex(
     ResponseDecorator const& decorator,
     error_code& ec)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(ResponseDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif

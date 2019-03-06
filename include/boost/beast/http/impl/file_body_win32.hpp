@@ -430,7 +430,7 @@ public:
                 BOOST_ASSERT(sr_.is_done());
             }
         }
-        this->invoke_now(ec, bytes_transferred_);
+        this->complete_now(ec, bytes_transferred_);
     }
 };
 

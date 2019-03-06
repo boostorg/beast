@@ -85,7 +85,7 @@ public:
         using beast::detail::clamp;
         auto sp = wp_.lock();
         if(! sp)
-            return this->invoke(cont,
+            return this->complete(cont,
                 net::error::operation_aborted, 0);
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
@@ -603,7 +603,7 @@ public:
                     || impl.op_idle_ping.maybe_invoke()
                     || impl.op_ping.maybe_invoke()
                     || impl.op_wr.maybe_invoke();
-            this->invoke(cont, ec, bytes_written_);
+            this->complete(cont, ec, bytes_written_);
         }
     }
 };
@@ -652,7 +652,7 @@ public:
         using beast::detail::clamp;
         auto sp = wp_.lock();
         if(! sp)
-            return this->invoke(cont,
+            return this->complete(cont,
                 net::error::operation_aborted, 0);
         auto& impl = *sp;
         using mutable_buffers_type = typename
@@ -680,7 +680,7 @@ public:
             while(! some_ && ! impl.rd_done);
 
         upcall:
-            this->invoke(cont, ec, bytes_written_);
+            this->complete(cont, ec, bytes_written_);
         }
     }
 };

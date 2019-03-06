@@ -71,7 +71,7 @@ public:
         boost::ignore_unused(bytes_transferred);
         auto sp = wp_.lock();
         if(! sp)
-            return this->invoke(cont,
+            return this->complete(cont,
                 net::error::operation_aborted);
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
@@ -102,7 +102,7 @@ public:
                 || impl.op_idle_ping.maybe_invoke()
                 || impl.op_rd.maybe_invoke()
                 || impl.op_wr.maybe_invoke();
-            this->invoke(cont, ec);
+            this->complete(cont, ec);
         }
     }
 };

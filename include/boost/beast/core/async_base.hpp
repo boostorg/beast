@@ -317,7 +317,7 @@ public:
 
         This invokes the final completion handler with the specified
         arguments forwarded. It is undefined to call either of
-        @ref invoke or @ref invoke_now more than once.
+        @ref complete or @ref complete_now more than once.
 
         Any temporary objects allocated with @ref beast::allocate_stable will
         be automatically destroyed before the final completion handler
@@ -326,7 +326,7 @@ public:
         @param is_continuation If this value is `false`, then the
         handler will be submitted to the executor using `net::post`.
         Otherwise the handler will be invoked as if by calling
-        @ref invoke_now.
+        @ref complete_now.
 
         @param args A list of optional parameters to invoke the handler
         with. The completion handler must be invocable with the parameter
@@ -334,7 +334,7 @@ public:
     */
     template<class... Args>
     void
-    invoke(bool is_continuation, Args&&... args)
+    complete(bool is_continuation, Args&&... args)
     {
         this->before_invoke_hook();
         if(! is_continuation)
@@ -357,7 +357,7 @@ public:
 
         This invokes the final completion handler with the specified
         arguments forwarded. It is undefined to call either of
-        @ref invoke or @ref invoke_now more than once.
+        @ref complete or @ref complete_now more than once.
 
         Any temporary objects allocated with @ref beast::allocate_stable will
         be automatically destroyed before the final completion handler
@@ -369,7 +369,7 @@ public:
     */
     template<class... Args>
     void
-    invoke_now(Args&&... args)
+    complete_now(Args&&... args)
     {
         this->before_invoke_hook();
         wg1_.reset();
@@ -532,7 +532,7 @@ public:
                 }
 
                 // The base class destroys the temporary data automatically, before invoking the final completion handler
-                this->invoke_now(ec);
+                this->complete_now(ec);
             }
         };
 

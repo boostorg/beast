@@ -120,7 +120,7 @@ public:
                 error_code ignored;
                 s_.non_blocking(nb_, ignored);
             }
-            this->invoke_now(ec);
+            this->complete_now(ec);
         }
     }
 };

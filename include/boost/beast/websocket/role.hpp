@@ -12,7 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
 
 #error This file is deprecated interface, #define BOOST_BEAST_ALLOW_DEPRECATED to allow it
 

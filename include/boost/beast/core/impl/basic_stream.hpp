@@ -397,7 +397,7 @@ public:
         upcall:
             pg_.reset();
             transfer_bytes(bytes_transferred);
-            this->invoke_now(ec, bytes_transferred);
+            this->complete_now(ec, bytes_transferred);
         }
     }
 };
@@ -528,7 +528,7 @@ public:
 
         pg0_.reset();
         pg1_.reset();
-        this->invoke_now(ec, std::forward<Args>(args)...);
+        this->complete_now(ec, std::forward<Args>(args)...);
     }
 };
 

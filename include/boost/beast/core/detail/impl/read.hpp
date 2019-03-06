@@ -103,7 +103,7 @@ public:
                     b_.prepare(0), std::move(*this));
                 ec = ec_;
             }
-            this->invoke_now(ec, total_);
+            this->complete_now(ec, total_);
         }
     }
 };

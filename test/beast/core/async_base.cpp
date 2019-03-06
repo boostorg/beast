@@ -425,7 +425,7 @@ public:
                 test::handler,
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
-            op.invoke(true);
+            op.complete(true);
         }
         {
             net::io_context ioc;
@@ -433,7 +433,7 @@ public:
                 test::handler,
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
-            op.invoke(false);
+            op.complete(false);
             ioc.run();
         }
         {
@@ -441,7 +441,7 @@ public:
                 test::handler,
                 simple_executor> op(
                     test::any_handler(), {});
-            op.invoke_now();
+            op.complete_now();
         }
 
         // legacy hooks
@@ -499,7 +499,7 @@ public:
                 test::handler,
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
-            op.invoke(true);
+            op.complete(true);
         }
         {
             net::io_context ioc;
@@ -507,7 +507,7 @@ public:
                 test::handler,
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
-            op.invoke(false);
+            op.complete(false);
             ioc.run();
         }
         {
@@ -515,7 +515,7 @@ public:
                 test::handler,
                 simple_executor> op(
                     test::any_handler(), {});
-            op.invoke_now();
+            op.complete_now();
         }
 
         // legacy hooks
@@ -620,7 +620,7 @@ public:
                 // `net::post` will be used to call the completion handler, otherwise
                 // the completion handler will be invoked directly.
 
-                this->invoke(is_continuation, ec, total_bytes_transferred_);
+                this->complete(is_continuation, ec, total_bytes_transferred_);
             }
         };
 
@@ -707,7 +707,7 @@ public:
                 }
 
                 // The base class destroys the temporary data automatically, before invoking the final completion handler
-                this->invoke_now(ec);
+                this->complete_now(ec);
             }
         };
 

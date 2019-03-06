@@ -13,8 +13,13 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/assert.hpp>
+#include <boost/config/pragma_message.hpp>
 #include <type_traits>
 #include <utility>
+
+#ifndef BOOST_BEAST_DOXYGEN
+
+BOOST_PRAGMA_MESSAGE("<boost/beast/core/handler_ptr.hpp> is DEPRECATED and will be removed in a future release.")
 
 namespace boost {
 namespace beast {
@@ -49,6 +54,11 @@ namespace beast {
 template<class T, class Handler>
 class handler_ptr
 {
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
+    static_assert(sizeof(T) == 0,
+        BOOST_BEAST_DEPRECATION_STRING);
+#endif
+
     T* t_ = nullptr;
     union
     {
@@ -213,5 +223,7 @@ public:
 } // boost
 
 #include <boost/beast/core/impl/handler_ptr.hpp>
+
+#endif
 
 #endif

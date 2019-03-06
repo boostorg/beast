@@ -119,7 +119,7 @@ public:
     {
         if(! ec)
             sr_.consume(bytes_transferred);
-        this->invoke_now(ec, bytes_transferred);
+        this->complete_now(ec, bytes_transferred);
     }
 };
 
@@ -207,7 +207,7 @@ public:
                     break;
             }
         upcall:
-            this->invoke_now(ec, bytes_transferred_);
+            this->complete_now(ec, bytes_transferred_);
         }
     }
 };
@@ -254,7 +254,7 @@ public:
     operator()(
         error_code ec, std::size_t bytes_transferred)
     {
-        this->invoke_now(ec, bytes_transferred);
+        this->complete_now(ec, bytes_transferred);
     }
 };
 

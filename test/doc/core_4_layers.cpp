@@ -110,7 +110,7 @@ class counted_stream
                     // Count the bytes transferred towards the total
                     stream_.bytes_read_ += bytes_transferred;
 
-                    this->invoke_now(ec, bytes_transferred);
+                    this->complete_now(ec, bytes_transferred);
                 }
             };
 
@@ -156,7 +156,7 @@ class counted_stream
                     // Count the bytes transferred towards the total
                     stream_.bytes_written_ += bytes_transferred;
 
-                    this->invoke_now(ec, bytes_transferred);
+                    this->complete_now(ec, bytes_transferred);
                 }
             };
 

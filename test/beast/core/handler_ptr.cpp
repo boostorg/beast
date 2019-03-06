@@ -7,6 +7,11 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+#ifdef BOOST_BEAST_ALLOW_DEPRECATED
+#undef BOOST_BEAST_ALLOW_DEPRECATED
+#define BOOST_BEAST_ALLOW_DEPRECATED 0
+#endif
+
 // Test that header file is self-contained.
 #include <boost/beast/core/handler_ptr.hpp>
 
@@ -121,3 +126,5 @@ BEAST_DEFINE_TESTSUITE(beast,core,handler_ptr);
 
 } // beast
 } // boost
+
+#undef BOOST_BEAST_ALLOW_DEPRECATED

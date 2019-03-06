@@ -92,7 +92,7 @@ public:
         boost::ignore_unused(bytes_used);
         auto sp = wp_.lock();
         if(! sp)
-            return this->invoke(cont,
+            return this->complete(cont,
                 net::error::operation_aborted);
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
@@ -159,7 +159,7 @@ public:
                 swap(d_.p.get(), *res_p_);
 
         upcall:
-            this->invoke(cont ,ec);
+            this->complete(cont ,ec);
         }
     }
 };
@@ -382,7 +382,7 @@ handshake_ex(string_view host,
     string_view target,
         RequestDecorator const& decorator)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(RequestDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -406,7 +406,7 @@ handshake_ex(response_type& res,
         string_view target,
             RequestDecorator const& decorator)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(RequestDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -430,7 +430,7 @@ handshake_ex(string_view host,
         RequestDecorator const& decorator,
             error_code& ec)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(RequestDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -453,7 +453,7 @@ handshake_ex(response_type& res,
             RequestDecorator const& decorator,
                 error_code& ec)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(RequestDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -475,7 +475,7 @@ async_handshake_ex(string_view host,
         RequestDecorator const& decorator,
             HandshakeHandler&& handler)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(RequestDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif
@@ -508,7 +508,7 @@ async_handshake_ex(response_type& res,
             RequestDecorator const& decorator,
                 HandshakeHandler&& handler)
 {
-#if ! BOOST_BEAST_ALLOW_DEPRECATED
+#ifndef BOOST_BEAST_ALLOW_DEPRECATED
     static_assert(sizeof(RequestDecorator) == 0,
         BOOST_BEAST_DEPRECATION_STRING);
 #endif

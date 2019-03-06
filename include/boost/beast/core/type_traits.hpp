@@ -12,13 +12,12 @@
 
 #ifndef BOOST_BEAST_DOXYGEN
 
-BOOST_PRAGMA_MESSAGE("<boost/beast/core/type_traits.hpp> is DEPRECATED and will be removed in a future release.")
-
-#include <boost/beast/core/file_base.hpp>
-#include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
 #include <boost/config/pragma_message.hpp>
 #include <type_traits.hpp>
+
+BOOST_PRAGMA_MESSAGE("<boost/beast/core/type_traits.hpp> is DEPRECATED and will be removed in a future release.")
 
 namespace boost {
 namespace beast {

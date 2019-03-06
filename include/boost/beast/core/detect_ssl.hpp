@@ -626,7 +626,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
         // At this point, we are guaranteed that the original initiating
         // function is no longer on our stack frame.
 
-        this->invoke_now(ec, static_cast<bool>(result_));
+        this->complete_now(ec, static_cast<bool>(result_));
     }
 }
 

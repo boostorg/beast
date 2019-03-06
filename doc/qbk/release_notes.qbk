@@ -197,6 +197,11 @@
   in a future version. ['Actions Required]: Do not rely on
   the ['Fields] concept.
 
+* `handler_ptr` is deprecated. ['Actions Required]: Use
+  `stable_async_base` and
+  `allocate_stable`
+  instead.
+
 * On Windows, Visual Studio 2017 or later is required
 
 * OpenSSL is required to build the examples and tests

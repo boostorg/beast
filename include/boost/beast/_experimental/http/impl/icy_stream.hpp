@@ -293,7 +293,7 @@ public:
                 }
             }
         upcall:
-            this->invoke_now(ec, bytes_transferred);
+            this->complete_now(ec, bytes_transferred);
         }
     }
 };

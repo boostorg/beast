@@ -4,6 +4,15 @@ Version 229:
 * Tidy up examples
 * detect_ssl returns a bool
 
+API Changes:
+
+* handler_ptr is deprecated
+
+Actions Required:
+
+* Replace use of `handler_ptr` with `stable_async_base`
+  and `allocate_stable`.
+
 --------------------------------------------------------------------------------
 
 Version 228:
