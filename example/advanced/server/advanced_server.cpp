@@ -588,11 +588,10 @@ public:
     void
     run()
     {
-        if(! acceptor_.is_open())
-            return;
         do_accept();
     }
 
+private:
     void
     do_accept()
     {

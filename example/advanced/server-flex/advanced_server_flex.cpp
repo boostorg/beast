@@ -785,10 +785,6 @@ private:
     void
     on_shutdown(beast::error_code ec)
     {
-        // Happens when the shutdown times out
-        if(ec == net::error::operation_aborted)
-            return;
-
         if(ec)
             return fail(ec, "shutdown");
 
@@ -917,11 +913,10 @@ public:
     void
     run()
     {
-        if(! acceptor_.is_open())
-            return;
         do_accept();
     }
 
+private:
     void
     do_accept()
     {

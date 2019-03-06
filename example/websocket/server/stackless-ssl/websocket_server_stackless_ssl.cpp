@@ -68,7 +68,8 @@ public:
         loop({}, 0);
     }
 
-#include <boost/asio/yield.hpp>
+    #include <boost/asio/yield.hpp>
+    
     void
     loop(
         beast::error_code ec,
@@ -155,7 +156,8 @@ public:
             }
         }
     }
-#include <boost/asio/unyield.hpp>
+
+    #include <boost/asio/unyield.hpp>
 };
 
 //------------------------------------------------------------------------------
@@ -220,12 +222,13 @@ public:
     void
     run()
     {
-        if(! acceptor_.is_open())
-            return;
         loop();
     }
 
-#include <boost/asio/yield.hpp>
+private:
+
+    #include <boost/asio/yield.hpp>
+    
     void
     loop(beast::error_code ec = {})
     {
@@ -254,7 +257,8 @@ public:
             }
         }
     }
-#include <boost/asio/unyield.hpp>
+
+    #include <boost/asio/unyield.hpp>
 };
 
 //------------------------------------------------------------------------------
