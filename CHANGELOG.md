@@ -2,6 +2,7 @@ Version 229:
 
 * Rename to buffer_bytes
 * Tidy up examples
+* detect_ssl returns a bool
 
 --------------------------------------------------------------------------------
 

@@ -482,7 +482,7 @@ public:
     /** Close the timed stream.
 
         This cancels all of the outstanding asynchronous operations
-        as if by calling @ref cancel, and closes the file 
+        as if by calling @ref cancel, and closes the underlying socket.
     */
     void
     close();

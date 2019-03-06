@@ -203,15 +203,13 @@ is_tls_client_hello (ConstBufferSequence const& buffers)
 
     @param ec Set to the error if any occurred.
 
-    @return `boost::tribool` indicating whether the buffer contains
-    a TLS client handshake, does not contain a handshake, or needs
-    additional octets. If an error occurs, the return value is
-    undefined.
+    @return `true` if the buffer contains a TLS client handshake and
+    no error occurred, otherwise `false`.
 */
 template<
     class SyncReadStream,
     class DynamicBuffer>
-boost::tribool
+bool
 detect_ssl(
     SyncReadStream& stream,
     DynamicBuffer& buffer,
@@ -241,7 +239,7 @@ detect_ssl(
         {
             // A definite answer is a success
             ec = {};
-            return result;
+            return static_cast<bool>(result);
         }
 
         // Try to fill our buffer by reading from the stream.
@@ -304,14 +302,12 @@ detect_ssl(
     this is a completion handler, the implementation takes ownership
     of the handler by performing a decay-copy, and the equivalent
     function signature of the handler must be:
-
     @code
     void handler(
         error_code const& error,    // Set to the error, if any
-        boost::tribool result       // The result of the detector
+        bool result                 // The result of the detector
     );
     @endcode
-
     Regardless of whether the asynchronous operation completes
     immediately or not, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
@@ -328,7 +324,7 @@ async_detect_ssl(
     CompletionToken&& token)
         -> typename net::async_result<
             typename std::decay<CompletionToken>::type, /*< `async_result` customizes the return value based on the completion token >*/
-            void(error_code, boost::tribool)>::return_type; /*< This is the signature for the completion handler >*/
+            void(error_code, bool)>::return_type; /*< This is the signature for the completion handler >*/
 //]
 
 //[example_core_detect_ssl_5
@@ -399,7 +395,7 @@ async_detect_ssl(
     CompletionToken&& token)
         -> typename net::async_result<
             typename std::decay<CompletionToken>::type,
-            void(error_code, boost::tribool)>::return_type
+            void(error_code, bool)>::return_type
 {
     // Make sure arguments meet the type requirements
 
@@ -429,7 +425,7 @@ async_detect_ssl(
 
     return net::async_initiate<
         CompletionToken,
-        void(error_code, boost::tribool)>(
+        void(error_code, bool)>(
             detail::run_detect_ssl_op{},
             token,
             &stream, // pass the reference by pointer
@@ -630,7 +626,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
         // At this point, we are guaranteed that the original initiating
         // function is no longer on our stack frame.
 
-        this->invoke_now(ec, result_);
+        this->invoke_now(ec, static_cast<bool>(result_));
     }
 }
 
