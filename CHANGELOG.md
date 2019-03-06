@@ -3,6 +3,7 @@ Version 229:
 * Rename to buffer_bytes
 * Tidy up examples
 * detect_ssl returns a bool
+* Fix stable_async_base example
 
 API Changes:
 

@@ -31,7 +31,6 @@
           <member><link linkend="beast.ref.boost__beast__file_stdio">file_stdio</link></member>
           <member><link linkend="beast.ref.boost__beast__file_win32">file_win32</link></member>
           <member><link linkend="beast.ref.boost__beast__flat_stream">flat_stream</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
-          <member><link linkend="beast.ref.boost__beast__handler_ptr">handler_ptr</link></member>
           <member><link linkend="beast.ref.boost__beast__iequal">iequal</link></member>
           <member><link linkend="beast.ref.boost__beast__iless">iless</link></member>
           <member><link linkend="beast.ref.boost__beast__rate_policy_access">rate_policy_access</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>

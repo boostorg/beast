@@ -17,6 +17,7 @@
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/async_result.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/system_executor.hpp>
@@ -643,12 +644,19 @@ public:
         using handler_type = typename net::async_completion<WriteHandler, void(error_code)>::completion_handler_type;
         using base_type = stable_async_base<handler_type, typename AsyncWriteStream::executor_type>;
 
-        struct op : base_type
+        struct op : base_type, boost::asio::coroutine
         {
             // This object must have a stable address
             struct temporary_data
             {
+                // Although std::string is in theory movable, most implementations
+                // use a "small buffer optimization" which means that we might
+                // be submitting a buffer to the write operation and then
+                // moving the string, invalidating the buffer. To prevent
+                // undefined behavior we store the string object itself at
+                // a stable location.
                 std::string const message;
+
                 net::steady_timer timer;
 
                 temporary_data(std::string message_, net::io_context& ctx)
@@ -658,14 +666,12 @@ public:
                 }
             };
 
-            enum { starting, waiting, writing } state_;
             AsyncWriteStream& stream_;
             std::size_t repeats_;
             temporary_data& data_;
 
             op(AsyncWriteStream& stream, std::size_t repeats, std::string message, handler_type& handler)
                 : base_type(std::move(handler), stream.get_executor())
-                , state_(starting)
                 , stream_(stream)
                 , repeats_(repeats)
                 , data_(allocate_stable<temporary_data>(*this, std::move(message), stream.get_executor().context()))
@@ -673,42 +679,45 @@ public:
                 (*this)(); // start the operation
             }
 
+            // Including this file provides the keywords for macro-based coroutines
+            #include <boost/asio/yield.hpp>
+
             void operator()(error_code ec = {}, std::size_t = 0)
             {
-                if (!ec)
+                reenter(*this)
                 {
-                    switch (state_)
+                    // If repeats starts at 0 then we must complete immediately. But
+                    // we can't call the final handler from inside the initiating
+                    // function, so we post our intermediate handler first. We use
+                    // net::async_write with an empty buffer instead of calling
+                    // net::post to avoid an extra function template instantiation, to
+                    // keep compile times lower and make the resulting executable smaller.
+                    yield net::async_write(stream_, net::const_buffer{}, std::move(*this));
+                    while(! ec && repeats_-- > 0)
                     {
-                    case starting:
-                        // If repeats starts at 0 then we must complete immediately. But we can't call the final
-                        // handler from inside the initiating function, so we post our intermediate handler first.
-                        if(repeats_ == 0)
-                            return net::post(std::move(*this));
+                        // Send the string. We construct a `const_buffer` here to guarantee
+                        // that we do not create an additional function template instantation
+                        // of net::async_write, since we already instantiated it above for
+                        // net::const_buffer.
 
-                    case writing:
-                        if (repeats_ > 0)
-                        {
-                            --repeats_;
-                            state_ = waiting;
-                            data_.timer.expires_after(std::chrono::seconds(1));
+                        yield net::async_write(stream_,
+                            net::const_buffer(net::buffer(data_.message)), std::move(*this));
+                        if(ec)
+                            break;
 
-                            // Composed operation not yet complete.
-                            return data_.timer.async_wait(std::move(*this));
-                        }
-
-                        // Composed operation complete, continue below.
-                        break;
-
-                    case waiting:
-                        // Composed operation not yet complete.
-                        state_ = writing;
-                        return net::async_write(stream_, net::buffer(data_.message), std::move(*this));
+                        // Set the timer and wait
+                        data_.timer.expires_after(std::chrono::seconds(1));
+                        yield data_.timer.async_wait(std::move(*this));
                     }
                 }
 
-                // The base class destroys the temporary data automatically, before invoking the final completion handler
+                // The base class destroys the temporary data automatically,
+                // before invoking the final completion handler
                 this->complete_now(ec);
             }
+
+            // Including this file undefines the macros for the coroutines
+            #include <boost/asio/unyield.hpp>
         };
 
         net::async_completion<WriteHandler, void(error_code)> completion(handler);
