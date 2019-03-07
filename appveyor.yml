@@ -92,7 +92,6 @@ install:
   - git submodule update --init libs/io
   - git submodule update --init libs/iterator
   - git submodule update --init libs/lambda
-  - git submodule update --init libs/lexical_cast
   - git submodule update --init libs/logic
   - git submodule update --init libs/math
   - git submodule update --init libs/move
