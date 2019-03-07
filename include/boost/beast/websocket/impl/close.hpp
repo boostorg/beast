@@ -75,8 +75,10 @@ public:
         using beast::detail::clamp;
         auto sp = wp_.lock();
         if(! sp)
-            return this->complete(cont,
-                net::error::operation_aborted);
+        {
+            ec = net::error::operation_aborted;
+            return this->complete(cont, ec);
+        }
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
