@@ -11,22 +11,13 @@
 #define BOOST_BEAST_CORE_IMPL_ICY_STREAM_HPP
 
 #include <boost/beast/core/async_base.hpp>
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/buffers_adaptor.hpp>
-#include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/buffers_suffix.hpp>
-#include <boost/beast/core/dynamic_buffer_ref.hpp>
+#include <boost/beast/core/error.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/detail/buffers_ref.hpp>
-#include <boost/asio/buffers_iterator.hpp>
+#include <boost/beast/core/detail/is_invocable.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/post.hpp>
-#include <boost/asio/read.hpp>
-#include <boost/asio/read_until.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
-#include <algorithm>
 #include <cstring>
 #include <memory>
 #include <utility>
@@ -37,83 +28,24 @@ namespace http {
 
 namespace detail {
 
-template<class MutableBuffers, class ConstBuffers>
-void
-buffer_shift(MutableBuffers const& out, ConstBuffers const& in)
+template<class ConstBufferSequence>
+boost::tribool
+is_icy(ConstBufferSequence const& buffers)
 {
-    auto in_pos  = net::buffer_sequence_end(in);
-    auto out_pos = net::buffer_sequence_end(out);
-    auto const in_begin  = net::buffer_sequence_begin(in);
-    auto const out_begin = net::buffer_sequence_begin(out);
-    BOOST_ASSERT(buffer_bytes(in) == buffer_bytes(out));
-    if(in_pos == in_begin || out_pos == out_begin)
-        return;
-    net::const_buffer cb{*--in_pos};
-    net::mutable_buffer mb{*--out_pos};
-    for(;;)
-    {
-        if(mb.size() >= cb.size())
-        {
-            std::memmove(
-                static_cast<char*>(
-                    mb.data()) + mb.size() - cb.size(),
-                cb.data(),
-                cb.size());
-            mb = net::mutable_buffer{
-                mb.data(), mb.size() - cb.size()};
-            if(in_pos == in_begin)
-                break;
-            cb = *--in_pos;
-        }
-        else
-        {
-            std::memmove(
-                mb.data(),
-                static_cast<char const*>(
-                    cb.data()) + cb.size() - mb.size(),
-                mb.size());
-            cb = net::const_buffer{
-                cb.data(), cb.size() - mb.size()};
-            if(out_pos == out_begin)
-                break;
-            mb = *--out_pos;
-        }
-    }
+    char buf[3];
+    auto const n = net::buffer_copy(
+        net::mutable_buffer(buf, 3),
+        buffers);   
+    if(n >= 1 && buf[0] != 'I')
+        return false;
+    if(n >= 2 && buf[1] != 'C')
+        return false;
+    if(n >= 3 && buf[2] != 'Y')
+        return false;
+    if(n < 3)
+        return boost::indeterminate;
+    return true;
 }
-
-template<class FwdIt>
-class match_icy
-{
-    bool& match_;
-
-public:
-    using result_type = std::pair<FwdIt, bool>;
-    explicit
-    match_icy(bool& b)
-        : match_(b)
-    {
-    }
-
-    result_type
-    operator()(FwdIt first, FwdIt last) const
-    {
-        auto it = first;
-        if(it == last)
-            return {first, false};
-        if(*it != 'I')
-            return {last, true};
-        if(++it == last)
-            return {first, false};
-        if(*it != 'C')
-            return {last, true};
-        if(++it == last)
-            return {first, false};
-        if(*it != 'Y')
-            return {last, true};
-        match_ = true;
-        return {last, true};
-    };
-};
 
 } // detail
 
@@ -123,35 +55,15 @@ struct icy_stream<NextLayer>::ops
 
 template<class Buffers, class Handler>
 class read_op
-    : public beast::stable_async_base<Handler,
+    : public beast::async_base<Handler,
         beast::executor_type<icy_stream>>
     , public net::coroutine
 {
-    // VFALCO We need a stable reference to `b`
-    //        to pass to asio's read functions.
-    //
-    // VFALCO Why did I do all this rigamarole?
-    //        we only need 6 or 8 bytes at most,
-    //        this should all just be tucked
-    //        away into the icy_stream. We can
-    //        simulate a dynamic buffer adaptor
-    //        with one or two simple ints.
-    struct data
-    {
-        icy_stream& s;
-        buffers_adaptor<Buffers> b;
-        bool match = false;
-
-        data(
-            icy_stream& s_,
-            Buffers const& b_)
-            : s(s_)
-            , b(b_)
-        {
-        }
-    };
-
-    data& d_;
+    icy_stream& s_;
+    Buffers b_;
+    std::size_t n_ = 0;
+    error_code ec_;
+    bool match_ = false;
 
 public:
     template<class Handler_>
@@ -159,140 +71,77 @@ public:
         Handler_&& h,
         icy_stream& s,
         Buffers const& b)
-        : stable_async_base<Handler,
+        : async_base<Handler,
             beast::executor_type<icy_stream>>(
                 std::forward<Handler_>(h), s.get_executor())
-        , d_(beast::allocate_stable<data>(*this, s, b))
+        , s_(s)
+        , b_(b)
     {
-        (*this)({}, 0);
+        (*this)({}, 0, false);
     }
 
     void
     operator()(
-        boost::system::error_code ec,
-        std::size_t bytes_transferred)
+        error_code ec,
+        std::size_t bytes_transferred,
+        bool cont = true)
     {
-        using iterator = net::buffers_iterator<
-            typename beast::dynamic_buffer_ref_wrapper<
-                buffers_adaptor<Buffers>>::const_buffers_type>;
         BOOST_ASIO_CORO_REENTER(*this)
         {
-            if(d_.b.max_size() == 0)
+            if(s_.detect_)
             {
-                BOOST_ASIO_CORO_YIELD
-                net::post(d_.s.get_executor(),
-                    beast::bind_handler(std::move(*this), ec, 0));
-                goto upcall;
-            }
-            if(! d_.s.detect_)
-            {
-                if(d_.s.copy_ > 0)
+                BOOST_ASSERT(s_.n_ == 0);
+                for(;;)
                 {
-                    auto const n = net::buffer_copy(
-                        d_.b.prepare(std::min<std::size_t>(
-                            d_.s.copy_, d_.b.max_size())),
-                        net::buffer(d_.s.buf_));
-                    d_.b.commit(n);
-                    d_.s.copy_ = static_cast<unsigned char>(
-                        d_.s.copy_ - n);
-                    if(d_.s.copy_ > 0)
-                        std::memmove(
-                            d_.s.buf_,
-                            &d_.s.buf_[n],
-                            d_.s.copy_);
-                }
-                if(d_.b.size() < d_.b.max_size())
-                {
+                    // Try to read the first three characters
                     BOOST_ASIO_CORO_YIELD
-                    d_.s.next_layer().async_read_some(
-                        d_.b.prepare(d_.b.max_size() - d_.b.size()),
+                    s_.next_layer().async_read_some(
+                        net::mutable_buffer(
+                            s_.buf_ + s_.n_, 3 - s_.n_),
                         std::move(*this));
-                    d_.b.commit(bytes_transferred);
+                    s_.n_ += static_cast<char>(bytes_transferred);
+                    if(ec)
+                        goto upcall;
+                    auto result = detail::is_icy(
+                        net::const_buffer(s_.buf_, s_.n_));
+                    if(boost::indeterminate(result))
+                        continue;
+                    if(result)
+                        s_.n_ = static_cast<char>(net::buffer_copy(
+                            net::buffer(s_.buf_, sizeof(s_.buf_)),
+                            icy_stream::version()));
+                    break;
                 }
-                bytes_transferred = d_.b.size();
-                goto upcall;
+                s_.detect_ = false;
             }
-
-            d_.s.detect_ = false;
-            if(d_.b.max_size() < 8)
+            if(s_.n_ > 0)
+            {
+                bytes_transferred = net::buffer_copy(
+                    b_, net::const_buffer(s_.buf_, s_.n_));
+                s_.n_ -= static_cast<char>(bytes_transferred);
+                std::memmove(
+                    s_.buf_,
+                    s_.buf_ + bytes_transferred,
+                    sizeof(s_.buf_) - bytes_transferred);
+            }
+            else
             {
                 BOOST_ASIO_CORO_YIELD
-                net::async_read(
-                    d_.s.next_layer(),
-                    net::buffer(d_.s.buf_, 3),
-                    std::move(*this));
-                if(ec)
-                    goto upcall;
-                auto n = bytes_transferred;
-                BOOST_ASSERT(n == 3);
-                if(
-                    d_.s.buf_[0] != 'I' ||
-                    d_.s.buf_[1] != 'C' ||
-                    d_.s.buf_[2] != 'Y')
-                {
-                    net::buffer_copy(
-                        d_.b.value(),
-                        net::buffer(d_.s.buf_, n));
-                    if(d_.b.max_size() < 3)
-                    {
-                        d_.s.copy_ = static_cast<unsigned char>(
-                            3 - d_.b.max_size());
-                        std::memmove(
-                            d_.s.buf_,
-                            &d_.s.buf_[d_.b.max_size()],
-                            d_.s.copy_);
-
-                    }
-                    bytes_transferred = (std::min)(
-                        n, d_.b.max_size());
-                    goto upcall;
-                }
-                d_.s.copy_ = static_cast<unsigned char>(
-                    net::buffer_copy(
-                        net::buffer(d_.s.buf_),
-                        icy_stream::version() + d_.b.max_size()));
-                bytes_transferred = net::buffer_copy(
-                    d_.b.value(), icy_stream::version());
-                goto upcall;
-            }
-
-            BOOST_ASIO_CORO_YIELD
-            net::async_read_until(
-                d_.s.next_layer(),
-                beast::dynamic_buffer_ref(d_.b),
-                detail::match_icy<iterator>(d_.match),
-                std::move(*this));
-            if(ec)
-                goto upcall;
-            {
-                auto n = bytes_transferred;
-                BOOST_ASSERT(n == d_.b.size());
-                if(! d_.match)
-                    goto upcall;
-                if(d_.b.size() + 5 > d_.b.max_size())
-                {
-                    d_.s.copy_ = static_cast<unsigned char>(
-                        n + 5 - d_.b.max_size());
-                    std::copy(
-                        net::buffers_begin(d_.b.value()) + n - d_.s.copy_,
-                        net::buffers_begin(d_.b.value()) + n,
-                        d_.s.buf_);
-                    n = d_.b.max_size() - 5;
-                }
-                {
-                    buffers_suffix<beast::detail::buffers_ref<
-                        Buffers>> dest(
-                            boost::in_place_init, d_.b.value());
-                    dest.consume(5);
-                    detail::buffer_shift(
-                        beast::buffers_prefix(n, dest),
-                        beast::buffers_prefix(n, d_.b.value()));
-                    net::buffer_copy(d_.b.value(), icy_stream::version());
-                    n += 5;
-                    bytes_transferred = n;
-                }
+                s_.next_layer().async_read_some(
+                    b_, std::move(*this));
             }
         upcall:
+            if(! cont)
+            {
+                ec_ = ec;
+                n_ = bytes_transferred;
+                BOOST_ASIO_CORO_YIELD
+                s_.next_layer().async_read_some(
+                    net::mutable_buffer{},
+                    std::move(*this));
+                ec = ec_;
+                bytes_transferred = n_;
+            }
             this->complete_now(ec, bytes_transferred);
         }
     }
@@ -333,6 +182,7 @@ icy_stream<NextLayer>::
 icy_stream(Args&&... args)
     : stream_(std::forward<Args>(args)...)
 {
+    std::memset(buf_, 0, sizeof(buf_));
 }
 
 template<class NextLayer>
@@ -364,109 +214,46 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
     static_assert(net::is_mutable_buffer_sequence<
         MutableBufferSequence>::value,
             "MutableBufferSequence type requirements not met");
-    using iterator = net::buffers_iterator<
-        typename beast::dynamic_buffer_ref_wrapper<
-            buffers_adaptor<MutableBufferSequence>>::const_buffers_type>;
-    buffers_adaptor<MutableBufferSequence> b(buffers);
-    if(b.max_size() == 0)
+    std::size_t bytes_transferred;
+    if(detect_)
     {
-        ec = {};
-        return 0;
-    }
-    if(! detect_)
-    {
-        if(copy_ > 0)
+        BOOST_ASSERT(n_ == 0);
+        for(;;)
         {
-            auto const n = net::buffer_copy(
-                b.prepare(std::min<std::size_t>(
-                    copy_, b.max_size())),
-                net::buffer(buf_));
-            b.commit(n);
-            copy_ = static_cast<unsigned char>(
-                copy_ - n);
-            if(copy_ > 0)
-                std::memmove(
-                    buf_,
-                    &buf_[n],
-                    copy_);
+            // Try to read the first three characters
+            bytes_transferred = next_layer().read_some(
+                net::mutable_buffer(buf_ + n_, 3 - n_), ec);
+            n_ += static_cast<char>(bytes_transferred);
+            if(ec)
+                return 0;
+            auto result = detail::is_icy(
+                net::const_buffer(buf_, n_));
+            if(boost::indeterminate(result))
+                continue;
+            if(result)
+                n_ = static_cast<char>(net::buffer_copy(
+                    net::buffer(buf_, sizeof(buf_)),
+                    icy_stream::version()));
+            break;
         }
-        if(b.size() < b.max_size())
-            b.commit(stream_.read_some(
-                b.prepare(b.max_size() - b.size()), ec));
-        return b.size();
+        detect_ = false;
     }
-
-    detect_ = false;
-    if(b.max_size() < 8)
+    if(n_ > 0)
     {
-        auto n = net::read(
-            stream_,
-            net::buffer(buf_, 3),
-            ec);
-        if(ec)
-            return 0;
-        BOOST_ASSERT(n == 3);
-        if(
-            buf_[0] != 'I' ||
-            buf_[1] != 'C' ||
-            buf_[2] != 'Y')
-        {
-            net::buffer_copy(
-                buffers,
-                net::buffer(buf_, n));
-            if(b.max_size() < 3)
-            {
-                copy_ = static_cast<unsigned char>(
-                    3 - b.max_size());
-                std::memmove(
-                    buf_,
-                    &buf_[b.max_size()],
-                    copy_);
-
-            }
-            return std::min<std::size_t>(
-                n, b.max_size());
-        }
-        copy_ = static_cast<unsigned char>(
-            net::buffer_copy(
-                net::buffer(buf_),
-                version() + b.max_size()));
-        return net::buffer_copy(
-            buffers,
-            version());
+        bytes_transferred = net::buffer_copy(
+            buffers, net::const_buffer(buf_, n_));
+        n_ -= static_cast<char>(bytes_transferred);
+        std::memmove(
+            buf_,
+            buf_ + bytes_transferred,
+            sizeof(buf_) - bytes_transferred);
     }
-
-    bool match = false;
-    auto n = net::read_until(
-        stream_,
-        beast::dynamic_buffer_ref(b),
-        detail::match_icy<iterator>(match),
-        ec);
-    if(ec)
-        return n;
-    BOOST_ASSERT(n == b.size());
-    if(! match)
-        return n;
-    if(b.size() + 5 > b.max_size())
+    else
     {
-        copy_ = static_cast<unsigned char>(
-            n + 5 - b.max_size());
-        std::copy(
-            net::buffers_begin(buffers) + n - copy_,
-            net::buffers_begin(buffers) + n,
-            buf_);
-        n = b.max_size() - 5;
+        bytes_transferred =
+            next_layer().read_some(buffers, ec);
     }
-    buffers_suffix<beast::detail::buffers_ref<
-        MutableBufferSequence>> dest(
-            boost::in_place_init, buffers);
-    dest.consume(5);
-    detail::buffer_shift(
-        buffers_prefix(n, dest),
-        buffers_prefix(n, buffers));
-    net::buffer_copy(buffers, version());
-    n += 5;
-    return n;
+    return bytes_transferred;
 }
 
 template<class NextLayer>

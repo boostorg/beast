@@ -14,6 +14,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/logic/tribool.hpp>
 #include <type_traits>
 
 namespace boost {
@@ -60,12 +61,12 @@ namespace http {
 template<class NextLayer>
 class icy_stream
 {
-    struct ops;
-
     NextLayer stream_;
-    bool detect_ = true;
-    unsigned char copy_ = 0;
     char buf_[8];
+    unsigned char n_ = 0;
+    bool detect_ = true;
+
+    struct ops;
 
     static
     net::const_buffer

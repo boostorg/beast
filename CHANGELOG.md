@@ -1,3 +1,9 @@
+Version 230:
+
+* Don't use dynamic_buffer_ref
+
+--------------------------------------------------------------------------------
+
 Version 229:
 
 * Rename to buffer_bytes
