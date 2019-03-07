@@ -132,7 +132,6 @@
           <member><link linkend="beast.ref.boost__beast__buffers_cat_view">buffers_cat_view</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_prefix_view">buffers_prefix_view</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_suffix">buffers_suffix</link></member>
-          <member><link linkend="beast.ref.boost__beast__dynamic_buffer_ref_wrapper">dynamic_buffer_ref_wrapper</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__flat_buffer">flat_buffer</link></member>
           <member><link linkend="beast.ref.boost__beast__flat_static_buffer">flat_static_buffer</link></member>
           <member><link linkend="beast.ref.boost__beast__flat_static_buffer_base">flat_static_buffer_base</link></member>
@@ -150,7 +149,6 @@
           <member><link linkend="beast.ref.boost__beast__buffers_range">buffers_range</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__buffers_range_ref">buffers_range_ref</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__buffers_to_string">buffers_to_string</link></member>
-          <member><link linkend="beast.ref.boost__beast__dynamic_buffer_ref">dynamic_buffer_ref</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__make_printable">make_printable</link>&nbsp;<emphasis role="green">&#9733;</emphasis></member>
           <member><link linkend="beast.ref.boost__beast__ostream">ostream</link></member>
           <member><link linkend="beast.ref.boost__beast__read_size">read_size</link></member>

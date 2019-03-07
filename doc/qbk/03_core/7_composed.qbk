@@ -90,18 +90,6 @@ composed operations:
     will be the same as those of the original handler.
 ]]
 [[
-    [link beast.ref.boost__beast__handler_ptr `handler_ptr`]
-][
-    This is a smart pointer container used to manage the internal state of a
-    composed operation. It is useful when the state is non trivial. For example
-    when the state has non-movable or contains expensive to move types. The
-    container takes ownership of the final completion handler, and provides
-    boilerplate to invoke the final handler in a way that also deletes the
-    internal state. The internal state is allocated using the final completion
-    handler's associated allocator, benefiting from all handler memory
-    management optimizations transparently.
-]]
-[[
     [link beast.ref.boost__beast__saved_handler `saved_handler`]
 ][
     This wrapper safely stores a completion handler so it may be invoked

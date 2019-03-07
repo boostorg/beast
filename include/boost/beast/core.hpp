@@ -24,7 +24,6 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/detect_ssl.hpp>
-#include <boost/beast/core/dynamic_buffer_ref.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file.hpp>
 #include <boost/beast/core/file_base.hpp>

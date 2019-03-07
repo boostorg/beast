@@ -160,7 +160,6 @@
 * New:
   * `saved_handler`
   * `buffers_range_ref` 
-  * `dynamic_buffer_ref`
   * `executor_type`
   * `get_lowest_layer`,
     `lowest_layer_type`
