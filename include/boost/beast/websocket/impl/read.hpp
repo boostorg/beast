@@ -85,8 +85,11 @@ public:
         using beast::detail::clamp;
         auto sp = wp_.lock();
         if(! sp)
-            return this->complete(cont,
-                net::error::operation_aborted, 0);
+        {
+            ec = net::error::operation_aborted;
+            bytes_written_ = 0;
+            return this->complete(cont, ec, bytes_written_);
+        }
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
@@ -652,8 +655,11 @@ public:
         using beast::detail::clamp;
         auto sp = wp_.lock();
         if(! sp)
-            return this->complete(cont,
-                net::error::operation_aborted, 0);
+        {
+            ec = net::error::operation_aborted;
+            bytes_written_ = 0;
+            return this->complete(cont, ec, bytes_written_);
+        }
         auto& impl = *sp;
         using mutable_buffers_type = typename
             DynamicBuffer::mutable_buffers_type;

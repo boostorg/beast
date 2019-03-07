@@ -195,7 +195,7 @@ public:
                 std::forward<Handler_>(h),
                     sp->stream().get_executor())
         , wp_(sp)
-        , res_(beast::allocate_stable<response_type>(*this, 
+        , res_(beast::allocate_stable<response_type>(*this,
             sp->build_response(req, decorator, result_)))
     {
         (*this)({}, 0, cont);
@@ -209,8 +209,10 @@ public:
         boost::ignore_unused(bytes_transferred);
         auto sp = wp_.lock();
         if(! sp)
-            return this->complete(cont,
-                net::error::operation_aborted);
+        {
+            ec = net::error::operation_aborted;
+            return this->complete(cont, ec);
+        }
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
@@ -287,8 +289,10 @@ public:
         boost::ignore_unused(bytes_transferred);
         auto sp = wp_.lock();
         if(! sp)
-            return this->complete(cont,
-                net::error::operation_aborted);
+        {
+            ec = net::error::operation_aborted;
+            return this->complete(cont, ec);
+        }
         auto& impl = *sp;
         BOOST_ASIO_CORO_REENTER(*this)
         {
@@ -306,7 +310,7 @@ public:
                 ec = error::closed;
             if(impl.check_stop_now(ec))
                 goto upcall;
-            
+
             {
                 // Arguments from our state must be
                 // moved to the stack before releasing

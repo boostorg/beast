@@ -2,6 +2,7 @@ Version 230:
 
 * Don't use dynamic_buffer_ref
 * Remove dynamic_buffer_ref
+* Fix completion handler invocation signatures
 
 --------------------------------------------------------------------------------
 
