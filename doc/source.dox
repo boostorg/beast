@@ -47,9 +47,9 @@ PREDEFINED             = \
                         BOOST_BEAST_USE_POSIX_FILE=1 \
                         BOOST_BEAST_USE_WIN32_FILE=1 \
                         BOOST_BEAST_SPLIT_COMPILATION=1 \
-                        BOOST_BEAST_ASYNC_RESULT1(t)=__deduced__ \
-                        BOOST_BEAST_ASYNC_RESULT1(t)=__deduced__ \
-                        BOOST_ASIO_INITFN_RESULT_TYPE(t,a)=__deduced__ \
+                        "BOOST_BEAST_ASYNC_RESULT1(t)=__deduced__" \
+                        "BOOST_BEAST_ASYNC_RESULT1(t)=__deduced__" \
+                        "BOOST_ASIO_INITFN_RESULT_TYPE(t,a)=__deduced__" \
                         GENERATING_DOCUMENTATION \
                         BOOST_BEAST_DECL
 EXPAND_AS_DEFINED      =

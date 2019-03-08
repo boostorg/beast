@@ -474,7 +474,7 @@ in future versions.
 
 * ([issue 1109]) Use a shared string for example HTTP server doc roots 
 
-* ([issue 1079]) Add [link beast.ref.boost__beast__handler_ptr.has_value `handler_ptr::has_value`]
+* ([issue 1079]) Add `handler_ptr::has_value`
 
 [*Fixes]
 
@@ -639,15 +639,15 @@ to update to the latest Boost release.
 [*API Changes]
 
 * Remove unintended public members of
-  [link beast.ref.boost__beast__handler_ptr `handler_ptr`].
+  `handler_ptr`.
   Actions required: don't call non-public members.
 
-* [link beast.ref.boost__beast__handler_ptr `handler_ptr`]
+* `handler_ptr`
   is a move-only type, with `unique_ptr` semantics.
   Actions required: user-defined composed operations using `handler_ptr`
   to manage state can only be moved, not copied.
 
-* [link beast.ref.boost__beast__handler_ptr `handler_ptr`]
+* `handler_ptr`
   gives the strong exception guarantee. The constructor signature
   for managed objects constructed by `handler_ptr` now receives a
   `const` reference to the handler. Actions required: Change the
