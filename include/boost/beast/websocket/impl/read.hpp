@@ -19,6 +19,7 @@
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/beast/core/detail/buffer.hpp>

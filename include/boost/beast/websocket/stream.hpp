@@ -19,6 +19,7 @@
 #include <boost/beast/websocket/detail/hybi13.hpp>
 #include <boost/beast/websocket/detail/impl_base.hpp>
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
+#include <boost/beast/websocket/detail/prng.hpp>
 #include <boost/beast/core/role.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/string.hpp>
@@ -33,6 +34,7 @@
 #include <limits>
 #include <memory>
 #include <type_traits>
+#include <random>
 
 namespace boost {
 namespace beast {
@@ -857,7 +859,7 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
-    
+
         @par Example
         @code
         ws.async_handshake("localhost", "/",
