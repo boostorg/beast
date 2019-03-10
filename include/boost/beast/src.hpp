@@ -43,11 +43,15 @@ the program, with the macro BOOST_BEAST_SPLIT_COMPILATION defined.
 #include <boost/beast/http/impl/basic_parser.ipp>
 #include <boost/beast/http/impl/error.ipp>
 #include <boost/beast/http/impl/field.ipp>
+#include <boost/beast/http/impl/rfc7230.ipp>
 #include <boost/beast/http/impl/status.ipp>
 #include <boost/beast/http/impl/verb.ipp>
 
+#include <boost/beast/websocket/detail/hybi13.ipp>
+#include <boost/beast/websocket/detail/pmd_extension.ipp>
 #include <boost/beast/websocket/detail/prng.ipp>
 #include <boost/beast/websocket/detail/service.ipp>
+#include <boost/beast/websocket/detail/utf8_checker.ipp>
 #include <boost/beast/websocket/impl/error.ipp>
 
 #include <boost/beast/zlib/detail/deflate_stream.ipp>
