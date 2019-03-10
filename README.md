@@ -220,7 +220,7 @@ The files in the repository are laid out thusly:
 These examples are complete, self-contained programs that you can build
 and run yourself (they are in the `example` directory).
 
-http://www.boost.org/doc/libs/develop/libs/beast/doc/html/beast/quick_start.html
+http://www.boost.org/doc/libs/develop/libs/beast/doc/html/beast/quick_look.html
 
 ## License
 
