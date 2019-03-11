@@ -1,3 +1,10 @@
+Version 231:
+
+* Doc section names are stable
+* Add missing include
+
+--------------------------------------------------------------------------------
+
 Version 230:
 
 * Don't use dynamic_buffer_ref
