@@ -298,7 +298,7 @@ In both of these cases, an object with a specific type is used in place of
 the completion handler, and the return value of the initiating function
 is transformed from `void` to `std::future<std::size_t>` or `std::size_t`.
 The handler is sometimes called a
-[@boost:/doc/html/boost_asio/reference/asynchronous_operations#boost_asio.reference.asynchronous_operations.completion_tokens_and_handlers ['CompletionToken]]
+__CompletionToken__
 when used in this context. The return type transformation is supported by
 customization points in the initiating function signature. Here is the
 signature for
