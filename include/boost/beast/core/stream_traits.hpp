@@ -435,10 +435,13 @@ using is_async_stream = std::integral_constant<bool,
 
     @see close_socket
 */
-template<class Protocol>
+template<
+    class Protocol,
+    class Executor>
 void
 beast_close_socket(
-    net::basic_socket<Protocol>& sock)
+    net::basic_socket<
+        Protocol, Executor>& sock)
 {
     boost::system::error_code ec;
     sock.close(ec);
