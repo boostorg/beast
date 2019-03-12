@@ -1097,7 +1097,13 @@ operator<<(std::basic_ostream<CharT, Traits>& os,
     maximum size large enough to hold the longest possible decimal
     representation of any integer of the given type.
 */
-template<class Integer>
+template<
+    class Integer
+#ifndef BOOST_BEAST_DOXYGEN
+    ,class = typename std::enable_if<
+        std::is_integral<Integer>::value>::type
+#endif
+>
 static_string<detail::max_digits(sizeof(Integer))>
 to_static_string(Integer x);
 

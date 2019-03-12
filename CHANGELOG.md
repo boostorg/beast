@@ -2,6 +2,7 @@ Version 231:
 
 * Doc section names are stable
 * Add missing include
+* Constrain to_static_string to integers
 
 --------------------------------------------------------------------------------
 

@@ -617,7 +617,7 @@ to_static_string(Integer x, std::false_type)
 
 } // detail
 
-template<class Integer>
+template<class Integer, class>
 static_string<detail::max_digits(sizeof(Integer))>
 to_static_string(Integer x)
 {
