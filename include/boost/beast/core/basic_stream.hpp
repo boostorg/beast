@@ -294,15 +294,15 @@ private:
     template<class>
     friend class boost::asio::ssl::stream;
     // DEPRECATED
-    using lowest_layer_type = net::basic_stream_socket<Protocol>;
+    using lowest_layer_type = socket_type;
     // DEPRECATED
-    net::basic_stream_socket<Protocol>&
+    lowest_layer_type&
     lowest_layer() noexcept
     {
         return impl_->socket;
     }
     // DEPRECATED
-    net::basic_stream_socket<Protocol> const&
+    lowest_layer_type const&
     lowest_layer() const noexcept
     {
         return impl_->socket;

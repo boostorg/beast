@@ -2,6 +2,7 @@ Version 232:
 
 * Fix close_socket for net::basic_socket changes
 * Fix file_win32_write_op async initiation
+* Fix basic_stream lowest_layer for ssl
 
 --------------------------------------------------------------------------------
 
@@ -47,12 +48,6 @@ Version 228:
 * Fix includes.xsl for newer doxygen
 * Tidy up quick reference
 * SSL teardowns are in an associated namespace
-
---------------------------------------------------------------------------------
-
-Version 227:
-
-* Fix decorator for certain sizes
 
 --------------------------------------------------------------------------------
 
