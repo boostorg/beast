@@ -1,6 +1,7 @@
 Version 232:
 
 * Fix close_socket for net::basic_socket changes
+* Fix file_win32_write_op async initiation
 
 --------------------------------------------------------------------------------
 

@@ -355,6 +355,7 @@ public:
         , sock_(s)
         , sr_(sr)
     {
+        (*this)();
     }
 
     void
