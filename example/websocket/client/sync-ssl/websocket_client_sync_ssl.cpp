@@ -55,7 +55,7 @@ int main(int argc, char** argv)
         net::io_context ioc;
 
         // The SSL context is required, and holds certificates
-        ssl::context ctx{ssl::context::sslv23_client};
+        ssl::context ctx{ssl::context::tlsv12_client};
 
         // This holds the root certificate used for verification
         load_root_certificates(ctx);

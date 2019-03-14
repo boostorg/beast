@@ -255,7 +255,7 @@ net::ip::tcp::socket sock{ios};
 
 {
 //[wss_snippet_2
-    net::ssl::context ctx{net::ssl::context::sslv23};
+    net::ssl::context ctx{net::ssl::context::tlsv12};
     stream<net::ssl::stream<net::ip::tcp::socket>> wss{ios, ctx};
 //]
 }
@@ -263,7 +263,7 @@ net::ip::tcp::socket sock{ios};
 {
 //[wss_snippet_3
     net::ip::tcp::endpoint ep;
-    net::ssl::context ctx{net::ssl::context::sslv23};
+    net::ssl::context ctx{net::ssl::context::tlsv12};
     stream<net::ssl::stream<net::ip::tcp::socket>> ws{ios, ctx};
 
     // connect the underlying TCP/IP socket

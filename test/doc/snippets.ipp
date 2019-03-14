@@ -22,5 +22,5 @@ std::thread t{[&](){ ioc.run(); }};
 
 tcp::socket sock(ioc);
 
-ssl::context ctx(ssl::context::sslv23);
+ssl::context ctx(ssl::context::tlsv12);
 

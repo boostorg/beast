@@ -153,7 +153,7 @@ public:
     {
         if(ec)
             return fail(ec, "handshake");
-        
+
         // Send the message
         ws_.async_write(
             net::buffer(text_),
@@ -171,7 +171,7 @@ public:
 
         if(ec)
             return fail(ec, "write");
-        
+
         // Read a message into our buffer
         ws_.async_read(
             buffer_,
@@ -231,7 +231,7 @@ int main(int argc, char** argv)
     net::io_context ioc;
 
     // The SSL context is required, and holds certificates
-    ssl::context ctx{ssl::context::sslv23_client};
+    ssl::context ctx{ssl::context::tlsv12_client};
 
     // This holds the root certificate used for verification
     load_root_certificates(ctx);

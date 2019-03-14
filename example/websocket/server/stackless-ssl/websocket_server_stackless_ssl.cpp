@@ -69,7 +69,7 @@ public:
     }
 
     #include <boost/asio/yield.hpp>
-    
+
     void
     loop(
         beast::error_code ec,
@@ -228,7 +228,7 @@ public:
 private:
 
     #include <boost/asio/yield.hpp>
-    
+
     void
     loop(beast::error_code ec = {})
     {
@@ -280,9 +280,9 @@ int main(int argc, char* argv[])
 
     // The io_context is required for all I/O
     net::io_context ioc{threads};
-    
+
     // The SSL context is required, and holds certificates
-    ssl::context ctx{ssl::context::sslv23};
+    ssl::context ctx{ssl::context::tlsv12};
 
     // This holds the self-signed certificate used by the server
     load_server_certificate(ctx);

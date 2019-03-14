@@ -1,6 +1,7 @@
 Version 233:
 
 * Check __ANDROID__ instead
+* Use secure TLS/SSL versions
 
 --------------------------------------------------------------------------------
 

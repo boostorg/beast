@@ -19,7 +19,7 @@
 
 // VFALCO We include this because anyone who uses ssl will
 //        very likely need to check for ssl::error::stream_truncated
-#include <boost/asio/ssl/error.hpp> 
+#include <boost/asio/ssl/error.hpp>
 
 #include <boost/asio/ssl/stream.hpp>
 #include <cstddef>
@@ -34,28 +34,28 @@ namespace beast {
 
     The stream class template provides asynchronous and blocking
     stream-oriented functionality using SSL.
-    
+
     @par Thread Safety
     @e Distinct @e objects: Safe.@n
     @e Shared @e objects: Unsafe. The application must also ensure that all
     asynchronous operations are performed within the same implicit or explicit
     strand.
-    
+
     @par Example
     To use this template with a @ref tcp_stream, you would write:
     @code
         net::io_context ioc;
-        net::ssl::context ctx{net::ssl::context::sslv23};
+        net::ssl::context ctx{net::ssl::context::tlsv12};
         beast::ssl_stream<beast::tcp_stream> sock{ioc, ctx};
     @endcode
 
     In addition to providing an interface identical to `net::ssl::stream`,
     the wrapper has the following additional properties:
-    
+
     @li Satisfies @b MoveConstructible
-    
+
     @li Satisfies @b MoveAssignable
-   
+
     @li Constructible from a moved socket.
 
     @li Uses @ref flat_stream internally, as a performance work-around for a
@@ -128,16 +128,16 @@ public:
         This function may be used to obtain the underlying implementation of the
         context. This is intended to allow access to context functionality that is
         not otherwise provided.
-        
+
         @par Example
         The native_handle() function returns a pointer of type @c SSL* that is
         suitable for passing to functions such as @c SSL_get_verify_result and
         @c SSL_get_peer_certificate:
         @code
         boost::beast::ssl_stream<net::ip::tcp::socket> ss{ioc, ctx};
-        
+
         // ... establish connection and perform handshake ...
-        
+
         if (X509* cert = SSL_get_peer_certificate(ss.native_handle()))
         {
           if (SSL_get_verify_result(ss.native_handle()) == X509_V_OK)
@@ -191,11 +191,11 @@ public:
 
         This function may be used to configure the peer verification mode used by
         the stream. The new mode will override the mode inherited from the context.
-        
+
         @param v A bitmask of peer verification modes.
-        
+
         @throws boost::system::system_error Thrown on failure.
-        
+
         @note Calls @c SSL_set_verify.
     */
     void
@@ -208,12 +208,12 @@ public:
 
         This function may be used to configure the peer verification mode used by
         the stream. The new mode will override the mode inherited from the context.
-        
+
         @param v A bitmask of peer verification modes. See `verify_mode` for
         available values.
-        
+
         @param ec Set to indicate what error occurred, if any.
-        
+
         @note Calls @c SSL_set_verify.
     */
     void
@@ -227,12 +227,12 @@ public:
 
         This function may be used to configure the maximum verification depth
         allowed by the stream.
-        
+
         @param depth Maximum depth for the certificate chain verification that
         shall be allowed.
-        
+
         @throws boost::system::system_error Thrown on failure.
-        
+
         @note Calls @c SSL_set_verify_depth.
     */
     void
@@ -245,12 +245,12 @@ public:
 
         This function may be used to configure the maximum verification depth
         allowed by the stream.
-        
+
         @param depth Maximum depth for the certificate chain verification that
         shall be allowed.
-        
+
         @param ec Set to indicate what error occurred, if any.
-        
+
         @note Calls @c SSL_set_verify_depth.
     */
     void
@@ -264,7 +264,7 @@ public:
 
         This function is used to specify a callback function that will be called
         by the implementation when it needs to verify a peer certificate.
-        
+
         @param callback The function object to be used for verifying a certificate.
         The function signature of the handler must be:
         @code bool verify_callback(
@@ -273,9 +273,9 @@ public:
         ); @endcode
         The return value of the callback is true if the certificate has passed
         verification, false otherwise.
-        
+
         @throws boost::system::system_error Thrown on failure.
-        
+
         @note Calls @c SSL_set_verify.
     */
     template<class VerifyCallback>
@@ -289,7 +289,7 @@ public:
 
         This function is used to specify a callback function that will be called
         by the implementation when it needs to verify a peer certificate.
-        
+
         @param callback The function object to be used for verifying a certificate.
         The function signature of the handler must be:
         @code bool verify_callback(
@@ -298,9 +298,9 @@ public:
         ); @endcode
         The return value of the callback is true if the certificate has passed
         verification, false otherwise.
-        
+
         @param ec Set to indicate what error occurred, if any.
-        
+
         @note Calls @c SSL_set_verify.
     */
     template<class VerifyCallback>
