@@ -1,3 +1,9 @@
+Version 233:
+
+* Check __ANDROID__ instead
+
+--------------------------------------------------------------------------------
+
 Version 232:
 
 * Fix close_socket for net::basic_socket changes

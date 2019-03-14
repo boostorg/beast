@@ -24,7 +24,7 @@
 #include <limits.h>
 
 #if ! defined(BOOST_BEAST_NO_POSIX_FADVISE)
-# if defined(__APPLE__) || (defined(ANDROID) && (__ANDROID_API__ < 21))
+# if defined(__APPLE__) || (defined(__ANDROID__) && (__ANDROID_API__ < 21))
 #  define BOOST_BEAST_NO_POSIX_FADVISE
 # endif
 #endif
