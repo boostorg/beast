@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     net::io_context ioc{threads};
 
     // The SSL context is required, and holds certificates
-    ssl::context ctx{ssl::context::sslv23};
+    ssl::context ctx{ssl::context::tlsv12};
 
     // This holds the self-signed certificate used by the server
     load_server_certificate(ctx);

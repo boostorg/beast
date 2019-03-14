@@ -31,7 +31,7 @@ public:
     testTeardown()
     {
         net::io_context ioc;
-        net::ssl::context ctx(net::ssl::context::sslv23);
+        net::ssl::context ctx(net::ssl::context::tlsv12);
         Socket ss(ioc, ctx);
 
         struct handler

@@ -299,7 +299,7 @@ https_get (std::string const& host, std::string const& target, error_code& ec)
     // This context is used to hold client and server certificates.
     // We do not perform certificate verification in this example.
 
-    net::ssl::context ctx(net::ssl::context::sslv23);
+    net::ssl::context ctx(net::ssl::context::tlsv12);
 
     // This string will hold the body of the HTTP response, if any.
     std::string result;

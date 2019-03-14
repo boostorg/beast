@@ -150,7 +150,7 @@ public:
 
         if(ec)
             return fail(ec, "write");
-        
+
         // Receive the HTTP response
         http::async_read(stream_, buffer_, res_,
             beast::bind_front_handler(
@@ -220,11 +220,11 @@ int main(int argc, char** argv)
     net::io_context ioc;
 
     // The SSL context is required, and holds certificates
-    ssl::context ctx{ssl::context::sslv23_client};
+    ssl::context ctx{ssl::context::tlsv12_client};
 
     // This holds the root certificate used for verification
     load_root_certificates(ctx);
-    
+
     // Verify the remote server's certificate
     ctx.set_verify_mode(ssl::verify_peer);
 

@@ -16,6 +16,6 @@ using namespace boost::beast::websocket;
 
 net::io_context ioc;
 tcp_stream sock(ioc);
-net::ssl::context ctx(net::ssl::context::sslv23);
+net::ssl::context ctx(net::ssl::context::tlsv12);
 
 //]
