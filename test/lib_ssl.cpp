@@ -10,13 +10,6 @@
 // This file is used to build a static library with
 // asio and beast definitions, to reduce compilation time.
 
-// BOOST_ASIO_SEPARATE_COMPILATION for asio
-#include <boost/asio/impl/src.hpp>
+// BOOST_ASIO_SEPARATE_COMPILATION for asio::ssl
 
-// BOOST_BEAST_SPLIT_COMPILATION for beast
-#include <boost/beast/src.hpp>
-//#include <boost/beast/ssl/impl/src.hpp>
-
-#ifdef BOOST_BEAST_INCLUDE_TEST_MAIN
-#include <boost/beast/_experimental/unit_test/main.cpp>
-#endif
+#include <boost/asio/ssl/impl/src.hpp>

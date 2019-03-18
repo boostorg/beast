@@ -1,3 +1,9 @@
+Version 234:
+
+* Don't link to OpenSSL needlessly (bjam)
+
+--------------------------------------------------------------------------------
+
 Version 233:
 
 * Check __ANDROID__ instead

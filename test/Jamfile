@@ -24,6 +24,7 @@ project /boost/beast/test
     <define>BOOST_BEAST_ALLOW_DEPRECATED
     <define>BOOST_BEAST_TESTS
     <define>BOOST_ASIO_SEPARATE_COMPILATION
+    <library>/boost/beast//static_ssl_asio
     ;
 
 path-constant ZLIB_SOURCES :
