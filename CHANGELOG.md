@@ -1,6 +1,7 @@
 Version 234:
 
 * Don't link to OpenSSL needlessly (bjam)
+* HTTPS URLs in README.md
 
 --------------------------------------------------------------------------------
 
