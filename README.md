@@ -6,7 +6,7 @@
 Branch      | Linux/OSX | Windows | Coverage | Documentation | Matrix
 ------------|-----------|---------|----------|---------------|--------
 [master](https://github.com/boostorg/beast/tree/master)   | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=master)](https://travis-ci.org/boostorg/beast)  | [![Build status](https://ci.appveyor.com/api/projects/status/2nh66khjjhtgasvo/branch/master?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/master)   | [![codecov](https://img.shields.io/codecov/c/github/boostorg/beast/master.svg)](https://codecov.io/gh/boostorg/beast/branch/master)   | [![Documentation](https://img.shields.io/badge/documentation-master-brightgreen.svg)](http://www.boost.org/doc/libs/master/libs/beast/doc/html/index.html)  | [![Matrix](https://img.shields.io/badge/matrix-master-brightgreen.svg)](http://www.boost.org/development/tests/master/developer/beast.html)
-[develop](https://github.com/boostorg/beast/tree/develop) | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=develop)](https://travis-ci.org/boostorg/beast) | [![Build status](https://ci.appveyor.com/api/projects/status/2nh66khjjhtgasvo/branch/develop?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/develop) | [![codecov](https://img.shields.io/codecov/c/github/boostorg/beast/develop.svg)](https://codecov.io/gh/boostorg/beast/branch/develop) | [![Documentation](https://img.shields.io/badge/documentation-develop-brightgreen.svg)](http://www.boost.org/doc/libs/develop/libs/beast/index.html) | [![Matrix](https://img.shields.io/badge/matrix-develop-brightgreen.svg)](http://www.boost.org/development/tests/develop/developer/beast.html)
+[develop](https://github.com/boostorg/beast/tree/develop) | [![Build Status](https://travis-ci.org/boostorg/beast.svg?branch=develop)](https://travis-ci.org/boostorg/beast) | [![Build status](https://ci.appveyor.com/api/projects/status/2nh66khjjhtgasvo/branch/develop?svg=true)](https://ci.appveyor.com/project/vinniefalco/beast/branch/develop) | [![codecov](https://img.shields.io/codecov/c/github/boostorg/beast/develop.svg)](https://codecov.io/gh/boostorg/beast/branch/develop) | [![Documentation](https://img.shields.io/badge/documentation-develop-brightgreen.svg)](https://www.boost.org/doc/libs/develop/libs/beast/index.html) | [![Matrix](https://img.shields.io/badge/matrix-develop-brightgreen.svg)](https://www.boost.org/development/tests/develop/developer/beast.html)
 
 ## Contents
 
@@ -58,7 +58,7 @@ may change in response to user feedback. For recent changes
 see the [CHANGELOG](CHANGELOG.md).
 
 * [Official Site](https://github.com/boostorg/beast)
-* [Documentation](http://www.boost.org/doc/libs/master/libs/beast/) (master branch)
+* [Documentation](https://www.boost.org/doc/libs/master/libs/beast/) (master branch)
 * [Autobahn|Testsuite WebSocket Results](https://vinniefalco.github.io/boost/beast/reports/autobahn/index.html)
 
 ## Requirements
@@ -220,13 +220,13 @@ The files in the repository are laid out thusly:
 These examples are complete, self-contained programs that you can build
 and run yourself (they are in the `example` directory).
 
-http://www.boost.org/doc/libs/develop/libs/beast/doc/html/beast/quick_start.html
+https://www.boost.org/doc/libs/develop/libs/beast/doc/html/beast/quick_start.html
 
 ## License
 
 Distributed under the Boost Software License, Version 1.0.
 (See accompanying file [LICENSE_1_0.txt](LICENSE_1_0.txt) or copy at
-http://www.boost.org/LICENSE_1_0.txt)
+https://www.boost.org/LICENSE_1_0.txt)
 
 ## Contact
 
