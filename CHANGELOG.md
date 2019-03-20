@@ -1,3 +1,9 @@
+Version 235:
+
+* Fix self-assignment warning in buffer test
+
+--------------------------------------------------------------------------------
+
 Version 234:
 
 * Don't link to OpenSSL needlessly (bjam)
