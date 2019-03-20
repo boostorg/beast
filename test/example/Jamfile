@@ -15,6 +15,6 @@ alias fat-tests ;
 
 explicit fat-tests ;
 
-run $(TEST_MAIN) $(SOURCES) : : : : run-fat-tests ;
+alias run-fat-tests : common//run-tests ;
 
 explicit run-fat-tests ;
