@@ -1,6 +1,7 @@
 Version 235:
 
 * Fix self-assignment warning in buffer test
+* Jamfile cleanup
 
 --------------------------------------------------------------------------------
 
