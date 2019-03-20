@@ -10,6 +10,12 @@
 import testing ;
 import ../../config/checks/config : requires ;
 
+lib test_main
+    : $(TEST_MAIN)
+    : requirements
+
+    ;
+
 project /boost/beast/test
     : requirements
     [ requires
@@ -23,8 +29,10 @@ project /boost/beast/test
     <include>./extern
     <define>BOOST_BEAST_ALLOW_DEPRECATED
     <define>BOOST_BEAST_TESTS
-    <define>BOOST_ASIO_SEPARATE_COMPILATION
-    <library>/boost/beast//static_ssl_asio
+    <library>/boost/beast//static_ssl_asio/<link>static
+    <library>/boost/beast/test//test_main/<link>static
+    <library>/boost/filesystem//boost_filesystem
+    <library>/boost/coroutine//boost_coroutine
     ;
 
 path-constant ZLIB_SOURCES :
