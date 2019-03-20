@@ -18,15 +18,15 @@ local RUN_TESTS ;
 
 for local f in $(SOURCES)
 {
-    RUN_TESTS += [ run $(f) $(TEST_MAIN) $(ZLIB_SOURCES) ] ;
+    RUN_TESTS += [ run $(f)  $(ZLIB_SOURCES) ] ;
 }
 
 alias run-tests : $(RUN_TESTS) ;
 
-exe fat-tests : $(TEST_MAIN) $(ZLIB_SOURCES) $(SOURCES) ;
+exe fat-tests :  $(ZLIB_SOURCES) $(SOURCES) ;
 
 explicit fat-tests ;
 
-run $(TEST_MAIN) $(ZLIB_SOURCES) $(SOURCES) : : : : run-fat-tests ;
+run  $(ZLIB_SOURCES) $(SOURCES) : : : : run-fat-tests ;
 
 explicit run-fat-tests ;

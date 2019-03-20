@@ -12,4 +12,5 @@ exe echo-op :
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
+    <library>/boost/beast//static_beast/<link>static
     ;

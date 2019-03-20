@@ -8,7 +8,7 @@
 #
 
 exe bench-buffers :
-    $(TEST_MAIN)
+
     bench_buffers.cpp
     ;
 

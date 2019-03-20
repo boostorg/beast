@@ -12,4 +12,6 @@ exe http-server-coro :
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
+    <library>/boost/beast//static_beast/<link>static
+    <library>/boost/coroutine//boost_coroutine
     ;

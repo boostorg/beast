@@ -9,7 +9,7 @@
 
 exe bench-zlib :
     $(ZLIB_SOURCES)
-    $(TEST_MAIN)
+
     deflate_stream.cpp
     inflate_stream.cpp
     ;

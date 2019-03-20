@@ -8,7 +8,7 @@
 #
 
 exe bench-utf8-checker :
-    $(TEST_MAIN)
+
     bench_utf8_checker.cpp
     ;
 
