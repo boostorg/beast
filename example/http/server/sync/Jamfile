@@ -12,4 +12,5 @@ exe http-server-sync :
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
+    <library>/boost/beast//static_ssl_asio/<link>static
     ;

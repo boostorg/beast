@@ -36,15 +36,15 @@ local RUN_TESTS ;
 
 for local f in $(SOURCES)
 {
-    RUN_TESTS += [ run $(f) $(TEST_MAIN) ] ;
+    RUN_TESTS += [ run $(f)  ] ;
 }
 
 alias run-tests : $(RUN_TESTS) ;
 
-exe fat-tests : $(TEST_MAIN) $(SOURCES) ;
+exe fat-tests :  $(SOURCES) ;
 
 explicit fat-tests ;
 
-run $(TEST_MAIN) $(SOURCES) : : : : run-fat-tests ;
+run  $(SOURCES) : : : : run-fat-tests ;
 
 explicit run-fat-tests ;

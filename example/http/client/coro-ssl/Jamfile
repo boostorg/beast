@@ -11,7 +11,7 @@ import ac ;
 
 project
     : requirements
-        [ ac.check-library /boost/beast//static_ssl_asio : <library>/boost/beast//static_ssl_asio : <build>no ]
+        [ ac.check-library /boost/beast//static_ssl_asio : <library>/boost/beast//static_ssl_asio/<link>static : <build>no ]
     ;
 
 exe http-client-coro-ssl :
@@ -19,4 +19,5 @@ exe http-client-coro-ssl :
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
+    <library>/boost/coroutine//boost_coroutine
     ;
