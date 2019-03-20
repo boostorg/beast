@@ -417,7 +417,7 @@ test_dynamic_buffer(
                 buffers_to_string(b2.data()));
 
             // self assignment
-            b2 = b2;
+            b2 = *&b2;
             BEAST_EXPECT(b2.size() == b1.size());
             BEAST_EXPECT(
                 buffers_to_string(b2.data()) ==
