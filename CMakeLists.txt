@@ -10,7 +10,7 @@
 cmake_minimum_required (VERSION 3.5.1)
 cmake_policy (SET CMP0074 NEW)
 
-project (Beast VERSION 235)
+project (Beast VERSION 236)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
