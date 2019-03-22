@@ -12,14 +12,11 @@
 
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/string.hpp>
-#include <boost/beast/core/detail/cpu_info.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/detail/rfc7230.hpp>
 #include <boost/config.hpp>
 #include <boost/version.hpp>
-#include <algorithm>
 #include <cstddef>
-#include <limits>
 #include <utility>
 
 namespace boost {
@@ -34,12 +31,6 @@ struct basic_parser_base
     // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
     //
     static std::size_t constexpr max_obs_fold = 4096;
-
-    template<class T>
-    struct is_unsigned_integer:
-        std::integral_constant<bool,
-            std::numeric_limits<T>::is_integer &&
-            ! std::numeric_limits<T>::is_signed> {};
 
     enum class state
     {
@@ -70,35 +61,16 @@ struct basic_parser_base
         return static_cast<unsigned char>(c-32) < 95;
     }
 
-    template<class FwdIt>
+    BOOST_BEAST_DECL
     static
-    FwdIt
-    trim_front(FwdIt it, FwdIt const& end)
-    {
-        while(it != end)
-        {
-            if(*it != ' ' && *it != '\t')
-                break;
-            ++it;
-        }
-        return it;
-    }
+    char const*
+    trim_front(char const* it, char const* end);
 
-    template<class RanIt>
+    BOOST_BEAST_DECL
     static
-    RanIt
+    char const*
     trim_back(
-        RanIt it, RanIt const& first)
-    {
-        while(it != first)
-        {
-            auto const c = it[-1];
-            if(c != ' ' && c != '\t')
-                break;
-            --it;
-        }
-        return it;
-    }
+        char const* it, char const* first);
 
     static
     string_view
@@ -152,52 +124,15 @@ struct basic_parser_base
         char const*& token_last,
         error_code& ec);
 
-    template<class Iter, class T>
+    BOOST_BEAST_DECL
     static
-    typename std::enable_if<is_unsigned_integer<T>::value, bool>::type
-    parse_dec(Iter it, Iter last, T& v)
-    {
-        if(it == last)
-            return false;
-        T tmp = 0;
-        do
-        {
-            if((! is_digit(*it)) ||
-                tmp > (std::numeric_limits<T>::max)() / 10)
-                return false;
-            tmp *= 10;
-            T const d = *it - '0';
-            if((std::numeric_limits<T>::max)() - tmp < d)
-                return false;
-            tmp += d;
-        }
-        while(++it != last);
-        v = tmp;
-        return true;
-    }
+    bool
+    parse_dec(char const* it, char const* last, std::uint64_t& v);
 
-    template<class Iter, class T>
+    BOOST_BEAST_DECL
     static
-    typename std::enable_if<is_unsigned_integer<T>::value, bool>::type
-    parse_hex(Iter& it, T& v)
-    {
-        unsigned char d;
-        if(! unhex(d, *it))
-            return false;
-        T tmp = 0;
-        do
-        {
-            if(tmp > (std::numeric_limits<T>::max)() / 16)
-                return false;
-            tmp *= 16;
-            if((std::numeric_limits<T>::max)() - tmp < d)
-                return false;
-            tmp += d;
-        }
-        while(unhex(d, *++it));
-        v = tmp;
-        return true;
-    }
+    bool
+    parse_hex(char const*& it, std::uint64_t& v);
 
     BOOST_BEAST_DECL
     static
@@ -231,7 +166,7 @@ struct basic_parser_base
     parse_status(
         char const*& it, char const* last,
         unsigned short& result, error_code& ec);
-    
+
     BOOST_BEAST_DECL
     static
     void

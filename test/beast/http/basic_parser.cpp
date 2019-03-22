@@ -828,7 +828,7 @@ public:
     {
         {
             multi_buffer b;
-            ostream(b) << 
+            ostream(b) <<
                 "POST / HTTP/1.1\r\n"
                 "Content-Length: 2\r\n"
                 "\r\n"
@@ -842,7 +842,7 @@ public:
         }
         {
             multi_buffer b;
-            ostream(b) << 
+            ostream(b) <<
                 "POST / HTTP/1.1\r\n"
                 "Content-Length: 2\r\n"
                 "\r\n"
@@ -856,7 +856,7 @@ public:
         }
         {
             multi_buffer b;
-            ostream(b) << 
+            ostream(b) <<
                 "HTTP/1.1 200 OK\r\n"
                 "\r\n"
                 "**";
@@ -869,7 +869,7 @@ public:
         }
         {
             multi_buffer b;
-            ostream(b) << 
+            ostream(b) <<
                 "POST / HTTP/1.1\r\n"
                 "Transfer-Encoding: chunked\r\n"
                 "\r\n"
@@ -1221,7 +1221,7 @@ public:
         auto const good =
             [&](string_view s, std::uint32_t v0)
             {
-                std::uint32_t v;
+                std::uint64_t v;
                 auto const result =
                     base::parse_dec(s.begin(), s.end(), v);
                 if(BEAST_EXPECTS(result, s))
@@ -1230,7 +1230,7 @@ public:
         auto const bad =
             [&](string_view s)
             {
-                std::uint32_t v;
+                std::uint64_t v;
                 auto const result =
                     base::parse_dec(s.begin(), s.end(), v);
                 BEAST_EXPECTS(! result, s);
@@ -1247,7 +1247,7 @@ public:
         bad (" 0");
         bad ("0 ");
         bad ("-1");
-        bad ("4294967296");
+        bad ("18446744073709551616"); // max(uint64) + 1
     }
 
     void
