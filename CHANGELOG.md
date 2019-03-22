@@ -1,3 +1,9 @@
+Version 236:
+
+* root_certificates.hpp: brought in the server certificate
+
+--------------------------------------------------------------------------------
+
 Version 235:
 
 * Fix self-assignment warning in buffer test
