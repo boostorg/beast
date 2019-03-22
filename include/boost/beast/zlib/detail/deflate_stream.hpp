@@ -43,7 +43,6 @@
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/make_unique.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <cstdint>
@@ -607,12 +606,12 @@ protected:
     Unsigned
     bi_reverse(Unsigned code, unsigned len);
 
-    BOOST_BEAST_DECL 
+    BOOST_BEAST_DECL
     static
     void
     gen_codes(ct_data *tree, int max_code, std::uint16_t *bl_count);
 
-    BOOST_BEAST_DECL 
+    BOOST_BEAST_DECL
     static
     lut_type const&
     get_lut();

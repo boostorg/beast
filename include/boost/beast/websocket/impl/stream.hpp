@@ -31,7 +31,6 @@
 #include <boost/assert.hpp>
 #include <boost/endian/buffers.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/make_unique.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <chrono>

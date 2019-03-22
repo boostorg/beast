@@ -27,13 +27,13 @@ struct chunk_extensions
     virtual ~chunk_extensions() = default;
     virtual net::const_buffer str() = 0;
 };
-    
+
 template<class ChunkExtensions>
 struct chunk_extensions_impl : chunk_extensions
 {
     ChunkExtensions ext_;
 
-    chunk_extensions_impl(ChunkExtensions&& ext)
+    chunk_extensions_impl(ChunkExtensions&& ext) noexcept
         : ext_(std::move(ext))
     {
     }
@@ -160,7 +160,7 @@ struct chunk_crlf_iter_type
     class value_type
     {
         char const s[2] = {'\r', '\n'};
-        
+
     public:
         value_type() = default;
 

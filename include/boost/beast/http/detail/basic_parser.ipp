@@ -11,11 +11,40 @@
 #define BOOST_BEAST_HTTP_DETAIL_BASIC_PARSER_IPP
 
 #include <boost/beast/http/detail/basic_parser.hpp>
+#include <limits>
 
 namespace boost {
 namespace beast {
 namespace http {
 namespace detail {
+
+char const*
+basic_parser_base::
+trim_front(char const* it, char const* end)
+{
+    while(it != end)
+    {
+        if(*it != ' ' && *it != '\t')
+            break;
+        ++it;
+    }
+    return it;
+}
+
+char const*
+basic_parser_base::
+trim_back(
+    char const* it, char const* first)
+{
+    while(it != first)
+    {
+        auto const c = it[-1];
+        if(c != ' ' && c != '\t')
+            break;
+        --it;
+    }
+    return it;
+}
 
 bool
 basic_parser_base::
@@ -121,6 +150,51 @@ find_eol(
         // for lines terminated with a single '\n'?
         ++it;
     }
+}
+
+bool
+basic_parser_base::
+parse_dec(char const* it, char const* last, std::uint64_t& v)
+{
+    if(it == last)
+        return false;
+    std::uint64_t tmp = 0;
+    do
+    {
+        if((! is_digit(*it)) ||
+            tmp > (std::numeric_limits<std::uint64_t>::max)() / 10)
+            return false;
+        tmp *= 10;
+        std::uint64_t const d = *it - '0';
+        if((std::numeric_limits<std::uint64_t>::max)() - tmp < d)
+            return false;
+        tmp += d;
+    }
+    while(++it != last);
+    v = tmp;
+    return true;
+}
+
+bool
+basic_parser_base::
+parse_hex(char const*& it, std::uint64_t& v)
+{
+    unsigned char d;
+    if(! unhex(d, *it))
+        return false;
+    std::uint64_t tmp = 0;
+    do
+    {
+        if(tmp > (std::numeric_limits<std::uint64_t>::max)() / 16)
+            return false;
+        tmp *= 16;
+        if((std::numeric_limits<std::uint64_t>::max)() - tmp < d)
+            return false;
+        tmp += d;
+    }
+    while(unhex(d, *++it));
+    v = tmp;
+    return true;
 }
 
 char const*
@@ -388,7 +462,7 @@ parse_status(
         return;
     }
 }
-    
+
 void
 basic_parser_base::
 parse_reason(

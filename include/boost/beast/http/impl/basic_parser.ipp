@@ -18,7 +18,6 @@
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/make_unique.hpp>
 #include <algorithm>
 #include <utility>
 

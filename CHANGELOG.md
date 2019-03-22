@@ -1,3 +1,9 @@
+Version 239:
+
+* More split compilation in HTTP
+
+--------------------------------------------------------------------------------
+
 Version 238:
 
 * Refactor Jamfiles to work with release layout
