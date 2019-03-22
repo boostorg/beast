@@ -51,8 +51,9 @@ variant beast_ubasan
 
 path-constant TEST_MAIN : include/boost/beast/_experimental/unit_test/main.cpp ;
 
-project /boost/beast
-  : requirements
+project /boost/beast ;
+
+local defines =
     [ requires
     cxx11_constexpr
     cxx11_decltype
@@ -60,9 +61,8 @@ project /boost/beast
     cxx11_template_aliases
     cxx11_variadic_templates
     ]
-    <include>.
-    <include>./test/extras/include
     <implicit-dependency>/boost//headers
+    <include>.
     <define>BOOST_ALL_NO_LIB=1
     <define>BOOST_BEAST_SPLIT_COMPILATION
     <define>BOOST_ASIO_SEPARATE_COMPILATION
@@ -87,8 +87,6 @@ project /boost/beast
     <target-os>solaris:<library>socket
     <target-os>solaris:<library>nsl
     <target-os>windows:<define>_WIN32_WINNT=0x0601
-    <target-os>windows,<toolset>cw:<library>ws2_32
-    <target-os>windows,<toolset>cw:<library>mswsock
     <target-os>windows,<toolset>gcc:<library>ws2_32
     <target-os>windows,<toolset>gcc:<library>mswsock
     <target-os>windows,<toolset>gcc-cygwin:<define>__USE_W32_SOCKETS
@@ -96,11 +94,16 @@ project /boost/beast
     <target-os>hpux:<library>ipv6
     <target-os>qnxnto:<library>socket
     <target-os>haiku:<library>network
-  : usage-requirements
-  ;
+    ;
 
 lib static_beast
     : test/lib_beast.cpp
+    : requirements
+    $(defines)
+    <include>./test/extras/include
+    : usage-requirements
+    $(defines)
+    <include>./test/extras/include
     ;
 
 lib static_ssl_asio
@@ -109,4 +112,5 @@ lib static_ssl_asio
         <library>/boost/beast//static_beast/<link>static
         [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl/<link>shared : <build>no ]
         [ ac.check-library /boost/beast//crypto : <library>/boost/beast//crypto/<link>shared : <build>no ]
+    : usage-requirements
     ;
