@@ -1,3 +1,9 @@
+Version 237:
+
+* cmake: Use static libs to speed up builds
+
+--------------------------------------------------------------------------------
+
 Version 236:
 
 * root_certificates.hpp: brought in the server certificate

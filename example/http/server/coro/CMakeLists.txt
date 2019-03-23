@@ -16,4 +16,8 @@ add_executable (http-server-coro
     http_server_coro.cpp
 )
 
+target_link_libraries(http-server-coro
+    lib-asio
+    lib-beast)
+
 set_property(TARGET http-server-coro PROPERTY FOLDER "example-http-server")

@@ -8,15 +8,18 @@
 #
 
 GroupSources (include/boost/beast beast)
-GroupSources (test/extras/include/boost/beast extras)
 GroupSources (test/bench/utf8_checker "/")
 
 add_executable (bench-utf8-checker
     ${BOOST_BEAST_FILES}
-    ${EXTRAS_FILES}
-    ${TEST_MAIN}
     Jamfile
     bench_utf8_checker.cpp
 )
+
+target_link_libraries(bench-utf8-checker
+    lib-asio
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET bench-utf8-checker PROPERTY FOLDER "tests-bench")

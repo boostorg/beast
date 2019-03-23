@@ -97,7 +97,7 @@ local defines =
     ;
 
 lib static_beast
-    : test/lib_beast.cpp
+    : test/_lib_beast.cpp
     : requirements
     $(defines)
     <include>./test/extras/include
@@ -107,7 +107,7 @@ lib static_beast
     ;
 
 lib static_ssl_asio
-    : test/lib_ssl.cpp
+    : test/_lib_ssl.cpp
     : requirements
         <library>/boost/beast//static_beast/<link>static
         [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl/<link>shared : <build>no ]

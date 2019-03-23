@@ -16,4 +16,8 @@ add_executable (websocket-client-sync
     websocket_client_sync.cpp
 )
 
+target_link_libraries(websocket-client-sync
+    lib-asio
+    lib-beast)
+
 set_property(TARGET websocket-client-sync PROPERTY FOLDER "example-websocket-client")

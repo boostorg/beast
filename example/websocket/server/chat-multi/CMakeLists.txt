@@ -8,7 +8,7 @@
 #
 
 GroupSources(include/boost/beast beast)
-GroupSources(example/cppcon2018 "/")
+GroupSources(example/websocket/server/chat-multi "/")
 
 file (GLOB APP_FILES
   beast.hpp
@@ -33,5 +33,9 @@ add_executable (websocket-chat-multi
     ${APP_FILES}
     ${BOOST_BEAST_FILES}
 )
+
+target_link_libraries(websocket-chat-multi
+    lib-asio
+    lib-beast)
 
 set_property(TARGET websocket-chat-multi PROPERTY FOLDER "example-websocket-server")

@@ -16,4 +16,9 @@ add_executable (http-server-async
     http_server_async.cpp
 )
 
+target_link_libraries(http-server-async
+    lib-asio
+    lib-asio-ssl
+    lib-beast)
+
 set_property(TARGET http-server-async PROPERTY FOLDER "example-http-server")

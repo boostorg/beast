@@ -16,4 +16,8 @@ add_executable (http-server-stackless
     http_server_stackless.cpp
 )
 
+target_link_libraries(http-server-stackless
+    lib-asio
+    lib-beast)
+
 set_property(TARGET http-server-stackless PROPERTY FOLDER "example-http-server")

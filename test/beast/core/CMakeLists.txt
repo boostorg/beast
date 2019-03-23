@@ -8,13 +8,10 @@
 #
 
 GroupSources (include/boost/beast beast)
-GroupSources (test/extras/include/boost/beast extras)
 GroupSources (test/beast/core "/")
 
 add_executable (tests-beast-core
     ${BOOST_BEAST_FILES}
-    ${EXTRAS_FILES}
-    ${TEST_MAIN}
     Jamfile
     test_buffer.hpp
     file_test.hpp
@@ -68,5 +65,12 @@ add_executable (tests-beast-core
     string_param.cpp
     tcp_stream.cpp
 )
+
+target_link_libraries(tests-beast-core
+    lib-asio
+    lib-asio-ssl
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")

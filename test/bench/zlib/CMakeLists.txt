@@ -8,7 +8,6 @@
 #
 
 GroupSources (include/boost/beast beast)
-GroupSources (test/extras/include/boost/beast extras)
 GroupSources (test/extern/zlib-1.2.11 zlib)
 GroupSources (test/bench/zlib "/")
 
@@ -18,12 +17,15 @@ endif()
 
 add_executable (bench-zlib
     ${BOOST_BEAST_FILES}
-    ${EXTRAS_FILES}
     ${ZLIB_SOURCES}
-    ${TEST_MAIN}
     Jamfile
     deflate_stream.cpp
     inflate_stream.cpp
 )
+target_link_libraries(bench-zlib
+    lib-asio
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET bench-zlib PROPERTY FOLDER "tests-bench")

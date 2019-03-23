@@ -16,4 +16,8 @@ add_executable (websocket-server-async
     websocket_server_async.cpp
 )
 
+target_link_libraries(websocket-server-async
+    lib-asio
+    lib-beast)
+
 set_property(TARGET websocket-server-async PROPERTY FOLDER "example-websocket-server")

@@ -8,8 +8,9 @@
 #
 
 add_definitions (-DBOOST_BEAST_ALLOW_DEPRECATED)
-add_definitions (-DBOOST_BEAST_TESTS)
 
+# For buffers_cat
+add_definitions (-DBOOST_BEAST_TESTS)
 
 add_subdirectory (_experimental)
 add_subdirectory (core)
@@ -21,13 +22,11 @@ add_subdirectory (zlib)
 #-------------------------------------------------------------------------------
 
 GroupSources (include/boost/beast beast)
-GroupSources (test/extras/include/boost/beast extras)
 GroupSources (test/beast "/")
 
 add_executable (tests-beast
     ${BOOST_BEAST_FILES}
     ${EXTRAS_FILES}
-    ${TEST_MAIN}
     Jamfile
     core.cpp
     http.cpp
@@ -36,5 +35,11 @@ add_executable (tests-beast
     websocket.cpp
     zlib.cpp
 )
+
+target_link_libraries(tests-beast
+    lib-asio
+    lib-asio-ssl
+    lib-beast
+    lib-test)
 
 set_property(TARGET tests-beast PROPERTY FOLDER "tests")

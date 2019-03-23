@@ -19,4 +19,8 @@ add_executable (http-server-fast
     http_server_fast.cpp
 )
 
+target_link_libraries(http-server-fast
+    lib-asio
+    lib-beast)
+
 set_property(TARGET http-server-fast PROPERTY FOLDER "example-http-server")

@@ -10,6 +10,33 @@
 cmake_minimum_required (VERSION 3.5.1)
 cmake_policy (SET CMP0074 NEW)
 
+#-------------------------------------------------------------------------------
+
+function (DoGroupSources curdir rootdir folder)
+    file (GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir} ${PROJECT_SOURCE_DIR}/${curdir}/*)
+    foreach (child ${children})
+        if (IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curdir}/${child})
+            DoGroupSources (${curdir}/${child} ${rootdir} ${folder})
+        elseif (${child} STREQUAL "CMakeLists.txt")
+            source_group("" FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
+        else()
+            string (REGEX REPLACE ^${rootdir} ${folder} groupname ${curdir})
+            string (REPLACE "/" "\\" groupname ${groupname})
+            source_group (${groupname} FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
+        endif()
+    endforeach()
+endfunction()
+
+function (GroupSources curdir folder)
+    DoGroupSources (${curdir} ${curdir} ${folder})
+endfunction()
+
+#-------------------------------------------------------------------------------
+#
+# Beast
+#
+#-------------------------------------------------------------------------------
+
 project (Beast VERSION 236)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
@@ -71,8 +98,26 @@ include_directories (include)
 
 #-------------------------------------------------------------------------------
 #
+# OpenSSL
+#
+#-------------------------------------------------------------------------------
+
+if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
+  find_program(HOMEBREW brew)
+  if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
+    execute_process(COMMAND brew --prefix openssl
+      OUTPUT_VARIABLE OPENSSL_ROOT_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+endif()
+
+find_package(OpenSSL)
+
+#-------------------------------------------------------------------------------
+#
 # Boost
 #
+#-------------------------------------------------------------------------------
 
 get_filename_component (BOOST_ROOT ../../ ABSOLUTE)
 
@@ -93,44 +138,6 @@ link_directories(${BOOST_ROOT}/stage/lib)
 if (MINGW)
     link_libraries(ws2_32 mswsock)
 endif()
-
-#-------------------------------------------------------------------------------
-#
-# OpenSSL
-#
-
-if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
-  find_program(HOMEBREW brew)
-  if (NOT HOMEBREW STREQUAL "HOMEBREW-NOTFOUND")
-    execute_process(COMMAND brew --prefix openssl
-      OUTPUT_VARIABLE OPENSSL_ROOT_DIR
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
-endif()
-
-find_package(OpenSSL)
-
-#
-#-------------------------------------------------------------------------------
-
-function (DoGroupSources curdir rootdir folder)
-    file (GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir} ${PROJECT_SOURCE_DIR}/${curdir}/*)
-    foreach (child ${children})
-        if (IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curdir}/${child})
-            DoGroupSources (${curdir}/${child} ${rootdir} ${folder})
-        elseif (${child} STREQUAL "CMakeLists.txt")
-            source_group("" FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
-        else()
-            string (REGEX REPLACE ^${rootdir} ${folder} groupname ${curdir})
-            string (REPLACE "/" "\\" groupname ${groupname})
-            source_group (${groupname} FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
-        endif()
-    endforeach()
-endfunction()
-
-function (GroupSources curdir folder)
-    DoGroupSources (${curdir} ${curdir} ${folder})
-endfunction()
 
 #-------------------------------------------------------------------------------
 
@@ -158,6 +165,40 @@ elseif ("${VARIANT}" STREQUAL "release")
     set (CMAKE_BUILD_TYPE RELEASE)
 
 endif()
+
+#-------------------------------------------------------------------------------
+#
+# Static Libraries
+#
+#-------------------------------------------------------------------------------
+
+add_definitions (-DBOOST_ASIO_SEPARATE_COMPILATION=1)
+add_definitions (-DBOOST_BEAST_SPLIT_COMPILATION=1)
+
+GroupSources (test "/")
+
+add_library (
+    lib-asio STATIC
+    test/lib_asio.cpp
+)
+
+set_property(TARGET lib-asio PROPERTY FOLDER "static-libs")
+
+add_library (
+    lib-asio-ssl STATIC
+    test/lib_asio_ssl.cpp
+)
+
+set_property(TARGET lib-asio-ssl PROPERTY FOLDER "static-libs")
+
+add_library (
+    lib-beast STATIC
+    test/lib_beast.cpp
+)
+
+set_property(TARGET lib-beast PROPERTY FOLDER "static-libs")
+
+target_link_libraries(lib-asio lib-beast)
 
 #-------------------------------------------------------------------------------
 #

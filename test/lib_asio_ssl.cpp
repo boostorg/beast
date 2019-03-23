@@ -9,4 +9,4 @@
 
 // This file is used to build a static library
 
-#include <boost/beast/src.hpp>
+#include <boost/asio/ssl/impl/src.hpp>

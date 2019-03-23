@@ -16,10 +16,16 @@ add_executable (tests-example-common
     ${BOOST_BEAST_FILES}
     ${COMMON_FILES}
     ${EXTRAS_FILES}
-    ${TEST_MAIN}
     Jamfile
     root_certificates.cpp
     server_certificate.cpp
 )
+
+target_link_libraries(tests-example-common
+    lib-asio
+    lib-asio-ssl
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET tests-example-common PROPERTY FOLDER "tests")

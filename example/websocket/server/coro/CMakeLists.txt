@@ -16,4 +16,8 @@ add_executable (websocket-server-coro
     websocket_server_coro.cpp
 )
 
+target_link_libraries(websocket-server-coro
+    lib-asio
+    lib-beast)
+
 set_property(TARGET websocket-server-coro PROPERTY FOLDER "example-websocket-server")

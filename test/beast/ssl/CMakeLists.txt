@@ -12,9 +12,15 @@ GroupSources (test/beast/ssl "/")
 
 add_executable (tests-beast-ssl
     ${BOOST_BEAST_FILES}
-    ${TEST_MAIN}
     Jamfile
     ssl_stream.cpp
 )
+
+target_link_libraries(tests-beast-ssl
+    lib-asio
+    lib-asio-ssl
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET tests-beast-ssl PROPERTY FOLDER "tests")

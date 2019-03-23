@@ -14,7 +14,6 @@ GroupSources (test/beast/http "/")
 add_executable (tests-beast-http
     ${BOOST_BEAST_FILES}
     ${EXTRAS_FILES}
-    ${TEST_MAIN}
     Jamfile
     message_fuzz.hpp
     test_parser.hpp
@@ -42,5 +41,12 @@ add_executable (tests-beast-http
     verb.cpp
     write.cpp
 )
+
+target_link_libraries(tests-beast-http
+    lib-asio
+    lib-asio-ssl
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET tests-beast-http PROPERTY FOLDER "tests")

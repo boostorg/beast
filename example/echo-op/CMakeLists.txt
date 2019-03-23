@@ -16,4 +16,8 @@ add_executable (echo-op
     echo_op.cpp
 )
 
+target_link_libraries(echo-op
+    lib-asio
+    lib-beast)
+
 set_property(TARGET echo-op PROPERTY FOLDER "example")

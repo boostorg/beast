@@ -16,4 +16,9 @@ add_executable (http-server-sync
     http_server_sync.cpp
 )
 
+target_link_libraries(http-server-sync
+    lib-asio
+    lib-asio-ssl
+    lib-beast)
+
 set_property(TARGET http-server-sync PROPERTY FOLDER "example-http-server")

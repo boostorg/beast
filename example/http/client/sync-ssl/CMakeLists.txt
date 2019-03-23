@@ -23,6 +23,9 @@ if (OPENSSL_FOUND)
 
     target_link_libraries (http-client-sync-ssl
         OpenSSL::SSL OpenSSL::Crypto
+        lib-asio
+        lib-asio-ssl
+        lib-beast
         )
 
 endif()

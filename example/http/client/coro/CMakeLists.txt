@@ -16,4 +16,8 @@ add_executable (http-client-coro
     http_client_coro.cpp
     )
 
+target_link_libraries(http-client-coro
+    lib-asio
+    lib-beast)
+
 set_property(TARGET http-client-coro PROPERTY FOLDER "example-http-client")

@@ -8,7 +8,6 @@
 #
 
 GroupSources (include/boost/beast beast)
-GroupSources (test/extras/include/boost/beast extras)
 GroupSources (test/extern/zlib-1.2.11 zlib)
 GroupSources (test/beast/zlib "/")
 
@@ -18,14 +17,18 @@ endif()
 
 add_executable (tests-beast-zlib
     ${BOOST_BEAST_FILES}
-    ${EXTRAS_FILES}
     ${ZLIB_SOURCES}
-    ${TEST_MAIN}
     Jamfile
     error.cpp
     deflate_stream.cpp
     inflate_stream.cpp
     zlib.cpp
 )
+
+target_link_libraries(tests-beast-zlib
+    lib-asio
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET tests-beast-zlib PROPERTY FOLDER "tests")

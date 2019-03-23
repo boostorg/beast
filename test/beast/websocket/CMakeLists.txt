@@ -14,7 +14,6 @@ GroupSources (test/beast/websocket "/")
 add_executable (tests-beast-websocket
     ${BOOST_BEAST_FILES}
     ${EXTRAS_FILES}
-    ${TEST_MAIN}
     Jamfile
     _detail_decorator.cpp
     _detail_prng.cpp
@@ -42,5 +41,12 @@ add_executable (tests-beast-websocket
     utf8_checker.cpp
     write.cpp
 )
+
+target_link_libraries(tests-beast-websocket
+    lib-asio
+    lib-asio-ssl
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET tests-beast-websocket PROPERTY FOLDER "tests")

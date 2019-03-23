@@ -16,4 +16,8 @@ add_executable (websocket-server-stackless
     websocket_server_stackless.cpp
 )
 
+target_link_libraries(websocket-server-stackless
+    lib-asio
+    lib-beast)
+
 set_property(TARGET websocket-server-stackless PROPERTY FOLDER "example-websocket-server")

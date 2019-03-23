@@ -16,4 +16,8 @@ add_executable (http-client-async
     http_client_async.cpp
 )
 
+target_link_libraries(http-client-async
+    lib-asio
+    lib-beast)
+
 set_property(TARGET http-client-async PROPERTY FOLDER "example-http-client")

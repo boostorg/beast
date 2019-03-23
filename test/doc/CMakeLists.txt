@@ -9,13 +9,10 @@
 
 GroupSources (include/boost/beast beast)
 GroupSources (example example)
-GroupSources (test/extras/include/boost/beast extras)
 GroupSources (test/doc "/")
 
 add_executable (tests-doc
     ${BOOST_BEAST_FILES}
-    ${EXTRAS_FILES}
-    ${TEST_MAIN}
     Jamfile
     snippets.hpp
     snippets.ipp
@@ -38,5 +35,12 @@ add_executable (tests-doc
     websocket_8_notes.cpp
     exemplars.cpp
 )
+
+target_link_libraries(tests-doc
+    lib-asio
+    lib-asio-ssl
+    lib-beast
+    lib-test
+    )
 
 set_property(TARGET tests-doc PROPERTY FOLDER "tests")

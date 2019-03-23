@@ -13,6 +13,7 @@ include_directories (./extras/include)
 file (GLOB_RECURSE EXTRAS_FILES
     ${PROJECT_SOURCE_DIR}/test/extras/include/*.hpp
     ${PROJECT_SOURCE_DIR}/test/extras/include/*.ipp
+    ${PROJECT_SOURCE_DIR}/test/lib_ssl.cpp
     )
 
 if (OPENSSL_FOUND)
@@ -43,6 +44,15 @@ set (ZLIB_SOURCES
 )
 
 set (TEST_MAIN ${PROJECT_SOURCE_DIR}/test/lib_beast.cpp)
+
+GroupSources (. "/")
+
+add_library (
+    lib-test STATIC
+    ${PROJECT_SOURCE_DIR}/include/boost/beast/_experimental/unit_test/main.cpp
+)
+
+set_property(TARGET lib-test PROPERTY FOLDER "static-libs")
 
 add_definitions (-DBOOST_BEAST_INCLUDE_TEST_MAIN)
 add_definitions (-DBOOST_ASIO_SEPARATE_COMPILATION)
