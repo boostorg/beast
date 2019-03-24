@@ -64,13 +64,13 @@ local defines =
     <implicit-dependency>/boost//headers
     <include>.
     <define>BOOST_ALL_NO_LIB=1
-    <define>BOOST_BEAST_SPLIT_COMPILATION
     <define>BOOST_ASIO_SEPARATE_COMPILATION
     <define>BOOST_ASIO_NO_DEPRECATED=1
     <define>BOOST_ASIO_DISABLE_BOOST_ARRAY=1
     <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
+    <define>BOOST_BEAST_SEPARATE_COMPILATION
     <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
     <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc-14.1:<cxxflags>"/permissive-"
@@ -96,21 +96,31 @@ local defines =
     <target-os>haiku:<library>network
     ;
 
-lib static_beast
-    : test/_lib_beast.cpp
+lib lib-asio
+    : test/lib_asio.cpp
     : requirements
-    $(defines)
-    <include>./test/extras/include
+        <link>static
+        $(defines)
     : usage-requirements
-    $(defines)
-    <include>./test/extras/include
+        $(defines)
     ;
 
-lib static_ssl_asio
-    : test/_lib_ssl.cpp
+lib lib-asio-ssl
+    : test/lib_asio_ssl.cpp
     : requirements
-        <library>/boost/beast//static_beast/<link>static
+        <link>static
+        $(defines)
         [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl/<link>shared : <build>no ]
         [ ac.check-library /boost/beast//crypto : <library>/boost/beast//crypto/<link>shared : <build>no ]
     : usage-requirements
+        $(defines)
+    ;
+
+lib lib-beast
+    : test/lib_beast.cpp
+    : requirements
+    <link>static
+    $(defines)
+    : usage-requirements
+    $(defines)
     ;

@@ -14,13 +14,14 @@ local SOURCES =
 
 local RUN_TESTS ;
 
+local libs =
+    /boost/beast//lib-asio-ssl
+    /boost/beast/test//lib-test
+    ;
+
 for local f in $(SOURCES)
 {
-    RUN_TESTS += [ compile $(f) ] ;
+    RUN_TESTS += [ run $(f) $(libs) ] ;
 }
 
 alias run-tests : $(RUN_TESTS) ;
-
-alias build-fat : run-tests ;
-
-explicit build-fat ;

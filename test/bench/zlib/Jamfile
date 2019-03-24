@@ -9,7 +9,7 @@
 
 exe bench-zlib :
     $(ZLIB_SOURCES)
-
     deflate_stream.cpp
     inflate_stream.cpp
+    /boost/beast/test//lib-test
     ;

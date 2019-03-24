@@ -8,8 +8,8 @@
 #
 
 exe bench-buffers :
-
     bench_buffers.cpp
+    /boost/beast/test//lib-test
     ;
 
 explicit bench-buffers ;

@@ -1,3 +1,9 @@
+Version 238:
+
+* Refactor Jamfiles to work with release layout
+
+--------------------------------------------------------------------------------
+
 Version 237:
 
 * cmake: Use static libs to speed up builds

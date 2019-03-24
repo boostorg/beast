@@ -7,9 +7,7 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-// This file is used to build a static library with
-// asio and beast definitions, to reduce compilation time.
+// This file is used to build a static library
 
-// BOOST_ASIO_SEPARATE_COMPILATION for asio::ssl
+#include <boost/beast/_experimental/unit_test/main.ipp>
 
-#include <boost/asio/ssl/impl/src.hpp>

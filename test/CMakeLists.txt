@@ -49,14 +49,10 @@ GroupSources (. "/")
 
 add_library (
     lib-test STATIC
-    ${PROJECT_SOURCE_DIR}/include/boost/beast/_experimental/unit_test/main.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/lib_test.cpp
 )
 
 set_property(TARGET lib-test PROPERTY FOLDER "static-libs")
-
-add_definitions (-DBOOST_BEAST_INCLUDE_TEST_MAIN)
-add_definitions (-DBOOST_ASIO_SEPARATE_COMPILATION)
-add_definitions (-DBOOST_BEAST_SPLIT_COMPILATION)
 
 add_subdirectory (beast)
 add_subdirectory (bench)

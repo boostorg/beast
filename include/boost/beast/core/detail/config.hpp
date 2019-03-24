@@ -68,9 +68,9 @@ namespace net = boost::asio;
 #endif
 
 // Default to a header-only implementation. The user must specifically
-// request separate compilation by defining BOOST_BEAST_SPLIT_COMPILATION
+// request separate compilation by defining BOOST_BEAST_SEPARATE_COMPILATION
 #ifndef BOOST_BEAST_HEADER_ONLY
-# ifndef BOOST_BEAST_SPLIT_COMPILATION
+# ifndef BOOST_BEAST_SEPARATE_COMPILATION
 #   define BOOST_BEAST_HEADER_ONLY 1
 # endif
 #endif

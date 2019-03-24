@@ -12,5 +12,5 @@ alias run-tests :
     parser//run-tests
     wsload//run-tests
     utf8_checker//run-tests
-    #zlib//run-tests          # Not built
+    #zlib//run-tests          # Not built, too slow
     ;

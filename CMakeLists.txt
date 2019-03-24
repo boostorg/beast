@@ -173,7 +173,7 @@ endif()
 #-------------------------------------------------------------------------------
 
 add_definitions (-DBOOST_ASIO_SEPARATE_COMPILATION=1)
-add_definitions (-DBOOST_BEAST_SPLIT_COMPILATION=1)
+add_definitions (-DBOOST_BEAST_SEPARATE_COMPILATION=1)
 
 GroupSources (test "/")
 

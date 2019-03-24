@@ -7,9 +7,9 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-exe bench-utf8-checker :
-
-    bench_utf8_checker.cpp
+exe bench-utf8-checker  : bench_utf8_checker.cpp
+    : requirements
+    <library>/boost/beast/test//lib-test
     ;
 
 explicit bench-utf8-checker ;
