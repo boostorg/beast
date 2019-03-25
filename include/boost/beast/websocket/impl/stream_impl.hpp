@@ -771,10 +771,12 @@ parse_fh(
     {
     case 126:
     {
-        std::uint8_t tmp[2];
-        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(tmp));
-        cb.consume(net::buffer_copy(net::buffer(tmp), cb));
-        fh.len = detail::big_uint16_to_native(&tmp[0]);
+
+        std::uint16_t len_be;
+        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(len_be));
+        cb.consume(net::buffer_copy(
+            net::mutable_buffer(&len_be, sizeof(len_be)), cb));
+        fh.len = endian::big_to_native(len_be);
         if(fh.len < 126)
         {
             // length not canonical
@@ -785,10 +787,11 @@ parse_fh(
     }
     case 127:
     {
-        std::uint8_t tmp[8];
-        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(tmp));
-        cb.consume(net::buffer_copy(net::buffer(tmp), cb));
-        fh.len = detail::big_uint64_to_native(&tmp[0]);
+        std::uint64_t len_be;
+        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(len_be));
+        cb.consume(net::buffer_copy(
+            net::mutable_buffer(&len_be, sizeof(len_be)), cb));
+        fh.len = endian::big_to_native(len_be);
         if(fh.len < 65536)
         {
             // length not canonical
@@ -800,10 +803,11 @@ parse_fh(
     }
     if(fh.mask)
     {
-        std::uint8_t tmp[4];
-        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(tmp));
-        cb.consume(net::buffer_copy(net::buffer(tmp), cb));
-        fh.key = detail::little_uint32_to_native(&tmp[0]);
+        std::uint32_t key_le;
+        BOOST_ASSERT(buffer_bytes(cb) >= sizeof(key_le));
+        cb.consume(net::buffer_copy(
+            net::mutable_buffer(&key_le, sizeof(key_le)), cb));
+        fh.key = endian::little_to_native(key_le);
         detail::prepare_key(rd_key, fh.key);
     }
     else
@@ -909,12 +913,10 @@ write_close(DynamicBuffer& db, close_reason const& cr)
         if(fh.mask)
             detail::prepare_key(key, fh.key);
         {
-            std::uint8_t tmp[2];
-            ::new(&tmp[0]) big_uint16_buf_t{
-                (std::uint16_t)cr.code};
+            auto code_be = endian::native_to_big<std::uint16_t>(cr.code);
             auto mb = db.prepare(2);
             net::buffer_copy(mb,
-                net::buffer(tmp));
+                net::const_buffer(&code_be, sizeof(code_be)));
             if(fh.mask)
                 detail::mask_inplace(mb, key);
             db.commit(2);

@@ -29,7 +29,6 @@
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/assert.hpp>
-#include <boost/endian/buffers.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
