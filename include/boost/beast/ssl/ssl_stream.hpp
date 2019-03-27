@@ -644,37 +644,39 @@ public:
         return p_->async_read_some(buffers,
             BOOST_ASIO_MOVE_CAST(ReadHandler)(handler));
     }
+
+    // These hooks are used to inform boost::beast::websocket::stream on
+    // how to tear down the connection as part of the WebSocket
+    // protocol specifications
+    #if ! BOOST_BEAST_DOXYGEN
+    template<class SyncStream>
+    friend
+    void
+    teardown(
+        boost::beast::role_type role,
+        ssl_stream<SyncStream>& stream,
+        boost::system::error_code& ec)
+    {
+        // Just forward it to the underlying ssl::stream
+        using boost::beast::websocket::teardown;
+        teardown(role, *stream.p_, ec);
+    }
+
+    template<class AsyncStream, class TeardownHandler>
+    friend
+    void
+    async_teardown(
+        boost::beast::role_type role,
+        ssl_stream<AsyncStream>& stream,
+        TeardownHandler&& handler)
+    {
+        // Just forward it to the underlying ssl::stream
+        using boost::beast::websocket::async_teardown;
+        async_teardown(role, *stream.p_,
+            std::forward<TeardownHandler>(handler));
+    }
+    #endif
 };
-
-// These hooks are used to inform boost::beast::websocket::stream on
-// how to tear down the connection as part of the WebSocket
-// protocol specifications
-#if ! BOOST_BEAST_DOXYGEN
-template<class SyncStream>
-void
-teardown(
-    boost::beast::role_type role,
-    ssl_stream<SyncStream>& stream,
-    boost::system::error_code& ec)
-{
-    // Just forward it to the wrapped stream
-    using boost::beast::websocket::teardown;
-    teardown(role, stream.next_layer(), ec);
-}
-
-template<class AsyncStream, class TeardownHandler>
-void
-async_teardown(
-    boost::beast::role_type role,
-    ssl_stream<AsyncStream>& stream,
-    TeardownHandler&& handler)
-{
-    // Just forward it to the wrapped stream
-    using boost::beast::websocket::async_teardown;
-    async_teardown(role,
-        stream.next_layer(), std::forward<TeardownHandler>(handler));
-}
-#endif
 
 } // beast
 } // boost

@@ -1,3 +1,9 @@
+Version 240:
+
+* Fix ssl_stream teardown
+
+--------------------------------------------------------------------------------
+
 Version 239:
 
 * More split compilation in HTTP
