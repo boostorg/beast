@@ -122,6 +122,7 @@ snippets()
         // Discard all of the bytes stored in the dynamic buffer,
         // otherwise the next call to read will append to the existing
         // data instead of building a fresh message.
+        buffer.consume(buffer.size());
 
     //]
     }

@@ -1,3 +1,9 @@
+Version 241:
+
+* Tidy up a doc code snippet
+
+--------------------------------------------------------------------------------
+
 Version 240:
 
 * Fix ssl_stream teardown
