@@ -52,6 +52,17 @@ content_length() const
     BOOST_ASSERT(is_header_done());
     if(! (f_ & flagContentLength))
         return boost::none;
+    return len0_;
+}
+
+template<bool isRequest>
+boost::optional<std::uint64_t>
+basic_parser<isRequest>::
+content_length_remaining() const
+{
+    BOOST_ASSERT(is_header_done());
+    if(! (f_ & flagContentLength))
+        return boost::none;
     return len_;
 }
 
@@ -461,6 +472,7 @@ finish_header(error_code& ec, std::true_type)
     else
     {
         len_ = 0;
+        len0_ = 0;
         state_ = state::complete;
     }
 
@@ -796,6 +808,7 @@ do_field(field f,
 
         ec = {};
         len_ = v;
+        len0_ = v;
         f_ |= flagContentLength;
         return;
     }

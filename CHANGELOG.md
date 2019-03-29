@@ -1,6 +1,7 @@
 Version 241:
 
 * Tidy up a doc code snippet
+* basic_parser::content_length is stable (API Change)
 
 --------------------------------------------------------------------------------
 

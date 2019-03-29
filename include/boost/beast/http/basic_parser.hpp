@@ -72,6 +72,7 @@ class basic_parser
     std::uint64_t body_limit_ =
         default_body_limit(is_request{});   // max payload body
     std::uint64_t len_ = 0;                 // size of chunk or body
+    std::uint64_t len0_ = 0;                // content length if known
     std::unique_ptr<char[]> buf_;           // temp storage
     std::size_t buf_len_ = 0;               // size of buf_
     std::size_t skip_ = 0;                  // resume search here
@@ -230,6 +231,18 @@ public:
     */
     boost::optional<std::uint64_t>
     content_length() const;
+
+    /** Returns the remaining content length if known
+
+        If the message header specifies a Content-Length,
+        the return value will be the number of bytes remaining
+        in the payload body have not yet been parsed.
+
+        @note The return value is undefined unless
+              @ref is_header_done would return `true`.
+    */
+    boost::optional<std::uint64_t>
+    content_length_remaining() const;
 
     /** Returns `true` if the message semantics require an end of file.
 

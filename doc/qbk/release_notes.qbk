@@ -239,6 +239,13 @@
     - `async_accept`, `async_accept_ex`
     - `async_handshake`, `async_handshake_ex`
 
+* ([issue 1375]) The value returned from `basic_parser::content_length`
+  no longer changes as the body of the message is received.
+  ['Actions Required]: Call `basic_parser::content_length_remaining` instead
+  of `basic_parser::content_length` in order to determine the remaining
+  number of bytes in the body.
+
+
 [*Examples]
 
 * All example programs are updated:
