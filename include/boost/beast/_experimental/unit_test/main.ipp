@@ -38,7 +38,7 @@ int main(int ac, char const* av[])
     dstream log(std::cerr);
     std::unitbuf(log);
 
-#if BOOST_MSVC
+#ifdef BOOST_MSVC
     {
         int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
         flags |= _CRTDBG_LEAK_CHECK_DF;

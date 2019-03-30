@@ -417,7 +417,7 @@ print(message<isRequest, Body, Fields> const& m)
 
 //]
 
-#if BOOST_MSVC
+#ifdef BOOST_MSVC
 //[http_snippet_16
 
 template<bool isRequest, class Body, class Fields>

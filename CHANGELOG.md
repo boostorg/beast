@@ -3,6 +3,7 @@ Version 242:
 * test::stream has deprecated lowest_layer for ssl
 * MSVC uses ::fopen_s
 * Fix http::message constructor constraint
+* Check defined(BOOST_MSVC)
 
 --------------------------------------------------------------------------------
 

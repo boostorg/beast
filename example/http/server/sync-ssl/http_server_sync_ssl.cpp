@@ -80,7 +80,7 @@ path_cat(
     if(base.empty())
         return std::string(path);
     std::string result(base);
-#if BOOST_MSVC
+#ifdef BOOST_MSVC
     char constexpr path_separator = '\\';
     if(result.back() == path_separator)
         result.resize(result.size() - 1);
