@@ -39,7 +39,7 @@ type depending on the method verb:
 
 The Expect field with the value "100-continue" in a request is special. It
 indicates that the after sending the message header, a client desires an
-immediate informational response before sending the the message body, which
+immediate informational response before sending the message body, which
 presumably may be expensive to compute or large. This behavior is described in
 [@https://tools.ietf.org/html/rfc7231#section-5.1.1 rfc7231 section 5.1.1].
 Invoking the 100-continue behavior is implemented easily in a client by
@@ -58,7 +58,7 @@ this client action looks like this:
 
 The Expect field with the value "100-continue" in a request is special. It
 indicates that the after sending the message header, a client desires an
-immediate informational response before sending the the message body, which
+immediate informational response before sending the message body, which
 presumably may be expensive to compute or large. This behavior is described in
 [@https://tools.ietf.org/html/rfc7231#section-5.1.1 rfc7231 section 5.1.1].
 Handling the Expect field can be implemented easily in a server by constructing
