@@ -1634,7 +1634,7 @@ public:
         This function is used to send a
         <a href="https://tools.ietf.org/html/rfc6455#section-5.5.3">pong frame</a>,
         which is usually sent automatically in response to a ping frame
-        from the the remote peer.
+        from the remote peer.
 
         The call blocks until one of the following conditions is true:
 
@@ -1661,7 +1661,7 @@ public:
         This function is used to send a
         <a href="https://tools.ietf.org/html/rfc6455#section-5.5.3">pong frame</a>,
         which is usually sent automatically in response to a ping frame
-        from the the remote peer.
+        from the remote peer.
 
         The call blocks until one of the following conditions is true:
 
@@ -1688,7 +1688,7 @@ public:
         This function is used to asynchronously send a
         <a href="https://tools.ietf.org/html/rfc6455#section-5.5.3">pong frame</a>,
         which is usually sent automatically in response to a ping frame
-        from the the remote peer.
+        from the remote peer.
 
         @li The pong frame is written.
 

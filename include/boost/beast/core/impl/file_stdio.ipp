@@ -102,7 +102,6 @@ open(char const* path, file_mode mode, error_code& ec)
     case file_mode::write_new:
     {
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-        x
         FILE* f0;
         auto const ev = ::fopen_s(&f0, path, "rb");
         if(ev)
