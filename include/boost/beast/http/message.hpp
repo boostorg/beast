@@ -299,9 +299,11 @@ public:
     template<class Arg1, class... ArgN,
         class = typename std::enable_if<
             ! std::is_convertible<typename
-                std::decay<Arg1>::type, status>::value &&
+                std::decay<Arg1>::type, header>::value &&
             ! std::is_convertible<typename
-                std::decay<Arg1>::type, header>::value
+                std::decay<Arg1>::type, verb>::value &&
+            ! std::is_convertible<typename
+                std::decay<Arg1>::type, status>::value
         >::type>
     explicit
     header(Arg1&& arg1, ArgN&&... argn);
