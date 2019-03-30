@@ -88,7 +88,7 @@ open(char const* path, file_mode mode, error_code& ec)
         break;
 
     case file_mode::scan:
-    #if BOOST_MSVC
+    #ifdef BOOST_MSVC
         s = "rbS";
     #else
         s = "rb";
@@ -102,12 +102,12 @@ open(char const* path, file_mode mode, error_code& ec)
     case file_mode::write_new:
     {
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-        auto const f0 = std::fopen(path, "rb");
-        if(f0)
+        x
+        FILE* f0;
+        auto const ev = ::fopen_s(&f0, path, "rb");
+        if(ev)
         {
-            std::fclose(f0);
-            ec = make_error_code(
-                errc::file_exists);
+            ec.assign(ev, generic_category());
             return;
         }
         s = "wb";
@@ -127,20 +127,31 @@ open(char const* path, file_mode mode, error_code& ec)
 
     case file_mode::append_existing:
     {
-        auto const f0 = std::fopen(path, "rb+");
-        if(! f0)
+#ifdef BOOST_MSVC
+        FILE* f0;
+        auto const ev =
+            ::fopen_s(&f0, path, "rb+");
+        if(ev)
         {
-            ec = make_error_code(
-                errc::no_such_file_or_directory);
+            ec.assign(ev, generic_category());
             return;
         }
+#else
+        auto const f0 =
+            std::fopen(path, "rb+");
+        if(! f0)
+        {
+            ec.assign(errno, generic_category());
+            return;
+        }
+#endif
         std::fclose(f0);
         s = "ab";
         break;
     }
     }
 
-#if BOOST_MSVC
+#ifdef BOOST_MSVC
     auto const ev = ::fopen_s(&f_, path, s);
     if(ev)
     {

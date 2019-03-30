@@ -1,6 +1,7 @@
 Version 242:
 
 * test::stream has deprecated lowest_layer for ssl
+* MSVC use ::fopen_s
 
 --------------------------------------------------------------------------------
 
