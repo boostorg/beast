@@ -1,3 +1,9 @@
+Version 242:
+
+* test::stream has deprecated lowest_layer for ssl
+
+--------------------------------------------------------------------------------
+
 Version 241:
 
 * Tidy up a doc code snippet
