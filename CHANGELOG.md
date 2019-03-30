@@ -2,6 +2,7 @@ Version 243:
 
 * Fix some typos
 * Tidy up file_stdio for VS2015
+* Fix http::message constructor constraint
 
 --------------------------------------------------------------------------------
 
