@@ -104,13 +104,21 @@ open(char const* path, file_mode mode, error_code& ec)
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
         FILE* f0;
         auto const ev = ::fopen_s(&f0, path, "rb");
-        if(ev)
+        if(! ev)
+        {
+            std::fclose(f0);
+            ec = make_error_code(errc::file_exists);
+            return;
+        }
+        else if(ev !=
+            errc::no_such_file_or_directory)
         {
             ec.assign(ev, generic_category());
             return;
         }
         s = "wb";
 #else
+        
         s = "wbx";
 #endif
         break;

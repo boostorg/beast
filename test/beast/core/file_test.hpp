@@ -163,7 +163,7 @@ test_file()
             error_code ec;
             BEAST_EXPECT(! fs::exists(path));
             f.open(path, file_mode::write_new, ec);
-            BEAST_EXPECT(! ec);
+            BEAST_EXPECTS(! ec, ec.message());
             BEAST_EXPECT(fs::exists(path));
         }
         {
