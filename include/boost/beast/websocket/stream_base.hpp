@@ -14,6 +14,7 @@
 #include <boost/beast/websocket/detail/decorator.hpp>
 #include <boost/beast/core/role.hpp>
 #include <chrono>
+#include <type_traits>
 
 namespace boost {
 namespace beast {
@@ -65,7 +66,13 @@ struct stream_base
             @param f An invocable function object. Ownership of
             the function object is transferred by decay-copy.
         */
-        template<class Decorator>
+        template<class Decorator
+#ifndef BOOST_BEAST_DOXYGEN
+            ,class = typename std::enable_if<
+                detail::is_decorator<
+                    Decorator>::value>::type
+#endif
+        >
         decorator(Decorator&& f)
             : d_(std::forward<Decorator>(f))
         {

@@ -25,6 +25,27 @@ namespace beast {
 namespace websocket {
 namespace detail {
 
+// VFALCO NOTE: When this is two traits, one for
+//              request and one for response,
+//              Visual Studio 2015 fails.
+
+template<class T, class U, class = void>
+struct can_invoke_with : std::false_type
+{
+};
+
+template<class T, class U>
+struct can_invoke_with<T, U, boost::void_t<decltype(
+    std::declval<T&>()(std::declval<U&>()))>>
+    : std::true_type
+{
+};
+
+template<class T>
+using is_decorator = std::integral_constant<bool,
+    can_invoke_with<T, request_type>::value ||
+    can_invoke_with<T, response_type>::value>;
+
 class decorator
 {
     friend class decorator_test;

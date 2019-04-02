@@ -1,3 +1,9 @@
+Version 245:
+
+* decorator constructor is constrained
+
+--------------------------------------------------------------------------------
+
 Version 244:
 
 * Tidy up declval in some traits
