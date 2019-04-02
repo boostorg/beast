@@ -80,10 +80,10 @@ struct BufferSequence
 {
     using value_type = BufferType;
     using const_iterator = BufferType const*;
-    ~BufferSequence();
+    ~BufferSequence() = default;
     BufferSequence(BufferSequence const&) = default;
-    const_iterator begin() const noexcept;
-    const_iterator end() const noexcept;
+    const_iterator begin() const noexcept { return {}; }
+    const_iterator end() const noexcept { return {}; }
 };
 using ConstBufferSequence =
     BufferSequence<net::const_buffer>;
@@ -97,7 +97,7 @@ using MutableBufferSequence =
 struct StreamHandler
 {
     StreamHandler(StreamHandler const&) = default;
-    void operator()(error_code ec, std::size_t);
+    void operator()(error_code, std::size_t) {}
 };
 using ReadHandler = StreamHandler;
 using WriteHandler = StreamHandler;

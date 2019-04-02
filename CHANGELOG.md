@@ -1,3 +1,9 @@
+Version 244:
+
+* Tidy up declval in some traits
+
+--------------------------------------------------------------------------------
+
 Version 243:
 
 * Fix some typos
