@@ -424,8 +424,12 @@ struct stream<NextLayer, deflateSupported>::impl_type
             if(timeout_opt.idle_timeout != none())
             {
                 idle_counter = 0;
-                timer.expires_after(
-                    timeout_opt.idle_timeout);
+                if(timeout_opt.keep_alive_pings)
+                    timer.expires_after(
+                        timeout_opt.idle_timeout / 2);
+                else
+                    timer.expires_after(
+                        timeout_opt.idle_timeout);
                 timer.async_wait(
                     timeout_handler<Executor>(
                         ex, this->weak_from_this()));

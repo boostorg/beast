@@ -1,6 +1,7 @@
 Version 244:
 
 * Tidy up declval in some traits
+* Fix websocket keep-alive ping expiration
 
 --------------------------------------------------------------------------------
 
