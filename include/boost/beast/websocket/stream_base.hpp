@@ -73,6 +73,7 @@ struct stream_base
                     Decorator>::value>::type
 #endif
         >
+        explicit
         decorator(Decorator&& f)
             : d_(std::forward<Decorator>(f))
         {

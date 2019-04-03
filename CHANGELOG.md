@@ -1,3 +1,9 @@
+Version 246:
+
+* decorator ctor is explicit
+
+--------------------------------------------------------------------------------
+
 Version 245:
 
 * decorator constructor is constrained
