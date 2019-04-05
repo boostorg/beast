@@ -15,30 +15,21 @@ configuration:
   #- Debug
   - Release
 
-image:
-  - Visual Studio 2017
-
 environment:
   OPENSSL_ROOT: C:\tools\vcpkg\installed\x64-windows
   matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       TOOLSET: msvc-14.0
-      ADDRMD: 64
-      CXXSTD: 11
 
 # VFALCO Appveyor has a 1 hour time limit, and
 #        I already test this configuration locally.
 #
 #    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 #      TOOLSET: msvc-14.1
-#      CXXSTD: 11
-#      ADDRMD: 64
 
 # This configuration is not available yet
 #    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 #      TOOLSET: msvc-14.2
-#      CXXSTD: 11
-#      ADDRMD: 64
 
 install:
   - SET BOOST_BRANCH=develop
@@ -46,86 +37,18 @@ install:
   - vcpkg install openssl --triplet x64-windows
   - ps: cp tools\user-config.jam ~\user-config.jam
   - CD ..
-  - git clone -b %BOOST_BRANCH% --depth 1 https://github.com/boostorg/boost.git boost-root
-  - cd boost-root
-  - git submodule update --init libs/headers
-  - git submodule update --init tools/build
-  - git submodule update --init tools/boost_install
-  - git submodule update --init tools/boostdep
-  - git submodule update --init libs/align
-  - git submodule update --init libs/asio
-  - git submodule update --init libs/assert
-  - git submodule update --init libs/config
-  - git submodule update --init libs/core
-  - git submodule update --init libs/endian
-  - git submodule update --init libs/filesystem
-  - git submodule update --init libs/intrusive
-  - git submodule update --init libs/locale
-  - git submodule update --init libs/optional
-  - git submodule update --init libs/smart_ptr
-  - git submodule update --init libs/static_assert
-  - git submodule update --init libs/system
-  - git submodule update --init libs/throw_exception
-  - git submodule update --init libs/type_traits
-  - git submodule update --init libs/utility
-  - git submodule update --init libs/winapi
-
-  - git submodule update --init libs/algorithm
-  - git submodule update --init libs/array
-  - git submodule update --init libs/atomic
-  - git submodule update --init libs/bind
-  - git submodule update --init libs/chrono
-  - git submodule update --init libs/concept_check
-  - git submodule update --init libs/container
-  - git submodule update --init libs/container_hash
-  - git submodule update --init libs/context
-  - git submodule update --init libs/conversion
-  - git submodule update --init libs/coroutine
-  - git submodule update --init libs/date_time
-  - git submodule update --init libs/detail
-  - git submodule update --init libs/exception
-  - git submodule update --init libs/function
-  - git submodule update --init libs/function_types
-  - git submodule update --init libs/functional
-  - git submodule update --init libs/fusion
-  - git submodule update --init libs/integer
-  - git submodule update --init libs/io
-  - git submodule update --init libs/iterator
-  - git submodule update --init libs/lambda
-  - git submodule update --init libs/lexical_cast
-  - git submodule update --init libs/logic
-  - git submodule update --init libs/math
-  - git submodule update --init libs/move
-  - git submodule update --init libs/mp11
-  - git submodule update --init libs/mpl
-  - git submodule update --init libs/numeric/conversion
-  - git submodule update --init libs/pool
-  - git submodule update --init libs/predef
-  - git submodule update --init libs/preprocessor
-  - git submodule update --init libs/random
-  - git submodule update --init libs/range
-  - git submodule update --init libs/ratio
-  - git submodule update --init libs/rational
-  - git submodule update --init libs/serialization
-  - git submodule update --init libs/thread
-  - git submodule update --init libs/tokenizer
-  - git submodule update --init libs/tuple
-  - git submodule update --init libs/type_index
-  - git submodule update --init libs/typeof
-  - git submodule update --init libs/unordered
-  - rm -rf libs\beast
-  - MKDIR libs\beast
-  - XCOPY /s /e /q %APPVEYOR_BUILD_FOLDER% libs\beast\
+  - bash -c '$APPVEYOR_BUILD_FOLDER/tools/get-boost.sh $APPVEYOR_REPO_BRANCH $APPVEYOR_BUILD_FOLDER'
+  - CD boost-root
   - CMD /c bootstrap
   - b2 headers
 
 build: off
 
 test_script:
-  - if not "%CXXSTD%" == "" set CXXSTD=cxxstd=%CXXSTD%
-  - if not "%ADDRMD%" == "" set ADDRMD=address-model=%ADDRMD%
-  - b2 --debug-configuration variant=release %CXXSTD% %ADDRMD% toolset=%TOOLSET% libs/beast/example
-  - b2 --debug-configuration variant=release %CXXSTD% %ADDRMD% toolset=%TOOLSET% --verbose-test libs/beast/test//run-fat-tests
+  - b2 --debug-configuration variant=release cxxstd=14 address-model=64 toolset=msvc-14.0 libs/beast/example -j3
+  - b2 --debug-configuration variant=release cxxstd=14 address-model=64 toolset=msvc-14.0 --verbose-test libs/beast/test//run-fat-tests -j3
+  - b2 --debug-configuration variant=release cxxstd=17 define="BOOST_BEAST_USE_STD_STRING_VIEW" address-model=64 toolset=msvc-14.1 libs/beast/example -j3
+  - b2 --debug-configuration variant=release cxxstd=17 define="BOOST_BEAST_USE_STD_STRING_VIEW" address-model=64 toolset=msvc-14.1 --verbose-test libs/beast/test//run-fat-tests -j3
 
 cache:
 - c:\tools\vcpkg\installed\
