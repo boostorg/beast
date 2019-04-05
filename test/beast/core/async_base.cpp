@@ -503,13 +503,17 @@ public:
             op.complete(true);
         }
         {
-            net::io_context ioc;
+            net::io_context ioc1;
+            net::io_context ioc2;
+            auto h = net::bind_executor(ioc2, test::any_handler());
             stable_async_base<
-                test::handler,
+                decltype(h),
                 net::io_context::executor_type> op(
-                    test::any_handler(), ioc.get_executor());
+                    std::move(h),
+                    ioc1.get_executor());
             op.complete(false);
-            ioc.run();
+            BEAST_EXPECT(ioc1.run() == 0);
+            BEAST_EXPECT(ioc2.run() == 1);
         }
         {
             stable_async_base<

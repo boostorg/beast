@@ -340,7 +340,7 @@ public:
         if(! is_continuation)
         {
             net::post(net::bind_executor(
-                wg1_.get_executor(),
+                get_executor(),
                 beast::bind_front_handler(
                     std::move(h_),
                     std::forward<Args>(args)...)));
@@ -348,8 +348,8 @@ public:
         }
         else
         {
-            h_(std::forward<Args>(args)...);
             wg1_.reset();
+            h_(std::forward<Args>(args)...);
         }
     }
 

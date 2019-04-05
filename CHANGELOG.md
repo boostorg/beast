@@ -1,3 +1,9 @@
+Version 247:
+
+* Fix async_base immediate completion
+
+--------------------------------------------------------------------------------
+
 Version 246:
 
 * decorator ctor is explicit
