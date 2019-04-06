@@ -1,3 +1,9 @@
+Version 248:
+
+* Don't use a moved-from handler
+
+--------------------------------------------------------------------------------
+
 Version 247:
 
 * Fix async_base immediate completion
