@@ -1,3 +1,9 @@
+Version 249:
+
+* Move friend function template definition
+
+--------------------------------------------------------------------------------
+
 Version 248:
 
 * Don't use a moved-from handler
