@@ -1,3 +1,11 @@
+Version 250:
+
+* Use SaxonHE in reference generation
+* Cleanup endianness conversions
+* Set parser status and flags even if body_limit_ has been reached 
+
+--------------------------------------------------------------------------------
+
 Version 249:
 
 * Move friend function template definition
