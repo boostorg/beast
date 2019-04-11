@@ -4,6 +4,7 @@ Version 251:
 * detect_ssl uses bool
 * launder pointers
 * Fix compilation on MSVC with std::string_view
+* Replace static_string in parser
 
 --------------------------------------------------------------------------------
 

@@ -16,8 +16,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <initializer_list>
-#include <iterator>
-#include <ostream>
+#include <iosfwd>
 #include <stdexcept>
 #include <string>
 #include <type_traits>

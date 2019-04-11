@@ -10,7 +10,6 @@
 #ifndef BOOST_BEAST_HTTP_DETAIL_BASIC_PARSER_HPP
 #define BOOST_BEAST_HTTP_DETAIL_BASIC_PARSER_HPP
 
-#include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/detail/rfc7230.hpp>
@@ -23,6 +22,59 @@ namespace boost {
 namespace beast {
 namespace http {
 namespace detail {
+
+template <std::size_t N>
+class char_buffer
+{
+public:
+    bool try_push_back(char c)
+    {
+        if (size_ == N)
+            return false;
+        buf_[size_++] = c;
+        return true;
+    }
+
+    bool try_append(char const* first, char const* last)
+    {
+        std::size_t const n = last - first;
+        if (n > N - size_)
+            return false;
+        std::memmove(&buf_[size_], first, n);
+        size_ += n;
+        return true;
+    }
+
+    void clear() noexcept
+    {
+        size_ = 0;
+    }
+
+    char* data() noexcept
+    {
+        return buf_;
+    }
+
+    char const* data() const noexcept
+    {
+        return buf_;
+    }
+
+    std::size_t size() const noexcept
+    {
+        return size_;
+    }
+
+    bool empty() const noexcept
+    {
+        return size_ == 0;
+    }
+
+private:
+    std::size_t size_= 0;
+    char buf_[N];
+};
+
 
 struct basic_parser_base
 {
@@ -182,7 +234,7 @@ struct basic_parser_base
         char const* last,
         string_view& name,
         string_view& value,
-        static_string<max_obs_fold>& buf,
+        char_buffer<max_obs_fold>& buf,
         error_code& ec);
 
     BOOST_BEAST_DECL
