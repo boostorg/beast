@@ -1,3 +1,10 @@
+Version 251:
+
+* Clean up CI scripts
+* detect_ssl uses bool
+
+--------------------------------------------------------------------------------
+
 Version 250:
 
 * Use SaxonHE in reference generation
