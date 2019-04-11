@@ -14,7 +14,6 @@
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/buffer.hpp>
@@ -405,7 +404,7 @@ parse_fields(char const*& in,
     string_view name;
     string_view value;
     // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
-    static_string<max_obs_fold> buf;
+    detail::char_buffer<max_obs_fold> buf;
     auto p = in;
     for(;;)
     {
