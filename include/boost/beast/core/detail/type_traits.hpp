@@ -124,6 +124,18 @@ struct is_contiguous_container<T, E, void_t<
     >::type>>: std::true_type
 {};
 
+template <class T, class U>
+T launder_cast(U* u)
+{
+#if defined(__cpp_lib_launder) && __cpp_lib_launder >= 201606
+    return std::launder(reinterpret_cast<T>(u));
+#elif defined(BOOST_GCC) && BOOST_GCC_VERSION > 80000
+    return __builtin_launder(reinterpret_cast<T>(u));
+#else
+    return reinterpret_cast<T>(u);
+#endif
+}
+
 } // detail
 } // beast
 } // boost

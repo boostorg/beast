@@ -45,7 +45,7 @@ class variant
         {
             using T =
                 mp11::mp_at_c<variant, I::value - 1>;
-            reinterpret_cast<T&>(self.buf_).~T();
+            detail::launder_cast<T*>(&self.buf_)->~T();
         }
     };
 
@@ -64,7 +64,7 @@ class variant
             using T =
                 mp11::mp_at_c<variant, I::value - 1>;
             ::new(&self.buf_) T(
-                reinterpret_cast<T const&>(other.buf_));
+                *detail::launder_cast<T const*>(&other.buf_));
             self.i_ = I::value;
         }
     };
@@ -83,9 +83,9 @@ class variant
         {
             using T =
                 mp11::mp_at_c<variant, I::value - 1>;
-            ::new(&self.buf_) T(
-                reinterpret_cast<T&&>(other.buf_));
-            reinterpret_cast<T&>(other.buf_).~T();
+            ::new(&self.buf_) T(std::move(
+                *detail::launder_cast<T*>(&other.buf_)));
+            detail::launder_cast<T*>(&other.buf_)->~T();
             self.i_ = I::value;
         }
     };
@@ -106,8 +106,8 @@ class variant
             using T =
                 mp11::mp_at_c<variant, I::value - 1>;
             return
-                reinterpret_cast<T const&>(self.buf_) ==
-                reinterpret_cast<T const&>(other.buf_);
+                *detail::launder_cast<T const*>(&self.buf_) ==
+                *detail::launder_cast<T const*>(&other.buf_);
         }
     };
 
@@ -181,7 +181,7 @@ public:
         }
         return *this;
     }
-        
+
     variant& operator=(variant const& other)
     {
         if(this != &other)
@@ -208,7 +208,7 @@ public:
     get()
     {
         BOOST_ASSERT(i_ == I);
-        return *reinterpret_cast<
+        return *detail::launder_cast<
             mp11::mp_at_c<variant, I - 1>*>(&buf_);
     }
 
@@ -217,7 +217,7 @@ public:
     get() const
     {
         BOOST_ASSERT(i_ == I);
-        return *reinterpret_cast<
+        return *detail::launder_cast<
             mp11::mp_at_c<variant, I - 1> const*>(&buf_);
     }
 
