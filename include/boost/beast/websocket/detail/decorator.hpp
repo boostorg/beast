@@ -213,7 +213,7 @@ struct decorator::vtable_impl<F, true>
     void
     move(storage& dst, storage& src) noexcept
     {
-        auto& f = *reinterpret_cast<F*>(&src.buf_);
+        auto& f = *beast::detail::launder_cast<F*>(&src.buf_);
         ::new (&dst.buf_) F(std::move(f));
     }
 
@@ -221,7 +221,7 @@ struct decorator::vtable_impl<F, true>
     void
     destroy(storage& dst) noexcept
     {
-        reinterpret_cast<F*>(&dst.buf_)->~F();
+        beast::detail::launder_cast<F*>(&dst.buf_)->~F();
     }
 
     static
@@ -229,7 +229,7 @@ struct decorator::vtable_impl<F, true>
     invoke_req(storage& dst, request_type& req)
     {
         maybe_invoke<F, request_type>{}(
-            *reinterpret_cast<F*>(&dst.buf_), req);
+            *beast::detail::launder_cast<F*>(&dst.buf_), req);
     }
 
     static
@@ -237,7 +237,7 @@ struct decorator::vtable_impl<F, true>
     invoke_res(storage& dst, response_type& res)
     {
         maybe_invoke<F, response_type>{}(
-            *reinterpret_cast<F*>(&dst.buf_), res);
+            *beast::detail::launder_cast<F*>(&dst.buf_), res);
     }
 
     static
