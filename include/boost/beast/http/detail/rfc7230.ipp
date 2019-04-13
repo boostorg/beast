@@ -219,8 +219,9 @@ unhex(char c)
     return tab[static_cast<unsigned char>(c)];
 }
 
+template <class ForwardIt>
 void
-skip_ows(char const*& it, char const* end)
+skip_ows(ForwardIt& it, ForwardIt end)
 {
     while(it != end)
     {
@@ -230,8 +231,9 @@ skip_ows(char const*& it, char const* end)
     }
 }
 
+template <class ForwardIt>
 void
-skip_token(char const*& it, char const* last)
+skip_token(ForwardIt& it, ForwardIt last)
 {
     while(it != last && is_token_char(*it))
         ++it;
