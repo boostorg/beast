@@ -3,6 +3,7 @@ Version 251:
 * Clean up CI scripts
 * detect_ssl uses bool
 * launder pointers
+* Fix compilation on MSVC with std::string_view
 
 --------------------------------------------------------------------------------
 

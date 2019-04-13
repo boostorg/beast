@@ -57,14 +57,6 @@ std::int8_t
 unhex(char c);
 
 BOOST_BEAST_DECL
-void
-skip_ows(char const*& it, char const* end);
-
-BOOST_BEAST_DECL
-void
-skip_token(char const*& it, char const* last);
-
-BOOST_BEAST_DECL
 string_view
 trim(string_view s);
 
