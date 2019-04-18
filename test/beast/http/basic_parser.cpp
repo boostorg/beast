@@ -1223,7 +1223,7 @@ public:
             {
                 std::uint64_t v;
                 auto const result =
-                    base::parse_dec(s.begin(), s.end(), v);
+                    base::parse_dec(s, v);
                 if(BEAST_EXPECTS(result, s))
                     BEAST_EXPECTS(v == v0, s);
             };
@@ -1232,7 +1232,7 @@ public:
             {
                 std::uint64_t v;
                 auto const result =
-                    base::parse_dec(s.begin(), s.end(), v);
+                    base::parse_dec(s, v);
                 BEAST_EXPECTS(! result, s);
             };
         good("0",           0);
@@ -1258,7 +1258,7 @@ public:
             [&](string_view s, std::uint64_t v0)
             {
                 std::uint64_t v;
-                auto it = s.begin();
+                auto it = s.data();
                 auto const result =
                     base::parse_hex(it, v);
                 if(BEAST_EXPECTS(result, s))
@@ -1268,7 +1268,7 @@ public:
             [&](string_view s)
             {
                 std::uint64_t v;
-                auto it = s.begin();
+                auto it = s.data();
                 auto const result =
                     base::parse_hex(it, v);
                 BEAST_EXPECTS(! result, s);

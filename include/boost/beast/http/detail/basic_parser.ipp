@@ -154,8 +154,12 @@ find_eol(
 
 bool
 basic_parser_base::
-parse_dec(char const* it, char const* last, std::uint64_t& v)
+parse_dec(
+    string_view s,
+    std::uint64_t& v)
 {
+    char const* it = s.data();
+    char const* last = it + s.size();
     if(it == last)
         return false;
     std::uint64_t tmp = 0;

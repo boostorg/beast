@@ -179,7 +179,7 @@ struct basic_parser_base
     BOOST_BEAST_DECL
     static
     bool
-    parse_dec(char const* it, char const* last, std::uint64_t& v);
+    parse_dec(string_view s, std::uint64_t& v);
 
     BOOST_BEAST_DECL
     static

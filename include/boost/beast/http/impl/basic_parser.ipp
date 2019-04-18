@@ -799,8 +799,7 @@ do_field(field f,
         }
 
         std::uint64_t v;
-        if(! parse_dec(
-            value.begin(), value.end(), v))
+        if(! parse_dec(value, v))
         {
             ec = error::bad_content_length;
             return;
