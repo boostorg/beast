@@ -1,6 +1,7 @@
 Version 252:
 
 * More std::string_view fixes
+* CI copies to libs/beast
 
 --------------------------------------------------------------------------------
 

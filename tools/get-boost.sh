@@ -84,5 +84,4 @@ echo Submodule update complete
 echo "BUILD_DIR: $build_dir"
 
 rm -rf libs/beast
-mkdir libs/beast
-cp -r $build_dir libs/
+cp -r $build_dir libs/beast
