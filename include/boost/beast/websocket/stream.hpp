@@ -220,7 +220,7 @@ public:
         @return A copy of the executor that stream will use to dispatch handlers.
     */
     executor_type
-    get_executor() const noexcept;
+    get_executor() noexcept;
 
     /** Get a reference to the next layer
 

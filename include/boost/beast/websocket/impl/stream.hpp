@@ -63,7 +63,7 @@ stream(Args&&... args)
 template<class NextLayer, bool deflateSupported>
 auto
 stream<NextLayer, deflateSupported>::
-get_executor() const noexcept ->
+get_executor() noexcept ->
     executor_type
 {
     return impl_->stream().get_executor();
