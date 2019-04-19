@@ -1,3 +1,9 @@
+Version 253:
+
+* Fix async_detect_ssl handler type
+
+--------------------------------------------------------------------------------
+
 Version 252:
 
 * More std::string_view fixes

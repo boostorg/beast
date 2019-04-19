@@ -430,7 +430,6 @@ async_detect_ssl(
     // Non-const references need to be passed as pointers,
     // since we don't want a decay-copy.
 
-
     return net::async_initiate<
         CompletionToken,
         void(error_code, bool)>(
@@ -505,7 +504,7 @@ public:
         AsyncReadStream& stream,
         DynamicBuffer& buffer)
         : beast::async_base<
-            DetectHandler_,
+            DetectHandler,
             beast::executor_type<AsyncReadStream>>(
                 std::forward<DetectHandler_>(handler),
                 stream.get_executor())
