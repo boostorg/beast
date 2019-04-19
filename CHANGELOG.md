@@ -2,6 +2,7 @@ Version 253:
 
 * Fix async_detect_ssl handler type
 * member get_executor const-correctness
+* Fix min/max on MSVC
 
 --------------------------------------------------------------------------------
 

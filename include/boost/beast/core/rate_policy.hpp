@@ -152,7 +152,7 @@ class simple_rate_policy
     friend class rate_policy_access;
 
     static std::size_t constexpr all =
-        std::numeric_limits<std::size_t>::max();
+        (std::numeric_limits<std::size_t>::max)();
 
     std::size_t rd_remain_ = all;
     std::size_t wr_remain_ = all;

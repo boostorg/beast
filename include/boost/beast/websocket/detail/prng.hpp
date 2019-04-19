@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_PRNG_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/config.hpp>
 #include <cstdint>
 #include <limits>
 #include <random>
@@ -65,7 +66,7 @@ public:
 
         static
         value_type constexpr
-        min() noexcept
+        min BOOST_PREVENT_MACRO_SUBSTITUTION () noexcept
         {
             return (std::numeric_limits<
                 value_type>::min)();
@@ -73,7 +74,7 @@ public:
 
         static
         value_type constexpr
-        max() noexcept
+        max BOOST_PREVENT_MACRO_SUBSTITUTION () noexcept
         {
             return (std::numeric_limits<
                 value_type>::max)();
