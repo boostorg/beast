@@ -39,8 +39,7 @@ template<class T, class Allocator = std::allocator<T>>
 struct vector_body
 {
 private:
-    static_assert(sizeof(T) == 1 &&
-        std::is_integral<T>::value,
+    static_assert(sizeof(T) == 1,
         "T requirements not met");
 
 public:
