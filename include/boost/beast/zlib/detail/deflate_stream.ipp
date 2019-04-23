@@ -623,6 +623,7 @@ init()
 
     window_ = reinterpret_cast<Byte*>(buf_.get());
     prev_   = reinterpret_cast<std::uint16_t*>(buf_.get() + nwindow);
+    std::memset(prev_, 0, nprev);
     head_   = reinterpret_cast<std::uint16_t*>(buf_.get() + nwindow + nprev);
 
     /*  We overlay pending_buf_ and d_buf_ + l_buf_. This works
