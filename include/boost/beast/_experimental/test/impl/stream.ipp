@@ -262,6 +262,9 @@ connect(stream& remote)
 {
     BOOST_ASSERT(! out_.lock());
     BOOST_ASSERT(! remote.out_.lock());
+    std::lock(in_->m, remote.in_->m);
+    std::lock_guard<std::mutex> guard1{in_->m, std::adopt_lock};
+    std::lock_guard<std::mutex> guard2{remote.in_->m, std::adopt_lock};
     out_ = remote.in_;
     remote.out_ = in_;
     in_->code = status::ok;
