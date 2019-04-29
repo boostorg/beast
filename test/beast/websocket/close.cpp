@@ -350,6 +350,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
+            multi_buffer b;
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -358,7 +359,6 @@ public:
             ws.next_layer().append(string_view{
                 "\x89\x00" "\x81\x01*", 5});
             std::size_t count = 0;
-            multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
@@ -391,6 +391,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
+            multi_buffer b;
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -399,7 +400,6 @@ public:
             ws.next_layer().append(string_view{
                 "\x09\x00", 2});
             std::size_t count = 0;
-            multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
@@ -432,6 +432,7 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
+            multi_buffer b;
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -440,7 +441,6 @@ public:
             ws.next_layer().append(string_view{
                 "\x88\x00", 2});
             std::size_t count = 0;
-            multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
@@ -473,6 +473,8 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
+            std::string const s = "Hello, world!";
+            multi_buffer b;
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -481,7 +483,6 @@ public:
             ws.next_layer().append(string_view{
                 "\x88\x00", 2});
             std::size_t count = 0;
-            std::string const s = "Hello, world!";
             ws.async_write(net::buffer(s),
                 [&](error_code ec, std::size_t n)
                 {
@@ -491,7 +492,6 @@ public:
                     BEAST_EXPECT(n == s.size());
                     BEAST_EXPECT(++count == 1);
                 });
-            multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
@@ -517,6 +517,8 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
+            multi_buffer b;
+            std::string const s = "Hello, world!";
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
@@ -525,8 +527,6 @@ public:
             ws.next_layer().append(string_view{
                 "\x89\x00", 2});
             std::size_t count = 0;
-            multi_buffer b;
-            std::string const s = "Hello, world!";
             ws.async_write(net::buffer(s),
                 [&](error_code ec, std::size_t n)
                 {
@@ -564,13 +564,13 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
+            std::string const s = "Hello, world!";
+            multi_buffer b;
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             std::size_t count = 0;
-            std::string const s = "Hello, world!";
-            multi_buffer b;
             ws.async_close({},
                 [&](error_code ec)
                 {
@@ -612,13 +612,13 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
+            multi_buffer b;
+            std::string const s = "Hello, world!";
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             std::size_t count = 0;
-            std::string const s = "Hello, world!";
-            multi_buffer b;
             ws.async_read(b,
                 [&](error_code ec, std::size_t)
                 {
@@ -673,13 +673,13 @@ public:
         doFailLoop([&](test::fail_count& fc)
         {
             echo_server es{log};
+            multi_buffer b;
+            std::string const s = "Hello, world!";
             net::io_context ioc;
             stream<test::stream> ws{ioc, fc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             std::size_t count = 0;
-            std::string const s = "Hello, world!";
-            multi_buffer b;
             ws.async_ping({},
                 [&](error_code ec)
                 {

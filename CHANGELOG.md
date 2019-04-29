@@ -1,6 +1,7 @@
 Version 254:
 
 * Fix data race in test::stream::connect
+* Fix UB in websocket close tests
 
 --------------------------------------------------------------------------------
 
