@@ -1,3 +1,9 @@
+Version 254:
+
+* Fix data race in test::stream::connect
+
+--------------------------------------------------------------------------------
+
 Version 253:
 
 * Fix async_detect_ssl handler type
