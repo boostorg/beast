@@ -1,3 +1,9 @@
+Version 255:
+
+* Add idle ping suspend test
+
+--------------------------------------------------------------------------------
+
 Version 254:
 
 * Fix data race in test::stream::connect

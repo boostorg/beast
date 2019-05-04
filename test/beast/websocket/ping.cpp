@@ -10,8 +10,11 @@
 // Test that header file is self-contained.
 #include <boost/beast/websocket/stream.hpp>
 
+#include <boost/beast/_experimental/test/tcp.hpp>
+
 #include "test.hpp"
 
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 
@@ -365,6 +368,46 @@ public:
             ioc.run();
             BEAST_EXPECT(count == 3);
         });
+
+        // suspend idle ping
+        {
+            using socket_type =
+                net::basic_stream_socket<
+                    net::ip::tcp,
+                    net::executor>;
+            net::io_context ioc;
+            stream<socket_type> ws1(ioc);
+            stream<socket_type> ws2(ioc);
+            ws1.set_option(stream_base::timeout{
+                stream_base::none(),
+                std::chrono::seconds(0),
+                true});
+            test::connect(
+                ws1.next_layer(),
+                ws2.next_layer());
+            ws1.async_handshake("localhost", "/",
+                [](error_code){});
+            ws2.async_accept([](error_code){});
+            ioc.run();
+            ioc.restart();
+            flat_buffer b1;
+            auto mb = b1.prepare(65536);
+            std::memset(mb.data(), 0, mb.size());
+            b1.commit(65536);
+            ws1.async_write(b1.data(),
+                [&](error_code, std::size_t){});
+            BEAST_EXPECT(
+                ws1.impl_->wr_block.is_locked());
+            ws1.async_read_some(net::mutable_buffer{},
+                [&](error_code, std::size_t){});
+            ioc.run();
+            ioc.restart();
+            flat_buffer b2;
+            ws2.async_read(b2,
+                [&](error_code, std::size_t){});
+            ioc.run();
+        }
+        //);
 
         {
             echo_server es{log, kind::async};
