@@ -1,6 +1,7 @@
 Version 255:
 
 * Add idle ping suspend test
+* Fix moved-from executor in idle ping timeout
 
 --------------------------------------------------------------------------------
 

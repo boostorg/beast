@@ -176,7 +176,8 @@ public:
                 impl.op_idle_ping.emplace(std::move(*this));
                 impl.wr_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
-                net::post(this->get(), std::move(*this));
+                net::post(
+                    this->get_executor(), std::move(*this));
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
             }
             if(impl.check_stop_now(ec))
