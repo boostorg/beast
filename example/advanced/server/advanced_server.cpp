@@ -489,7 +489,7 @@ private:
         }
 
         // Send the response
-        handle_request(*doc_root_, std::move(parser_->release()), queue_);
+        handle_request(*doc_root_, parser_->release(), queue_);
 
         // If we aren't at the queue limit, try to pipeline another request
         if(! queue_.is_full())

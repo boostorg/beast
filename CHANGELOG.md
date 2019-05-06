@@ -9,6 +9,7 @@ Version 256:
 * `allocator_traits::construct` is used for user-defined types
 * Add 1-element specialization for `buffers_cat`
 * Fix `buffers_cat` iterator tests
+* Don't pessimize-move
 
 --------------------------------------------------------------------------------
 
