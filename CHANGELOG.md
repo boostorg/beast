@@ -10,6 +10,7 @@ Version 256:
 * Add 1-element specialization for `buffers_cat`
 * Fix `buffers_cat` iterator tests
 * Don't pessimize-move
+* Use steady_timer type
 
 --------------------------------------------------------------------------------
 

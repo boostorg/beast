@@ -111,7 +111,7 @@ private:
     boost::optional<http::request_parser<request_body_t, alloc_t>> parser_;
 
     // The timer putting a time limit on requests.
-    net::basic_waitable_timer<std::chrono::steady_clock> request_deadline_{
+    net::steady_timer request_deadline_{
         acceptor_.get_executor(), (std::chrono::steady_clock::time_point::max)()};
 
     // The string-based response message.
