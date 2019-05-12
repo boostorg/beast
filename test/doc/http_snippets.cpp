@@ -366,7 +366,7 @@ print_cxx14(message<isRequest, Body, Fields> const& m)
             [&sr](error_code& ec, auto const& buffer)
             {
                 ec = {};
-                std::cout << buffers(buffer);
+                std::cout << make_printable(buffer);
                 sr.consume(buffer_bytes(buffer));
             });
     }
@@ -393,7 +393,7 @@ struct lambda
     void operator()(error_code& ec, ConstBufferSequence const& buffer) const
     {
         ec = {};
-        std::cout << buffers(buffer);
+        std::cout << make_printable(buffer);
         sr.consume(buffer_bytes(buffer));
     }
 };
@@ -434,7 +434,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
             [&sr](error_code& ec, auto const& buffer)
             {
                 ec = {};
-                std::cout << buffers(buffer);
+                std::cout << make_printable(buffer);
                 sr.consume(buffer_bytes(buffer));
             });
     }
@@ -448,7 +448,7 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
                 [&sr](error_code& ec, auto const& buffer)
                 {
                     ec = {};
-                    std::cout << buffers(buffer);
+                    std::cout << make_printable(buffer);
                     sr.consume(buffer_bytes(buffer));
                 });
         }
@@ -461,6 +461,6 @@ split_print_cxx14(message<isRequest, Body, Fields> const& m)
 //]
 #endif
 
-// Highest snippet: 
+// Highest snippet:
 
 } // doc_http_snippets
