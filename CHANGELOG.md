@@ -1,3 +1,9 @@
+Version 256:
+
+* Remove uses of the deprecated `buffers` function
+
+--------------------------------------------------------------------------------
+
 Version 255:
 
 * Add idle ping suspend test

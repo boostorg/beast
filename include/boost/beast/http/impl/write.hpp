@@ -14,7 +14,7 @@
 #include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_range.hpp>
-#include <boost/beast/core/ostream.hpp>
+#include <boost/beast/core/make_printable.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
@@ -262,7 +262,7 @@ struct run_write_some_op
 {
     template<
         class WriteHandler,
-        class Stream, 
+        class Stream,
         bool isRequest, class Body, class Fields>
     void
     operator()(
@@ -903,7 +903,7 @@ operator<<(std::ostream& os,
 {
     typename Fields::writer fr{
         h, h.version(), h.method()};
-    return os << buffers(fr.get());
+    return os << beast::make_printable(fr.get());
 }
 
 template<class Fields>
@@ -913,7 +913,7 @@ operator<<(std::ostream& os,
 {
     typename Fields::writer fr{
         h, h.version(), h.result_int()};
-    return os << buffers(fr.get());
+    return os << beast::make_printable(fr.get());
 }
 
 template<bool isRequest, class Body, class Fields>
