@@ -11,6 +11,7 @@ Version 256:
 * Fix `buffers_cat` iterator tests
 * Don't pessimize-move
 * Use steady_timer type
+* Preserve operation_aborted on partial message
 
 --------------------------------------------------------------------------------
 
