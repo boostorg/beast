@@ -126,7 +126,9 @@ public:
                 "\r\n");
             ws.next_layer().read_size(20);
             bool called = false;
-            api.accept_ex(ws, res_decorator{called});
+            ws.set_option(stream_base::decorator(
+                res_decorator{called}));
+            api.accept(ws);
             BEAST_EXPECT(called);
         });
 
@@ -148,15 +150,16 @@ public:
         fail_loop([&](stream<test::stream>& ws)
         {
             bool called = false;
-            api.accept_ex(ws, sbuf(
+            ws.set_option(stream_base::decorator(
+                res_decorator{called}));
+            api.accept(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
-                "\r\n"),
-                res_decorator{called});
+                "\r\n"));
             BEAST_EXPECT(called);
         });
 
@@ -187,11 +190,12 @@ public:
                 "\r\n");
             ws.next_layer().read_size(16);
             bool called = false;
-            api.accept_ex(ws, sbuf(
+            ws.set_option(stream_base::decorator(
+                res_decorator{called}));
+            api.accept(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
-                "Upgrade: websocket\r\n"),
-                res_decorator{called});
+                "Upgrade: websocket\r\n"));
             BEAST_EXPECT(called);
         });
 
@@ -228,8 +232,9 @@ public:
             fail_loop([&](stream<test::stream>& ws)
             {
                 bool called = false;
-                api.accept_ex(ws, req,
-                    res_decorator{called});
+                ws.set_option(stream_base::decorator(
+                    res_decorator{called}));
+                api.accept(ws, req);
                 BEAST_EXPECT(called);
             });
         }
@@ -343,7 +348,9 @@ public:
             try
             {
                 bool called = false;
-                api.accept_ex(ws, res_decorator{called});
+                ws.set_option(stream_base::decorator(
+                    res_decorator{called}));
+                api.accept(ws);
                 BEAST_FAIL();
             }
             catch(system_error const& se)
@@ -388,7 +395,9 @@ public:
             try
             {
                 bool called = false;
-                api.accept_ex(ws, net::buffer(
+                ws.set_option(stream_base::decorator(
+                    res_decorator{called}));
+                api.accept(ws, net::buffer(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"
@@ -396,8 +405,7 @@ public:
                     "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                     "Sec-WebSocket-Version: 13\r\n"
                     + big +
-                    "\r\n"),
-                    res_decorator{called});
+                    "\r\n"));
                 BEAST_FAIL();
             }
             catch(system_error const& se)
@@ -446,11 +454,12 @@ public:
             try
             {
                 bool called = false;
-                api.accept_ex(ws, websocket_test_suite::sbuf(
+                ws.set_option(stream_base::decorator(
+                    res_decorator{called}));
+                api.accept(ws, websocket_test_suite::sbuf(
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
-                    "Upgrade: websocket\r\n"),
-                    res_decorator{called});
+                    "Upgrade: websocket\r\n"));
                 BEAST_FAIL();
             }
             catch(system_error const& se)
