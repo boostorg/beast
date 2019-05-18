@@ -5,6 +5,7 @@ Version 256:
 * Remove redundant use of `static_string`
 * Remove redundant template in service_base
 * Expand CI matrix using Azure Pipelines
+* Make chat websocket javascript client more user friendly
 
 --------------------------------------------------------------------------------
 
