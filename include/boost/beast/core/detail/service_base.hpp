@@ -17,14 +17,9 @@ namespace beast {
 namespace detail {
 
 template<class T>
-struct service_id : net::execution_context::id
-{
-};
-
-template<class T>
 struct service_base : net::execution_context::service
 {
-    static service_id<T> id;
+    static net::execution_context::id const id;
 
     explicit
     service_base(net::execution_context& ctx)
@@ -34,7 +29,7 @@ struct service_base : net::execution_context::service
 };
 
 template<class T>
-service_id<T> service_base<T>::id;
+net::execution_context::id const service_base<T>::id;
 
 } // detail
 } // beast

@@ -3,6 +3,7 @@ Version 256:
 * Remove uses of the deprecated `buffers` function
 * Remove uses of deprecated methods in websocket tests
 * Remove redundant use of `static_string`
+* Remove redundant template in service_base
 
 --------------------------------------------------------------------------------
 
