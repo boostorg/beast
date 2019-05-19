@@ -80,13 +80,8 @@ build_response(
             decorator_opt(res);
             decorator(res);
             if(! res.count(http::field::server))
-            {
-                // VFALCO this is weird..
-                BOOST_STATIC_ASSERT(sizeof(
-                    BOOST_BEAST_VERSION_STRING) < 20);
-                static_string<20> s(BOOST_BEAST_VERSION_STRING);
-                res.set(http::field::server, s);
-            }
+                res.set(http::field::server,
+                    string_view(BOOST_BEAST_VERSION_STRING));
         };
     auto err =
         [&](error e)
