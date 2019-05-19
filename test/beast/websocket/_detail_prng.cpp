@@ -17,6 +17,16 @@ namespace beast {
 namespace websocket {
 namespace detail {
 
+#ifdef BOOST_BEAST_TEST_STATIC_PRNG_SEED
+auto prng_init = []()
+{
+    // Workaround for https://bugs.launchpad.net/ubuntu/+source/valgrind/+bug/1501545
+    std::seed_seq seq{{0xDEAD, 0xBEEF}};
+    detail::prng_seed(&seq);
+    return 0;
+}();
+#endif // BOOST_BEAST_TEST_STATIC_PRNG_SEED
+
 class prng_test
     : public beast::unit_test::suite
 {

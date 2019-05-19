@@ -5,9 +5,13 @@ set -e
 build_dir=$2
 
 branch="master"
-if [ "$1" != "master" ]; then
+
+if [ "$1" != "master" -a "$1" != "refs/heads/master" ]; then
     branch="develop"
 fi
+
+echo "BUILD_DIR: $build_dir"
+echo "BRANCH: $branch"
 
 git clone -b $branch --depth 1 https://github.com/boostorg/boost.git boost-root
 cd boost-root
@@ -80,8 +84,6 @@ git submodule update --init --depth 20 --jobs 4 \
     libs/unordered
 
 echo Submodule update complete
-
-echo "BUILD_DIR: $build_dir"
 
 rm -rf libs/beast
 cp -r $build_dir libs/beast

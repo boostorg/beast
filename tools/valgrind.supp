@@ -3,6 +3,13 @@
    Memcheck:Cond
    fun:fill_window
 }
+
+{
+   zlib_deflate_fast
+   Memcheck:Cond
+   fun:deflate_fast
+}
+
 {
    Ignore OpenSSL malloc
    Memcheck:Leak

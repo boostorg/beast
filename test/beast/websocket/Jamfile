@@ -46,7 +46,7 @@ for local f in $(SOURCES)
 alias run-tests : $(RUN_TESTS) ;
 
 exe fat-tests
-    : 
+    :
     $(SOURCES)
     /boost/beast//lib-asio-ssl
     /boost/beast/test//lib-test
