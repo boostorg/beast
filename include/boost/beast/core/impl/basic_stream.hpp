@@ -15,7 +15,6 @@
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/websocket/teardown.hpp>
-#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
@@ -161,12 +160,21 @@ close()
 //------------------------------------------------------------------------------
 
 template<class Protocol, class Executor, class RatePolicy>
+template<class Executor2>
 struct basic_stream<Protocol, Executor, RatePolicy>::
     timeout_handler
 {
+    using executor_type = Executor2;
+
     op_state& state;
     boost::weak_ptr<impl_type> wp;
     tick_type tick;
+    executor_type ex;
+
+    executor_type get_executor() const noexcept
+    {
+        return ex;
+    }
 
     void
     operator()(error_code ec)
@@ -329,13 +337,11 @@ public:
             // if a timeout is active, wait on the timer
             if(state().timer.expiry() != never())
                 state().timer.async_wait(
-                    net::bind_executor(
-                        this->get_executor(),
-                        timeout_handler{
-                            state(),
-                            impl_,
-                            state().tick
-                        }));
+                    timeout_handler<decltype(this->get_executor())>{
+                        state(),
+                        impl_,
+                        state().tick,
+                        this->get_executor()});
 
             // check rate limit, maybe wait
             std::size_t amount;
@@ -430,12 +436,11 @@ public:
     {
         if(state().timer.expiry() != stream_base::never())
             impl_->write.timer.async_wait(
-                net::bind_executor(
-                    this->get_executor(),
-                    timeout_handler{
-                        state(),
-                        impl_,
-                        state().tick}));
+                timeout_handler<decltype(this->get_executor())>{
+                    state(),
+                    impl_,
+                    state().tick,
+                    this->get_executor()});
 
         impl_->socket.async_connect(
             ep, std::move(*this));
@@ -458,12 +463,11 @@ public:
     {
         if(state().timer.expiry() != stream_base::never())
             impl_->write.timer.async_wait(
-                net::bind_executor(
-                    this->get_executor(),
-                    timeout_handler{
-                        state(),
-                        impl_,
-                        state().tick}));
+                timeout_handler<decltype(this->get_executor())>{
+                    state(),
+                    impl_,
+                    state().tick,
+                    this->get_executor()});
 
         net::async_connect(impl_->socket,
             eps, cond, std::move(*this));
@@ -486,12 +490,11 @@ public:
     {
         if(state().timer.expiry() != stream_base::never())
             impl_->write.timer.async_wait(
-                net::bind_executor(
-                    this->get_executor(),
-                    timeout_handler{
-                        state(),
-                        impl_,
-                        state().tick}));
+                timeout_handler<decltype(this->get_executor())>{
+                    state(),
+                    impl_,
+                    state().tick,
+                    this->get_executor()});
 
         net::async_connect(impl_->socket,
             begin, end, cond, std::move(*this));

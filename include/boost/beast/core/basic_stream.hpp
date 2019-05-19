@@ -73,7 +73,7 @@ namespace beast {
     be invoked by the executor associated with the stream upon construction.
     The type of executor used with this stream must meet the following
     requirements:
-    
+
     @li Function objects submitted to the executor shall never run
         concurrently with each other.
 
@@ -284,6 +284,7 @@ private:
     // but the implementation is still waiting on a timer.
     boost::shared_ptr<impl_type> impl_;
 
+    template<class Executor2>
     struct timeout_handler;
 
     struct ops;
@@ -367,7 +368,7 @@ public:
 
     /** Move constructor
 
-        @param other The other object from which the move will occur. 
+        @param other The other object from which the move will occur.
 
         @note Following the move, the moved-from object is in the
         same state as if newly constructed.
@@ -490,7 +491,7 @@ public:
     //--------------------------------------------------------------------------
 
     /** Get the executor associated with the object.
-    
+
         This function may be used to obtain the executor object that the
         stream uses to dispatch completion handlers without an assocaited
         executor.
@@ -525,7 +526,7 @@ public:
     }
 
     /** Connect the stream to the specified endpoint.
-        
+
         This function is used to connect the underlying socket to the
         specified remote endpoint. The function call will block until
         the connection is successfully made or an error occurs.
@@ -534,7 +535,7 @@ public:
         closed state upon failure.
 
         @param ep The remote endpoint to connect to.
-        
+
         @param ec Set to indicate what error occurred, if any.
 
         @see connect
@@ -546,7 +547,7 @@ public:
     }
 
     /** Establishes a connection by trying each endpoint in a sequence.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -556,11 +557,11 @@ public:
 
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the underlying socket's `connect` function.
-    
+
         @param endpoints A sequence of endpoints.
-    
+
         @returns The successfully connected endpoint.
-    
+
         @throws system_error Thrown on failure. If the sequence is
         empty, the associated error code is `net::error::not_found`.
         Otherwise, contains the error from the last connection attempt.
@@ -579,7 +580,7 @@ public:
     }
 
     /** Establishes a connection by trying each endpoint in a sequence.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -589,16 +590,16 @@ public:
 
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the underlying socket's `connect` function.
-        
+
         @param endpoints A sequence of endpoints.
-    
+
         @param ec Set to indicate what error occurred, if any. If the sequence is
         empty, set to `net::error::not_found`. Otherwise, contains the error
         from the last connection attempt.
-    
+
         @returns On success, the successfully connected endpoint. Otherwise, a
         default-constructed endpoint.
-    */    
+    */
     template<class EndpointSequence
     #if ! BOOST_BEAST_DOXYGEN
         ,class = typename std::enable_if<
@@ -616,27 +617,27 @@ public:
     }
 
     /** Establishes a connection by trying each endpoint in a sequence.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
         The underlying socket is automatically opened if needed.
         An automatically opened socket is not returned to the
         closed state upon failure.
-    
+
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the underlying socket's `connect` function.
-    
+
         @param begin An iterator pointing to the start of a sequence of endpoints.
-    
+
         @param end An iterator pointing to the end of a sequence of endpoints.
-    
+
         @returns An iterator denoting the successfully connected endpoint.
-    
+
         @throws system_error Thrown on failure. If the sequence is
         empty, the associated error code is `net::error::not_found`.
         Otherwise, contains the error from the last connection attempt.
-    */    
+    */
     template<class Iterator>
     Iterator
     connect(
@@ -646,25 +647,25 @@ public:
     }
 
     /** Establishes a connection by trying each endpoint in a sequence.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
         The underlying socket is automatically opened if needed.
         An automatically opened socket is not returned to the
         closed state upon failure.
-    
+
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the underlying socket's `connect` function.
-        
+
         @param begin An iterator pointing to the start of a sequence of endpoints.
-    
+
         @param end An iterator pointing to the end of a sequence of endpoints.
-    
+
         @param ec Set to indicate what error occurred, if any. If the sequence is
         empty, set to boost::asio::error::not_found. Otherwise, contains the error
         from the last connection attempt.
-    
+
         @returns On success, an iterator denoting the successfully connected
         endpoint. Otherwise, the end iterator.
     */
@@ -678,7 +679,7 @@ public:
     }
 
     /** Establishes a connection by trying each endpoint in a sequence.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -688,9 +689,9 @@ public:
 
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the underlying socket's `connect` function.
-        
+
         @param endpoints A sequence of endpoints.
-    
+
         @param connect_condition A function object that is called prior to each
         connection attempt. The signature of the function object must be:
         @code
@@ -703,9 +704,9 @@ public:
         indicate success. The @c next parameter is the next endpoint to be tried.
         The function object should return true if the next endpoint should be tried,
         and false if it should be skipped.
-    
+
         @returns The successfully connected endpoint.
-    
+
         @throws boost::system::system_error Thrown on failure. If the sequence is
         empty, the associated error code is `net::error::not_found`.
         Otherwise, contains the error from the last connection attempt.
@@ -779,7 +780,7 @@ public:
     }
 
     /** Establishes a connection by trying each endpoint in a sequence.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -789,11 +790,11 @@ public:
 
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the underlying socket's `connect` function.
-        
+
         @param begin An iterator pointing to the start of a sequence of endpoints.
-    
+
         @param end An iterator pointing to the end of a sequence of endpoints.
-    
+
         @param connect_condition A function object that is called prior to each
         connection attempt. The signature of the function object must be:
         @code
@@ -806,13 +807,13 @@ public:
         indicate success. The @c next parameter is the next endpoint to be tried.
         The function object should return true if the next endpoint should be tried,
         and false if it should be skipped.
-    
+
         @returns An iterator denoting the successfully connected endpoint.
-    
+
         @throws boost::system::system_error Thrown on failure. If the sequence is
         empty, the associated @c error_code is `net::error::not_found`.
         Otherwise, contains the error from the last connection attempt.
-    */  
+    */
     template<
         class Iterator, class ConnectCondition>
     Iterator
@@ -824,7 +825,7 @@ public:
     }
 
     /** Establishes a connection by trying each endpoint in a sequence.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -834,11 +835,11 @@ public:
 
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the underlying socket's `connect` function.
-        
+
         @param begin An iterator pointing to the start of a sequence of endpoints.
-    
+
         @param end An iterator pointing to the end of a sequence of endpoints.
-    
+
         @param connect_condition A function object that is called prior to each
         connection attempt. The signature of the function object must be:
         @code
@@ -851,11 +852,11 @@ public:
         indicate success. The @c next parameter is the next endpoint to be tried.
         The function object should return true if the next endpoint should be tried,
         and false if it should be skipped.
-    
+
         @param ec Set to indicate what error occurred, if any. If the sequence is
         empty, set to `net::error::not_found`. Otherwise, contains the error
         from the last connection attempt.
-    
+
         @returns On success, an iterator denoting the successfully connected
         endpoint. Otherwise, the end iterator.
     */
@@ -885,7 +886,7 @@ public:
 
         @param ep The remote endpoint to which the underlying socket will be
         connected. Copies will be made of the endpoint object as required.
-        
+
         @param handler The completion handler to invoke when the operation
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
@@ -909,7 +910,7 @@ public:
         ConnectHandler&& handler);
 
     /** Establishes a connection by trying each endpoint in a sequence asynchronously.
-   
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -924,10 +925,10 @@ public:
         If the timeout timer expires while the operation is outstanding,
         the current connection attempt will be canceled and the completion
         handler will be invoked with the error @ref error::timeout.
-    
+
         @param endpoints A sequence of endpoints. This this object must meet
         the requirements of <em>EndpointSequence</em>.
-    
+
         @param handler The completion handler to invoke when the operation
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
@@ -938,7 +939,7 @@ public:
             // net::error::not_found. Otherwise, contains the
             // error from the last connection attempt.
             error_code const& error,
-    
+
             // On success, the successfully connected endpoint.
             // Otherwise, a default-constructed endpoint.
             typename Protocol::endpoint const& endpoint
@@ -964,7 +965,7 @@ public:
         RangeConnectHandler&& handler);
 
     /** Establishes a connection by trying each endpoint in a sequence asynchronously.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -982,7 +983,7 @@ public:
 
         @param endpoints A sequence of endpoints. This this object must meet
         the requirements of <em>EndpointSequence</em>.
-    
+
         @param connect_condition A function object that is called prior to each
         connection attempt. The signature of the function object must be:
         @code
@@ -1006,7 +1007,7 @@ public:
             // net::error::not_found. Otherwise, contains the
             // error from the last connection attempt.
             error_code const& error,
-    
+
             // On success, the successfully connected endpoint.
             // Otherwise, a default-constructed endpoint.
             typename Protocol::endpoint const& endpoint
@@ -1052,7 +1053,7 @@ public:
         RangeConnectHandler&& handler);
 
     /** Establishes a connection by trying each endpoint in a sequence asynchronously.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -1067,9 +1068,9 @@ public:
         If the timeout timer expires while the operation is outstanding,
         the current connection attempt will be canceled and the completion
         handler will be invoked with the error @ref error::timeout.
-    
+
         @param begin An iterator pointing to the start of a sequence of endpoints.
-    
+
         @param end An iterator pointing to the end of a sequence of endpoints.
 
         @param handler The completion handler to invoke when the operation
@@ -1082,7 +1083,7 @@ public:
             // net::error::not_found. Otherwise, contains the
             // error from the last connection attempt.
             error_code const& error,
-    
+
             // On success, an iterator denoting the successfully
             // connected endpoint. Otherwise, the end iterator.
             Iterator iterator
@@ -1102,7 +1103,7 @@ public:
         IteratorConnectHandler&& handler);
 
     /** Establishes a connection by trying each endpoint in a sequence asynchronously.
-    
+
         This function attempts to connect the stream to one of a sequence of
         endpoints by trying each endpoint until a connection is successfully
         established.
@@ -1113,11 +1114,11 @@ public:
         If the timeout timer expires while the operation is outstanding,
         the current connection attempt will be canceled and the completion
         handler will be invoked with the error @ref error::timeout.
-    
+
         @param begin An iterator pointing to the start of a sequence of endpoints.
 
         @param end An iterator pointing to the end of a sequence of endpoints.
-    
+
         @param connect_condition A function object that is called prior to each
         connection attempt. The signature of the function object must be:
         @code
@@ -1136,7 +1137,7 @@ public:
             // net::error::not_found. Otherwise, contains the
             // error from the last connection attempt.
             error_code const& error,
-    
+
             // On success, an iterator denoting the successfully
             // connected endpoint. Otherwise, the end iterator.
             Iterator iterator
@@ -1162,7 +1163,7 @@ public:
     /** Read some data.
 
         This function is used to read some data from the stream.
-        
+
         The call blocks until one of the following is true:
 
         @li One or more bytes are read from the stream.
@@ -1172,11 +1173,11 @@ public:
         @param buffers The buffers into which the data will be read. If the
         size of the buffers is zero bytes, the call always returns
         immediately with no error.
-        
+
         @returns The number of bytes read.
-        
+
         @throws system_error Thrown on failure.
-        
+
         @note The `read_some` operation may not receive all of the requested
         number of bytes. Consider using the function `net::read` if you need
         to ensure that the requested amount of data is read before the
@@ -1202,11 +1203,11 @@ public:
         @param buffers The buffers into which the data will be read. If the
         size of the buffers is zero bytes, the call always returns
         immediately with no error.
-        
+
         @param ec Set to indicate what error occurred, if any.
 
         @returns The number of bytes read.
-                
+
         @note The `read_some` operation may not receive all of the requested
         number of bytes. Consider using the function `net::read` if you need
         to ensure that the requested amount of data is read before the
@@ -1224,7 +1225,7 @@ public:
     /** Read some data asynchronously.
 
         This function is used to asynchronously read data from the stream.
-        
+
         This call always returns immediately. The asynchronous operation
         will continue until one of the following conditions is true:
 
@@ -1247,7 +1248,7 @@ public:
         Although the buffers object may be copied as necessary, ownership of the
         underlying memory blocks is retained by the caller, which must guarantee
         that they remain valid until the handler is called.
-        
+
         @param handler The completion handler to invoke when the operation
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
@@ -1277,7 +1278,7 @@ public:
     /** Write some data.
 
         This function is used to write some data to the stream.
-        
+
         The call blocks until one of the following is true:
 
         @li One or more bytes are written to the stream.
@@ -1289,9 +1290,9 @@ public:
         with no error.
 
         @returns The number of bytes written.
-        
+
         @throws system_error Thrown on failure.
-        
+
         @note The `write_some` operation may not transmit all of the requested
         number of bytes. Consider using the function `net::write` if you need
         to ensure that the requested amount of data is written before the
@@ -1307,7 +1308,7 @@ public:
     /** Write some data.
 
         This function is used to write some data to the stream.
-        
+
         The call blocks until one of the following is true:
 
         @li One or more bytes are written to the stream.
@@ -1321,9 +1322,9 @@ public:
         @param ec Set to indicate what error occurred, if any.
 
         @returns The number of bytes written.
-        
+
         @throws system_error Thrown on failure.
-        
+
         @note The `write_some` operation may not transmit all of the requested
         number of bytes. Consider using the function `net::write` if you need
         to ensure that the requested amount of data is written before the
@@ -1341,7 +1342,7 @@ public:
     /** Write some data asynchronously.
 
         This function is used to asynchronously write data to the underlying socket.
-        
+
         This call always returns immediately. The asynchronous operation
         will continue until one of the following conditions is true:
 
@@ -1364,7 +1365,7 @@ public:
         Although the buffers object may be copied as necessary, ownership of the
         underlying memory blocks is retained by the caller, which must guarantee
         that they remain valid until the handler is called.
-        
+
         @param handler The completion handler to invoke when the operation
         completes. The implementation takes ownership of the handler by
         performing a decay-copy. The equivalent function signature of
