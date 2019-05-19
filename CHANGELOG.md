@@ -7,6 +7,7 @@ Version 256:
 * Expand CI matrix using Azure Pipelines
 * Make chat websocket javascript client more user friendly
 * `allocator_traits::construct` is used for user-defined types
+* Add 1-element specialization for `buffers_cat`
 
 --------------------------------------------------------------------------------
 

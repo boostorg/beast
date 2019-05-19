@@ -65,7 +65,8 @@ public:
     end() const;
 };
 
-/** Concatenate 2 or more buffer sequences.
+/** Concatenate 1 or more buffer sequences.
+
     This function returns a constant or mutable buffer sequence which,
     when iterated, efficiently concatenates the input buffer sequences.
     Copies of the arguments passed will be made; however, the returned
@@ -85,15 +86,15 @@ template<class... BufferSequence>
 buffers_cat_view<BufferSequence...>
 buffers_cat(BufferSequence const&... buffers)
 #else
-template<class B1, class B2, class... Bn>
-buffers_cat_view<B1, B2, Bn...>
-buffers_cat(B1 const& b1, B2 const& b2, Bn const&... bn)
+template<class B1, class... Bn>
+buffers_cat_view<B1, Bn...>
+buffers_cat(B1 const& b1, Bn const&... bn)
 #endif
 {
     static_assert(
-        is_const_buffer_sequence<B1, B2, Bn...>::value,
+        is_const_buffer_sequence<B1, Bn...>::value,
         "BufferSequence type requirements not met");
-    return buffers_cat_view<B1, B2, Bn...>{b1, b2, bn...};
+    return buffers_cat_view<B1, Bn...>{b1, bn...};
 }
 
 } // beast
