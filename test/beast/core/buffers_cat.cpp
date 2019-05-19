@@ -38,8 +38,6 @@ public:
             net::const_buffer(&c[0], 1),
             net::const_buffer(&c[1], 1));
         decltype(bs)::const_iterator it;
-        BEAST_EXPECT(bs.end() == it);
-        BEAST_EXPECT(it == bs.end());
         decltype(bs)::const_iterator it2;
         BEAST_EXPECT(it == it2);
         BEAST_EXPECT(it2 == it);
@@ -319,6 +317,7 @@ public:
 
     void run() override
     {
+        testDefaultIterators();
         testBufferSequence();
         testExceptions();
         testEmpty();
