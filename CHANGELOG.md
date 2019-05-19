@@ -6,6 +6,7 @@ Version 256:
 * Remove redundant template in service_base
 * Expand CI matrix using Azure Pipelines
 * Make chat websocket javascript client more user friendly
+* `allocator_traits::construct` is used for user-defined types
 
 --------------------------------------------------------------------------------
 
