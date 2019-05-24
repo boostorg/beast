@@ -4,6 +4,7 @@ Version 258:
 * Fix clang inititalization warning in websocket
 * Remove redundant use of `yield_to` in parser tests
 * Add VS 2019 AzP CI matrix item
+* Clean up typo in chat websocket javascript client
 
 --------------------------------------------------------------------------------
 
