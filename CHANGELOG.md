@@ -1,3 +1,9 @@
+Version 257:
+
+* Add b2 features for compile-time options used in testing
+
+--------------------------------------------------------------------------------
+
 Version 256:
 
 * Remove uses of the deprecated `buffers` function

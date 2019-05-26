@@ -21,7 +21,7 @@ project /boost/beast/example
         cxx11_variadic_templates
     ]
     <library>/boost/beast//lib-asio/<link>static
-    <library>/boost/beast//lib-beast/<link>static
+    <boost.beast.separate-compilation>on:<library>/boost/beast//lib-beast/<link>static
     ;
 
 build-project advanced ;

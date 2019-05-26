@@ -45,6 +45,14 @@ jobs:
           B2_FLAGS: <define>BOOST_BEAST_USE_STD_STRING_VIEW
           CXXSTD: 17
           B2_TARGETS: libs/beast/test//run-fat-tests libs/beast/example
+        GCC 8 C++11 HEADER_ONLY NO_DEPRECATED:
+          TOOLSET: gcc
+          CXX: g++-8
+          PACKAGES: g++-8
+          VARIANT: release
+          B2_FLAGS: <boost.beast.separate-compilation>off <boost.beast.allow-deprecated>off
+          CXXSTD: 11
+          B2_TARGETS: libs/beast/test//run-fat-tests
         GCC 8 C++11 UBASAN:
           TOOLSET: gcc
           CXX: g++-8
@@ -133,6 +141,15 @@ jobs:
           PACKAGES: clang-8 libc++-8-dev libc++abi-8-dev
           VARIANT: release
           B2_FLAGS: <thread-sanitizer>norecover
+          CXXSTD: 11
+          CXX_FLAGS: <cxxflags>"-stdlib=libc++ -msse4.2 -funsigned-char -fno-omit-frame-pointer" <linkflags>-stdlib=libc++
+          B2_TARGETS: libs/beast/test//run-fat-tests
+        Clang 8 libc++ C++11 Release HEADER_ONLY NO_DEPRECATED:
+          TOOLSET: clang
+          CXX: clang++-8
+          PACKAGES: clang-8 libc++-8-dev libc++abi-8-dev
+          VARIANT: release
+          B2_FLAGS: <boost.beast.separate-compilation>off <boost.beast.allow-deprecated>off
           CXXSTD: 11
           CXX_FLAGS: <cxxflags>"-stdlib=libc++ -msse4.2 -funsigned-char -fno-omit-frame-pointer" <linkflags>-stdlib=libc++
           B2_TARGETS: libs/beast/test//run-fat-tests

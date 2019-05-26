@@ -31,6 +31,12 @@ lib crypt32 ;
 lib ssl : : <target-os>windows <name>ssleay32 ;
 lib crypto : : <target-os>windows <name>libeay32 ;
 
+feature.feature boost.beast.allow-deprecated : on off : optional propagated composite ;
+feature.compose <boost.beast.allow-deprecated>on : <define>BOOST_BEAST_ALLOW_DEPRECATED ;
+
+feature.feature boost.beast.separate-compilation : on off : optional propagated composite ;
+feature.compose <boost.beast.separate-compilation>on : <define>BOOST_BEAST_SEPARATE_COMPILATION ;
+
 variant beast_coverage
   : debug
   : <cxxflags>"-msse4.2 --coverage"
@@ -70,7 +76,6 @@ local defines =
     <define>BOOST_ASIO_DISABLE_BOOST_BIND=1
     <define>BOOST_ASIO_DISABLE_BOOST_DATE_TIME=1
     <define>BOOST_ASIO_DISABLE_BOOST_REGEX=1
-    <define>BOOST_BEAST_SEPARATE_COMPILATION
     <define>BOOST_COROUTINES_NO_DEPRECATION_WARNING=1
     <toolset>msvc:<cxxflags>"/bigobj"
     <toolset>msvc-14.1:<cxxflags>"/permissive-"
