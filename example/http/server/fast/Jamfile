@@ -12,5 +12,4 @@ exe http-server-fast :
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
-    <library>/boost/coroutine//boost_coroutine
     ;
