@@ -220,62 +220,34 @@ class transfer_op
     using is_read = std::integral_constant<bool, isRead>;
 
     op_state&
-    state(std::true_type)
-    {
-        return impl_->read;
-    }
-
-    op_state&
-    state(std::false_type)
-    {
-        return impl_->write;
-    }
-
-    op_state&
     state()
     {
-        return state(
-            std::integral_constant<bool, isRead>{});
-    }
-
-    std::size_t
-    available_bytes(std::true_type)
-    {
-        return rate_policy_access::
-            available_read_bytes(impl_->policy());
-    }
-
-    std::size_t
-    available_bytes(std::false_type)
-    {
-        return rate_policy_access::
-            available_write_bytes(impl_->policy());
+        if (isRead)
+            return impl_->read;
+        else
+            return impl_->write;
     }
 
     std::size_t
     available_bytes()
     {
-        return available_bytes(is_read{});
-    }
-
-    void
-    transfer_bytes(std::size_t n, std::true_type)
-    {
-        rate_policy_access::
-            transfer_read_bytes(impl_->policy(), n);
-    }
-
-    void
-    transfer_bytes(std::size_t n, std::false_type)
-    {
-        rate_policy_access::
-            transfer_write_bytes(impl_->policy(), n);
+        if (isRead)
+            return rate_policy_access::
+                available_read_bytes(impl_->policy());
+        else
+            return rate_policy_access::
+                available_write_bytes(impl_->policy());
     }
 
     void
     transfer_bytes(std::size_t n)
     {
-        transfer_bytes(n, is_read{});
+        if (isRead)
+            rate_policy_access::
+                transfer_read_bytes(impl_->policy(), n);
+        else
+            rate_policy_access::
+                transfer_write_bytes(impl_->policy(), n);
     }
 
     void
