@@ -403,7 +403,7 @@ copy_from(
     if(begin_)
     {
         BOOST_ASSERT(other.begin_);
-        std::memcpy(begin_, other.begin_, n);
+        std::memcpy(begin_, other.in_, n);
     }
 }
 

@@ -4,6 +4,7 @@ Version 257:
 * Remove redundant dependencies in http/server/fast example
 * Remove experimental/unit_test/thread.hpp
 * Use `if` statement in basic_stream::transfer_op
+* Fix flat_buffer copy members
 
 --------------------------------------------------------------------------------
 

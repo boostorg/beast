@@ -395,6 +395,14 @@ test_dynamic_buffer(
             BEAST_EXPECT(
                 buffers_to_string(b1.data()) ==
                 buffers_to_string(b2.data()));
+
+            // https://github.com/boostorg/beast/issues/1621
+            b2.consume(1);
+            DynamicBuffer b3(b2);
+            BEAST_EXPECT(b3.size() == b2.size());
+            BEAST_EXPECT(
+                buffers_to_string(b2.data()) ==
+                buffers_to_string(b3.data()));
         }
 
         // move constructor
@@ -422,6 +430,15 @@ test_dynamic_buffer(
             BEAST_EXPECT(
                 buffers_to_string(b2.data()) ==
                 buffers_to_string(b1.data()));
+
+            // https://github.com/boostorg/beast/issues/1621
+            b2.consume(1);
+            DynamicBuffer b3(b2);
+            BEAST_EXPECT(b3.size() == b2.size());
+            BEAST_EXPECT(
+                buffers_to_string(b2.data()) ==
+                buffers_to_string(b3.data()));
+
         }
 
         // move assignment
