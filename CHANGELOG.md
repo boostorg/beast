@@ -2,6 +2,7 @@ Version 257:
 
 * Add b2 features for compile-time options used in testing
 * Remove redundant dependencies in http/server/fast example
+* Remove experimental/unit_test/thread.hpp
 
 --------------------------------------------------------------------------------
 
