@@ -215,9 +215,9 @@ read_close(
 
     std::uint16_t code_be;
     cr.reason.resize(n - 2);
-    std::array<net::mutable_buffer, 2> out_bufs{
+    std::array<net::mutable_buffer, 2> out_bufs{{
         net::mutable_buffer(&code_be, sizeof(code_be)),
-        net::mutable_buffer(&cr.reason[0], n - 2)};
+        net::mutable_buffer(&cr.reason[0], n - 2)}};
 
     net::buffer_copy(out_bufs, bs);
 

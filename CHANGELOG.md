@@ -1,6 +1,7 @@
 Version 258:
 
 * Fix separate compilation in CI
+* Fix clang inititalization warning in websocket
 
 --------------------------------------------------------------------------------
 
