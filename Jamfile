@@ -31,10 +31,10 @@ lib crypt32 ;
 lib ssl : : <target-os>windows <name>ssleay32 ;
 lib crypto : : <target-os>windows <name>libeay32 ;
 
-feature.feature boost.beast.allow-deprecated : on off : optional propagated composite ;
+feature.feature boost.beast.allow-deprecated : on off : propagated composite ;
 feature.compose <boost.beast.allow-deprecated>on : <define>BOOST_BEAST_ALLOW_DEPRECATED ;
 
-feature.feature boost.beast.separate-compilation : on off : optional propagated composite ;
+feature.feature boost.beast.separate-compilation : on off : propagated composite ;
 feature.compose <boost.beast.separate-compilation>on : <define>BOOST_BEAST_SEPARATE_COMPILATION ;
 
 variant beast_coverage

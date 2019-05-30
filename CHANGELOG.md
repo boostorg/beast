@@ -1,3 +1,9 @@
+Version 258:
+
+* Fix separate compilation in CI
+
+--------------------------------------------------------------------------------
+
 Version 257:
 
 * Add b2 features for compile-time options used in testing
