@@ -26,18 +26,16 @@ escaped_string(string_view s)
 {
     std::string out;
     out.reserve(s.size());
-    char const* p = s.data();
-    while(p != s.end())
+    for(char c : s)
     {
-        if(*p == '\r')
+        if(c == '\r')
             out.append("\\r");
-        else if(*p == '\n')
+        else if(c == '\n')
             out.append("\\n");
-        else if(*p == '\t')
+        else if(c == '\t')
             out.append("\\t");
         else
-            out.append(p, 1);
-        ++p;
+            out.append(&c, 1);
     }
     return out;
 }
