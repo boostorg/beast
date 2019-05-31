@@ -13,7 +13,6 @@
 #include "test_parser.hpp"
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -30,7 +29,6 @@ namespace http {
 
 class parser_test
     : public beast::unit_test::suite
-    , public beast::test::enable_yield_to
 {
 public:
     template<bool isRequest>
