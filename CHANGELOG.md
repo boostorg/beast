@@ -1,3 +1,9 @@
+Version 259:
+
+* Reduce the number of instantiations of filter_token_list
+
+--------------------------------------------------------------------------------
+
 Version 258:
 
 * Fix separate compilation in CI

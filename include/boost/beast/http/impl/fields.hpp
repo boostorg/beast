@@ -824,16 +824,23 @@ keep_alive_impl(
     String& s, string_view value,
     unsigned version, bool keep_alive)
 {
+    struct iequals_predicate
+    {
+        bool operator()(string_view s)
+        {
+            return beast::iequals(s, sv1) || beast::iequals(s, sv2);
+        }
+
+        string_view sv1;
+        string_view sv2;
+    };
+
     if(version < 11)
     {
         if(keep_alive)
         {
             // remove close
-            filter_token_list(s, value,
-                [](string_view s)
-                {
-                    return iequals(s, "close");
-                });
+            filter_token_list(s, value, iequals_predicate{"close"});
             // add keep-alive
             if(s.empty())
                 s.append("keep-alive");
@@ -844,12 +851,7 @@ keep_alive_impl(
         {
             // remove close and keep-alive
             filter_token_list(s, value,
-                [](string_view s)
-                {
-                    return
-                        iequals(s, "close") ||
-                        iequals(s, "keep-alive");
-                });
+                iequals_predicate{"close", "keep-alive"});
         }
     }
     else
@@ -858,21 +860,12 @@ keep_alive_impl(
         {
             // remove close and keep-alive
             filter_token_list(s, value,
-                [](string_view s)
-                {
-                    return
-                        iequals(s, "close") ||
-                        iequals(s, "keep-alive");
-                });
+                iequals_predicate{"close", "keep-alive"});
         }
         else
         {
             // remove keep-alive
-            filter_token_list(s, value,
-                [](string_view s)
-                {
-                    return iequals(s, "keep-alive");
-                });
+            filter_token_list(s, value, iequals_predicate{"keep-alive"});
             // add close
             if(s.empty())
                 s.append("close");
