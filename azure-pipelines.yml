@@ -37,6 +37,42 @@ jobs:
       options: --privileged
     strategy:
       matrix:
+        GCC 9 C++17 Release:
+          TOOLSET: gcc
+          CXX: g++-9
+          PACKAGES: g++-9
+          VARIANT: release
+          B2_FLAGS: <define>BOOST_BEAST_USE_STD_STRING_VIEW
+          CXXSTD: 17
+          B2_TARGETS: libs/beast/test//run-fat-tests libs/beast/example
+        GCC 9 C++11 HEADER_ONLY NO_DEPRECATED:
+          TOOLSET: gcc
+          CXX: g++-9
+          PACKAGES: g++-9
+          VARIANT: release
+          B2_FLAGS: <boost.beast.separate-compilation>off <boost.beast.allow-deprecated>off
+          CXXSTD: 11
+          B2_TARGETS: libs/beast/test//run-fat-tests
+        GCC 9 C++11 UBASAN:
+          TOOLSET: gcc
+          CXX: g++-9
+          PACKAGES: g++-9
+          VARIANT: debug
+          B2_FLAGS: <address-sanitizer>norecover <undefined-sanitizer>norecover
+          # use GOLD to workaround UBSAN linker issue in gcc 7/8
+          # https://stackoverflow.com/questions/50024731/ld-unrecognized-option-push-state-no-as-needed
+          CXX_FLAGS: <cxxflags>"-msse4.2 -funsigned-char -fno-omit-frame-pointer" <linkflags>-fuse-ld=gold
+          CXXSTD: 11
+          B2_TARGETS: libs/beast/test//run-fat-tests
+        GCC 9 C++11 TSAN:
+          TOOLSET: gcc
+          CXX: g++-9
+          PACKAGES: g++-9
+          VARIANT: release
+          B2_FLAGS: <thread-sanitizer>norecover
+          CXX_FLAGS: <cxxflags>"-msse4.2 -funsigned-char -fno-omit-frame-pointer"
+          CXXSTD: 11
+          B2_TARGETS: libs/beast/test//run-fat-tests
         GCC 8 C++17 Release:
           TOOLSET: gcc
           CXX: g++-8
