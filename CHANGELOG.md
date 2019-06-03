@@ -1,6 +1,7 @@
 Version 259:
 
 * Reduce the number of instantiations of filter_token_list
+* Remove the use of `static_string` from `http::fields`
 
 --------------------------------------------------------------------------------
 

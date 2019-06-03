@@ -24,6 +24,9 @@ namespace http {
 class fields_test : public beast::unit_test::suite
 {
 public:
+    static constexpr std::size_t max_static_buffer =
+        sizeof(http::detail::temporary_buffer);
+
     template<class T>
     class test_allocator
     {
@@ -685,8 +688,7 @@ public:
                     (! res.keep_alive() && ! v));
             };
 
-        BOOST_STATIC_ASSERT(fields::max_static_buffer == 4096);
-        std::string const big(4096 + 1, 'a');
+        std::string const big(max_static_buffer + 1, 'a');
 
         // HTTP/1.0
         res.version(10);
@@ -846,10 +848,10 @@ public:
 
         res.content_length(0);
         BEAST_EXPECT(res[field::content_length] == "0");
-        
+
         res.content_length(100);
         BEAST_EXPECT(res[field::content_length] == "100");
-        
+
         res.content_length(boost::none);
         BEAST_EXPECT(res.count(field::content_length) == 0);
 
@@ -857,12 +859,12 @@ public:
         res.content_length(0);
         BEAST_EXPECT(res[field::content_length] == "0");
         BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
-        
+
         res.set(field::transfer_encoding, "chunked");
         res.content_length(100);
         BEAST_EXPECT(res[field::content_length] == "100");
         BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
-        
+
         res.set(field::transfer_encoding, "chunked");
         res.content_length(boost::none);
         BEAST_EXPECT(res.count(field::content_length) == 0);
@@ -874,12 +876,12 @@ public:
             res.content_length(0);
             BEAST_EXPECT(res[field::content_length] == "0");
             BEAST_EXPECT(res[field::transfer_encoding] == s);
-        
+
             res.set(field::transfer_encoding, s);
             res.content_length(100);
             BEAST_EXPECT(res[field::content_length] == "100");
             BEAST_EXPECT(res[field::transfer_encoding] == s);
-        
+
             res.set(field::transfer_encoding, s);
             res.content_length(boost::none);
             BEAST_EXPECT(res.count(field::content_length) == 0);
@@ -889,12 +891,12 @@ public:
             res.content_length(0);
             BEAST_EXPECT(res[field::content_length] == "0");
             BEAST_EXPECT(res[field::transfer_encoding] == s);
-        
+
             res.set(field::transfer_encoding, s + ", chunked");
             res.content_length(100);
             BEAST_EXPECT(res[field::content_length] == "100");
             BEAST_EXPECT(res[field::transfer_encoding] == s);
-        
+
             res.set(field::transfer_encoding, s + ", chunked");
             res.content_length(boost::none);
             BEAST_EXPECT(res.count(field::content_length) == 0);
@@ -904,12 +906,12 @@ public:
             res.content_length(0);
             BEAST_EXPECT(res[field::content_length] == "0");
             BEAST_EXPECT(res[field::transfer_encoding] == "chunked, " + s);
-        
+
             res.set(field::transfer_encoding, "chunked, " + s);
             res.content_length(100);
             BEAST_EXPECT(res[field::content_length] == "100");
             BEAST_EXPECT(res[field::transfer_encoding] == "chunked, " + s);
-        
+
             res.set(field::transfer_encoding, "chunked, " + s);
             res.content_length(boost::none);
             BEAST_EXPECT(res.count(field::content_length) == 0);
@@ -918,8 +920,7 @@ public:
 
         check("foo");
 
-        BOOST_STATIC_ASSERT(fields::max_static_buffer == 4096);
-        std::string const big(4096 + 1, 'a');
+        std::string const big(max_static_buffer + 1, 'a');
 
         check(big);
     }
