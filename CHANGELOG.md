@@ -5,7 +5,7 @@ Version 259:
 * Add gcc-9 to AzP CI test matrix
 * Enable split compilation in http::basic_fields
 * Remove redundant instation of `static_string` in websocket
-
+* Remove redundant use of `asio::coroutine` in `flat_stream`
 --------------------------------------------------------------------------------
 
 Version 258:
