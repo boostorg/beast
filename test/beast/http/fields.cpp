@@ -25,7 +25,7 @@ class fields_test : public beast::unit_test::suite
 {
 public:
     static constexpr std::size_t max_static_buffer =
-        sizeof(http::detail::temporary_buffer);
+        sizeof(beast::detail::temporary_buffer);
 
     template<class T>
     class test_allocator

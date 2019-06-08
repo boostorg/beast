@@ -31,6 +31,7 @@ the program, with the macro BOOST_BEAST_SEPARATE_COMPILATION defined.
 
 #include <boost/beast/core/detail/base64.ipp>
 #include <boost/beast/core/detail/sha1.ipp>
+#include <boost/beast/core/detail/impl/temporary_buffer.ipp>
 #include <boost/beast/core/impl/error.ipp>
 #include <boost/beast/core/impl/file_posix.ipp>
 #include <boost/beast/core/impl/file_stdio.ipp>
@@ -44,6 +45,7 @@ the program, with the macro BOOST_BEAST_SEPARATE_COMPILATION defined.
 #include <boost/beast/http/impl/basic_parser.ipp>
 #include <boost/beast/http/impl/error.ipp>
 #include <boost/beast/http/impl/field.ipp>
+#include <boost/beast/http/impl/fields.ipp>
 #include <boost/beast/http/impl/rfc7230.ipp>
 #include <boost/beast/http/impl/status.ipp>
 #include <boost/beast/http/impl/verb.ipp>

@@ -3,6 +3,7 @@ Version 259:
 * Reduce the number of instantiations of filter_token_list
 * Remove the use of `static_string` from `http::fields`
 * Add gcc-9 to AzP CI test matrix
+* Enable split compilation in http::basic_fields
 
 --------------------------------------------------------------------------------
 

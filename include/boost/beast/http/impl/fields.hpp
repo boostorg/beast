@@ -14,6 +14,7 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
+#include <boost/beast/core/detail/temporary_buffer.hpp>
 #include <boost/beast/http/verb.hpp>
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/http/status.hpp>
@@ -22,13 +23,6 @@
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
 #include <string>
-
-#if defined(BOOST_LIBSTDCXX_VERSION) && BOOST_LIBSTDCXX_VERSION < 60000
-    // Workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
-#ifndef BOOST_BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
-#define BOOST_BEAST_HTTP_NO_FIELDS_BASIC_STRING_ALLOCATOR
-#endif
-#endif
 
 namespace boost {
 namespace beast {
@@ -750,160 +744,10 @@ equal_range(string_view name) const ->
 
 namespace detail {
 
-struct temporary_buffer
-{
-    temporary_buffer() = default;
-
-    temporary_buffer(temporary_buffer const&) = delete;
-    temporary_buffer(temporary_buffer&&) = delete;
-
-    temporary_buffer& operator=(temporary_buffer const&) = delete;
-    temporary_buffer& operator=(temporary_buffer&&) = delete;
-
-    ~temporary_buffer() noexcept
-    {
-        deallocate(data_);
-    }
-
-    void append(string_view sv)
-    {
-        reserve(sv.size());
-        unsafe_append(sv);
-    }
-
-    void append(string_view sv1, string_view sv2)
-    {
-        reserve(sv1.size() + sv2.size());
-        unsafe_append(sv1);
-        unsafe_append(sv2);
-    }
-
-    string_view view() const noexcept
-    {
-        return {data_, size_};
-    }
-
-    std::size_t size() const noexcept
-    {
-        return size_;
-    }
-
-    std::size_t capacity() const noexcept
-    {
-        return capacity_;
-    }
-
-    bool empty() const noexcept
-    {
-        return size_ == 0;
-    }
-
-private:
-    void unsafe_append(string_view sv)
-    {
-        auto n = sv.size();
-        std::memcpy(&data_[size_], sv.data(), n);
-        size_ += n;
-    }
-
-    void reserve(std::size_t sv_size)
-    {
-        if (capacity_ - size_ < sv_size)
-        {
-            auto constexpr limit = (std::numeric_limits<std::size_t>::max)();
-            if (limit/2 < capacity_ || limit - size_ < sv_size)
-            {
-                BOOST_THROW_EXCEPTION(
-                    std::length_error{"temporary_buffer::append"});
-            }
-
-            auto const new_cap = (std::max)(size_ + sv_size, capacity_*2);
-            char* const p = new char[new_cap];
-            std::memcpy(p, data_, size_);
-            deallocate(boost::exchange(data_, p));
-            capacity_ = new_cap;
-        }
-    }
-
-    void deallocate(char* data) noexcept
-    {
-        if (data != buffer_)
-            delete[] data;
-    }
-
-    char buffer_[4096];
-    char* data_ = buffer_;
-    std::size_t capacity_ = sizeof(buffer_);
-    std::size_t size_ = 0;
-};
-
-// Filter a token list
-//
-template<class Pred>
-void
-filter_token_list(
-    detail::temporary_buffer& s,
-    string_view value,
-    Pred&& pred)
-{
-    token_list te{value};
-    auto it = te.begin();
-    auto last = te.end();
-    if(it == last)
-        return;
-    while(pred(*it))
-        if(++it == last)
-            return;
-    s.append(*it);
-    while(++it != last)
-    {
-        if(! pred(*it))
-        {
-            s.append(", ", *it);
-        }
-    }
-}
-
-// Filter the last item in a token list
-template<class Pred>
-void
-filter_token_list_last(
-    detail::temporary_buffer& s,
-    string_view value,
-    Pred&& pred)
-{
-    token_list te{value};
-    if(te.begin() != te.end())
-    {
-        auto it = te.begin();
-        auto next = std::next(it);
-        if(next == te.end())
-        {
-            if(! pred(*it))
-                s.append(*it);
-            return;
-        }
-        s.append(*it);
-        for(;;)
-        {
-            it = next;
-            next = std::next(it);
-            if(next == te.end())
-            {
-                if(! pred(*it))
-                {
-                    s.append(", ", *it);
-                }
-                return;
-            }
-            s.append(", ", *it);
-        }
-    }
-}
-
 struct iequals_predicate
 {
-    bool operator()(string_view s)
+    bool
+    operator()(string_view s) const
     {
         return beast::iequals(s, sv1) || beast::iequals(s, sv2);
     }
@@ -912,51 +756,19 @@ struct iequals_predicate
     string_view sv2;
 };
 
-inline
+// Filter the last item in a token list
+BOOST_BEAST_DECL
+void
+filter_token_list_last(
+    beast::detail::temporary_buffer& s,
+    string_view value,
+    iequals_predicate const& pred);
+
+BOOST_BEAST_DECL
 void
 keep_alive_impl(
-    detail::temporary_buffer& s, string_view value,
-    unsigned version, bool keep_alive)
-{
-    if(version < 11)
-    {
-        if(keep_alive)
-        {
-            // remove close
-            filter_token_list(s, value, iequals_predicate{"close"});
-            // add keep-alive
-            if(s.empty())
-                s.append("keep-alive");
-            else if(! token_list{value}.exists("keep-alive"))
-                s.append(", keep-alive");
-        }
-        else
-        {
-            // remove close and keep-alive
-            filter_token_list(s, value,
-                iequals_predicate{"close", "keep-alive"});
-        }
-    }
-    else
-    {
-        if(keep_alive)
-        {
-            // remove close and keep-alive
-            filter_token_list(s, value,
-                iequals_predicate{"close", "keep-alive"});
-        }
-        else
-        {
-            // remove keep-alive
-            filter_token_list(s, value, iequals_predicate{"keep-alive"});
-            // add close
-            if(s.empty())
-                s.append("close");
-            else if(! token_list{value}.exists("close"))
-                s.append(", close");
-        }
-    }
-}
+    beast::detail::temporary_buffer& s, string_view value,
+    unsigned version, bool keep_alive);
 
 } // detail
 
@@ -1073,7 +885,7 @@ void
 basic_fields<Allocator>::
 set_chunked_impl(bool value)
 {
-    detail::temporary_buffer buf;
+    beast::detail::temporary_buffer buf;
     auto it = find(field::transfer_encoding);
     if(value)
     {
@@ -1104,8 +916,7 @@ set_chunked_impl(bool value)
     if(it == end())
         return;
 
-    detail::filter_token_list_last(buf, it->value(),
-        detail::iequals_predicate{"chunked"});
+    detail::filter_token_list_last(buf, it->value(), {"chunked"});
     if(! buf.empty())
         set(field::transfer_encoding, buf.view());
     else
@@ -1132,7 +943,7 @@ set_keep_alive_impl(
 {
     // VFALCO What about Proxy-Connection ?
     auto const value = (*this)[field::connection];
-    detail::temporary_buffer buf;
+    beast::detail::temporary_buffer buf;
     detail::keep_alive_impl(buf, value, version, keep_alive);
     if(buf.empty())
         erase(field::connection);
@@ -1393,5 +1204,9 @@ swap(basic_fields& other, std::false_type)
 } // http
 } // beast
 } // boost
+
+#ifdef BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/http/impl/fields.ipp>
+#endif
 
 #endif
