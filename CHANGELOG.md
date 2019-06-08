@@ -4,6 +4,7 @@ Version 259:
 * Remove the use of `static_string` from `http::fields`
 * Add gcc-9 to AzP CI test matrix
 * Enable split compilation in http::basic_fields
+* Remove redundant instation of `static_string` in websocket
 
 --------------------------------------------------------------------------------
 

@@ -47,11 +47,11 @@ make_sec_ws_accept(
     string_view key)
 {
     BOOST_ASSERT(key.size() <= sec_ws_key_type::max_size_n);
-    static_string<sec_ws_key_type::max_size_n + 36> m(key);
-    m.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+    auto const& guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     beast::detail::sha1_context ctx;
     beast::detail::init(ctx);
-    beast::detail::update(ctx, m.data(), m.size());
+    beast::detail::update(ctx, key.data(), key.size());
+    beast::detail::update(ctx, guid, sizeof(guid) - 1);
     char digest[beast::detail::sha1_context::digest_size];
     beast::detail::finish(ctx, &digest[0]);
     accept.resize(accept.max_size());
