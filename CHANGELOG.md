@@ -6,6 +6,8 @@ Version 259:
 * Enable split compilation in http::basic_fields
 * Remove redundant instation of `static_string` in websocket
 * Remove redundant use of `asio::coroutine` in `flat_stream`
+* Remove unused includes from `test::stream`
+
 --------------------------------------------------------------------------------
 
 Version 258:

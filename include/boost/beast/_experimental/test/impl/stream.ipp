@@ -13,7 +13,6 @@
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/make_shared.hpp>
 #include <stdexcept>
 #include <vector>
@@ -278,7 +277,7 @@ str() const
     auto const bs = in_->b.data();
     if(buffer_bytes(bs) == 0)
         return {};
-    auto const b = beast::buffers_front(bs);
+    net::const_buffer const b = *net::buffer_sequence_begin(bs);
     return {static_cast<char const*>(b.data()), b.size()};
 }
 
