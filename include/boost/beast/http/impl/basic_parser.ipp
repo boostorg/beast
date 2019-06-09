@@ -404,7 +404,7 @@ parse_fields(char const*& in,
     string_view name;
     string_view value;
     // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
-    detail::char_buffer<max_obs_fold> buf;
+    beast::detail::char_buffer<max_obs_fold> buf;
     auto p = in;
     for(;;)
     {

@@ -495,7 +495,7 @@ parse_field(
     char const* last,
     string_view& name,
     string_view& value,
-    char_buffer<max_obs_fold>& buf,
+    beast::detail::char_buffer<max_obs_fold>& buf,
     error_code& ec)
 {
 /*  header-field    = field-name ":" OWS field-value OWS

@@ -7,6 +7,7 @@ Version 259:
 * Remove redundant instation of `static_string` in websocket
 * Remove redundant use of `asio::coroutine` in `flat_stream`
 * Remove unused includes from `test::stream`
+* Move `char_buffer` into a separate file
 
 --------------------------------------------------------------------------------
 
