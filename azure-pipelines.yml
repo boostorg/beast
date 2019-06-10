@@ -24,7 +24,7 @@ jobs:
       - bash: |
             set -e
             cd ../boost-root
-            ./b2 libs/beast/test//run-fat-tests toolset=gcc coverage=all link=static cxxstd=11 -j2
+            ./b2 libs/beast/test//run-fat-tests toolset=gcc coverage=on link=static cxxstd=11 -j2
             libs/beast/tools/coverage.sh
         env:
             CODECOV_TOKEN: $(CODECOV_TOKEN)
