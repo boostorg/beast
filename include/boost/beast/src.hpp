@@ -39,6 +39,7 @@ the program, with the macro BOOST_BEAST_SEPARATE_COMPILATION defined.
 #include <boost/beast/core/impl/flat_static_buffer.ipp>
 #include <boost/beast/core/impl/saved_handler.ipp>
 #include <boost/beast/core/impl/static_buffer.ipp>
+#include <boost/beast/core/impl/string.ipp>
 
 #include <boost/beast/http/detail/basic_parser.ipp>
 #include <boost/beast/http/detail/rfc7230.ipp>
