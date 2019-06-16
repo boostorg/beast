@@ -10,6 +10,7 @@ Version 259:
 * Move `char_buffer` into a separate file
 * Fix coverage collection in AzP CI
 * Improve performance of `http::string_to_verb`
+* Replace uses of `net::coroutine` with `asio::coroutine`
 
 --------------------------------------------------------------------------------
 

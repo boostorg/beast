@@ -43,7 +43,7 @@ fail(beast::error_code ec, char const* what)
 
 // Echoes back all received WebSocket messages
 class session
-    : public net::coroutine
+    : public boost::asio::coroutine
     , public std::enable_shared_from_this<session>
 {
     websocket::stream<beast::tcp_stream> ws_;
@@ -65,7 +65,7 @@ public:
     }
 
     #include <boost/asio/yield.hpp>
-    
+
     void
     loop(
         beast::error_code ec,
@@ -141,7 +141,7 @@ public:
 
 // Accepts incoming connections and launches the sessions
 class listener
-    : public net::coroutine
+    : public boost::asio::coroutine
     , public std::enable_shared_from_this<listener>
 {
     net::io_context& ioc_;
@@ -202,7 +202,7 @@ public:
 private:
 
     #include <boost/asio/yield.hpp>
-    
+
     void
     loop(beast::error_code ec = {})
     {

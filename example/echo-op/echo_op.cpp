@@ -41,7 +41,7 @@ async_echo (AsyncStream& stream, DynamicBuffer& buffer, CompletionToken&& token)
     This function is used to asynchronously read a line ending
     in a newline (`"\n"`) from the stream, and then write
     it back.
-    
+
     This call always returns immediately. The asynchronous operation
     will continue until one of the following conditions is true:
 
@@ -76,7 +76,7 @@ async_echo (AsyncStream& stream, DynamicBuffer& buffer, CompletionToken&& token)
         beast::error_code error      // Result of operation.
     );
     @endcode
-    
+
     Regardless of whether the asynchronous operation completes immediately or
     not, the handler will not be invoked from within this function. Invocation
     of the handler will be performed in a manner equivalent to using
@@ -161,10 +161,10 @@ async_echo(
 
     // This nested class implements the echo composed operation as a
     // stateful completion handler. We derive from `async_base` to
-    // take care of boilerplate and we derived from net::coroutine to
+    // take care of boilerplate and we derived from asio::coroutine to
     // allow the reenter and yield keywords to work.
 
-    struct echo_op : base_type, net::coroutine
+    struct echo_op : base_type, boost::asio::coroutine
     {
         AsyncStream& stream_;
         DynamicBuffer& buffer_;

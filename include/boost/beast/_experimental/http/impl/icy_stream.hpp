@@ -35,7 +35,7 @@ is_icy(ConstBufferSequence const& buffers)
     char buf[3];
     auto const n = net::buffer_copy(
         net::mutable_buffer(buf, 3),
-        buffers);   
+        buffers);
     if(n >= 1 && buf[0] != 'I')
         return false;
     if(n >= 2 && buf[1] != 'C')
@@ -57,7 +57,7 @@ template<class Buffers, class Handler>
 class read_op
     : public beast::async_base<Handler,
         beast::executor_type<icy_stream>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     icy_stream& s_;
     Buffers b_;

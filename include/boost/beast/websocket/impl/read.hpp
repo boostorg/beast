@@ -48,7 +48,7 @@ template<class Handler, class MutableBufferSequence>
 class stream<NextLayer, deflateSupported>::read_some_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     boost::weak_ptr<impl_type> wp_;
     MutableBufferSequence bs_;
@@ -619,7 +619,7 @@ template<class Handler,  class DynamicBuffer>
 class stream<NextLayer, deflateSupported>::read_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     boost::weak_ptr<impl_type> wp_;
     DynamicBuffer& b_;

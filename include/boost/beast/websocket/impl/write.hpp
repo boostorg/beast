@@ -41,7 +41,7 @@ template<class Handler, class Buffers>
 class stream<NextLayer, deflateSupported>::write_some_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     enum
     {

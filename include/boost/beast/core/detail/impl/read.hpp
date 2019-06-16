@@ -37,7 +37,7 @@ template<
     class Condition,
     class Handler>
 class read_op
-    : public net::coroutine
+    : public asio::coroutine
     , public async_base<
         Handler, beast::executor_type<Stream>>
 {

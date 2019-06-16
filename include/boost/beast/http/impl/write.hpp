@@ -159,7 +159,7 @@ template<
 class write_op
     : public beast::async_base<
         Handler, beast::executor_type<Stream>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     Stream& s_;
     serializer<isRequest, Body, Fields>& sr_;

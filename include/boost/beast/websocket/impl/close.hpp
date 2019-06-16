@@ -38,7 +38,7 @@ template<class Handler>
 class stream<NextLayer, deflateSupported>::close_op
     : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     boost::weak_ptr<impl_type> wp_;
     error_code ev_;

@@ -214,7 +214,7 @@ fail(beast::error_code ec, char const* what)
 
 // Handles an HTTP server connection
 class session
-    : public net::coroutine
+    : public boost::asio::coroutine
     , public std::enable_shared_from_this<session>
 {
     // This is the C++11 equivalent of a generic lambda.
@@ -344,7 +344,7 @@ public:
 
 // Accepts incoming connections and launches the sessions
 class listener
-    : public net::coroutine
+    : public boost::asio::coroutine
     , public std::enable_shared_from_this<listener>
 {
     net::io_context& ioc_;
@@ -407,7 +407,7 @@ public:
 private:
 
     #include <boost/asio/yield.hpp>
-    
+
     void
     loop(beast::error_code ec = {})
     {

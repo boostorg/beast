@@ -33,7 +33,7 @@ class teardown_tcp_op
         Handler, beast::executor_type<
             net::basic_stream_socket<
                 Protocol, Executor>>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     using socket_type =
         net::basic_stream_socket<Protocol, Executor>;

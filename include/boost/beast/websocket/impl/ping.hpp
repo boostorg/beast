@@ -35,7 +35,7 @@ template<class Handler>
 class stream<NextLayer, deflateSupported>::ping_op
     : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     boost::weak_ptr<impl_type> wp_;
     detail::frame_buffer& fb_;
@@ -115,7 +115,7 @@ public:
 template<class NextLayer, bool deflateSupported>
 template<class Executor>
 class stream<NextLayer, deflateSupported>::idle_ping_op
-    : public net::coroutine
+    : public asio::coroutine
     , public boost::empty_value<Executor>
 {
     boost::weak_ptr<impl_type> wp_;

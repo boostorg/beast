@@ -37,7 +37,7 @@ template<class Handler>
 class stream<NextLayer, deflateSupported>::handshake_op
     : public beast::stable_async_base<Handler,
         beast::executor_type<stream>>
-    , public net::coroutine
+    , public asio::coroutine
 {
     struct data
     {
