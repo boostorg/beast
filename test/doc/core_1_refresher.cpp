@@ -73,7 +73,7 @@ snippets()
     }
     {
     //[code_core_1_refresher_5s
-        net::spawn(
+        asio::spawn(
             [&sock](net::yield_context yield)
             {
                 std::size_t bytes_transferred = net::async_write(sock,
@@ -375,7 +375,7 @@ async_write(
                 >::return_type
 {
 //[code_core_1_refresher_10
-    
+
     return net::async_initiate<
         CompletionToken,
         void(error_code, std::size_t)>(

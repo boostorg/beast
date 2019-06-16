@@ -371,7 +371,7 @@ do_listen(
         if(ec)
             fail(ec, "accept");
         else
-            net::spawn(
+            boost::asio::spawn(
                 acceptor.get_executor(),
                 std::bind(
                     &do_session,
@@ -408,7 +408,7 @@ int main(int argc, char* argv[])
     load_server_certificate(ctx);
 
     // Spawn a listening port
-    net::spawn(ioc,
+    boost::asio::spawn(ioc,
         std::bind(
             &do_listen,
             std::ref(ioc),

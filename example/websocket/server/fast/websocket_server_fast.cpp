@@ -100,7 +100,7 @@ do_sync_session(websocket::stream<beast::tcp_stream>& ws)
     for(;;)
     {
         beast::flat_buffer buffer;
-        
+
         ws.read(buffer, ec);
         if(ec == websocket::error::closed)
             break;
@@ -405,7 +405,7 @@ do_coro_listen(
             continue;
         }
 
-        net::spawn(
+        boost::asio::spawn(
             acceptor.get_executor(),
             std::bind(
                 &do_coro_session,
@@ -456,7 +456,7 @@ int main(int argc, char* argv[])
             static_cast<unsigned short>(port + 1u)})->run();
 
     // Create coro port
-    net::spawn(ioc,
+    boost::asio::spawn(ioc,
         std::bind(
             &do_coro_listen,
             std::ref(ioc),

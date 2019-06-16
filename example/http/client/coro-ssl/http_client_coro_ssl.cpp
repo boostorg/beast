@@ -162,7 +162,7 @@ int main(int argc, char** argv)
     ctx.set_verify_mode(ssl::verify_peer);
 
     // Launch the asynchronous operation
-    net::spawn(ioc, std::bind(
+    boost::asio::spawn(ioc, std::bind(
         &do_session,
         std::string(host),
         std::string(port),

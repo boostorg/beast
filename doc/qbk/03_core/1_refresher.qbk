@@ -290,7 +290,7 @@ in place of the completion handler. The same `async_write` function overload
 can work with a
 [@https://en.wikipedia.org/wiki/Fiber_(computer_science) ['fiber]]
 launched with
-[@boost:/doc/html/boost_asio/reference/spawn/overload1.html `net::spawn`]:
+[@boost:/doc/html/boost_asio/reference/spawn/overload1.html `asio::spawn`]:
 
 [code_core_1_refresher_5s]
 

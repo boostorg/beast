@@ -11,6 +11,7 @@ Version 259:
 * Fix coverage collection in AzP CI
 * Improve performance of `http::string_to_verb`
 * Replace uses of `net::coroutine` with `asio::coroutine`
+* Replace uses of `net::spawn` with `asio::spawn`
 
 --------------------------------------------------------------------------------
 

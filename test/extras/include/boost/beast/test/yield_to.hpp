@@ -120,7 +120,7 @@ void
 enable_yield_to::
 spawn(F0&& f, FN&&... fn)
 {
-    net::spawn(ioc_,
+    asio::spawn(ioc_,
         [&](yield_context yield)
         {
             f(yield);
