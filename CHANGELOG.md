@@ -3,6 +3,7 @@ Version 261:
 * Deduplicate `websocket::read_size_hint` definition
 * Fix UB in websocket read tests
 * Remove redundant includes in websocket
+* Simplify websocket::detail::prng
 
 --------------------------------------------------------------------------------
 
