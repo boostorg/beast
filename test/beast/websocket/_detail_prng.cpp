@@ -42,17 +42,20 @@ public:
     void
     testPrng(F const& f)
     {
+        auto const min = std::numeric_limits<std::uint32_t>::min();
+        auto const max = std::numeric_limits<std::uint32_t>::max();
+
         {
             auto v = f()();
             BEAST_EXPECT(
-                v >= (prng::ref::min)() &&
-                v <= (prng::ref::max)());
+                v >= min &&
+                v <= max);
         }
         {
             auto v = f()();
             BEAST_EXPECT(
-                v >= (prng::ref::min)() &&
-                v <= (prng::ref::max)());
+                v >= min &&
+                v <= max);
         }
     }
 
@@ -61,12 +64,6 @@ public:
     {
         testPrng([]{ return make_prng(true); });
         testPrng([]{ return make_prng(false); });
-        testPrng([]{ return make_prng_no_tls(true); });
-        testPrng([]{ return make_prng_no_tls(false); });
-    #ifndef BOOST_NO_CXX11_THREAD_LOCAL
-        testPrng([]{ return make_prng_tls(true); });
-        testPrng([]{ return make_prng_tls(false); });
-    #endif
     }
 };
 

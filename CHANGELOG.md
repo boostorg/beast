@@ -4,6 +4,7 @@ Version 261:
 * Fix UB in websocket read tests
 * Remove redundant includes in websocket
 * Use `std::shared_ptr` in `test::stream`
+* Simplify websocket::detail::prng
 
 --------------------------------------------------------------------------------
 

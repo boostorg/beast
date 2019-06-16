@@ -53,6 +53,14 @@ jobs:
           B2_FLAGS: <boost.beast.separate-compilation>off <boost.beast.allow-deprecated>off
           CXXSTD: 11
           B2_TARGETS: libs/beast/test//run-fat-tests
+        GCC 9 C++11 NO_DEPRECATED NO_TLS:
+          TOOLSET: gcc
+          CXX: g++-9
+          PACKAGES: g++-9
+          VARIANT: release
+          B2_FLAGS: <boost.beast.allow-deprecated>off <define>BOOST_NO_CXX11_THREAD_LOCAL
+          CXXSTD: 11
+          B2_TARGETS: libs/beast/test//run-fat-tests
         GCC 9 C++11 UBASAN:
           TOOLSET: gcc
           CXX: g++-9
