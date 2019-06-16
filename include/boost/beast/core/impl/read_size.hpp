@@ -46,7 +46,6 @@ read_size(DynamicBuffer& buffer,
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
-    BOOST_ASSERT(max_size >= 1);
     auto const size = buffer.size();
     auto const limit = buffer.max_size() - size;
     BOOST_ASSERT(size <= buffer.max_size());

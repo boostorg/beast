@@ -12,6 +12,7 @@ Version 259:
 * Improve performance of `http::string_to_verb`
 * Replace uses of `net::coroutine` with `asio::coroutine`
 * Replace uses of `net::spawn` with `asio::spawn`
+* Use `beast::read_size` in `detail::read`
 
 --------------------------------------------------------------------------------
 

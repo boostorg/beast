@@ -13,6 +13,7 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/core/read_size.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/throw_exception.hpp>
@@ -73,18 +74,12 @@ public:
         std::size_t bytes_transferred,
         bool cont = true)
     {
-        std::size_t max_size;
         std::size_t max_prepare;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             for(;;)
             {
-                max_size = cond_(ec, total_, b_);
-                max_prepare = std::min<std::size_t>(
-                    std::max<std::size_t>(
-                        512, b_.capacity() - b_.size()),
-                    std::min<std::size_t>(
-                        max_size, b_.max_size() - b_.size()));
+                max_prepare = beast::read_size(b_, cond_(ec, total_, b_));
                 if(max_prepare == 0)
                     break;
                 BOOST_ASIO_CORO_YIELD
@@ -201,16 +196,10 @@ read(
         "CompletionCondition type requirements not met");
     ec = {};
     std::size_t total = 0;
-    std::size_t max_size;
     std::size_t max_prepare;
     for(;;)
     {
-        max_size = cond(ec, total, buffer);
-        max_prepare = std::min<std::size_t>(
-            std::max<std::size_t>(
-                512, buffer.capacity() - buffer.size()),
-            std::min<std::size_t>(
-                max_size, buffer.max_size() - buffer.size()));
+        max_prepare =  beast::read_size(buffer, cond(ec, total, buffer));
         if(max_prepare == 0)
             break;
         std::size_t const bytes_transferred =
