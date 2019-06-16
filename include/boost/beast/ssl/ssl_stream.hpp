@@ -668,11 +668,10 @@ public:
 };
 
 #if ! BOOST_BEAST_DOXYGEN
-template<class SyncStream>
 void
 teardown(
     boost::beast::role_type role,
-    ssl_stream<SyncStream>& stream,
+    ssl_stream<NextLayer>& stream,
     boost::system::error_code& ec)
 {
     // Just forward it to the underlying ssl::stream
@@ -680,11 +679,11 @@ teardown(
     teardown(role, *stream.p_, ec);
 }
 
-template<class AsyncStream, class TeardownHandler>
+template<class TeardownHandler>
 void
 async_teardown(
     boost::beast::role_type role,
-    ssl_stream<AsyncStream>& stream,
+    ssl_stream<NextLayer>& stream,
     TeardownHandler&& handler)
 {
     // Just forward it to the underlying ssl::stream
