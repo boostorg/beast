@@ -22,12 +22,8 @@ namespace detail {
 struct temporary_buffer
 {
     temporary_buffer() = default;
-
     temporary_buffer(temporary_buffer const&) = delete;
-    temporary_buffer(temporary_buffer&&) = delete;
-
     temporary_buffer& operator=(temporary_buffer const&) = delete;
-    temporary_buffer& operator=(temporary_buffer&&) = delete;
 
     ~temporary_buffer() noexcept
     {
@@ -36,11 +32,11 @@ struct temporary_buffer
 
     BOOST_BEAST_DECL
     void
-    append(string_view sv);
+    append(string_view s);
 
     BOOST_BEAST_DECL
     void
-    append(string_view sv1, string_view sv2);
+    append(string_view s1, string_view s2);
 
     string_view
     view() const noexcept
@@ -57,11 +53,11 @@ struct temporary_buffer
 private:
     BOOST_BEAST_DECL
     void
-    unchecked_append(string_view sv);
+    unchecked_append(string_view s);
 
     BOOST_BEAST_DECL
     void
-    grow(std::size_t sv_size);
+    grow(std::size_t n);
 
     void
     deallocate(char* data) noexcept

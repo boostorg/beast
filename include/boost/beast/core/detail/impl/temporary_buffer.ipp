@@ -13,7 +13,7 @@
 #include <boost/beast/core/detail/temporary_buffer.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/core/exchange.hpp>
-
+#include <boost/assert.hpp>
 #include <memory>
 #include <cstring>
 
@@ -21,44 +21,46 @@ namespace boost {
 namespace beast {
 namespace detail {
 
-
 void
-temporary_buffer::append(string_view sv)
+temporary_buffer::
+append(string_view s)
 {
-    grow(sv.size());
-    unchecked_append(sv);
+    grow(s.size());
+    unchecked_append(s);
 }
 
 void
-temporary_buffer::append(string_view sv1, string_view sv2)
+temporary_buffer::
+append(string_view s1, string_view s2)
 {
-    grow(sv1.size() + sv2.size());
-    unchecked_append(sv1);
-    unchecked_append(sv2);
+    grow(s1.size() + s2.size());
+    unchecked_append(s1);
+    unchecked_append(s2);
 }
 
 void
-temporary_buffer::unchecked_append(string_view sv)
+temporary_buffer::
+unchecked_append(string_view s)
 {
-    auto n = sv.size();
-    std::memcpy(&data_[size_], sv.data(), n);
+    auto n = s.size();
+    std::memcpy(&data_[size_], s.data(), n);
     size_ += n;
 }
 
 void
-temporary_buffer::grow(std::size_t sv_size)
+temporary_buffer::
+grow(std::size_t n)
 {
-    if (capacity_ - size_ >= sv_size)
-    {
+    if (capacity_ - size_ >= n)
         return;
-    }
 
-    auto const new_cap = (sv_size + size_) * 2u;
-    BOOST_ASSERT(!detail::sum_exceeds(sv_size, size_, new_cap));
-    char* const p = new char[new_cap];
+    auto const capacity = (n + size_) * 2u;
+    BOOST_ASSERT(! detail::sum_exceeds(
+        n, size_, capacity));
+    char* const p = new char[capacity];
     std::memcpy(p, data_, size_);
     deallocate(boost::exchange(data_, p));
-    capacity_ = new_cap;
+    capacity_ = capacity;
 }
 } // detail
 } // beast

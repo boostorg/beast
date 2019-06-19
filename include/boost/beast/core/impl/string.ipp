@@ -11,6 +11,7 @@
 #define BOOST_BEAST_IMPL_STRING_IPP
 
 #include <boost/beast/core/string.hpp>
+#include <boost/beast/core/detail/string.hpp>
 
 #include <algorithm>
 
@@ -40,7 +41,8 @@ iequals(
 slow:
     do
     {
-        if(detail::ascii_tolower(a) != detail::ascii_tolower(b))
+        if( detail::ascii_tolower(a) !=
+            detail::ascii_tolower(b))
             return false;
         a = *p1++;
         b = *p2++;
@@ -51,8 +53,8 @@ slow:
 
 bool
 iless::operator()(
-        string_view lhs,
-        string_view rhs) const
+    string_view lhs,
+    string_view rhs) const
 {
     using std::begin;
     using std::end;

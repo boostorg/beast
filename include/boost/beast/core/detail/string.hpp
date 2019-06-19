@@ -10,35 +10,16 @@
 #ifndef BOOST_BEAST_DETAIL_STRING_HPP
 #define BOOST_BEAST_DETAIL_STRING_HPP
 
-#include <boost/beast/core/detail/config.hpp>
-#include <boost/version.hpp>
-
-#if defined(BOOST_BEAST_USE_STD_STRING_VIEW)
-#include <string_view>
-#else
-#include <boost/utility/string_view.hpp>
-#endif
+#include <boost/beast/core/string_type.hpp>
 
 namespace boost {
 namespace beast {
 
 namespace detail {
 
-#if defined(BOOST_BEAST_USE_STD_STRING_VIEW)
-  using string_view = std::string_view;
-
-  template<class CharT, class Traits>
-  using basic_string_view =
-      std::basic_string_view<CharT, Traits>;
-#else
-  using string_view = boost::string_view;
-
-  template<class CharT, class Traits>
-  using basic_string_view =
-      boost::basic_string_view<CharT, Traits>;
-#endif
-
-inline string_view operator "" _sv(char const* p, std::size_t n)
+inline
+string_view
+operator"" _sv(char const* p, std::size_t n)
 {
     return string_view{p, n};
 }

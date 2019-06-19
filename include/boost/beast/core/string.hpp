@@ -10,17 +10,11 @@
 #ifndef BOOST_BEAST_STRING_HPP
 #define BOOST_BEAST_STRING_HPP
 
-#include <boost/beast/core/detail/string.hpp>
+#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/string_type.hpp>
 
 namespace boost {
 namespace beast {
-
-/// The type of string view used by the library
-using detail::string_view;
-
-/// The type of basic string view used by the library
-template<class CharT, class Traits>
-using basic_string_view = detail::basic_string_view<CharT, Traits>;
 
 /** Returns `true` if two strings are equal, using a case-insensitive comparison.
 
