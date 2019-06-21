@@ -1,6 +1,7 @@
 Version 260:
 
 * More split compilation in rfc7230.hpp
+* Qualify calls to `beast::iequals` in basic_parser.ipp
 
 --------------------------------------------------------------------------------
 

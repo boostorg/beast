@@ -52,11 +52,11 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
 
     for(auto const& ext : list)
     {
-        if(iequals(ext.first, "permessage-deflate"))
+        if(beast::iequals(ext.first, "permessage-deflate"))
         {
             for(auto const& param : ext.second)
             {
-                if(iequals(param.first,
+                if(beast::iequals(param.first,
                     "server_max_window_bits"))
                 {
                     if(offer.server_max_window_bits != 0)
@@ -84,7 +84,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         return; // MUST decline
                     }
                 }
-                else if(iequals(param.first,
+                else if(beast::iequals(param.first,
                     "client_max_window_bits"))
                 {
                     if(offer.client_max_window_bits != 0)
@@ -112,7 +112,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         offer.client_max_window_bits = -1;
                     }
                 }
-                else if(iequals(param.first,
+                else if(beast::iequals(param.first,
                     "server_no_context_takeover"))
                 {
                     if(offer.server_no_context_takeover)
@@ -131,7 +131,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                     }
                     offer.server_no_context_takeover = true;
                 }
-                else if(iequals(param.first,
+                else if(beast::iequals(param.first,
                     "client_no_context_takeover"))
                 {
                     if(offer.client_no_context_takeover)

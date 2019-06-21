@@ -47,7 +47,7 @@ make_sec_ws_accept(
     string_view key)
 {
     BOOST_ASSERT(key.size() <= sec_ws_key_type::max_size_n);
-    using beast::detail::operator "" _sv;
+    using namespace beast::detail::string_literals;
     auto const guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"_sv;
     beast::detail::sha1_context ctx;
     beast::detail::init(ctx);

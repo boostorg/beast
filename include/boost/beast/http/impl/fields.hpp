@@ -577,7 +577,7 @@ insert(field name,
     }
     auto const last = std::prev(before);
     // VFALCO is it worth comparing `field name` first?
-    if(! iequals(sname, last->name_string()))
+    if(! beast::iequals(sname, last->name_string()))
     {
         BOOST_ASSERT(count(sname) == 0);
         set_.insert_before(before, e);
@@ -818,7 +818,7 @@ get_chunked_impl() const
     {
         auto const next = std::next(it);
         if(next == te.end())
-            return iequals(*it, "chunked");
+            return beast::iequals(*it, "chunked");
         it = next;
     }
     return false;
@@ -901,7 +901,7 @@ set_chunked_impl(bool value)
             auto const next = std::next(itt);
             if(next == te.end())
             {
-                if(iequals(*itt, "chunked"))
+                if(beast::iequals(*itt, "chunked"))
                     return; // already set
                 break;
             }
@@ -1001,7 +1001,7 @@ set_element(element& e)
 {
     auto it = set_.lower_bound(
         e.name_string(), key_compare{});
-    if(it == set_.end() || ! iequals(
+    if(it == set_.end() || ! beast::iequals(
         e.name_string(), it->name_string()))
     {
         set_.insert_before(it, e);
@@ -1017,7 +1017,7 @@ set_element(element& e)
         delete_element(*it);
         it = next;
         if(it == set_.end() ||
-            ! iequals(e.name_string(), it->name_string()))
+            ! beast::iequals(e.name_string(), it->name_string()))
             break;
     }
     set_.insert_before(it, e);

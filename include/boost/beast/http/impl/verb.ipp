@@ -21,7 +21,7 @@ namespace http {
 string_view
 to_string(verb v)
 {
-    using beast::detail::operator "" _sv;
+    using namespace beast::detail::string_literals;
     switch(v)
     {
     case verb::delete_:       return "DELETE"_sv;
@@ -109,7 +109,7 @@ string_to_verb(string_view v)
     UNLOCK
     UNSUBSCRIBE
 */
-    using beast::detail::operator "" _sv;
+    using namespace beast::detail::string_literals;
     if(v.size() < 3)
         return verb::unknown;
     auto c = v[0];

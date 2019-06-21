@@ -17,12 +17,18 @@ namespace beast {
 
 namespace detail {
 
+// Pulling in the UDL directly breaks in some places on MSVC,
+// so introduce a namespace for this purprose.
+namespace string_literals {
+
 inline
 string_view
 operator"" _sv(char const* p, std::size_t n)
 {
     return string_view{p, n};
 }
+
+} // string_literals
 
 inline
 char

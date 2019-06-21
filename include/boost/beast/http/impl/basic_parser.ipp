@@ -16,6 +16,7 @@
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/string.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <utility>
@@ -746,6 +747,7 @@ basic_parser<isRequest>::
 do_field(field f,
     string_view value, error_code& ec)
 {
+    using namespace beast::detail::string_literals;
     // Connection
     if(f == field::connection ||
         f == field::proxy_connection)
@@ -759,19 +761,19 @@ do_field(field f,
         }
         for(auto const& s : list)
         {
-            if(iequals({"close", 5}, s))
+            if(beast::iequals("close"_sv, s))
             {
                 f_ |= flagConnectionClose;
                 continue;
             }
 
-            if(iequals({"keep-alive", 10}, s))
+            if(beast::iequals("keep-alive"_sv, s))
             {
                 f_ |= flagConnectionKeepAlive;
                 continue;
             }
 
-            if(iequals({"upgrade", 7}, s))
+            if(beast::iequals("upgrade"_sv, s))
             {
                 f_ |= flagConnectionUpgrade;
                 continue;
@@ -832,9 +834,9 @@ do_field(field f,
         ec = {};
         auto const v = token_list{value};
         auto const p = std::find_if(v.begin(), v.end(),
-            [&](typename token_list::value_type const& s)
+            [&](string_view const& s)
             {
-                return iequals({"chunked", 7}, s);
+                return beast::iequals("chunked"_sv, s);
             });
         if(p == v.end())
             return;
