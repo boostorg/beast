@@ -1,3 +1,9 @@
+Version 260:
+
+* More split compilation in rfc7230.hpp
+
+--------------------------------------------------------------------------------
+
 Version 259:
 
 * Reduce the number of instantiations of filter_token_list

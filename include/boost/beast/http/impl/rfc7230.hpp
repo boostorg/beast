@@ -244,27 +244,6 @@ cend() const ->
     return const_iterator{s_.end(), s_.end()};
 }
 
-template<class T>
-auto
-ext_list::
-find(T const& s) ->
-    const_iterator
-{
-    return std::find_if(begin(), end(),
-        [&s](value_type const& v)
-        {
-            return iequals(s, v.first);
-        });
-}
-
-template<class T>
-bool
-ext_list::
-exists(T const& s)
-{
-    return find(s) != end();
-}
-
 
 //------------------------------------------------------------------------------
 
@@ -376,19 +355,6 @@ cend() const ->
     const_iterator
 {
     return const_iterator{s_.end(), s_.end()};
-}
-
-template<class T>
-bool
-token_list::
-exists(T const& s)
-{
-    return std::find_if(begin(), end(),
-        [&s](value_type const& v)
-        {
-            return iequals(s, v);
-        }
-    ) != end();
 }
 
 template<class Policy>
