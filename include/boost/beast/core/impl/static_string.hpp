@@ -11,7 +11,6 @@
 #define BOOST_BEAST_IMPL_STATIC_STRING_HPP
 
 #include <boost/beast/core/detail/static_string.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {

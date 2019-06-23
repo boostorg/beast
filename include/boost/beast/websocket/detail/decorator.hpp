@@ -11,7 +11,6 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_DECORATOR_HPP
 
 #include <boost/beast/websocket/rfc6455.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <algorithm>

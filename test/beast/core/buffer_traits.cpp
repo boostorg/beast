@@ -11,7 +11,7 @@
 #include <boost/beast/core/buffer_traits.hpp>
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/core/detail/is_invocable.hpp>
 #include <array>
 
 namespace boost {
