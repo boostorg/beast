@@ -4,6 +4,7 @@ Version 260:
 * Qualify calls to `beast::iequals` in basic_parser.ipp
 * More split compilation in websocket/detail/mask.hpp
 * Cleanup transitive includes in beast/core/detail/type_traits.hpp
+* Simplify generation of sec-websocket-key
 
 --------------------------------------------------------------------------------
 
