@@ -26,67 +26,38 @@ namespace detail {
 
 using prepared_key = std::array<unsigned char, 4>;
 
-inline
+BOOST_BEAST_DECL
 void
-prepare_key(prepared_key& prepared, std::uint32_t key)
-{
-    prepared[0] = (key >>  0) & 0xff;
-    prepared[1] = (key >>  8) & 0xff;
-    prepared[2] = (key >> 16) & 0xff;
-    prepared[3] = (key >> 24) & 0xff;
-}
-
-template<std::size_t N>
-void
-rol(std::array<unsigned char, N>& v, std::size_t n)
-{
-    auto v0 = v;
-    for(std::size_t i = 0; i < v.size(); ++i )
-        v[i] = v0[(i + n) % v.size()];
-}
+prepare_key(prepared_key& prepared, std::uint32_t key);
 
 // Apply mask in place
 //
-inline
+BOOST_BEAST_DECL
 void
-mask_inplace(net::mutable_buffer& b, prepared_key& key)
-{
-    auto n = b.size();
-    auto mask = key; // avoid aliasing
-    auto p = static_cast<unsigned char*>(b.data());
-    while(n >= 4)
-    {
-        for(int i = 0; i < 4; ++i)
-            p[i] ^= mask[i];
-        p += 4;
-        n -= 4;
-    }
-    if(n > 0)
-    {
-        for(std::size_t i = 0; i < n; ++i)
-            p[i] ^= mask[i];
-        rol(key, n);
-    }
-}
+mask_inplace(net::mutable_buffer const& b, prepared_key& key);
 
 // Apply mask in place
 //
-template<
-    class MutableBufferSequence,
-    class KeyType>
+template<class MutableBufferSequence>
 void
 mask_inplace(
     MutableBufferSequence const& buffers,
-    KeyType& key)
+    prepared_key& key)
 {
     for(net::mutable_buffer b :
             beast::buffers_range_ref(buffers))
-        mask_inplace(b, key);
+        detail::mask_inplace(b, key);
 }
 
 } // detail
 } // websocket
 } // beast
 } // boost
+
+
+#if BOOST_BEAST_HEADER_ONLY
+#include <boost/beast/websocket/detail/mask.ipp>
+#endif
+
 
 #endif
