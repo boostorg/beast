@@ -11,7 +11,6 @@
 #define BOOST_BEAST_HTTP_IMPL_MESSAGE_HPP
 
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>

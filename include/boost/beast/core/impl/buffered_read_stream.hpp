@@ -15,7 +15,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/core/detail/is_invocable.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 

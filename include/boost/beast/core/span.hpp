@@ -186,21 +186,21 @@ public:
     {
         return data_;
     }
-                
+
     /// Returns an iterator to the beginning of the span
     const_iterator
     cbegin() const
     {
         return data_;
     }
-       
+
     /// Returns an iterator to one past the end of the span
     const_iterator
     end() const
     {
         return data_ + size_;
     }
-        
+
     /// Returns an iterator to one past the end of the span
     const_iterator
     cend() const

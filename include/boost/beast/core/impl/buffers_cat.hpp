@@ -11,7 +11,6 @@
 #define BOOST_BEAST_IMPL_BUFFERS_CAT_HPP
 
 #include <boost/beast/core/detail/tuple.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/core/detail/variant.hpp>
 #include <boost/asio/buffer.hpp>
 #include <cstdint>

@@ -10,16 +10,9 @@
 #ifndef BOOST_BEAST_DETAIL_TYPE_TRAITS_HPP
 #define BOOST_BEAST_DETAIL_TYPE_TRAITS_HPP
 
-#include <boost/beast/core/error.hpp>
-#include <boost/beast/core/detail/is_invocable.hpp>
-#include <boost/asio/buffer.hpp>
-#include <boost/mp11/function.hpp>
 #include <boost/type_traits/make_void.hpp>
-#include <iterator>
-#include <tuple>
 #include <type_traits>
-#include <string>
-#include <utility>
+#include <new>
 
 namespace boost {
 namespace beast {
@@ -79,12 +72,6 @@ struct aligned_union
 template<std::size_t Len, class... Ts>
 using aligned_union_t =
     typename aligned_union<Len, Ts...>::type;
-
-//------------------------------------------------------------------------------
-
-template<class T>
-void
-accept_rv(T){}
 
 //------------------------------------------------------------------------------
 

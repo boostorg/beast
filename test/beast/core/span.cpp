@@ -13,6 +13,8 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 
+#include <vector>
+
 namespace boost {
 namespace beast {
 

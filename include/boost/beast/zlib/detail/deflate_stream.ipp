@@ -39,7 +39,6 @@
 
 #include <boost/beast/zlib/detail/deflate_stream.hpp>
 #include <boost/beast/zlib/detail/ranges.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/make_unique.hpp>

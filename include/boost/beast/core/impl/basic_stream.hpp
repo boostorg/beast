@@ -13,7 +13,6 @@
 #include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/websocket/teardown.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>

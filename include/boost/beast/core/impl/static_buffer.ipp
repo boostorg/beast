@@ -11,7 +11,6 @@
 #define BOOST_BEAST_IMPL_STATIC_BUFFER_IPP
 
 #include <boost/beast/core/static_buffer.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>

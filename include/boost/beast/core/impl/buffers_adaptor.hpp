@@ -11,7 +11,6 @@
 #define BOOST_BEAST_IMPL_BUFFERS_ADAPTOR_HPP
 
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/throw_exception.hpp>

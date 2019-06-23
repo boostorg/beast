@@ -11,15 +11,6 @@
 #define BOOST_BEAST_WEBSOCKET_OPTION_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/websocket/rfc6455.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/throw_exception.hpp>
-#include <algorithm>
-#include <cstdint>
-#include <functional>
-#include <stdexcept>
-#include <type_traits>
-#include <utility>
 
 namespace boost {
 namespace beast {

@@ -11,7 +11,6 @@
 #define BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
 
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/assert.hpp>
@@ -529,7 +528,7 @@ template<class Allocator>
 basic_multi_buffer<Allocator>::
 basic_multi_buffer(
     basic_multi_buffer&& other,
-    Allocator const& alloc) 
+    Allocator const& alloc)
     : boost::empty_value<
         base_alloc_type>(boost::empty_init_t(), alloc)
     , max_(other.max_)

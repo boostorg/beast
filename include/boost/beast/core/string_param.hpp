@@ -14,7 +14,6 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/core/detail/static_ostream.hpp>
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/optional.hpp>
 
 namespace boost {
