@@ -13,9 +13,6 @@
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/throw_exception.hpp>
-#include <algorithm>
-#include <cstring>
-#include <iterator>
 #include <stdexcept>
 
 namespace boost {

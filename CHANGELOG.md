@@ -6,6 +6,7 @@ Version 260:
 * Cleanup transitive includes in beast/core/detail/type_traits.hpp
 * Simplify generation of sec-websocket-key
 * Move detail::base64 helpers to tests
+* Remove redundant includes in core
 
 --------------------------------------------------------------------------------
 

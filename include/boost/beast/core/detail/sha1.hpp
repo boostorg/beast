@@ -11,10 +11,7 @@
 #define BOOST_BEAST_DETAIL_SHA1_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-
-#include <algorithm>
 #include <cstdint>
-#include <cstring>
 
 // Based on https://github.com/vog/sha1
 /*
