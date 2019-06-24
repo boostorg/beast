@@ -12,7 +12,6 @@
 
 #include <boost/beast/core/string.hpp>
 #include <cctype>
-#include <string>
 #include <utility>
 
 namespace boost {
@@ -77,26 +76,6 @@ std::pair<std::size_t, std::size_t>
 decode(void* dest, char const* src, std::size_t len);
 
 } // base64
-
-BOOST_BEAST_DECL
-std::string
-base64_encode(std::uint8_t const* data, std::size_t len);
-
-BOOST_BEAST_DECL
-std::string
-base64_encode(string_view s);
-
-template<class = void>
-std::string
-base64_decode(string_view data)
-{
-    std::string dest;
-    dest.resize(base64::decoded_size(data.size()));
-    auto const result = base64::decode(
-        &dest[0], data.data(), data.size());
-    dest.resize(result.first);
-    return dest;
-}
 
 } // detail
 } // beast

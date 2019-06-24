@@ -195,24 +195,6 @@ decode(void* dest, char const* src, std::size_t len)
 
 } // base64
 
-std::string
-base64_encode(
-    std::uint8_t const* data,
-    std::size_t len)
-{
-    std::string dest;
-    dest.resize(base64::encoded_size(len));
-    dest.resize(base64::encode(&dest[0], data, len));
-    return dest;
-}
-
-std::string
-base64_encode(string_view s)
-{
-    return base64_encode (reinterpret_cast <
-        std::uint8_t const*> (s.data()), s.size());
-}
-
 } // detail
 } // beast
 } // boost
