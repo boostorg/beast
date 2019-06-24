@@ -5,6 +5,7 @@ Version 260:
 * More split compilation in websocket/detail/mask.hpp
 * Cleanup transitive includes in beast/core/detail/type_traits.hpp
 * Simplify generation of sec-websocket-key
+* Move detail::base64 helpers to tests
 
 --------------------------------------------------------------------------------
 
