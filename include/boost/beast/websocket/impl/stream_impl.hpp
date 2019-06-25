@@ -274,13 +274,6 @@ struct stream<NextLayer, deflateSupported>::impl_type
                 return key;
     }
 
-    std::size_t
-    read_size_hint(std::size_t initial_size) const
-    {
-        return this->read_size_hint_pmd(
-            initial_size, rd_done, rd_remain, rd_fh);
-    }
-
     template<class DynamicBuffer>
     std::size_t
     read_size_hint_db(DynamicBuffer& buffer) const
@@ -290,7 +283,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
             buffer.max_size() - buffer.size());
         if(initial_size == 0)
             return 1; // buffer is full
-        return this->read_size_hint(initial_size);
+        return this->read_size_hint_pmd(
+            initial_size, rd_done, rd_remain, rd_fh);
     }
 
     template<class DynamicBuffer>

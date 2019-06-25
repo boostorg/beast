@@ -1,3 +1,9 @@
+Version 261:
+
+* Deduplicate `websocket::read_size_hint` definition
+
+--------------------------------------------------------------------------------
+
 Version 260:
 
 * More split compilation in rfc7230.hpp
