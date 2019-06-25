@@ -12,7 +12,6 @@
 
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
@@ -22,9 +21,7 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/spawn.hpp>
 #include <boost/optional.hpp>
-#include <array>
 #include <cstdlib>
 #include <memory>
 #include <random>
@@ -377,42 +374,9 @@ public:
 
     //--------------------------------------------------------------------------
 
-    template<std::size_t N>
-    class cbuf_helper
+    net::const_buffer cbuf(std::initializer_list<std::uint8_t> bytes)
     {
-        std::array<std::uint8_t, N> v_;
-        net::const_buffer cb_;
-
-    public:
-        using value_type = decltype(cb_);
-        using const_iterator = value_type const*;
-
-        template<class... Vn>
-        explicit
-        cbuf_helper(Vn... vn)
-            : v_({{ static_cast<std::uint8_t>(vn)... }})
-            , cb_(v_.data(), v_.size())
-        {
-        }
-
-        const_iterator
-        begin() const
-        {
-            return &cb_;
-        }
-
-        const_iterator
-        end() const
-        {
-            return begin()+1;
-        }
-    };
-
-    template<class... Vn>
-    cbuf_helper<sizeof...(Vn)>
-    cbuf(Vn... vn)
-    {
-        return cbuf_helper<sizeof...(Vn)>(vn...);
+        return {bytes.begin(), bytes.size()};
     }
 
     template<std::size_t N>
