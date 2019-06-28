@@ -23,8 +23,6 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/assert.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
 #include <boost/throw_exception.hpp>
 #include <condition_variable>
 #include <limits>
@@ -110,8 +108,8 @@ class stream
 {
     struct state;
 
-    boost::shared_ptr<state> in_;
-    boost::weak_ptr<state> out_;
+    std::shared_ptr<state> in_;
+    std::weak_ptr<state> out_;
 
     enum class status
     {
@@ -133,7 +131,7 @@ class stream
         friend class stream;
 
         net::io_context& ioc;
-        boost::weak_ptr<service_impl> wp;
+        std::weak_ptr<service_impl> wp;
         std::mutex m;
         flat_buffer b;
         std::condition_variable cv;
@@ -150,7 +148,7 @@ class stream
         BOOST_BEAST_DECL
         state(
             net::io_context& ioc_,
-            boost::weak_ptr<service_impl> wp_,
+            std::weak_ptr<service_impl> wp_,
             fail_count* fc_);
 
 
@@ -180,7 +178,7 @@ class stream
     static
     void
     initiate_read(
-        boost::shared_ptr<state> const& in,
+        std::shared_ptr<state> const& in,
         std::unique_ptr<read_op_base>&& op,
         std::size_t buf_size);
 

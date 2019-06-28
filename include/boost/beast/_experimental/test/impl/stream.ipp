@@ -13,7 +13,6 @@
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/make_shared.hpp>
 #include <stdexcept>
 #include <vector>
 
@@ -27,7 +26,7 @@ stream::
 service::
 service(net::execution_context& ctx)
     : beast::detail::service_base<service>(ctx)
-    , sp_(boost::make_shared<service_impl>())
+    , sp_(std::make_shared<service_impl>())
 {
 }
 
@@ -53,10 +52,10 @@ service::
 make_impl(
     net::io_context& ctx,
     test::fail_count* fc) ->
-    boost::shared_ptr<state>
+    std::shared_ptr<state>
 {
     auto& svc = net::use_service<service>(ctx);
-    auto sp = boost::make_shared<state>(ctx, svc.sp_, fc);
+    auto sp = std::make_shared<state>(ctx, svc.sp_, fc);
     std::lock_guard<std::mutex> g(svc.sp_->m_);
     svc.sp_->v_.push_back(sp.get());
     return sp;
@@ -77,7 +76,7 @@ remove(state& impl)
 //------------------------------------------------------------------------------
 
 void stream::initiate_read(
-    boost::shared_ptr<state> const& in_,
+    std::shared_ptr<state> const& in_,
     std::unique_ptr<stream::read_op_base>&& op,
     std::size_t buf_size)
 {
@@ -121,7 +120,7 @@ stream::
 state::
 state(
     net::io_context& ioc_,
-    boost::weak_ptr<service_impl> wp_,
+    std::weak_ptr<service_impl> wp_,
     fail_count* fc_)
     : ioc(ioc_)
     , wp(std::move(wp_))

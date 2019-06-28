@@ -37,7 +37,7 @@ struct stream::service_impl
 class stream::service
     : public beast::detail::service_base<service>
 {
-    boost::shared_ptr<service_impl> sp_;
+    std::shared_ptr<service_impl> sp_;
 
     BOOST_BEAST_DECL
     void
@@ -54,7 +54,7 @@ public:
     make_impl(
         net::io_context& ctx,
         test::fail_count* fc) ->
-            boost::shared_ptr<state>;
+            std::shared_ptr<state>;
 };
 
 //------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ class stream::read_op : public stream::read_op_base
     struct lambda
     {
         Handler h_;
-        boost::weak_ptr<state> wp_;
+        std::weak_ptr<state> wp_;
         Buffers b_;
         net::executor_work_guard<ex2_type> wg2_;
 
@@ -80,7 +80,7 @@ class stream::read_op : public stream::read_op_base
         template<class Handler_>
         lambda(
             Handler_&& h,
-            boost::shared_ptr<state> const& s,
+            std::shared_ptr<state> const& s,
             Buffers const& b)
             : h_(std::forward<Handler_>(h))
             , wp_(s)
@@ -129,7 +129,7 @@ public:
     template<class Handler_>
     read_op(
         Handler_&& h,
-        boost::shared_ptr<state> const& s,
+        std::shared_ptr<state> const& s,
         Buffers const& b)
         : fn_(std::forward<Handler_>(h), s, b)
         , wg1_(s->ioc.get_executor())
@@ -155,7 +155,7 @@ struct stream::run_read_op
     void
     operator()(
         ReadHandler&& h,
-        boost::shared_ptr<state> const& in,
+        std::shared_ptr<state> const& in,
         MutableBufferSequence const& buffers)
     {
         // If you get an error on the following line it means
@@ -188,8 +188,8 @@ struct stream::run_write_op
     void
     operator()(
         WriteHandler&& h,
-        boost::shared_ptr<state> in_,
-        boost::weak_ptr<state> out_,
+        std::shared_ptr<state> in_,
+        std::weak_ptr<state> out_,
         ConstBufferSequence const& buffers)
     {
         // If you get an error on the following line it means
