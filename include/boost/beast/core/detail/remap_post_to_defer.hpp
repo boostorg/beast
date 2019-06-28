@@ -10,7 +10,6 @@
 #ifndef BOOST_BEAST_DETAIL_REMAP_POST_TO_DEFER_HPP
 #define BOOST_BEAST_DETAIL_REMAP_POST_TO_DEFER_HPP
 
-#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/is_executor.hpp>
 #include <boost/core/empty_value.hpp>
 #include <type_traits>
