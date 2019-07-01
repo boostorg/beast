@@ -6,6 +6,7 @@ Version 261:
 * Simplify websocket::detail::prng
 * Don't over-allocate in http::basic_fields
 * Fix multi_buffer allocation alignment
+* Tidy up buffers_range
 
 --------------------------------------------------------------------------------
 
