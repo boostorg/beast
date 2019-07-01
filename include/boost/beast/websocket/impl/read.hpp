@@ -226,8 +226,7 @@ public:
                                 impl.ctrl_cb(
                                     frame_type::ping, payload);
                             impl.rd_fb.clear();
-                            impl.template write_ping<
-                                flat_static_buffer_base>(impl.rd_fb,
+                            impl.write_ping(impl.rd_fb,
                                     detail::opcode::pong, payload);
                         }
 
@@ -563,9 +562,7 @@ public:
 
                 // Serialize close frame
                 impl.rd_fb.clear();
-                impl.template write_close<
-                    flat_static_buffer_base>(
-                        impl.rd_fb, code_);
+                impl.write_close(impl.rd_fb, code_);
 
                 // Send close frame
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
@@ -1004,8 +1001,7 @@ loop:
                 if(impl.ctrl_cb)
                     impl.ctrl_cb(frame_type::ping, payload);
                 detail::frame_buffer fb;
-                impl.template write_ping<flat_static_buffer_base>(fb,
-                    detail::opcode::pong, payload);
+                impl.write_ping(fb, detail::opcode::pong, payload);
                 net::write(impl.stream(), fb.data(), ec);
                 if(impl.check_stop_now(ec))
                     return bytes_written;

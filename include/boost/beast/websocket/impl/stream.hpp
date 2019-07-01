@@ -321,8 +321,7 @@ do_fail(
     {
         impl_->wr_close = true;
         detail::frame_buffer fb;
-        impl_->template write_close<
-            flat_static_buffer_base>(fb, code);
+        impl_->write_close(fb, code);
         net::write(impl_->stream(), fb.data(), ec);
         if(impl_->check_stop_now(ec))
             return;

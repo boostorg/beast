@@ -61,8 +61,7 @@ public:
             detail::frame_buffer>(*this))
     {
         // Serialize the close frame
-        sp->template write_close<
-            flat_static_buffer_base>(fb_, cr);
+        sp->write_close(fb_, cr);
         (*this)({}, 0, false);
     }
 
@@ -298,7 +297,7 @@ close(close_reason const& cr, error_code& ec)
         impl.wr_close = true;
         impl.change_status(status::closing);
         detail::frame_buffer fb;
-        impl.template write_close<flat_static_buffer_base>(fb, cr);
+        impl.write_close(fb, cr);
         net::write(impl.stream(), fb.data(), ec);
         if(impl.check_stop_now(ec))
             return;

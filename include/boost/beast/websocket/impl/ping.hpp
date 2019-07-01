@@ -58,8 +58,7 @@ public:
             detail::frame_buffer>(*this))
     {
         // Serialize the ping or pong frame
-        sp->template write_ping<
-            flat_static_buffer_base>(fb_, op, payload);
+        sp->write_ping(fb_, op, payload);
         (*this)({}, 0, false);
     }
 
@@ -144,9 +143,7 @@ public:
         {
             // Create the ping frame
             ping_data payload; // empty for now
-            sp->template write_ping<
-                flat_static_buffer_base>(*fb_,
-                    detail::opcode::ping, payload);
+            sp->write_ping(*fb_, detail::opcode::ping, payload);
 
             sp->idle_pinging = true;
             (*this)({}, 0);
@@ -254,8 +251,7 @@ ping(ping_data const& payload, error_code& ec)
     if(impl_->check_stop_now(ec))
         return;
     detail::frame_buffer fb;
-    impl_->template write_ping<flat_static_buffer_base>(
-        fb, detail::opcode::ping, payload);
+    impl_->write_ping(fb, detail::opcode::ping, payload);
     net::write(impl_->stream(), fb.data(), ec);
     if(impl_->check_stop_now(ec))
         return;
@@ -280,8 +276,7 @@ pong(ping_data const& payload, error_code& ec)
     if(impl_->check_stop_now(ec))
         return;
     detail::frame_buffer fb;
-    impl_->template write_ping<flat_static_buffer_base>(
-        fb, detail::opcode::pong, payload);
+    impl_->write_ping(fb, detail::opcode::pong, payload);
     net::write(impl_->stream(), fb.data(), ec);
     if(impl_->check_stop_now(ec))
         return;

@@ -24,8 +24,6 @@
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/buffers_suffix.hpp>
-#include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/saved_handler.hpp>
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
@@ -260,10 +258,9 @@ struct stream<NextLayer, deflateSupported>::impl_type
 
     // Attempt to read a complete frame header.
     // Returns `false` if more bytes are needed
-    template<class DynamicBuffer>
     bool
     parse_fh(detail::frame_header& fh,
-        DynamicBuffer& b, error_code& ec);
+        static_buffer_base& b, error_code& ec);
 
     std::uint32_t
     create_mask()
@@ -287,14 +284,12 @@ struct stream<NextLayer, deflateSupported>::impl_type
             initial_size, rd_done, rd_remain, rd_fh);
     }
 
-    template<class DynamicBuffer>
     void
-    write_ping(DynamicBuffer& db,
+    write_ping(flat_static_buffer_base& db,
         detail::opcode code, ping_data const& data);
 
-    template<class DynamicBuffer>
     void
-    write_close(DynamicBuffer& db, close_reason const& cr);
+    write_close(flat_static_buffer_base& db, close_reason const& cr);
 
     //--------------------------------------------------------------------------
 
@@ -634,12 +629,11 @@ on_response(
 // Attempt to read a complete frame header.
 // Returns `false` if more bytes are needed
 template<class NextLayer, bool deflateSupported>
-template<class DynamicBuffer>
 bool
 stream<NextLayer, deflateSupported>::impl_type::
 parse_fh(
     detail::frame_header& fh,
-    DynamicBuffer& b,
+    static_buffer_base& b,
     error_code& ec)
 {
     if(buffer_bytes(b.data()) < 2)
@@ -649,7 +643,7 @@ parse_fh(
         return false;
     }
     buffers_suffix<typename
-        DynamicBuffer::const_buffers_type> cb{
+        static_buffer_base::const_buffers_type> cb{
             b.data()};
     std::size_t need;
     {
@@ -844,10 +838,9 @@ parse_fh(
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class DynamicBuffer>
 void
 stream<NextLayer, deflateSupported>::impl_type::
-write_ping(DynamicBuffer& db,
+write_ping(flat_static_buffer_base& db,
     detail::opcode code, ping_data const& data)
 {
     detail::frame_header fh;
@@ -876,12 +869,10 @@ write_ping(DynamicBuffer& db,
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class DynamicBuffer>
 void
 stream<NextLayer, deflateSupported>::impl_type::
-write_close(DynamicBuffer& db, close_reason const& cr)
+write_close(flat_static_buffer_base& db, close_reason const& cr)
 {
-    using namespace boost::endian;
     detail::frame_header fh;
     fh.op = detail::opcode::close;
     fh.fin = true;

@@ -6,6 +6,7 @@ Version 261:
 * Use `std::shared_ptr` in `test::stream`
 * Simplify websocket::detail::prng
 * More split compilation in websocket/detail/frame.hpp
+* Detemplatize websocket frame parsing routines
 
 --------------------------------------------------------------------------------
 
