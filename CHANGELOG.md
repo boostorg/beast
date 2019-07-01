@@ -5,6 +5,7 @@ Version 261:
 * Remove redundant includes in websocket
 * Simplify websocket::detail::prng
 * Don't over-allocate in http::basic_fields
+* Fix multi_buffer allocation alignment
 
 --------------------------------------------------------------------------------
 

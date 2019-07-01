@@ -15,6 +15,7 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/intrusive/list.hpp>
+#include <boost/type_traits/type_with_alignment.hpp>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -62,14 +63,13 @@ namespace beast {
 template<class Allocator>
 class basic_multi_buffer
 #if ! BOOST_BEAST_DOXYGEN
-    : private boost::empty_value<
-        typename detail::allocator_traits<Allocator>::
-            template rebind_alloc<char>>
+    : private boost::empty_value<Allocator>
 #endif
 {
-    using base_alloc_type = typename
-        detail::allocator_traits<Allocator>::
-            template rebind_alloc<char>;
+    // Fancy pointers are not supported
+    static_assert(std::is_pointer<typename
+        std::allocator_traits<Allocator>::pointer>::value,
+        "Allocator must use regular pointers");
 
     static bool constexpr default_nothrow =
         std::is_nothrow_default_constructible<Allocator>::value;
@@ -77,19 +77,61 @@ class basic_multi_buffer
     // Storage for the list of buffers representing the input
     // and output sequences. The allocation for each element
     // contains `element` followed by raw storage bytes.
-    class element;
+    class element
+        : public boost::intrusive::list_base_hook<
+            boost::intrusive::link_mode<
+                boost::intrusive::normal_link>>
+    {
+        using size_type = typename
+            detail::allocator_traits<Allocator>::size_type;
+
+        size_type const size_;
+
+    public:
+        element(element const&) = delete;
+
+        explicit
+        element(size_type n) noexcept
+            : size_(n)
+        {
+        }
+
+        size_type
+        size() const noexcept
+        {
+            return size_;
+        }
+
+        char*
+        data() const noexcept
+        {
+            return const_cast<char*>(
+                reinterpret_cast<char const*>(this + 1));
+        }
+    };
 
     template<bool>
     class readable_bytes;
 
-    using alloc_traits =
-        beast::detail::allocator_traits<base_alloc_type>;
-    using list_type = typename boost::intrusive::make_list<element,
-        boost::intrusive::constant_time_size<true>>::type;
-    using iter = typename list_type::iterator;
-    using const_iter = typename list_type::const_iterator;
+    using size_type = typename
+        detail::allocator_traits<Allocator>::size_type;
 
-    using size_type = typename alloc_traits::size_type;
+    using align_type = typename
+        boost::type_with_alignment<alignof(element)>::type;
+
+    using rebind_type = typename
+        beast::detail::allocator_traits<Allocator>::
+            template rebind_alloc<align_type>;
+
+    using alloc_traits =
+        beast::detail::allocator_traits<rebind_type>;
+
+    using list_type = typename boost::intrusive::make_list<
+        element, boost::intrusive::constant_time_size<true>>::type;
+
+    using iter = typename list_type::iterator;
+
+    using const_iter = typename list_type::const_iterator;
 
     using pocma = typename
         alloc_traits::propagate_on_container_move_assignment;
