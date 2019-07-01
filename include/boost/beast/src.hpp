@@ -51,6 +51,7 @@ the program, with the macro BOOST_BEAST_SEPARATE_COMPILATION defined.
 #include <boost/beast/http/impl/status.ipp>
 #include <boost/beast/http/impl/verb.ipp>
 
+#include <boost/beast/websocket/detail/frame.ipp>
 #include <boost/beast/websocket/detail/hybi13.ipp>
 #include <boost/beast/websocket/detail/mask.ipp>
 #include <boost/beast/websocket/detail/pmd_extension.ipp>

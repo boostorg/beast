@@ -191,8 +191,7 @@ operator()(
             fh_.fin = fin_;
             fh_.len = buffer_bytes(cb_);
             impl.wr_fb.clear();
-            detail::write<flat_static_buffer_base>(
-                impl.wr_fb, fh_);
+            detail::write(impl.wr_fb, fh_);
             impl.wr_cont = ! fin_;
             BOOST_ASIO_CORO_YIELD
             net::async_write(impl.stream(),
@@ -216,8 +215,7 @@ operator()(
                 remain_ -= n;
                 fh_.fin = fin_ ? remain_ == 0 : false;
                 impl.wr_fb.clear();
-                detail::write<flat_static_buffer_base>(
-                    impl.wr_fb, fh_);
+                detail::write(impl.wr_fb, fh_);
                 impl.wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
@@ -261,8 +259,7 @@ operator()(
             fh_.key = impl.create_mask();
             detail::prepare_key(key_, fh_.key);
             impl.wr_fb.clear();
-            detail::write<flat_static_buffer_base>(
-                impl.wr_fb, fh_);
+            detail::write(impl.wr_fb, fh_);
             n = clamp(remain_, impl.wr_buf_size);
             net::buffer_copy(net::buffer(
                 impl.wr_buf.get(), n), cb_);
@@ -320,8 +317,7 @@ operator()(
                 detail::mask_inplace(net::buffer(
                     impl.wr_buf.get(), n), key_);
                 impl.wr_fb.clear();
-                detail::write<flat_static_buffer_base>(
-                    impl.wr_fb, fh_);
+                detail::write(impl.wr_fb, fh_);
                 impl.wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
@@ -384,8 +380,7 @@ operator()(
                 fh_.fin = ! more_;
                 fh_.len = n;
                 impl.wr_fb.clear();
-                detail::write<
-                    flat_static_buffer_base>(impl.wr_fb, fh_);
+                detail::write(impl.wr_fb, fh_);
                 impl.wr_cont = ! fin_;
                 // Send frame
                 BOOST_ASIO_CORO_YIELD
@@ -555,8 +550,7 @@ write_some(bool fin,
             fh.fin = ! more;
             fh.len = n;
             detail::fh_buffer fh_buf;
-            detail::write<
-                flat_static_buffer_base>(fh_buf, fh);
+            detail::write(fh_buf, fh);
             impl.wr_cont = ! fin;
             net::write(impl.stream(),
                 buffers_cat(fh_buf.data(), b), ec);
@@ -578,8 +572,7 @@ write_some(bool fin,
             fh.fin = fin;
             fh.len = remain;
             detail::fh_buffer fh_buf;
-            detail::write<
-                flat_static_buffer_base>(fh_buf, fh);
+            detail::write(fh_buf, fh);
             impl.wr_cont = ! fin;
             net::write(impl.stream(),
                 buffers_cat(fh_buf.data(), buffers), ec);
@@ -600,8 +593,7 @@ write_some(bool fin,
                 fh.len = n;
                 fh.fin = fin ? remain == 0 : false;
                 detail::fh_buffer fh_buf;
-                detail::write<
-                    flat_static_buffer_base>(fh_buf, fh);
+                detail::write(fh_buf, fh);
                 impl.wr_cont = ! fin;
                 net::write(impl.stream(),
                     beast::buffers_cat(fh_buf.data(),
@@ -625,8 +617,7 @@ write_some(bool fin,
         detail::prepared_key key;
         detail::prepare_key(key, fh.key);
         detail::fh_buffer fh_buf;
-        detail::write<
-            flat_static_buffer_base>(fh_buf, fh);
+        detail::write(fh_buf, fh);
         buffers_suffix<
             ConstBufferSequence> cb{buffers};
         {
@@ -683,8 +674,7 @@ write_some(bool fin,
             fh.fin = fin ? remain == 0 : false;
             impl.wr_cont = ! fh.fin;
             detail::fh_buffer fh_buf;
-            detail::write<
-                flat_static_buffer_base>(fh_buf, fh);
+            detail::write(fh_buf, fh);
             net::write(impl.stream(),
                 buffers_cat(fh_buf.data(), b), ec);
             bytes_transferred += n;

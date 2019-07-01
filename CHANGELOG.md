@@ -5,6 +5,7 @@ Version 261:
 * Remove redundant includes in websocket
 * Use `std::shared_ptr` in `test::stream`
 * Simplify websocket::detail::prng
+* More split compilation in websocket/detail/frame.hpp
 
 --------------------------------------------------------------------------------
 
