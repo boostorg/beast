@@ -990,8 +990,8 @@ delete_element(element& e)
         (sizeof(element) + e.off_ + e.len_ + 2 + sizeof(align_type) - 1) /
             sizeof(align_type);
     e.~element();
-    alloc_traits::deallocate(a, &e, n);
-        //reinterpret_cast<align_type*>(&e), n);
+    alloc_traits::deallocate(a,
+        reinterpret_cast<align_type*>(&e), n);
 }
 
 template<class Allocator>

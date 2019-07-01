@@ -4,6 +4,7 @@ Version 261:
 * Fix UB in websocket read tests
 * Remove redundant includes in websocket
 * Simplify websocket::detail::prng
+* Don't over-allocate in http::basic_fields
 
 --------------------------------------------------------------------------------
 

@@ -196,7 +196,7 @@ private:
 
     using rebind_type = typename
         beast::detail::allocator_traits<Allocator>::
-            template rebind_alloc<element>;
+            template rebind_alloc<align_type>;
 
     using alloc_traits =
         beast::detail::allocator_traits<rebind_type>;
