@@ -1,3 +1,9 @@
+Version 262:
+
+* Fix deallocate in multi_buffer
+
+--------------------------------------------------------------------------------
+
 Version 261:
 
 * Deduplicate `websocket::read_size_hint` definition

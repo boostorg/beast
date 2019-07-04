@@ -977,10 +977,7 @@ consume(size_type n) noexcept
             in_pos_ = 0;
             auto& e = list_.front();
             list_.erase(list_.iterator_to(e));
-            auto const len = sizeof(e) + e.size();
-            e.~element();
-            alloc_traits::deallocate(a,
-                reinterpret_cast<align_type*>(&e), len);
+            destroy(e);
         #if BOOST_BEAST_MULTI_BUFFER_DEBUG_CHECK
             debug_check();
         #endif
@@ -1183,8 +1180,9 @@ destroy(element& e)
 {
     auto a = rebind_type{this->get()};
     auto const n =
-        (sizeof(element) + e.size() + sizeof(align_type) - 1) /
-            sizeof(align_type);
+        (sizeof(element) + e.size() +
+            sizeof(align_type) - 1) /
+        sizeof(align_type);
     e.~element();
     alloc_traits::deallocate(a,
         reinterpret_cast<align_type*>(&e), n);
