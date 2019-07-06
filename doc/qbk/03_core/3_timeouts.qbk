@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:timeouts Timeouts __example__ __new__]
+[section:timeouts Timeouts __example__]
 
 Network programs must handle adverse connection conditions; the most common
 is that a connected peer goes offline unexpectedly. Protocols have no way of
@@ -175,11 +175,7 @@ from asynchronous intermediate operations.
 
 [/-----------------------------------------------------------------------------]
 
-
-
-[/-----------------------------------------------------------------------------]
-
-[section:rate_limiting Rate Limiting __example__ __new__]
+[section:rate_limiting Rate Limiting __example__]
 
 The
 [link beast.ref.boost__beast__basic_stream `basic_stream`]

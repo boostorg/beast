@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:asio_refresher Refresher __new__]
+[section:asio_refresher Refresher]
 
 To use Beast effectively, a prior understanding of Networking is required.
 This section reviews these concepts as a reminder and guide for further

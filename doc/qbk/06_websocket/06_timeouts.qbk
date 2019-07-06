@@ -9,7 +9,7 @@
 
 [/-----------------------------------------------------------------------------]
 
-[section:timeouts Timeouts __new__]
+[section:timeouts Timeouts]
 
 While
 [link beast.ref.boost__beast__basic_stream `basic_stream`] and

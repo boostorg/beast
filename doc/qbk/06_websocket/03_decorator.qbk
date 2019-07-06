@@ -9,7 +9,7 @@
 
 [/-----------------------------------------------------------------------------]
 
-[section:decorator Decorator __new__]
+[section:decorator Decorator]
 
 For programs which need to modify either the outgoing WebSocket HTTP Upgrade
 request, the outgoing WebSocket HTTP Upgrade response, or both, the stream

@@ -22,7 +22,8 @@ add_subdirectory (zlib)
 #-------------------------------------------------------------------------------
 
 GroupSources (include/boost/beast beast)
-GroupSources (test/beast "/")
+GroupSources (test/extras/include/boost /)
+GroupSources (test/beast /)
 
 add_executable (tests-beast
     ${BOOST_BEAST_FILES}

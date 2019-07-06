@@ -9,7 +9,7 @@
 
 [/-----------------------------------------------------------------------------]
 
-[section:messages Messages __new__]
+[section:messages Messages]
 
 Once a websocket session is established, messages can be sent unsolicited by
 either peer at any time. A message is made up of one or more ['messages frames].

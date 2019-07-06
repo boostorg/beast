@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:establishing_connections Connecting __new__]
+[section:establishing_connections Connecting]
 
 Before messages can be exchanged, a websocket stream first needs to be
 connected, and then to have the websocket handshake performed. The stream

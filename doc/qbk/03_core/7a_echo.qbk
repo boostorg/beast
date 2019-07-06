@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:echo Echo __example__ __new__]
+[section:echo Echo __example__]
 
 This example develops an initiating function called [*echo].
 The operation will read up to the first newline on a stream, and

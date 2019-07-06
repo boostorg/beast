@@ -1,3 +1,9 @@
+Version 263:
+
+* Update documentation
+
+--------------------------------------------------------------------------------
+
 Version 262:
 
 * Fix deallocate in multi_buffer

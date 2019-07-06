@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:detect_ssl Detect SSL __example__ __new__]
+[section:detect_ssl Detect SSL __example__]
 
 In this example we will build a simple function to detect the presence of the
 [@https://tools.ietf.org/html/rfc2246#section-7.4 TLS client handshake]

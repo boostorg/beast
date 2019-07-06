@@ -170,9 +170,9 @@ __example__ contains example source code.
 
 __video__ contains video presentation content
 
-[section:quickref Reference __new__]
+[section:quickref Reference]
 
-__new__ indicates an item that is new in this version.
+__new__ indicates an item that was recently added.
 
 [xinclude quickref.xml]
 [endsect]

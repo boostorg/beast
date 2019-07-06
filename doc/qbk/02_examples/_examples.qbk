@@ -183,7 +183,7 @@ and illustrate the implementation of advanced features.
 
 [/-----------------------------------------------------------------------------]
 
-[section:chat_server Chat Server __video__ __new__]
+[section:chat_server Chat Server __video__]
 
 This example demonstrates a websocket chat server, allowing multiple
 users to connect and participate in live, group messaging. It comes

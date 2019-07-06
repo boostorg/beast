@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:using_io Networking __new__]
+[section:using_io Networking]
 
 This library uses the
 [@http://cplusplus.github.io/networking-ts/draft.pdf Networking Technical Specification],

@@ -11,15 +11,116 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.71]
+
+
+
+[*Improvements]
+
+* [issue 1280] Add 1-element specialization for `buffers_cat`
+
+* [issue 1556] Set parser status and flags even if body limit has been reached
+
+* [issue 1567] Relax requirements for vector_body
+
+* [issue 1568] `detect_ssl` uses `bool` instead of `tribool`
+
+* [issue 1574] Replace `static_string` in HTTP parser
+
+* [issue 1606] Use `steady_timer` type
+
+* [issue 1611] Make chat websocket javascript client more user friendly
+
+* [issue 1613] Remove redundant use of `static_string`
+
+* [issue 1636] Improve performance of `http::string_to_verb`
+
+* Preserve `operation_aborted` on partial message
+
+* Remove unused `<experimental/unit_test/thread.hpp>`
+
+* Reduce the number of instantiations of `filter_token_list`
+
+* Add idle ping suspend test
+
+* Remove the use of `bind_executor` in `basic_stream`
+
+* Remove redundant template in service_base
+
+* Remove the use of `static_string` from `http::fields` 
+
+* Enable split compilation in http::basic_fields
+
+* Remove redundant instation of `static_string` in websocket
+
+* Remove redundant use of `asio::coroutine` in `flat_stream` 
+
+* More split compilation in rfc7230.hpp
+
+* More split compilation in websocket/detail/mask.hpp 
+
+* Simplify generation of sec-websocket-key
+
+
+
+
+[*Fixes]
+
+* [issue 1332] `allocator_traits::construct` is used for user-defined types
+
+* [issue 1559] Member `get_executor` const-correctness
+
+* [issue 1569] Fix `async_detect_ssl` handler type
+
+* [issue 1570] Launder pointers
+
+* [issue 1578] Fix min/max on MSVC
+
+* [issue 1586] Fix uninitalized memory use in deflate_stream
+
+* [issue 1593] Fix UB in websocket close tests 
+
+* [issue 1594] Fix data race in test stream
+
+* [issue 1599] Fix moved-from executor in idle ping timeout
+
+* [issue 1607] Remove uses of the deprecated `buffers` function
+
+* [issue 1612] Remove uses of deprecated methods in websocket tests
+
+* [issue 1620] Clean up typo in chat websocket javascript client
+
+* [issue 1621] Fix `flat_buffer` copy members
+
+* Silence gcc-8 warning
+
+* Fix `buffers_cat` iterator tests
+
+* Don't pessimize-move
+
+* Qualify calls to `beast::iequals` in basic_parser.ipp
+
+* Fix UB in websocket read tests
+
+* Simplify websocket::detail::prng
+
+* Don't over-allocate in http::basic_fields
+
+
+
+[*Documentation]
+
+* Documentation is built with SaxonHE instead of xsltproc
+
+
+
+[/-----------------------------------------------------------------------------]
+
 [heading Boost 1.70]
 
 [tip
   The namespace alias `net` is used throughout for `boost::asio`.
 ]
-
-[/ includes up to version 209]
-
-
 
 [*New Features]
 
