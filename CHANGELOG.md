@@ -1,3 +1,9 @@
+Version 264:
+
+* Handle overflow in max size calculation in `basic_dynamic_body`
+
+--------------------------------------------------------------------------------
+
 Version 263:
 
 * Update documentation
@@ -135,7 +141,7 @@ Version 250:
 
 * Use SaxonHE in reference generation
 * Cleanup endianness conversions
-* Set parser status and flags even if body_limit_ has been reached 
+* Set parser status and flags even if body_limit_ has been reached
 
 --------------------------------------------------------------------------------
 

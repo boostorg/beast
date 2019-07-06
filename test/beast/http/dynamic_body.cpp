@@ -39,7 +39,7 @@ public:
     }
 
     void
-    run() override
+    test_success()
     {
         std::string const s =
             "HTTP/1.1 200 OK\r\n"
@@ -54,6 +54,34 @@ public:
         auto const& m = p.get();
         BEAST_EXPECT(buffers_to_string(m.body().data()) == "xyz");
         BEAST_EXPECT(to_string(m) == s);
+    }
+
+    void
+    test_issue1581()
+    {
+        std::string const s =
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Content-Length: 132\r\n"
+            "\r\n"
+            "xyzxyzxyzxyzxyzxyzxyzxyzxyzxyzxyz"
+            "xyzxyzxyzxyzxyzxyzxyzxyzxyzxyzxyz"
+            "xyzxyzxyzxyzxyzxyzxyzxyzxyzxyzxyz"
+            "xyzxyzxyzxyzxyzxyzxyzxyzxyzxyzxyz";
+        test::stream ts(ioc_, s);
+        response_parser<dynamic_body> p;
+        multi_buffer b;
+        p.get().body().max_size(64);
+        error_code ec;
+        read(ts, b, p, ec);
+        BEAST_EXPECT(ec == http::error::buffer_overflow);
+    }
+
+    void
+    run() override
+    {
+        test_success();
+        test_issue1581();
     }
 };
 
