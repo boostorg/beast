@@ -72,7 +72,6 @@ test_file()
     auto const remove =
         [](fs::path const& path)
         {
-            error_code ec;
             fs::remove(path);
         };
 

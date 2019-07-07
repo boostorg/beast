@@ -1204,7 +1204,6 @@ public:
         }
 
         {
-            error_code ec;
             stream_type s(ioc);
             async_teardown(role_type::server, s,
                 [](error_code)

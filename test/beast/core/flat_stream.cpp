@@ -148,7 +148,6 @@ public:
             BEAST_EXPECT(buffer_bytes(bs) <=
                 detail::flat_stream_base::max_size);
             flat_stream<test::stream> s(ioc);
-            error_code ec;
             s.async_write_some(bs,
                 [](error_code, std::size_t)
                 {
