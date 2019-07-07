@@ -4,6 +4,7 @@ Version 264:
 * Fix unused variable warnings in tests
 * Fix missing initializer warning in `basic_fields`
 * Remove unused functions in `impl/static_string.hpp`
+* Fix unused variable warning in `multi_buffer`
 
 --------------------------------------------------------------------------------
 

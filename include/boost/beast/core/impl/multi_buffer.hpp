@@ -956,7 +956,6 @@ consume(size_type n) noexcept
 {
     if(list_.empty())
         return;
-    auto a = rebind_type{this->get()};
     for(;;)
     {
         if(list_.begin() != out_)
