@@ -5,6 +5,7 @@ Version 264:
 * Fix missing initializer warning in `basic_fields`
 * Remove unused functions in `impl/static_string.hpp`
 * Fix unused variable warning in `multi_buffer`
+* Fix header-only compilation errors in some configurations
 
 --------------------------------------------------------------------------------
 

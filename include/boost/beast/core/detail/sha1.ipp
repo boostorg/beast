@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/sha1.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 
