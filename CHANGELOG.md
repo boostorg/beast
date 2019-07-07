@@ -2,6 +2,7 @@ Version 264:
 
 * Handle overflow in max size calculation in `basic_dynamic_body`
 * Fix unused variable warnings in tests
+* Fix missing initializer warning in `basic_fields`
 
 --------------------------------------------------------------------------------
 

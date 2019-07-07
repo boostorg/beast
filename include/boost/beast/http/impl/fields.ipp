@@ -95,7 +95,7 @@ keep_alive_impl(
         if(keep_alive)
         {
             // remove close
-            filter_token_list(s, value, iequals_predicate{"close"});
+            filter_token_list(s, value, iequals_predicate{"close", {}});
             // add keep-alive
             if(s.empty())
                 s.append("keep-alive");
@@ -120,7 +120,7 @@ keep_alive_impl(
         else
         {
             // remove keep-alive
-            filter_token_list(s, value, iequals_predicate{"keep-alive"});
+            filter_token_list(s, value, iequals_predicate{"keep-alive", {}});
             // add close
             if(s.empty())
                 s.append("close");

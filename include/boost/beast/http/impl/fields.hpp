@@ -916,7 +916,7 @@ set_chunked_impl(bool value)
     if(it == end())
         return;
 
-    detail::filter_token_list_last(buf, it->value(), {"chunked"});
+    detail::filter_token_list_last(buf, it->value(), {"chunked", {}});
     if(! buf.empty())
         set(field::transfer_encoding, buf.view());
     else
