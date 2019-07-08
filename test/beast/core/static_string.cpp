@@ -569,7 +569,8 @@ public:
         //
 
         {
-            static_string<7> s1("12345");
+            // Using 7 as the size causes a miscompile in MSVC14.2 x64 Release
+            static_string<8> s1("12345");
             s1.insert(2, 2, '_');
             BEAST_EXPECT(s1 == "12__345");
             BEAST_EXPECT(*s1.end() == 0);

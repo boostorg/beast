@@ -6,6 +6,7 @@ Version 264:
 * Remove unused functions in `impl/static_string.hpp`
 * Fix unused variable warning in `multi_buffer`
 * Fix header-only compilation errors in some configurations
+* Workaround for miscompilation in MSVC 14.2
 
 --------------------------------------------------------------------------------
 
