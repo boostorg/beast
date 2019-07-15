@@ -15,6 +15,7 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
 #include <algorithm>
 #include <cstdlib>
@@ -54,9 +55,23 @@ public:
     {
     }
 
-    // Start the asynchronous operation
+    // Get on the correct executor
     void
     run()
+    {
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        net::dispatch(ws_.get_executor(),
+            beast::bind_front_handler(
+                &session::on_run,
+                shared_from_this()));
+    }
+
+    // Start the asynchronous operation
+    void
+    on_run()
     {
         // Set suggested timeout settings for the websocket
         ws_.set_option(
@@ -71,7 +86,6 @@ public:
                     std::string(BOOST_BEAST_VERSION_STRING) +
                         " websocket-server-async");
             }));
-
         // Accept the websocket handshake
         ws_.async_accept(
             beast::bind_front_handler(

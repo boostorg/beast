@@ -17,6 +17,7 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -61,7 +62,15 @@ public:
     void
     run()
     {
-        loop({}, 0);
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        net::dispatch(ws_.get_executor(),
+                      beast::bind_front_handler(&session::loop,
+                                                shared_from_this(),
+                                                beast::error_code{},
+                                                0));
     }
 
     #include <boost/asio/yield.hpp>
