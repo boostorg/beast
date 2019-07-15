@@ -20,6 +20,7 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -59,14 +60,28 @@ public:
     {
     }
 
-    // Start the asynchronous operation
+    // Get on the correct executor
     void
     run()
+    {
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        net::dispatch(ws_.get_executor(),
+            beast::bind_front_handler(
+                &session::on_run,
+                shared_from_this()));
+    }
+
+    // Start the asynchronous operation
+    void
+    on_run()
     {
         // Set the timeout.
         beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
 
-        // Perform the SSL handshake
+         // Perform the SSL handshake
         ws_.next_layer().async_handshake(
             ssl::stream_base::server,
             beast::bind_front_handler(
