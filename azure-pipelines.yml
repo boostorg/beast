@@ -185,13 +185,41 @@ jobs:
           PACKAGES: clang-8 libc++-8-dev libc++abi-8-dev
           VARIANT: release
           B2_FLAGS: <thread-sanitizer>norecover
-          CXXSTD: 11
+          CXXSTD: 14
           CXX_FLAGS: <cxxflags>"-stdlib=libc++ -msse4.2 -funsigned-char -fno-omit-frame-pointer" <linkflags>-stdlib=libc++
           B2_TARGETS: libs/beast/test//run-fat-tests
-        Clang 8 libc++ C++11 Release HEADER_ONLY NO_DEPRECATED:
+        Clang 9 libc++ C++14 Release HEADER_ONLY NO_DEPRECATED:
           TOOLSET: clang
-          CXX: clang++-8
-          PACKAGES: clang-8 libc++-8-dev libc++abi-8-dev
+          CXX: clang++-9
+          PACKAGES: clang-9 libc++-9-dev libc++abi-9-dev
+          VARIANT: release
+          B2_FLAGS: <boost.beast.separate-compilation>off <boost.beast.allow-deprecated>off
+          CXXSTD: 14
+          CXX_FLAGS: <cxxflags>"-stdlib=libc++ -msse4.2 -funsigned-char -fno-omit-frame-pointer" <linkflags>-stdlib=libc++
+          B2_TARGETS: libs/beast/test//run-fat-tests
+        Clang 9 libc++ C++17 UBASAN:
+          TOOLSET: clang
+          CXX: clang++-9
+          PACKAGES: clang-9 libc++-9-dev libc++abi-9-dev
+          VARIANT: release
+          B2_FLAGS: <address-sanitizer>norecover <undefined-sanitizer>norecover
+          UBSAN_OPTIONS: print_stacktrace=1
+          CXXSTD: 17
+          CXX_FLAGS: <cxxflags>"-stdlib=libc++ -msse4.2 -funsigned-char -fno-omit-frame-pointer" <linkflags>-stdlib=libc++
+          B2_TARGETS: libs/beast/test//run-fat-tests
+        Clang 9 libc++ C++17 TSAN:
+          TOOLSET: clang
+          CXX: clang++-9
+          PACKAGES: clang-9 libc++-9-dev libc++abi-9-dev
+          VARIANT: release
+          B2_FLAGS: <thread-sanitizer>norecover
+          CXXSTD: 17
+          CXX_FLAGS: <cxxflags>"-stdlib=libc++ -msse4.2 -funsigned-char -fno-omit-frame-pointer" <linkflags>-stdlib=libc++
+          B2_TARGETS: libs/beast/test//run-fat-tests
+        Clang 9 libc++ C++11 Release HEADER_ONLY NO_DEPRECATED:
+          TOOLSET: clang
+          CXX: clang++-9
+          PACKAGES: clang-9 libc++-9-dev libc++abi-9-dev
           VARIANT: release
           B2_FLAGS: <boost.beast.separate-compilation>off <boost.beast.allow-deprecated>off
           CXXSTD: 11
