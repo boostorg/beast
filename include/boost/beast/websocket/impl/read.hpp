@@ -492,11 +492,12 @@ public:
                             empty_block[4] = { 0x00, 0x00, 0xff, 0xff };
                         zs.next_in = empty_block;
                         zs.avail_in = sizeof(empty_block);
+                        auto const total_out = zs.total_out;
                         impl.inflate(zs, zlib::Flush::sync, ec);
                         if(! ec)
                         {
                             // https://github.com/madler/zlib/issues/280
-                            if(zs.total_out > 0)
+                            if(zs.total_out > total_out)
                                 ec = error::partial_deflate_block;
                         }
                         if(impl.check_stop_now(ec))
@@ -1209,10 +1210,11 @@ loop:
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
                 impl.inflate(zs, zlib::Flush::sync, ec);
+                auto const total_out = zs.total_out;
                 if(! ec)
                 {
                     // https://github.com/madler/zlib/issues/280
-                    if(zs.total_out > 0)
+                    if(zs.total_out > total_out)
                         ec = error::partial_deflate_block;
                 }
                 if(impl.check_stop_now(ec))
