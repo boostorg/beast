@@ -249,6 +249,10 @@ public:
     /// Move Constructor
     async_base(async_base&& other) = default;
 
+    virtual ~async_base() = default;
+    async_base(async_base const&) = delete;
+    async_base& operator=(async_base const&) = delete;
+
     /** The type of allocator associated with this object.
 
         If a class derived from @ref async_base is a completion
