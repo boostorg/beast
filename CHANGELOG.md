@@ -4,6 +4,7 @@ Version 267:
 * Fix signed/unsigned mismatch in file_stdio::seek
 * basic_stream dtor cannot throw
 * cmake: check policy first
+* Add default dtors to satisfy -Wnon-virtual-dtor
 
 --------------------------------------------------------------------------------
 
