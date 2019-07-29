@@ -302,6 +302,28 @@ public:
         doMatrix(corpus1(1024), &self::doDeflate1_beast);
     }
 
+    void testInvalidSettings()
+    {
+        except<std::invalid_argument>(
+            []()
+            {
+                deflate_stream ds;
+                ds.reset(-42, 15, 8, Strategy::normal);
+            });
+        except<std::invalid_argument>(
+            []()
+            {
+                deflate_stream ds;
+                ds.reset(compression::default_size, -1, 8, Strategy::normal);
+            });
+        except<std::invalid_argument>(
+            []()
+            {
+                deflate_stream ds;
+                ds.reset(compression::default_size, 15, -1, Strategy::normal);
+            });
+    }
+
     void
     run() override
     {
@@ -310,6 +332,7 @@ public:
             sizeof(deflate_stream) << std::endl;
 
         testDeflate();
+        testInvalidSettings();
     }
 };
 
