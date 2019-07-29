@@ -609,34 +609,6 @@ public:
         }
     }
 
-    /*
-        https://github.com/boostorg/beast/issues/300
-
-        Write a message as two individual frames
-    */
-    void
-    testIssue300()
-    {
-        for(int i = 0; i < 2; ++i )
-        {
-            echo_server es{log, i==1 ?
-                kind::async : kind::sync};
-            net::io_context ioc;
-            stream<test::stream> ws{ioc};
-            ws.next_layer().connect(es.stream());
-
-            error_code ec;
-            ws.handshake("localhost", "/", ec);
-            if(! BEAST_EXPECTS(! ec, ec.message()))
-                return;
-            ws.write_some(false, sbuf("u"));
-            ws.write_some(true, sbuf("v"));
-            multi_buffer b;
-            ws.read(b, ec);
-            BEAST_EXPECTS(! ec, ec.message());
-        }
-    }
-
     void
     testMoveOnly()
     {
@@ -675,6 +647,75 @@ public:
         }
     }
 
+    /*
+        https://github.com/boostorg/beast/issues/300
+
+        Write a message as two individual frames
+    */
+    void
+    testIssue300()
+    {
+        for(int i = 0; i < 2; ++i )
+        {
+            echo_server es{log, i==1 ?
+                kind::async : kind::sync};
+            net::io_context ioc;
+            stream<test::stream> ws{ioc};
+            ws.next_layer().connect(es.stream());
+
+            error_code ec;
+            ws.handshake("localhost", "/", ec);
+            if(! BEAST_EXPECTS(! ec, ec.message()))
+                return;
+            ws.write_some(false, sbuf("u"));
+            ws.write_some(true, sbuf("v"));
+            multi_buffer b;
+            ws.read(b, ec);
+            BEAST_EXPECTS(! ec, ec.message());
+        }
+    }
+
+    /*
+        https://github.com/boostorg/beast/issues/1666
+        
+        permessage-deflate not working in version 1.70.
+    */
+    void
+    testIssue1666()
+    {
+        net::io_context ioc;
+        permessage_deflate pmd;
+        pmd.client_enable = true;
+        pmd.server_enable = true;
+        stream<test::stream> ws0{ioc};
+        stream<test::stream> ws1{ioc};
+        ws0.next_layer().connect(ws1.next_layer());
+        ws0.set_option(pmd);
+        ws1.set_option(pmd);
+        ws1.async_accept(
+            [](error_code ec)
+            {
+                BEAST_EXPECTS(! ec, ec.message());
+            });
+        ws0.async_handshake("test", "/",
+            [](error_code ec)
+            {
+                BEAST_EXPECTS(! ec, ec.message());
+            });
+        ioc.run();
+        ioc.restart();
+        std::string s(256, '*');
+        auto const n0 =
+            ws0.next_layer().nwrite_bytes();
+        error_code ec;
+        BEAST_EXPECTS(! ec, ec.message());
+        ws1.write(net::buffer(s), ec);
+        auto const n1 =
+            ws0.next_layer().nwrite_bytes();
+        // Make sure the string was actually compressed
+        BEAST_EXPECT(n1 < n0 + s.size());
+    }
+
     void
     run() override
     {
@@ -682,8 +723,9 @@ public:
         testPausationAbandoning();
         testWriteSuspend();
         testAsyncWriteFrame();
-        testIssue300();
         testMoveOnly();
+        testIssue300();
+        testIssue1666();
     }
 };
 

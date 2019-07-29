@@ -107,6 +107,7 @@ class stream::read_op : public stream::read_op_base
                         net::buffer_copy(
                             b_, sp->b.data(), sp->read_max);
                     sp->b.consume(bytes_transferred);
+                    sp->nread_bytes += bytes_transferred;
                 }
                 else if (buffer_bytes(b_) > 0)
                 {
@@ -231,6 +232,7 @@ struct stream::run_write_op
             std::lock_guard<std::mutex> lock(out->m);
             n = net::buffer_copy(out->b.prepare(n), buffers);
             out->b.commit(n);
+            out->nwrite_bytes += n;
             out->notify_read();
         }
         BOOST_ASSERT(! ec);
@@ -294,6 +296,7 @@ read_some(MutableBufferSequence const& buffers,
         auto const n = net::buffer_copy(
             buffers, in_->b.data(), in_->read_max);
         in_->b.consume(n);
+        in_->nread_bytes += n;
         return n;
     }
 
@@ -377,6 +380,7 @@ write_some(
         std::lock_guard<std::mutex> lock(out->m);
         n = net::buffer_copy(out->b.prepare(n), buffers);
         out->b.commit(n);
+        out->nwrite_bytes += n;
         out->notify_read();
     }
     return n;

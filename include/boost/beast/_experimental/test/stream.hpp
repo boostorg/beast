@@ -141,7 +141,9 @@ class stream
         status code = status::ok;
         fail_count* fc = nullptr;
         std::size_t nread = 0;
+        std::size_t nread_bytes = 0;
         std::size_t nwrite = 0;
+        std::size_t nwrite_bytes = 0;
         std::size_t read_max =
             (std::numeric_limits<std::size_t>::max)();
         std::size_t write_max =
@@ -361,11 +363,25 @@ public:
         return in_->nread;
     }
 
+    /// Return the number of bytes read
+    std::size_t
+    nread_bytes() const noexcept
+    {
+        return in_->nread_bytes;
+    }
+
     /// Return the number of writes
     std::size_t
     nwrite() const noexcept
     {
         return in_->nwrite;
+    }
+
+    /// Return the number of bytes written
+    std::size_t
+    nwrite_bytes() const noexcept
+    {
+        return in_->nwrite_bytes;
     }
 
     /** Close the stream.

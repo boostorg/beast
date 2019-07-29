@@ -1,3 +1,9 @@
+Version 265:
+
+* Fix outgoing websocket message compression
+
+--------------------------------------------------------------------------------
+
 Version 264:
 
 * Handle overflow in max size calculation in `basic_dynamic_body`

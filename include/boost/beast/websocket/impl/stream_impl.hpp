@@ -97,7 +97,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
     bool                    wr_cont         /* next write is a continuation */ = false;
     bool                    wr_frag         /* autofrag the current message */ = false;
     bool                    wr_frag_opt     /* autofrag option setting */ = true;
-    bool                    wr_compress     /* compress current message */ = false;
+    bool                    wr_compress;    /* compress current message */
+    bool                    wr_compress_opt /* compress message setting */ = true;
     detail::opcode          wr_opcode       /* message type */ = detail::opcode::text;
     std::unique_ptr<
         std::uint8_t[]>     wr_buf;         // write buffer
@@ -209,11 +210,14 @@ struct stream<NextLayer, deflateSupported>::impl_type
         timer.cancel();
     }
 
-    // Called before each write frame
+    // Called just before sending
+    // the first frame of each message
     void
     begin_msg()
     {
         wr_frag = wr_frag_opt;
+        wr_compress =
+            this->pmd_enabled() && wr_compress_opt;
 
         // Maintain the write buffer
         if( this->pmd_enabled() ||
@@ -232,6 +236,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
             wr_buf_size = wr_buf_opt;
             wr_buf.reset();
         }
+
+        //
     }
 
     //--------------------------------------------------------------------------
