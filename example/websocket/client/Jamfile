@@ -13,5 +13,6 @@ build-project sync ;
 
 # SSL
 build-project async-ssl ;
+build-project async-ssl-system-executor ;
 build-project coro-ssl ;
 build-project sync-ssl ;
