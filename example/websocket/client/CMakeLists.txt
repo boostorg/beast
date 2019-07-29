@@ -13,6 +13,7 @@ add_subdirectory (sync)
 
 if (OPENSSL_FOUND)
     add_subdirectory (async-ssl)
+    add_subdirectory (async-ssl-system-executor)
     add_subdirectory (coro-ssl)
     add_subdirectory (sync-ssl)
 endif()
