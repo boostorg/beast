@@ -1,3 +1,10 @@
+Version 266:
+
+* Fix some missing deduced return types in the docs
+
+--------------------------------------------------------------------------------
+
+
 Version 265:
 
 * Fix outgoing websocket message compression
