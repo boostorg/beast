@@ -413,6 +413,16 @@ public:
             error::invalid_distance);
     }
 
+    void testInvalidSettings()
+    {
+        except<std::domain_error>(
+            []()
+            {
+                inflate_stream is;
+                is.reset(7);
+            });
+    }
+
     void
     run() override
     {
@@ -421,6 +431,7 @@ public:
             sizeof(inflate_stream) << std::endl;
         testInflate();
         testInflateErrors();
+        testInvalidSettings();
     }
 };
 
