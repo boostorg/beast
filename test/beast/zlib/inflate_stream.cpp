@@ -360,27 +360,41 @@ public:
             m(Beast{full, once, Flush::trees}, check);
         }
 #endif
+
+        check({0x63, 0x18, 0x05, 0x40, 0x0c, 0x00}, {}, 8,  3);
+
+    }
+
+    void check(
+        std::initializer_list<std::uint8_t> const& in,
+        error_code expected,
+        std::size_t window_size = 15,
+        std::size_t len = -1)
+    {
+        std::string out(1024, 0);
+        z_params zs;
+        inflate_stream is;
+        is.reset(window_size);
+        boost::system::error_code ec;
+
+        zs.next_in = &*in.begin();
+        zs.next_out = &out[0];
+        zs.avail_in = std::min(in.size(), len);
+        zs.avail_out = out.size();
+
+        while (zs.avail_in > 0 && !ec)
+        {
+            is.write(zs, Flush::sync, ec);
+            auto n = std::min(zs.avail_in, len);
+            zs.next_in = static_cast<char const*>(zs.next_in) + n;
+            zs.avail_in -= n;
+        }
+
+        BEAST_EXPECT(ec == expected);
     }
 
     void testInflateErrors()
     {
-
-        auto check =
-            [](std::initializer_list<std::uint8_t> const& in,
-               error_code expected)
-            {
-                std::string out(1024, 0);
-                z_params zs;
-                zs.next_in = &*in.begin();
-                zs.next_out = &out[0];
-                zs.avail_in = in.size();
-                zs.avail_out = out.size();
-                inflate_stream is;
-                is.reset(15);
-                boost::system::error_code ec;
-                is.write(zs,Flush::sync, ec);
-                BEAST_EXPECT(ec == expected);
-            };
         check({0x00, 0x00, 0x00, 0x00, 0x00},
             error::invalid_stored_length);
         check({0x03, 0x00},
@@ -425,6 +439,8 @@ public:
         //        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         //        0x00, 0x00, 0x00, 0x00, 0x00, 0x06},
         //     error::end_of_stream); // FIXME: zlib expects an error here
+        check({0x02, 0x08, 0x20, 0x80, 0x00, 0x03, 0x00},
+            error::end_of_stream);
     }
 
     void testInvalidSettings()
