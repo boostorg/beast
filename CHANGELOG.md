@@ -1,9 +1,14 @@
+Version 267:
+
+* Add package for Travis config
+
+--------------------------------------------------------------------------------
+
 Version 266:
 
 * Fix some missing deduced return types in the docs
 
 --------------------------------------------------------------------------------
-
 
 Version 265:
 

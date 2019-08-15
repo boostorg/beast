@@ -27,6 +27,7 @@ matrix:
   include:
     # GCC 6.0, Debug + Coverage
     - os: linux
+      dist: trusty
       compiler: g++-6
       env:
         - VARIANT=beast_coverage
@@ -47,6 +48,7 @@ matrix:
 
     # Default clang++ with libc++
     - os: linux
+      dist: trusty
       compiler: clang++-libc++
       env:
         - VARIANT=debug
@@ -58,6 +60,7 @@ matrix:
         apt:
           packages:
             - libc++-dev
+            - libc++abi-dev
 
     # Default g++
     - os: linux
@@ -86,6 +89,7 @@ matrix:
 
     # GCC 5.0, Valgrind
     - os: linux
+      dist: trusty
       compiler: g++-5
       env:
         - VARIANT=beast_valgrind
