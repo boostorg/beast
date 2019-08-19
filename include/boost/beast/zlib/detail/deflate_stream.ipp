@@ -360,7 +360,10 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
 {
     maybe_init();
 
-    if(zs.next_out == 0 || (zs.next_in == 0 && zs.avail_in != 0) ||
+    if(zs.next_in == nullptr && zs.avail_in != 0)
+        BOOST_THROW_EXCEPTION(std::invalid_argument{"invalid input"});
+
+    if(zs.next_out == nullptr ||
         (status_ == FINISH_STATE && flush != Flush::finish))
     {
         ec = error::stream_error;

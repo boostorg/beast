@@ -328,6 +328,17 @@ public:
                 deflate_stream ds;
                 ds.reset(compression::default_size, 15, -1, Strategy::normal);
             });
+        except<std::invalid_argument>(
+            []()
+            {
+                deflate_stream ds;
+                ds.reset();
+                z_params zp{};
+                zp.avail_in = 1;
+                zp.next_in = nullptr;
+                error_code ec;
+                ds.write(zp, Flush::full, ec);
+            });
     }
 
     void
