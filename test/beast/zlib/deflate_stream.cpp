@@ -147,8 +147,8 @@ public:
 
     using self = deflate_stream_test;
     typedef void(self::*pmf_t)(
-        int level, int windowBits, int strategy,
-            std::string const&);
+        int level, int windowBits, int memLevel,
+        int strategy, std::string const&);
 
     static
     Strategy
@@ -167,8 +167,8 @@ public:
 
     void
     doDeflate1_beast(
-        int level, int windowBits, int strategy,
-            std::string const& check)
+        int level, int windowBits, int memLevel,
+        int strategy, std::string const& check)
     {
         std::string out;
         z_params zs;
@@ -176,7 +176,7 @@ public:
         ds.reset(
             level,
             windowBits,
-            8,
+            memLevel,
             toStrategy(strategy));
         out.resize(ds.upper_bound(
             static_cast<uLong>(check.size())));
@@ -213,8 +213,8 @@ public:
 
     void
     doDeflate2_beast(
-        int level, int windowBits, int strategy,
-            std::string const& check)
+        int level, int windowBits, int memLevel,
+        int strategy, std::string const& check)
     {
         for(std::size_t i = 1; i < check.size(); ++i)
         {
@@ -225,7 +225,7 @@ public:
                 ds.reset(
                     level,
                     windowBits,
-                    8,
+                    memLevel,
                     toStrategy(strategy));
                 std::string out;
                 out.resize(ds.upper_bound(
@@ -286,11 +286,17 @@ public:
                     continue;
                 for(int strategy = 0; strategy <= 4; ++strategy)
                 {
-                    (this->*pmf)(
-                        level, windowBits, strategy, check);
+                    for (int memLevel = 8; memLevel <= 9; ++memLevel)
+                    {
+                        (this->*pmf)(
+                                level, windowBits, memLevel, strategy, check);
+                    }
                 }
             }
         }
+
+        // Check default settings
+        (this->*pmf)(compression::default_size, 15, 8, 0, check);
     }
 
     void
