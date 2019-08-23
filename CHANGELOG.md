@@ -1,6 +1,7 @@
 Version 267:
 
 * Add package for Travis config
+* Fix signed/unsigned mismatch in file_stdio::seek
 
 --------------------------------------------------------------------------------
 
