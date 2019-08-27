@@ -102,7 +102,6 @@ public:
     {
         z_params zs;
         std::string out;
-        memset(&zs, 0, sizeof(zs));
         inflate_stream is;
         zs.next_in = &in[0];
         zs.avail_in = in.size();
