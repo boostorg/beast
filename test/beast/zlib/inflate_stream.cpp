@@ -370,7 +370,7 @@ public:
                0x00, 0x00, 0x00, 0x00, 0x00, 0x06}, {});
     }
 
-    void check(
+    std::string check(
         std::initializer_list<std::uint8_t> const& in,
         error_code expected,
         std::size_t window_size = 15,
@@ -396,6 +396,7 @@ public:
         }
 
         BEAST_EXPECT(ec == expected);
+        return out;
     }
 
     void testInflateErrors()
@@ -454,6 +455,28 @@ public:
             });
     }
 
+    void testFixedHuffmanFlushTrees()
+    {
+        std::string out(5, 0);
+        z_params zs;
+        inflate_stream is;
+        is.reset();
+        boost::system::error_code ec;
+        std::initializer_list<std::uint8_t> in = {
+            0xf2, 0x48, 0xcd, 0xc9, 0xc9, 0x07, 0x00, 0x00,
+            0x00, 0xff, 0xff};
+        zs.next_in = &*in.begin();
+        zs.next_out = &out[0];
+        zs.avail_in = in.size();
+        zs.avail_out = out.size();
+        is.write(zs, Flush::trees, ec);
+        BEAST_EXPECT(!ec);
+        is.write(zs, Flush::sync, ec);
+        BEAST_EXPECT(!ec);
+        BEAST_EXPECT(zs.avail_out == 0);
+        BEAST_EXPECT(out == "Hello");
+    }
+
     void
     run() override
     {
@@ -463,6 +486,7 @@ public:
         testInflate();
         testInflateErrors();
         testInvalidSettings();
+        testFixedHuffmanFlushTrees();
     }
 };
 
