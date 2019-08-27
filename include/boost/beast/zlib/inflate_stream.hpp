@@ -182,7 +182,7 @@ public:
         the effects of the flush parameter in this implementation are on the return value
         of `write` as noted below, when `write` returns early when `Flush::block` or
         `Flush::trees` is used, and when `write` avoids the allocation of memory for a
-        sliding window when `Flush::finsih` is used.
+        sliding window when `Flush::finish` is used.
 
         If a preset dictionary is needed after this call,
         `write` sets `zs.adler` to the Adler-32 checksum of the dictionary chosen by
