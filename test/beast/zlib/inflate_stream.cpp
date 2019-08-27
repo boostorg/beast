@@ -477,6 +477,28 @@ public:
         BEAST_EXPECT(out == "Hello");
     }
 
+    void testUncompressedFlushTrees()
+    {
+        std::string out(5, 0);
+        z_params zs;
+        inflate_stream is;
+        is.reset();
+        boost::system::error_code ec;
+        std::initializer_list<std::uint8_t> in = {
+            0x00, 0x05, 0x00, 0xfa, 0xff, 0x48, 0x65, 0x6c,
+            0x6c, 0x6f, 0x00, 0x00};
+        zs.next_in = &*in.begin();
+        zs.next_out = &out[0];
+        zs.avail_in = in.size();
+        zs.avail_out = out.size();
+        is.write(zs, Flush::trees, ec);
+        BEAST_EXPECT(!ec);
+        is.write(zs, Flush::sync, ec);
+        BEAST_EXPECT(!ec);
+        BEAST_EXPECT(zs.avail_out == 0);
+        BEAST_EXPECT(out == "Hello");
+    }
+
     void
     run() override
     {
@@ -487,6 +509,7 @@ public:
         testInflateErrors();
         testInvalidSettings();
         testFixedHuffmanFlushTrees();
+        testUncompressedFlushTrees();
     }
 };
 
