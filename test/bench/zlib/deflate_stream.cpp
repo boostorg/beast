@@ -68,7 +68,6 @@ public:
     doDeflateBeast(string_view const& in)
     {
         z_params zs;
-        memset(&zs, 0, sizeof(zs));
         deflate_stream ds;
         ds.reset(
             Z_DEFAULT_COMPRESSION,
