@@ -5,6 +5,7 @@ Version 267:
 * basic_stream dtor cannot throw
 * cmake: check policy first
 * Add default dtors to satisfy -Wnon-virtual-dtor
+* Multiple I/O of the same type is not supported
 
 --------------------------------------------------------------------------------
 

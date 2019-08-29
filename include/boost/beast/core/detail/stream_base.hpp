@@ -70,6 +70,13 @@ struct stream_base
         pending_guard(bool& b)
             : b_(b)
         {
+            // If this assert goes off, it means you are attempting
+            // to issue two of the same asynchronous I/O operation
+            // at the same time, without waiting for the first one
+            // to complete. For example, attempting two simultaneous
+            // calls to async_read_some. Only one pending call of
+            // each I/O type (read and write) is permitted.
+            //
             BOOST_ASSERT(! b_);
             b_ = true;
         }
