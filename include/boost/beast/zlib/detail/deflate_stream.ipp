@@ -1298,9 +1298,8 @@ copy_block(
         put_short((std::uint16_t)len);
         put_short((std::uint16_t)~len);
     }
-    // VFALCO Use memcpy?
-    while (len--)
-        put_byte(*buf++);
+    std::memcpy(&pending_buf_[pending_], buf, len);
+    pending_ += len;
 }
 
 //------------------------------------------------------------------------------
