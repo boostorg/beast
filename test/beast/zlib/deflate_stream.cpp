@@ -372,6 +372,26 @@ public:
     }
 
     void
+    testFlushPartial()
+    {
+        z_params zp;
+        deflate_stream ds;
+        ds.reset();
+        std::string out;
+        out.resize(1024);
+        string_view s = "Hello";
+        zp.next_in = s.data();
+        zp.avail_in = s.size();
+        zp.next_out = &out.front();
+        zp.avail_out = out.size();
+        error_code ec;
+        ds.write(zp, Flush::none, ec);
+        BEAST_EXPECT(!ec);
+        ds.write(zp, Flush::partial, ec);
+        BEAST_EXPECT(!ec);
+    }
+
+    void
     run() override
     {
         log <<
@@ -381,6 +401,7 @@ public:
         testDeflate();
         testInvalidSettings();
         testWriteAfterFinish();
+        testFlushPartial();
     }
 };
 
