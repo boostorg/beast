@@ -170,6 +170,9 @@ Using [brew](https://github.com/Homebrew/brew):
 ```bash
 brew install openssl
 export OPENSSL_ROOT=$(brew --prefix openssl)
+# install bjam tool user specific configuration file to read OPENSSL_ROOT
+# see https://boostorg.github.io/build/manual/develop/index.html
+cp ./libs/beast/tools/user-config.jam $HOME
 ```
 
 Make sure the bjam tool (also called "b2") is available in the path
@@ -177,6 +180,7 @@ your shell uses to find executables. The Beast project is located in
 "libs/beast" relative to the directory containing the Boot superproject.
 To build the Beast tests, examples, and documentation use these commands:
 ```
+export PATH=$PWD:$PATH
 b2 -j2 libs/beast/test cxxstd=11      # bjam must be in your $PATH
 b2 -j2 libs/beast/example cxxstd=11   # "-j2" means use two processors
 b2 libs/beast/doc                     # Doxygen and Saxon are required for this
