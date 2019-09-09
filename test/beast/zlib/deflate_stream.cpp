@@ -342,6 +342,36 @@ public:
     }
 
     void
+    testWriteAfterFinish()
+    {
+        z_params zp;
+        deflate_stream ds;
+        ds.reset();
+        std::string out;
+        out.resize(1024);
+        string_view s = "Hello";
+        zp.next_in = s.data();
+        zp.avail_in = s.size();
+        zp.next_out = &out.front();
+        zp.avail_out = out.size();
+        error_code ec;
+        ds.write(zp, Flush::sync, ec);
+        BEAST_EXPECT(!ec);
+        zp.next_in = nullptr;
+        zp.avail_in = 0;
+        ds.write(zp, Flush::finish, ec);
+        BEAST_EXPECT(ec == error::end_of_stream);
+        zp.next_in = s.data();
+        zp.avail_in = s.size();
+        zp.next_out = &out.front();
+        zp.avail_out = out.size();
+        ds.write(zp, Flush::sync, ec);
+        BEAST_EXPECT(ec == error::stream_error);
+        ds.write(zp, Flush::finish, ec);
+        BEAST_EXPECT(ec == error::need_buffers);
+    }
+
+    void
     run() override
     {
         log <<
@@ -350,6 +380,7 @@ public:
 
         testDeflate();
         testInvalidSettings();
+        testWriteAfterFinish();
     }
 };
 
