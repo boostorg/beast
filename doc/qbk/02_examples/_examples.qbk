@@ -176,7 +176,7 @@ and illustrate the implementation of advanced features.
             [Dual protocols: HTTP and WebSocket]
             [Clean exit via SIGINT (CTRL+C) or SIGTERM (kill)]
         ]]
-        [[path_link example/websocket/server/chat-mult chat-multi]]
+        [[path_link example/websocket/server/chat-multi chat-multi]]
 ]]
 
 [endsect]
