@@ -1,3 +1,9 @@
+Version 268:
+
+* root_certificates.hpp is not for production
+
+--------------------------------------------------------------------------------
+
 Version 267:
 
 * Add package for Travis config
