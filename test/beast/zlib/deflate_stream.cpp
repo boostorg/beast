@@ -392,6 +392,56 @@ public:
     }
 
     void
+    testFlushAtLiteralBufferFull()
+    {
+        struct fixture
+        {
+            explicit fixture(std::size_t n, Strategy s)
+            {
+                ds.reset(8, 15, 1, s);
+                std::iota(in.begin(), in.end(), 0);
+                out.resize(n);
+                zp.next_in = in.data();
+                zp.avail_in = in.size();
+                zp.next_out = &out.front();
+                zp.avail_out = out.size();
+            }
+
+            z_params zp;
+            deflate_stream ds;
+            std::array<std::uint8_t, 255> in;
+            std::string out;
+        };
+
+        for (auto s : {Strategy::huffman, Strategy::rle, Strategy::normal})
+        {
+            {
+                fixture f{264, s};
+                error_code ec;
+                f.ds.write(f.zp, Flush::finish, ec);
+                BEAST_EXPECT(ec == error::end_of_stream);
+                BEAST_EXPECT(f.zp.avail_out == 1);
+            }
+
+            {
+                fixture f{263, s};
+                error_code ec;
+                f.ds.write(f.zp, Flush::finish, ec);
+                BEAST_EXPECT(!ec);
+                BEAST_EXPECT(f.zp.avail_out == 0);
+            }
+
+            {
+                fixture f{20, s};
+                error_code ec;
+                f.ds.write(f.zp, Flush::sync, ec);
+                BEAST_EXPECT(!ec);
+            }
+
+        }
+    }
+
+    void
     run() override
     {
         log <<
@@ -402,6 +452,7 @@ public:
         testInvalidSettings();
         testWriteAfterFinish();
         testFlushPartial();
+        testFlushAtLiteralBufferFull();
     }
 };
 
