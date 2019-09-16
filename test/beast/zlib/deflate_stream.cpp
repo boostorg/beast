@@ -465,6 +465,34 @@ public:
     }
 
     void
+    testFlushAfterDistMatch()
+    {
+        for (auto out_size : {144, 129})
+        {
+            z_params zp;
+            deflate_stream ds;
+            std::array<std::uint8_t, 256> in{};
+            // 125 will mostly fill the lit buffer, so emitting a distance code
+            // results in a flush.
+            auto constexpr n = 125;
+            std::iota(in.begin(), in.begin() + n, 0);
+            std::iota(in.begin() + n, in.end(), 0);
+
+            ds.reset(8, 15, 1, Strategy::normal);
+            std::string out;
+            out.resize(out_size);
+            zp.next_in = in.data();
+            zp.avail_in = in.size();
+            zp.next_out = &out.front();
+            zp.avail_out = out.size();
+
+            error_code ec;
+            ds.write(zp, Flush::sync, ec);
+            BEAST_EXPECT(!ec);
+        }
+    }
+
+    void
     run() override
     {
         log <<
@@ -477,6 +505,7 @@ public:
         testFlushPartial();
         testFlushAtLiteralBufferFull();
         testRLEMatchLengthExceedLookahead();
+        testFlushAfterDistMatch();
     }
 };
 
