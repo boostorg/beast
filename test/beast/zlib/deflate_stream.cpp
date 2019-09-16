@@ -442,6 +442,29 @@ public:
     }
 
     void
+    testRLEMatchLengthExceedLookahead()
+    {
+        z_params zp;
+        deflate_stream ds;
+        std::vector<std::uint8_t> in;
+        in.resize(300);
+
+
+        ds.reset(8, 15, 1, Strategy::rle);
+        std::fill_n(in.begin(), 4, 'a');
+        std::string out;
+        out.resize(in.size() * 2);
+        zp.next_in = in.data();
+        zp.avail_in = in.size();
+        zp.next_out = &out.front();
+        zp.avail_out = out.size();
+
+        error_code ec;
+        ds.write(zp, Flush::sync, ec);
+        BEAST_EXPECT(!ec);
+    }
+
+    void
     run() override
     {
         log <<
@@ -453,6 +476,7 @@ public:
         testWriteAfterFinish();
         testFlushPartial();
         testFlushAtLiteralBufferFull();
+        testRLEMatchLengthExceedLookahead();
     }
 };
 
