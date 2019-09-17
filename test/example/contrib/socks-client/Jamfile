@@ -7,5 +7,14 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_subdirectory (common)
-add_subdirectory (contrib)
+alias run-tests :
+    socks//run-tests
+    ;
+
+alias fat-tests ;
+
+explicit fat-tests ;
+
+alias run-fat-tests : socks//run-tests ;
+
+explicit run-fat-tests ;
