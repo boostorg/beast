@@ -31,6 +31,7 @@ project /boost/beast/test
         cxx11_variadic_templates
     ]
     <include>./extern
+    <include>../example/contrib/socks-client
     <define>BOOST_BEAST_TESTS
     <library>/boost/beast//lib-asio/<link>static
     <boost.beast.separate-compilation>on:<library>/boost/beast//lib-beast/<link>static

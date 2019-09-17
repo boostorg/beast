@@ -9,12 +9,16 @@
 
 alias run-tests :
     common//run-tests
+    contrib//run-tests
     ;
 
 alias fat-tests ;
 
 explicit fat-tests ;
 
-alias run-fat-tests : common//run-tests ;
+alias run-fat-tests :
+    common//run-tests
+    contrib//run-tests
+    ;
 
 explicit run-fat-tests ;

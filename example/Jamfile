@@ -30,3 +30,5 @@ build-project websocket ;
 
 # legacy
 build-project echo-op ;
+
+build-project contrib ;
