@@ -347,6 +347,26 @@ public:
             m.strategy(Z_DEFAULT_STRATEGY);
             m(Beast{full, once, Flush::block}, check);
         }
+        {
+            // Check a known string - this provides more stable coverage,
+            // independent of the RNG-generated strings.
+            Matrix m{*this};
+            auto const check =
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do "
+                "eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+                "Ultricies mi eget mauris pharetra et ultrices neque ornare. Eget est "
+                "lorem ipsum dolor. Dui faucibus in ornare quam viverra orci "
+                "sagittis. Lorem mollis aliquam ut porttitor. Pretium quam vulputate "
+                "dignissim suspendisse in est ante in. Tempus egestas sed sed risus "
+                "pretium quam vulputate dignissim. Pellentesque dignissim enim sit "
+                "amet venenatis urna. Eleifend quam adipiscing vitae proin sagittis "
+                "nisl rhoncus. Aliquam etiam erat velit scelerisque in. Accumsan in "
+                "nisl nisi scelerisque eu ultrices vitae auctor eu.";
+            m.level(6);
+            m.window(9);
+            m.strategy(Z_DEFAULT_STRATEGY);
+            m(Beast{full, full}, check);
+        }
 
         // VFALCO Fails, but I'm unsure of what the correct
         //        behavior of Z_TREES/Flush::trees is.
