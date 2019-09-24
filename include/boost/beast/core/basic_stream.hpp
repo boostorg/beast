@@ -198,11 +198,12 @@ namespace beast {
 template<
     class Protocol,
     class Executor = net::any_io_executor,
-    class RatePolicy = unlimited_rate_policy
+    class RatePolicy = unlimited_rate_policy,
+    class TimeoutTimer = net::steady_timer
 >
 class basic_stream
 #if ! BOOST_BEAST_DOXYGEN
-    : private detail::stream_base
+    : private detail::stream_base<TimeoutTimer>
 #endif
 {
 public:
@@ -236,6 +237,13 @@ private:
     static_assert(
         net::is_executor<Executor>::value || net::execution::is_executor<Executor>::value,
         "Executor type requirements not met");
+
+    using stream_base = detail::stream_base<TimeoutTimer>;
+    using typename stream_base::clock_type;
+    using typename stream_base::op_state;
+    using typename stream_base::pending_guard;
+    using typename stream_base::tick_type;
+    using stream_base::never;
 
     struct impl_type
         : boost::enable_shared_from_this<impl_type>
@@ -457,7 +465,7 @@ public:
     */
     void
     expires_after(
-        net::steady_timer::duration expiry_time);
+        typename TimeoutTimer::duration expiry_time);
 
     /** Set the timeout for the next logical operation.
 
@@ -479,7 +487,7 @@ public:
         operation should be considered timed out.
     */
     void
-    expires_at(net::steady_timer::time_point expiry_time);
+    expires_at(typename TimeoutTimer::time_point expiry_time);
 
     /// Disable the timeout for the next logical operation.
     void

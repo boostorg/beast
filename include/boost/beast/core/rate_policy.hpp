@@ -41,7 +41,7 @@ namespace beast {
 class rate_policy_access
 {
 private:
-    template<class, class, class>
+    template<class, class, class, class>
     friend class basic_stream;
 
     template<class Policy>

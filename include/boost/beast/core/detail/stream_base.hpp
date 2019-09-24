@@ -32,16 +32,16 @@ struct any_endpoint
     }
 };
 
+template<class Timer>
 struct stream_base
 {
-    using clock_type = std::chrono::steady_clock;
-    using time_point = typename
-        std::chrono::steady_clock::time_point;
+    using clock_type = typename Timer::clock_type;
+    using time_point = typename Timer::time_point;
     using tick_type = std::uint64_t;
 
     struct op_state
     {
-        net::steady_timer timer;    // for timing out
+        Timer timer;                // for timing out
         tick_type tick = 0;         // counts waits
         bool pending = false;       // if op is pending
         bool timeout = false;       // if timed out

@@ -27,9 +27,9 @@ namespace beast {
 
 //------------------------------------------------------------------------------
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<class... Args>
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 impl_type::
 impl_type(std::false_type, Args&&... args)
     : socket(std::forward<Args>(args)...)
@@ -40,9 +40,9 @@ impl_type(std::false_type, Args&&... args)
     reset();
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<class RatePolicy_, class... Args>
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 impl_type::
 impl_type(std::true_type,
     RatePolicy_&& policy, Args&&... args)
@@ -57,10 +57,10 @@ impl_type(std::true_type,
     reset();
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<class Executor2>
 void
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 impl_type::
 on_timer(Executor2 const& ex2)
 {
@@ -117,9 +117,9 @@ on_timer(Executor2 const& ex2)
     timer.async_wait(handler(ex2, this->shared_from_this()));
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 impl_type::
 reset()
 {
@@ -139,9 +139,9 @@ reset()
             write.timer.expires_at(never()) == 0);
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 impl_type::
 close() noexcept
 {
@@ -160,9 +160,9 @@ close() noexcept
 
 //------------------------------------------------------------------------------
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<class Executor2>
-struct basic_stream<Protocol, Executor, RatePolicy>::
+struct basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
     timeout_handler
 {
     using executor_type = Executor2;
@@ -205,8 +205,8 @@ struct basic_stream<Protocol, Executor, RatePolicy>::
 
 //------------------------------------------------------------------------------
 
-template<class Protocol, class Executor, class RatePolicy>
-struct basic_stream<Protocol, Executor, RatePolicy>::ops
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
+struct basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::ops
 {
 
 template<bool isRead, class Buffers, class Handler>
@@ -641,8 +641,8 @@ struct run_connect_iter_op
 
 //------------------------------------------------------------------------------
 
-template<class Protocol, class Executor, class RatePolicy>
-basic_stream<Protocol, Executor, RatePolicy>::
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 ~basic_stream()
 {
     // the shared object can outlive *this,
@@ -651,9 +651,9 @@ basic_stream<Protocol, Executor, RatePolicy>::
     impl_->close();
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<class Arg0, class... Args, class>
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 basic_stream(Arg0&& arg0, Args&&... args)
     : impl_(boost::make_shared<impl_type>(
         std::false_type{},
@@ -662,9 +662,9 @@ basic_stream(Arg0&& arg0, Args&&... args)
 {
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<class RatePolicy_, class Arg0, class... Args, class>
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 basic_stream(
     RatePolicy_&& policy, Arg0&& arg0, Args&&... args)
     : impl_(boost::make_shared<impl_type>(
@@ -675,8 +675,8 @@ basic_stream(
 {
 }
 
-template<class Protocol, class Executor, class RatePolicy>
-basic_stream<Protocol, Executor, RatePolicy>::
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 basic_stream(basic_stream&& other)
     : impl_(boost::make_shared<impl_type>(
         std::move(*other.impl_)))
@@ -691,9 +691,9 @@ basic_stream(basic_stream&& other)
 
 //------------------------------------------------------------------------------
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 auto
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 release_socket() ->
     socket_type
 {
@@ -701,10 +701,10 @@ release_socket() ->
     return std::move(impl_->socket);
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
-basic_stream<Protocol, Executor, RatePolicy>::
-expires_after(net::steady_timer::duration expiry_time)
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
+expires_after(typename TimeoutTimer::duration expiry_time)
 {
     // If assert goes off, it means that there are
     // already read or write (or connect) operations
@@ -726,11 +726,11 @@ expires_after(net::steady_timer::duration expiry_time)
                 expiry_time) == 0);
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 expires_at(
-    net::steady_timer::time_point expiry_time)
+    typename TimeoutTimer::time_point expiry_time)
 {
     // If assert goes off, it means that there are
     // already read or write (or connect) operations
@@ -752,17 +752,17 @@ expires_at(
                 expiry_time) == 0);
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 expires_never()
 {
     impl_->reset();
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 cancel()
 {
     error_code ec;
@@ -770,9 +770,9 @@ cancel()
     impl_->timer.cancel();
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 close()
 {
     impl_->close();
@@ -780,10 +780,10 @@ close()
 
 //------------------------------------------------------------------------------
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<BOOST_BEAST_ASYNC_TPARAM1 ConnectHandler>
 BOOST_BEAST_ASYNC_RESULT1(ConnectHandler)
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 async_connect(
     endpoint_type const& ep,
     ConnectHandler&& handler)
@@ -797,13 +797,13 @@ async_connect(
             ep);
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<
     class EndpointSequence,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, typename Protocol::endpoint)) RangeConnectHandler,
     class>
 BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void(error_code, typename Protocol::endpoint))
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 async_connect(
     EndpointSequence const& endpoints,
     RangeConnectHandler&& handler)
@@ -818,14 +818,14 @@ async_connect(
             detail::any_endpoint{});
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<
     class EndpointSequence,
     class ConnectCondition,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, typename Protocol::endpoint)) RangeConnectHandler,
     class>
 BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void (error_code, typename Protocol::endpoint))
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 async_connect(
     EndpointSequence const& endpoints,
     ConnectCondition connect_condition,
@@ -841,12 +841,12 @@ async_connect(
             connect_condition);
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<
     class Iterator,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, Iterator)) IteratorConnectHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 async_connect(
     Iterator begin, Iterator end,
     IteratorConnectHandler&& handler)
@@ -861,13 +861,13 @@ async_connect(
             detail::any_endpoint{});
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<
     class Iterator,
     class ConnectCondition,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, Iterator)) IteratorConnectHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 async_connect(
     Iterator begin, Iterator end,
     ConnectCondition connect_condition,
@@ -885,10 +885,10 @@ async_connect(
 
 //------------------------------------------------------------------------------
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 async_read_some(
     MutableBufferSequence const& buffers,
     ReadHandler&& handler)
@@ -905,10 +905,10 @@ async_read_some(
             buffers);
 }
 
-template<class Protocol, class Executor, class RatePolicy>
+template<class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
-basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>::
 async_write_some(
     ConstBufferSequence const& buffers,
     WriteHandler&& handler)
@@ -933,21 +933,21 @@ async_write_some(
 #if ! BOOST_BEAST_DOXYGEN
 
 template<
-    class Protocol, class Executor, class RatePolicy>
+    class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
 beast_close_socket(
-    basic_stream<Protocol, Executor, RatePolicy>& stream)
+    basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>& stream)
 {
     error_code ec;
     stream.socket().close(ec);
 }
 
 template<
-    class Protocol, class Executor, class RatePolicy>
+    class Protocol, class Executor, class RatePolicy, class TimeoutTimer>
 void
 teardown(
     role_type role,
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
+    basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>& stream,
     error_code& ec)
 {
     using beast::websocket::teardown;
@@ -955,12 +955,12 @@ teardown(
 }
 
 template<
-    class Protocol, class Executor, class RatePolicy,
+    class Protocol, class Executor, class RatePolicy, class TimeoutTimer,
     class TeardownHandler>
 void
 async_teardown(
     role_type role,
-    basic_stream<Protocol, Executor, RatePolicy>& stream,
+    basic_stream<Protocol, Executor, RatePolicy, TimeoutTimer>& stream,
     TeardownHandler&& handler)
 {
     using beast::websocket::async_teardown;
