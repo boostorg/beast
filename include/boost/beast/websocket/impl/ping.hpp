@@ -30,9 +30,9 @@ namespace websocket {
     It only sends the frames it does not make attempts to read
     any frame data.
 */
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Handler>
-class stream<NextLayer, deflateSupported>::ping_op
+class stream<NextLayer, deflateSupported, Timer>::ping_op
     : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
@@ -112,9 +112,9 @@ public:
 //------------------------------------------------------------------------------
 
 // sends the idle ping
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Executor>
-class stream<NextLayer, deflateSupported>::idle_ping_op
+class stream<NextLayer, deflateSupported, Timer>::idle_ping_op
     : public asio::coroutine
     , public boost::empty_value<Executor>
 {
@@ -203,8 +203,8 @@ public:
     }
 };
 
-template<class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::
     run_ping_op
 {
     template<class WriteHandler>
@@ -235,9 +235,9 @@ struct stream<NextLayer, deflateSupported>::
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 ping(ping_data const& payload)
 {
     error_code ec;
@@ -246,9 +246,9 @@ ping(ping_data const& payload)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 ping(ping_data const& payload, error_code& ec)
 {
     if(impl_->check_stop_now(ec))
@@ -261,9 +261,9 @@ ping(ping_data const& payload, error_code& ec)
         return;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 pong(ping_data const& payload)
 {
     error_code ec;
@@ -272,9 +272,9 @@ pong(ping_data const& payload)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 pong(ping_data const& payload, error_code& ec)
 {
     if(impl_->check_stop_now(ec))
@@ -287,10 +287,10 @@ pong(ping_data const& payload, error_code& ec)
         return;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<BOOST_BEAST_ASYNC_TPARAM1 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_ping(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
@@ -305,10 +305,10 @@ async_ping(ping_data const& payload, WriteHandler&& handler)
             payload);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<BOOST_BEAST_ASYNC_TPARAM1 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_pong(ping_data const& payload, WriteHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,

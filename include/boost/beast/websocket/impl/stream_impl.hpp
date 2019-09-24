@@ -41,8 +41,8 @@ namespace beast {
 namespace websocket {
 
 template<
-    class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::impl_type
+    class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::impl_type
     : boost::empty_value<NextLayer>
     , detail::service::impl_type
     , detail::impl_base<deflateSupported>
@@ -69,7 +69,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
                 impl_type::shared_from_this());
     }
 
-    net::steady_timer       timer;          // used for timeouts
+    Timer                   timer;          // used for timeouts
     close_reason            cr;             // set from received close frame
     control_cb_type         ctrl_cb;        // control callback
 
@@ -582,10 +582,10 @@ private:
 //
 //--------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Decorator>
 request_type
-stream<NextLayer, deflateSupported>::impl_type::
+stream<NextLayer, deflateSupported, Timer>::impl_type::
 build_request(
     detail::sec_ws_key_type& key,
     string_view host, string_view target,
@@ -608,9 +608,9 @@ build_request(
 }
 
 // Called when the WebSocket Upgrade response is received
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::impl_type::
+stream<NextLayer, deflateSupported, Timer>::impl_type::
 on_response(
     response_type const& res,
     detail::sec_ws_key_type const& key,
@@ -659,10 +659,10 @@ on_response(
 
 // Attempt to read a complete frame header.
 // Returns `false` if more bytes are needed
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer>
 bool
-stream<NextLayer, deflateSupported>::impl_type::
+stream<NextLayer, deflateSupported, Timer>::impl_type::
 parse_fh(
     detail::frame_header& fh,
     DynamicBuffer& b,
@@ -869,10 +869,10 @@ parse_fh(
     return true;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer>
 void
-stream<NextLayer, deflateSupported>::impl_type::
+stream<NextLayer, deflateSupported, Timer>::impl_type::
 write_ping(DynamicBuffer& db,
     detail::opcode code, ping_data const& data)
 {
@@ -901,10 +901,10 @@ write_ping(DynamicBuffer& db,
     db.commit(data.size());
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer>
 void
-stream<NextLayer, deflateSupported>::impl_type::
+stream<NextLayer, deflateSupported, Timer>::impl_type::
 write_close(DynamicBuffer& db, close_reason const& cr)
 {
     using namespace boost::endian;

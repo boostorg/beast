@@ -123,10 +123,11 @@ class frame_test;
 */
 template<
     class NextLayer,
-    bool deflateSupported>
+    bool deflateSupported,
+    class Timer>
 class stream
 #if ! BOOST_BEAST_DOXYGEN
-    : private stream_base
+    : private stream_base_clock<Timer>
 #endif
 {
     struct impl_type;
@@ -134,10 +135,16 @@ class stream
     boost::shared_ptr<impl_type> impl_;
 
     using time_point = typename
-        std::chrono::steady_clock::time_point;
+        Timer::time_point;
 
     using control_cb_type =
         std::function<void(frame_type, string_view)>;
+
+    using stream_base = stream_base_clock<Timer>;
+    using typename stream_base::decorator;
+    using typename stream_base::status;
+    using typename stream_base::timeout;
+    using stream_base::none;
 
     friend class close_test;
     friend class frame_test;

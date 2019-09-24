@@ -43,9 +43,9 @@ namespace websocket {
 
     Also reads and handles control frames.
 */
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Handler, class MutableBufferSequence>
-class stream<NextLayer, deflateSupported>::read_some_op
+class stream<NextLayer, deflateSupported, Timer>::read_some_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
@@ -615,9 +615,9 @@ public:
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Handler,  class DynamicBuffer>
-class stream<NextLayer, deflateSupported>::read_op
+class stream<NextLayer, deflateSupported, Timer>::read_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
@@ -694,8 +694,8 @@ public:
     }
 };
 
-template<class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::
     run_read_some_op
 {
     template<
@@ -725,8 +725,8 @@ struct stream<NextLayer, deflateSupported>::
     }
 };
 
-template<class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::
     run_read_op
 {
     template<
@@ -762,10 +762,10 @@ struct stream<NextLayer, deflateSupported>::
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read(DynamicBuffer& buffer)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -780,10 +780,10 @@ read(DynamicBuffer& buffer)
     return bytes_written;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read(DynamicBuffer& buffer, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -802,10 +802,10 @@ read(DynamicBuffer& buffer, error_code& ec)
     return bytes_written;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
@@ -826,10 +826,10 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read_some(
     DynamicBuffer& buffer,
     std::size_t limit)
@@ -847,10 +847,10 @@ read_some(
     return bytes_written;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read_some(
     DynamicBuffer& buffer,
     std::size_t limit,
@@ -876,10 +876,10 @@ read_some(
     return bytes_written;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_read_some(
     DynamicBuffer& buffer,
     std::size_t limit,
@@ -903,10 +903,10 @@ async_read_some(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class MutableBufferSequence>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read_some(
     MutableBufferSequence const& buffers)
 {
@@ -922,10 +922,10 @@ read_some(
     return bytes_written;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class MutableBufferSequence>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read_some(
     MutableBufferSequence const& buffers,
     error_code& ec)
@@ -1261,10 +1261,10 @@ loop:
     return bytes_written;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_read_some(
     MutableBufferSequence const& buffers,
     ReadHandler&& handler)

@@ -63,10 +63,10 @@ build_response_pmd(
 
 } // detail
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Body, class Allocator, class Decorator>
 response_type
-stream<NextLayer, deflateSupported>::impl_type::
+stream<NextLayer, deflateSupported, Timer>::impl_type::
 build_response(
     http::request<Body,
         http::basic_fields<Allocator>> const& req,
@@ -161,9 +161,9 @@ build_response(
 
 /** Respond to an HTTP request
 */
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Handler>
-class stream<NextLayer, deflateSupported>::response_op
+class stream<NextLayer, deflateSupported, Timer>::response_op
     : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
@@ -236,9 +236,9 @@ public:
 
 // read and respond to an upgrade request
 //
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Handler, class Decorator>
-class stream<NextLayer, deflateSupported>::accept_op
+class stream<NextLayer, deflateSupported, Timer>::accept_op
     : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
@@ -323,8 +323,8 @@ public:
     }
 };
 
-template<class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::
     run_response_op
 {
     template<
@@ -354,8 +354,8 @@ struct stream<NextLayer, deflateSupported>::
     }
 };
 
-template<class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::
     run_accept_op
 {
     template<
@@ -390,11 +390,11 @@ struct stream<NextLayer, deflateSupported>::
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Body, class Allocator,
     class Decorator>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 do_accept(
     http::request<Body,
         http::basic_fields<Allocator>> const& req,
@@ -419,10 +419,10 @@ do_accept(
     impl_->open(role_type::server);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Buffers, class Decorator>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 do_accept(
     Buffers const& buffers,
     Decorator const& decorator,
@@ -448,9 +448,9 @@ do_accept(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 accept()
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -461,9 +461,9 @@ accept()
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 accept(error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -473,11 +473,11 @@ accept(error_code& ec)
         &default_decorate_res, ec);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class ConstBufferSequence>
 typename std::enable_if<! http::detail::is_header<
     ConstBufferSequence>::value>::type
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 accept(ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -490,11 +490,11 @@ accept(ConstBufferSequence const& buffers)
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class ConstBufferSequence>
 typename std::enable_if<! http::detail::is_header<
     ConstBufferSequence>::value>::type
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 accept(
     ConstBufferSequence const& buffers, error_code& ec)
 {
@@ -507,10 +507,10 @@ accept(
 }
 
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Body, class Allocator>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 accept(
     http::request<Body,
         http::basic_fields<Allocator>> const& req)
@@ -523,10 +523,10 @@ accept(
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Body, class Allocator>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 accept(
     http::request<Body,
         http::basic_fields<Allocator>> const& req,
@@ -540,11 +540,11 @@ accept(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<
     BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_accept(
     AcceptHandler&& handler)
 {
@@ -561,12 +561,12 @@ async_accept(
             net::const_buffer{});
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<
     class ConstBufferSequence,
     BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_accept(
     ConstBufferSequence const& buffers,
     AcceptHandler&& handler,
@@ -591,12 +591,12 @@ async_accept(
             buffers);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<
     class Body, class Allocator,
     BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_accept(
     http::request<Body, http::basic_fields<Allocator>> const& req,
     AcceptHandler&& handler)

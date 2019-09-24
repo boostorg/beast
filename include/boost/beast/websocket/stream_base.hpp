@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_STREAM_BASE_HPP
 #define BOOST_BEAST_WEBSOCKET_STREAM_BASE_HPP
 
+#include <boost/asio/steady_timer.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/websocket/detail/decorator.hpp>
 #include <boost/beast/core/role.hpp>
@@ -22,15 +23,16 @@ namespace websocket {
 
 /** This class is used as a base for the @ref websocket::stream class template to group common types and constants.
 */
-struct stream_base
+template<class Timer>
+struct stream_base_clock
 {
     /// The type used to represent durations
     using duration =
-        std::chrono::steady_clock::duration;
+        typename Timer::duration;
 
     /// The type used to represent time points
     using time_point =
-        std::chrono::steady_clock::time_point;
+        typename Timer::time_point;
 
     /// Returns the special time_point value meaning "never"
     static
@@ -54,7 +56,7 @@ struct stream_base
     {
         detail::decorator d_;
 
-        template<class, bool>
+        template<class, bool, class>
         friend class stream;
 
     public:
@@ -170,6 +172,8 @@ protected:
         failed // VFALCO Is this needed?
     };
 };
+
+using stream_base = stream_base_clock<net::steady_timer>;
 
 } // websocket
 } // beast

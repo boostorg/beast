@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_STREAM_FWD_HPP
 #define BOOST_BEAST_WEBSOCKET_STREAM_FWD_HPP
 
+#include <boost/asio/steady_timer.hpp>
 #include <boost/beast/core/detail/config.hpp>
 
 //[code_websocket_1h
@@ -20,7 +21,8 @@ namespace websocket {
 
 template<
     class NextLayer,
-    bool deflateSupported = true>
+    bool deflateSupported = true,
+    class Timer = net::steady_timer>
 class stream;
 
 } // websocket

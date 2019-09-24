@@ -33,9 +33,9 @@ namespace websocket {
     frame. Finally it invokes the teardown operation to shut down the
     underlying connection.
 */
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Handler>
-class stream<NextLayer, deflateSupported>::close_op
+class stream<NextLayer, deflateSupported, Timer>::close_op
     : public beast::stable_async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
@@ -232,8 +232,8 @@ public:
     }
 };
 
-template<class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::
     run_close_op
 {
     template<class CloseHandler>
@@ -262,9 +262,9 @@ struct stream<NextLayer, deflateSupported>::
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 close(close_reason const& cr)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -275,9 +275,9 @@ close(close_reason const& cr)
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 close(close_reason const& cr, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -381,10 +381,10 @@ close(close_reason const& cr, error_code& ec)
         ec = {};
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<BOOST_BEAST_ASYNC_TPARAM1 CloseHandler>
 BOOST_BEAST_ASYNC_RESULT1(CloseHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_close(close_reason const& cr, CloseHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,

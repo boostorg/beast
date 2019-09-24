@@ -39,17 +39,17 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-template<class NextLayer, bool deflateSupported>
-stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+stream<NextLayer, deflateSupported, Timer>::
 ~stream()
 {
     if(impl_)
         impl_->remove();
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class... Args>
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 stream(Args&&... args)
     : impl_(boost::make_shared<impl_type>(
         std::forward<Args>(args)...))
@@ -58,68 +58,68 @@ stream(Args&&... args)
         max_control_frame_size);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 auto
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 get_executor() noexcept ->
     executor_type
 {
     return impl_->stream().get_executor();
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 auto
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 next_layer() noexcept ->
     next_layer_type&
 {
     return impl_->stream();
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 auto
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 next_layer() const noexcept ->
     next_layer_type const&
 {
     return impl_->stream();
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 bool
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 is_open() const noexcept
 {
     return impl_->status_ == status::open;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 bool
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 got_binary() const noexcept
 {
     return impl_->rd_op == detail::opcode::binary;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 bool
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 is_message_done() const noexcept
 {
     return impl_->rd_done;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 close_reason const&
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 reason() const noexcept
 {
     return impl_->cr;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read_size_hint(
     std::size_t initial_size) const
 {
@@ -128,10 +128,10 @@ read_size_hint(
         impl_->rd_remain, impl_->rd_fh);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class DynamicBuffer, class>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read_size_hint(DynamicBuffer& buffer) const
 {
     static_assert(
@@ -148,9 +148,9 @@ read_size_hint(DynamicBuffer& buffer) const
 
 // decorator
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 set_option(decorator opt)
 {
     impl_->decorator_opt = std::move(opt.d_);
@@ -158,17 +158,17 @@ set_option(decorator opt)
 
 // timeout
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 get_option(timeout& opt)
 {
     opt = impl_->timeout_opt;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 set_option(timeout const& opt)
 {
     impl_->set_option(opt);
@@ -176,41 +176,41 @@ set_option(timeout const& opt)
 
 //
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 set_option(permessage_deflate const& o)
 {
     impl_->set_option_pmd(o);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 get_option(permessage_deflate& o)
 {
     impl_->get_option_pmd(o);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 auto_fragment(bool value)
 {
     impl_->wr_frag_opt = value;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 bool
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 auto_fragment() const
 {
     return impl_->wr_frag_opt;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 binary(bool value)
 {
     impl_->wr_opcode = value ?
@@ -218,58 +218,58 @@ binary(bool value)
         detail::opcode::text;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 bool
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 binary() const
 {
     return impl_->wr_opcode == detail::opcode::binary;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 control_callback(std::function<
     void(frame_type, string_view)> cb)
 {
     impl_->ctrl_cb = std::move(cb);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 control_callback()
 {
     impl_->ctrl_cb = {};
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read_message_max(std::size_t amount)
 {
     impl_->rd_msg_max = amount;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 read_message_max() const
 {
     return impl_->rd_msg_max;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 secure_prng(bool value)
 {
     this->impl_->secure_prng_ = value;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 write_buffer_bytes(std::size_t amount)
 {
     if(amount < 8)
@@ -278,17 +278,17 @@ write_buffer_bytes(std::size_t amount)
     impl_->wr_buf_opt = amount;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 write_buffer_bytes() const
 {
     return impl_->wr_buf_opt;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 text(bool value)
 {
     impl_->wr_opcode = value ?
@@ -296,9 +296,9 @@ text(bool value)
         detail::opcode::binary;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 bool
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 text() const
 {
     return impl_->wr_opcode == detail::opcode::text;
@@ -307,9 +307,9 @@ text() const
 //------------------------------------------------------------------------------
 
 // _Fail the WebSocket Connection_
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 do_fail(
     std::uint16_t code,         // if set, send a close frame first
     error_code ev,              // error code to use upon success

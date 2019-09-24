@@ -32,9 +32,9 @@ namespace websocket {
 
 // send the upgrade request and process the response
 //
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Handler>
-class stream<NextLayer, deflateSupported>::handshake_op
+class stream<NextLayer, deflateSupported, Timer>::handshake_op
     : public beast::stable_async_base<Handler,
         beast::executor_type<stream>>
     , public asio::coroutine
@@ -166,8 +166,8 @@ public:
     }
 };
 
-template<class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::
     run_handshake_op
 {
     template<class HandshakeHandler>
@@ -196,10 +196,10 @@ struct stream<NextLayer, deflateSupported>::
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class RequestDecorator>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 do_handshake(
     response_type* res_p,
     string_view host,
@@ -267,10 +267,10 @@ do_handshake(
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler>
 BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_handshake(
     string_view host,
     string_view target,
@@ -292,10 +292,10 @@ async_handshake(
             nullptr);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler>
 BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_handshake(
     response_type& res,
     string_view host,
@@ -318,9 +318,9 @@ async_handshake(
             &res);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 handshake(string_view host,
     string_view target)
 {
@@ -333,9 +333,9 @@ handshake(string_view host,
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 handshake(response_type& res,
     string_view host,
         string_view target)
@@ -348,9 +348,9 @@ handshake(response_type& res,
         BOOST_THROW_EXCEPTION(system_error{ec});
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 handshake(string_view host,
     string_view target, error_code& ec)
 {
@@ -360,9 +360,9 @@ handshake(string_view host,
         host, target, &default_decorate_req, ec);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 handshake(response_type& res,
     string_view host,
         string_view target,

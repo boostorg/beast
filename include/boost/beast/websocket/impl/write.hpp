@@ -36,9 +36,9 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Handler, class Buffers>
-class stream<NextLayer, deflateSupported>::write_some_op
+class stream<NextLayer, deflateSupported, Timer>::write_some_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
@@ -146,10 +146,10 @@ public:
         bool cont = true);
 };
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class Buffers, class Handler>
 void
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 write_some_op<Buffers, Handler>::
 operator()(
     error_code ec,
@@ -433,8 +433,8 @@ operator()(
     }
 }
 
-template<class NextLayer, bool deflateSupported>
-struct stream<NextLayer, deflateSupported>::
+template<class NextLayer, bool deflateSupported, class Timer>
+struct stream<NextLayer, deflateSupported, Timer>::
     run_write_some_op
 {
     template<
@@ -468,10 +468,10 @@ struct stream<NextLayer, deflateSupported>::
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class ConstBufferSequence>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 write_some(bool fin, ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -487,10 +487,10 @@ write_some(bool fin, ConstBufferSequence const& buffers)
     return bytes_transferred;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class ConstBufferSequence>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 write_some(bool fin,
     ConstBufferSequence const& buffers, error_code& ec)
 {
@@ -699,10 +699,10 @@ write_some(bool fin,
     return bytes_transferred;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_write_some(bool fin,
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
@@ -723,10 +723,10 @@ async_write_some(bool fin,
 
 //------------------------------------------------------------------------------
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class ConstBufferSequence>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 write(ConstBufferSequence const& buffers)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -741,10 +741,10 @@ write(ConstBufferSequence const& buffers)
     return bytes_transferred;
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class ConstBufferSequence>
 std::size_t
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 write(ConstBufferSequence const& buffers, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
@@ -755,10 +755,10 @@ write(ConstBufferSequence const& buffers, error_code& ec)
     return write_some(true, buffers, ec);
 }
 
-template<class NextLayer, bool deflateSupported>
+template<class NextLayer, bool deflateSupported, class Timer>
 template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
-stream<NextLayer, deflateSupported>::
+stream<NextLayer, deflateSupported, Timer>::
 async_write(
     ConstBufferSequence const& bs, WriteHandler&& handler)
 {
