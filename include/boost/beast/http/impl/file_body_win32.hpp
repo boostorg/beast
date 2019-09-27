@@ -17,6 +17,7 @@
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
+#include <boost/beast/http/write.hpp>
 #include <boost/beast/http/serializer.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/basic_stream_socket.hpp>
