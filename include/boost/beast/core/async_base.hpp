@@ -117,7 +117,7 @@ namespace beast {
                 // `net::post` will be used to call the completion handler, otherwise
                 // the completion handler will be invoked directly.
 
-                this->invoke(is_continuation, ec, total_bytes_transferred_);
+                this->complete(is_continuation, ec, total_bytes_transferred_);
             }
         };
 
