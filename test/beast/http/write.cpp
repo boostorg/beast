@@ -10,7 +10,6 @@
 // Test that header file is self-contained.
 #include <boost/beast/http/write.hpp>
 
-#include <boost/beast/http/buffer_body.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/fields.hpp>
 #include <boost/beast/http/message.hpp>
