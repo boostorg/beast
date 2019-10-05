@@ -130,8 +130,8 @@ struct associated_allocator<
     static type get(
         boost::beast::handler<
             boost::beast::no_ex,
-            boost::beast::intrusive_alloc> const& h,
-        Allocator const& a = Allocator()) noexcept
+            boost::beast::intrusive_alloc> const&,
+        Allocator const& = Allocator()) noexcept
     {
         return type{};
     }
@@ -150,8 +150,8 @@ struct associated_executor<
     static type get(
         boost::beast::handler<
             boost::beast::intrusive_ex,
-            boost::beast::no_alloc> const& h,
-        Executor const& a = Executor()) noexcept
+            boost::beast::no_alloc> const&,
+        Executor const& = Executor()) noexcept
     {
         return type{};
     }

@@ -828,28 +828,27 @@ private:
 template<std::size_t N, std::size_t M, class CharT, class Traits>
 void
 operator+(
-    static_string<N, CharT, Traits>const& lhs,
-    static_string<M, CharT, Traits>const& rhs) = delete;
+    static_string<N, CharT, Traits>const&,
+    static_string<M, CharT, Traits>const&) = delete;
 
 template<std::size_t N, class CharT, class Traits>
 void
-operator+(CharT const* lhs,
-    static_string<N, CharT, Traits>const& rhs) = delete;
+operator+(CharT const*,
+    static_string<N, CharT, Traits>const&) = delete;
 
 template<std::size_t N, class CharT, class Traits>
 void
-operator+(CharT lhs,
-    static_string<N, CharT, Traits> const& rhs) = delete;
+operator+(CharT,
+    static_string<N, CharT, Traits> const&) = delete;
 
 template<std::size_t N, class CharT, class Traits>
 void
-operator+(static_string<N, CharT, Traits> const& lhs,
-    CharT const* rhs) = delete;
+operator+(static_string<N, CharT, Traits> const&,
+    CharT const*) = delete;
 
 template<std::size_t N, class CharT, class Traits>
 void
-operator+(static_string<N, CharT, Traits> const& lhs,
-    CharT rhs) = delete;
+operator+(static_string<N, CharT, Traits> const&, CharT) = delete;
 
 //
 // Non-member functions

@@ -697,7 +697,6 @@ public:
             test::connect(ws1.next_layer(), ws2.next_layer());
 
             ws2.set_option(stream_base::decorator(make_big));
-            error_code ec;
             ws2.async_accept(test::success_handler());
             ws1.async_handshake("test", "/", test::success_handler());
             ioc.run();

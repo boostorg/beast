@@ -204,8 +204,8 @@ struct associated_allocator<
     using type = std::allocator<int>;
 
     static type get(
-        boost::beast::legacy_handler const& h,
-        Allocator const& a = Allocator()) noexcept
+        boost::beast::legacy_handler const&,
+        Allocator const& = Allocator()) noexcept
     {
         return type{};
     }

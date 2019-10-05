@@ -1,3 +1,9 @@
+Version 270:
+
+* Silence unused variables
+
+--------------------------------------------------------------------------------
+
 Version 269:
 
 * Fix /permissive- missing include

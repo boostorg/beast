@@ -527,8 +527,8 @@ finish(error_code& ec)
 // operator<< is not supported for file_body
 template<bool isRequest, class File, class Fields>
 std::ostream&
-operator<<(std::ostream& os, message<
-    isRequest, basic_file_body<File>, Fields> const& msg) = delete;
+operator<<(std::ostream&, message<
+    isRequest, basic_file_body<File>, Fields> const&) = delete;
 #endif
 
 } // http
