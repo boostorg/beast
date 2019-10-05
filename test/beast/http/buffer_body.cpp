@@ -26,7 +26,7 @@ class buffer_body_test : public beast::unit_test::suite
 {
 public:
     void
-    v()
+    testIssue1717()
     {
         net::io_context ioc;
         test::stream ts{ioc};
