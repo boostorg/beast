@@ -12,7 +12,9 @@
 
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <array>
 #include <cstdint>
+#include <numeric>
 #include <random>
 
 #include "zlib-1.2.11/zlib.h"
