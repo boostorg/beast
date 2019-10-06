@@ -467,7 +467,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
             else if(flush != Flush::block)
             {
                 /* FULL_FLUSH or SYNC_FLUSH */
-                tr_stored_block((char*)0, 0L, 0);
+                tr_stored_block(nullptr, 0L, 0);
                 /* For a full flush, this empty block will be recognized
                  * as a special marker by inflate_sync().
                  */
@@ -1298,7 +1298,8 @@ copy_block(
         put_short((std::uint16_t)len);
         put_short((std::uint16_t)~len);
     }
-    std::memcpy(&pending_buf_[pending_], buf, len);
+    if(buf)
+        std::memcpy(&pending_buf_[pending_], buf, len);
     pending_ += len;
 }
 
