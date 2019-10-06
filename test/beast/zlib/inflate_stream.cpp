@@ -399,7 +399,7 @@ public:
         std::string out(1024, 0);
         z_params zs;
         inflate_stream is;
-        is.reset(window_size);
+        is.reset(static_cast<int>(window_size));
         boost::system::error_code ec;
 
         zs.next_in = &*in.begin();
