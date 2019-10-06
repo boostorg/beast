@@ -33,6 +33,10 @@ used to evaluate robustness. All asynchronous clients support timeouts.
         [[path_link example/http/client/async/http_client_async.cpp http_client_async.cpp]]
         [[path_link example/http/client/async-ssl/http_client_async_ssl.cpp http_client_async_ssl.cpp]]
 ][
+        [HTTP, asynchronous using __system_executor__]
+        []
+        [[path_link example/http/client/async-ssl-system-executor/http_client_async_ssl_system_executor.cpp http_client_async_ssl_system_executor.cpp]]
+][
         [HTTP, coroutine]
         [[path_link example/http/client/coro/http_client_coro.cpp http_client_coro.cpp]]
         [[path_link example/http/client/coro-ssl/http_client_coro_ssl.cpp http_client_coro_ssl.cpp]]
@@ -56,6 +60,10 @@ before disconnecting. All asynchronous clients support timeouts.
         [WebSocket, asynchronous]
         [[path_link example/websocket/client/async/websocket_client_async.cpp websocket_client_async.cpp]]
         [[path_link example/websocket/client/async-ssl/websocket_client_async_ssl.cpp websocket_client_async_ssl.cpp]]
+][
+        [WebSocket, asynchronous using __system_executor__]
+        []
+        [[path_link example/websocket/client/async-ssl-system-executor/websocket_client_async_ssl_system_executor.cpp websocket_client_async_ssl_system_executor.cpp]]
 ][
         [WebSocket, coroutine]
         [[path_link example/websocket/client/coro/websocket_client_coro.cpp websocket_client_coro.cpp]]

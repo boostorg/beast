@@ -9,7 +9,7 @@
 
 //------------------------------------------------------------------------------
 //
-// Example: WebSocket SSL client, asynchronous
+// Example: WebSocket SSL client, asynchronous, using system_executor
 //
 //------------------------------------------------------------------------------
 
@@ -20,6 +20,7 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/system_executor.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>

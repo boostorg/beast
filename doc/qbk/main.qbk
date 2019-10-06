@@ -59,6 +59,7 @@
 [def __ssl_context__            [@boost:/doc/html/boost_asio/reference/ssl__context.html `net::ssl::context`]]
 [def __ssl_stream__             [@boost:/doc/html/boost_asio/reference/ssl__stream.html `net::ssl::stream`]]
 [def __streambuf__              [@boost:/doc/html/boost_asio/reference/streambuf.html `net::streambuf`]]
+[def __system_executor__        [@boost:/doc/html/boost_asio/reference/system_executor.html `net::system_executor`]]
 [def __use_future__             [@boost:/doc/html/boost_asio/reference/use_future_t.html `net::use_future`]]
 [def __yield_context__          [@boost:/doc/html/boost_asio/reference/yield_context.html `net::yield_context`]]
 

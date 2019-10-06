@@ -20,6 +20,7 @@
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/system_executor.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>

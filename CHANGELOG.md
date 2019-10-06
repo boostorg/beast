@@ -1,3 +1,12 @@
+Version 271:
+
+* Add HTTP async client with system_executor example
+* Add WebSocket async client with system_executor example
+* Fix data race in HTTP server examples
+* Fix data race in WebSocket examples
+
+--------------------------------------------------------------------------------
+
 Version 270:
 
 * Silence unused variables

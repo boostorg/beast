@@ -10,7 +10,7 @@
 if (OPENSSL_FOUND)
     GroupSources(include/boost/beast beast)
     GroupSources(example/common common)
-    GroupSources(example/websocket/client/async-ssl "/")
+    GroupSources(example/websocket/client/async-ssl-system-executor "/")
 
     add_executable (websocket-client-async-ssl-system-executor
         ${BOOST_BEAST_FILES}
@@ -19,7 +19,7 @@ if (OPENSSL_FOUND)
         websocket_client_async_ssl_system_executor.cpp
     )
 
-    set_property(TARGET websocket-client-async-ssl-system-executor PROPERTY FOLDER "example-websocket-client-system-executor")
+    set_property(TARGET websocket-client-async-ssl-system-executor PROPERTY FOLDER "example-websocket-client")
 
     target_link_libraries (websocket-client-async-ssl-system-executor
         OpenSSL::SSL OpenSSL::Crypto
