@@ -112,6 +112,8 @@ public:
         z_stream zs;
         memset(&zs, 0, sizeof(zs));
         result = inflateInit2(&zs, -15);
+        if(result != Z_OK)
+            throw std::logic_error{"inflateInit2 failed"};
         try
         {
             zs.next_in = (Bytef*)in.data();
