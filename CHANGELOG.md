@@ -1,3 +1,9 @@
+Version 272:
+
+* Add BEAST_THROWS
+
+--------------------------------------------------------------------------------
+
 Version 271:
 
 * Add HTTP async client with system_executor example
