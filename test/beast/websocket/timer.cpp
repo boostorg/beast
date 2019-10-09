@@ -15,6 +15,7 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/detached.hpp>
 
 namespace boost {
 namespace beast {
@@ -85,10 +86,80 @@ struct timer_test : unit_test::suite
         test::run(ioc);
     }
 
+    // https://github.com/boostorg/beast/issues/1729
+    void
+    testIssue1729()
+    {
+        {
+            net::io_context ioc;
+            stream<tcp::socket> ws1(ioc);
+            stream<tcp::socket> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+
+            ws1.set_option(websocket::stream_base::timeout{
+                std::chrono::milliseconds(50),
+                websocket::stream_base::none(),
+                false});
+
+            ws1.async_accept(net::detached);
+            ws2.async_handshake(
+                "localhost", "/", net::detached);
+            ioc.run();
+            ioc.restart();
+
+            flat_buffer b;
+            error_code ec1, ec2;
+            ws1.async_close({},
+                [&ec2](error_code ec)
+                {
+                    ec2 = ec;
+                });
+            ioc.run();
+            BEAST_EXPECT(
+                ec1 == beast::error::timeout ||
+                ec2 == beast::error::timeout);
+        }
+        {
+            net::io_context ioc;
+            stream<tcp::socket> ws1(ioc);
+            stream<tcp::socket> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+
+            ws1.set_option(websocket::stream_base::timeout{
+                std::chrono::milliseconds(50),
+                websocket::stream_base::none(),
+                false});
+
+            ws1.async_accept(net::detached);
+            ws2.async_handshake(
+                "localhost", "/", net::detached);
+            ioc.run();
+            ioc.restart();
+
+            flat_buffer b;
+            error_code ec1, ec2;
+            ws1.async_read(b,
+                [&ec1](error_code ec, std::size_t)
+                {
+                    ec1 = ec;
+                });
+            ws1.async_close({},
+                [&ec2](error_code ec)
+                {
+                    ec2 = ec;
+                });
+            ioc.run();
+            BEAST_EXPECT(
+                ec1 == beast::error::timeout ||
+                ec2 == beast::error::timeout);
+        }
+    }
+
     void
     run() override
     {
         testIdlePing();
+        testIssue1729();
     }
 };
 

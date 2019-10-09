@@ -451,7 +451,11 @@ struct stream<NextLayer, deflateSupported>::impl_type
             }
             else
             {
-                BOOST_ASSERT(! is_timer_set());
+                // VFALCO This assert goes off when there's also
+                // a pending read with the timer set. The bigger
+                // fix is to give close its own timeout, instead
+                // of using the handshake timeout.
+                // BOOST_ASSERT(! is_timer_set());
             }
             break;
 

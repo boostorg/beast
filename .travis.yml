@@ -62,6 +62,25 @@ matrix:
             - libc++-dev
             - libc++abi-dev
 
+    # GCC 5.0, Valgrind
+    - os: linux
+      dist: trusty
+      compiler: g++-5
+      env:
+        - VARIANT=beast_valgrind
+        - TOOLSET=gcc
+        - COMPILER=g++-5
+        - CXXSTD=11
+      addons:
+        apt:
+          packages:
+            - g++-5
+            - libssl-dev
+            - valgrind
+            - *base_packages
+          sources:
+            - *base_sources
+
     # Default g++
     - os: linux
       compiler: g++
@@ -83,25 +102,6 @@ matrix:
         apt:
           packages:
             - g++-8
-            - *base_packages
-          sources:
-            - *base_sources
-
-    # GCC 5.0, Valgrind
-    - os: linux
-      dist: trusty
-      compiler: g++-5
-      env:
-        - VARIANT=beast_valgrind
-        - TOOLSET=gcc
-        - COMPILER=g++-5
-        - CXXSTD=11
-      addons:
-        apt:
-          packages:
-            - g++-5
-            - libssl-dev
-            - valgrind
             - *base_packages
           sources:
             - *base_sources

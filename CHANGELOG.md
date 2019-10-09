@@ -1,3 +1,9 @@
+Version 273:
+
+* Squelch spurious websocket timer assert
+
+--------------------------------------------------------------------------------
+
 Version 272:
 
 * Add BEAST_THROWS
