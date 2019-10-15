@@ -1,6 +1,7 @@
 Version 273:
 
 * Squelch spurious websocket timer assert
+* Use the executor type in basic_stream timer
 
 --------------------------------------------------------------------------------
 
