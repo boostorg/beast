@@ -237,7 +237,15 @@ private:
 
         op_state read;
         op_state write;
-        net::steady_timer timer; // rate timer
+#if 0
+        net::basic_waitable_timer<
+            std::chrono::steady_clock,
+            net::wait_traits<
+                std::chrono::steady_clock>,
+            Executor> timer; // rate timer;
+#else
+        net::steady_timer timer;
+#endif
         int waiting = 0;
 
         impl_type(impl_type&&) = default;
