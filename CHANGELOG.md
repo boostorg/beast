@@ -1,3 +1,9 @@
+Version 274:
+
+* Fix leftovers in basic_parser corner case
+
+--------------------------------------------------------------------------------
+
 Version 273:
 
 * Squelch spurious websocket timer assert

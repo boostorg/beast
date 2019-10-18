@@ -1286,6 +1286,98 @@ public:
 
     //--------------------------------------------------------------------------
 
+    // https://github.com/boostorg/beast/issues/1734
+
+    void
+    testIssue1734()
+    {
+        // Ensure more than one buffer, this is to avoid an optimized path in
+        // basic_parser::put(ConstBufferSequence const&,...) which avoids
+        // buffer flattening.
+        auto multibufs = [](multi_buffer::const_buffers_type buffers) {
+            std::vector<net::const_buffer> bs;
+            for (auto b : buffers_range(buffers))
+                bs.push_back(b);
+            while (std::distance(bs.begin(), bs.end()) < 2) {
+                bs.push_back({});
+            }
+            return bs;
+        };
+
+        // Buffers must be bigger than max_stack_buffer to force flattening
+        // in basic_parser::put(ConstBufferSequence const&,...)
+        std::string first_chunk_data(
+            2 * basic_parser<false>::max_stack_buffer + 1, 'x');
+
+        std::string second_chunk_data_part1(
+            basic_parser<false>::max_stack_buffer + 2, 'x');
+        std::string second_chunk_data_part2(
+            basic_parser<false>::max_stack_buffer + 1, 'x');
+
+        multi_buffer b;
+        parser<false, string_body> p;
+        p.eager(true);
+        error_code ec;
+        std::size_t used;
+
+        ostream(b) <<
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n";
+
+        used = p.put(b.data(), ec);
+        b.consume(used);
+
+        BEAST_EXPECT(net::buffer_size(b.data()) == 0);
+        BEAST_EXPECTS(!ec, ec.message());
+        BEAST_EXPECT(!p.is_done());
+        BEAST_EXPECT(p.is_header_done());
+
+        ostream(b) <<
+            std::hex <<
+            first_chunk_data.size() << "\r\n" <<
+            first_chunk_data << "\r\n";
+
+        // First chunk
+        used = p.put(multibufs(b.data()), ec);
+        b.consume(used);
+
+        BEAST_EXPECTS(ec == error::need_more, ec.message());
+        BEAST_EXPECT(!p.is_done());
+
+        ostream(b) <<
+            std::hex <<
+            (second_chunk_data_part1.size() +
+             second_chunk_data_part2.size() ) << "\r\n" <<
+            second_chunk_data_part1;
+
+        // Second chunk, part 1
+        used = p.put(multibufs(b.data()), ec);
+        b.consume(used);
+
+        BEAST_EXPECTS(!ec, ec.message());
+        BEAST_EXPECT(!p.is_done());
+
+        ostream(b) <<
+            second_chunk_data_part2 << "\r\n"
+            << "0\r\n\r\n";
+
+        // Second chunk, part 2
+        used = p.put(multibufs(b.data()), ec);
+        b.consume(used);
+
+        BEAST_EXPECTS(!ec, ec.message()); // <-- Error: bad chunk
+        if(p.need_eof())
+        {
+            p.put_eof(ec);
+            BEAST_EXPECTS(! ec, ec.message());
+        }
+        BEAST_EXPECT(p.is_done());
+    }
+
+    //--------------------------------------------------------------------------
+
     void
     run() override
     {
