@@ -6,6 +6,7 @@ Version 275:
 * Support Concepts for completion token params
 * https_get example sends the Host header
 * Fix async_close error code when async_read times out
+* Refactor zlib tests and fix enum typo
 
 --------------------------------------------------------------------------------
 

@@ -66,6 +66,17 @@ enum class error
     */
     end_of_stream,
 
+    /** Preset dictionary required
+
+        This error indicates that a preset dictionary was not provided and is now
+        needed at this point.
+
+        This does not always indicate a failure condition.
+
+        @note This is the same as `Z_NEED_DICT` returned by ZLib.
+    */
+    need_dict,
+
     /** Invalid stream or parameters.
 
         This error is returned when invalid parameters are passed,
@@ -95,7 +106,10 @@ enum class error
     too_many_symbols,
 
     /// Invalid code lengths
-    invalid_code_lenths,
+    invalid_code_lengths,
+#ifndef BOOST_BEAST_NO_DEPRECATED
+    invalid_code_lenths = invalid_code_lengths,
+#endif
 
     /// Invalid bit length repeat
     invalid_bit_length_repeat,

@@ -23,6 +23,127 @@ namespace zlib {
 
 class inflate_stream_test : public beast::unit_test::suite
 {
+    struct IDecompressor {
+        virtual void init() = 0;
+        virtual void init(int windowBits) = 0;
+
+        virtual std::size_t avail_in() const noexcept = 0;
+        virtual void avail_in(std::size_t) noexcept = 0;
+        virtual void const* next_in() const noexcept = 0;
+        virtual void next_in(const void*) noexcept = 0;
+        virtual std::size_t avail_out() const noexcept = 0;
+        virtual void avail_out(std::size_t) noexcept = 0;
+        virtual void* next_out() const noexcept = 0;
+        virtual void next_out(void*) noexcept = 0;
+
+        virtual error_code write(Flush) = 0;
+        virtual ~IDecompressor() = default;
+    };
+    class ZlibDecompressor : public IDecompressor {
+       z_stream zs;
+
+    public:
+        ZlibDecompressor() = default;
+        void init(int windowBits) override
+        {
+            inflateEnd(&zs);
+            zs = {};
+            const auto res = inflateInit2(&zs, windowBits);
+            switch(res){
+            case Z_OK:
+               break;
+            case Z_MEM_ERROR:
+               BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: no memory"});
+            case Z_STREAM_ERROR:
+               BOOST_THROW_EXCEPTION(std::domain_error{"zlib decompressor: bad arg"});
+            }
+        }
+        void init() override {
+            inflateEnd(&zs);
+            zs = {};
+            const auto res = inflateInit2(&zs, -15);
+            switch(res){
+            case Z_OK:
+                break;
+            case Z_MEM_ERROR:
+                BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: no memory"});
+            case Z_STREAM_ERROR:
+               BOOST_THROW_EXCEPTION(std::domain_error{"zlib decompressor: bad arg"});
+            }
+        }
+
+        virtual std::size_t avail_in() const noexcept override  { return zs.avail_in; }
+        virtual void avail_in(std::size_t n) noexcept override { zs.avail_in = n; }
+        virtual void const* next_in() const noexcept override { return zs.next_in; }
+        virtual void next_in(const void* ptr) noexcept override { zs.next_in = const_cast<Bytef*>(static_cast<const Bytef*>(ptr)); }
+        virtual std::size_t avail_out() const noexcept override { return zs.avail_out; }
+        virtual void avail_out(std::size_t n_out) noexcept override { zs.avail_out = n_out; }
+        virtual void* next_out() const noexcept override { return zs.next_out; }
+        virtual void next_out(void* ptr) noexcept override { zs.next_out = (Bytef*)ptr; }
+
+        error_code write(Flush flush) override {
+            constexpr static int zlib_flushes[] = {0, Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH, Z_TREES};
+            const auto zlib_flush = zlib_flushes[static_cast<int>(flush)];
+            const auto res = inflate(&zs, zlib_flush);
+            switch(res){
+            case Z_OK:
+              return {};
+            case Z_STREAM_END:
+              return error::end_of_stream;
+            case Z_NEED_DICT:
+              return error::need_dict;
+            case Z_DATA_ERROR:
+            case Z_STREAM_ERROR:
+              return error::stream_error;
+            case Z_MEM_ERROR:
+              BOOST_THROW_EXCEPTION(std::bad_alloc{});
+            case Z_BUF_ERROR:
+              return error::need_buffers;
+            default:
+              BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: impossible value"});
+            }
+        }
+
+        ~ZlibDecompressor() override {
+          inflateEnd(&zs);
+        }
+    } zlib_decompressor{};
+    class BeastCompressor : public IDecompressor {
+        z_params zp;
+        inflate_stream is;
+
+    public:
+        BeastCompressor() = default;
+
+        void init(int windowBits) override
+        {
+            zp = {};
+            is.clear();
+            is.reset(windowBits);
+        }
+        void init() override {
+          zp = {};
+          is.clear();
+          is.reset();
+        }
+
+        virtual std::size_t avail_in() const noexcept override  { return zp.avail_in; }
+        virtual void avail_in(std::size_t n) noexcept override { zp.avail_in = n; }
+        virtual void const* next_in() const noexcept override { return zp.next_in; }
+        virtual void next_in(const void* ptr) noexcept override { zp.next_in = ptr; }
+        virtual std::size_t avail_out() const noexcept override { return zp.avail_out; }
+        virtual void avail_out(std::size_t n_out) noexcept override { zp.avail_out = n_out; }
+        virtual void* next_out() const noexcept override { return zp.next_out; }
+        virtual void next_out(void* ptr) noexcept override { zp.next_out = (Bytef*)ptr; }
+
+        error_code write(Flush flush) override {
+            error_code ec{};
+            is.write(zp, flush, ec);
+            return ec;
+        }
+
+        ~BeastCompressor() override = default;
+    } beast_decompressor{};
 public:
     // Lots of repeats, limited char range
     static
@@ -283,7 +404,7 @@ public:
     };
 
     void
-    testInflate()
+    testInflate(IDecompressor& d)
     {
         {
             Matrix m{*this};
@@ -381,8 +502,8 @@ public:
         }
 #endif
 
-        check({0x63, 0x18, 0x05, 0x40, 0x0c, 0x00}, {}, 8,  3);
-        check({0xed, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x80,
+        check(d, {0x63, 0x18, 0x05, 0x40, 0x0c, 0x00}, {}, 8,  3);
+        check(d, {0xed, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x80,
                0xa0, 0xfd, 0xa9, 0x17, 0xa9, 0x00, 0x00, 0x00,
                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -390,7 +511,7 @@ public:
                0x00, 0x00, 0x00, 0x00, 0x00, 0x06}, {});
     }
 
-    std::string check(
+    std::string check(IDecompressor& d,
         std::initializer_list<std::uint8_t> const& in,
         error_code expected,
         std::size_t window_size = 15,
@@ -419,103 +540,97 @@ public:
         return out;
     }
 
-    void testInflateErrors()
+    void testInflateErrors(IDecompressor& d)
     {
-        check({0x00, 0x00, 0x00, 0x00, 0x00},
+        check(d, {0x00, 0x00, 0x00, 0x00, 0x00},
             error::invalid_stored_length);
-        check({0x03, 0x00},
+        check(d, {0x03, 0x00},
             error::end_of_stream);
-        check({0x06},
+        check(d, {0x06},
             error::invalid_block_type);
-        check({0xfc, 0x00, 0x00},
+        check(d, {0xfc, 0x00, 0x00},
             error::too_many_symbols);
-        check({0x04, 0x00, 0xfe, 0xff},
+        check(d, {0x04, 0x00, 0xfe, 0xff},
             error::incomplete_length_set);
-        check({0x04, 0x00, 0x24, 0x49, 0x00},
+        check(d, {0x04, 0x00, 0x24, 0x49, 0x00},
             error::invalid_bit_length_repeat);
-        check({0x04, 0x00, 0x24, 0xe9, 0xff, 0xff},
+        check(d, {0x04, 0x00, 0x24, 0xe9, 0xff, 0xff},
             error::invalid_bit_length_repeat);
-        check({0x04, 0x00, 0x24, 0xe9, 0xff, 0x6d},
+        check(d, {0x04, 0x00, 0x24, 0xe9, 0xff, 0x6d},
             error::missing_eob);
-        check({0x04, 0x80, 0x49, 0x92, 0x24, 0x49, 0x92, 0x24,
+        check(d, {0x04, 0x80, 0x49, 0x92, 0x24, 0x49, 0x92, 0x24,
                0x71, 0xff, 0xff, 0x93, 0x11, 0x00},
             error::over_subscribed_length);
-        check({0x04, 0x80, 0x49, 0x92, 0x24, 0x0f, 0xb4, 0xff,
+        check(d, {0x04, 0x80, 0x49, 0x92, 0x24, 0x0f, 0xb4, 0xff,
                0xff, 0xc3, 0x84},
             error::incomplete_length_set);
-        check({0x04, 0xc0, 0x81, 0x08, 0x00, 0x00, 0x00, 0x00,
+        check(d, {0x04, 0xc0, 0x81, 0x08, 0x00, 0x00, 0x00, 0x00,
                0x20, 0x7f, 0xeb, 0x0b, 0x00, 0x00},
             error::invalid_literal_length);
-        check({0x02, 0x7e, 0xff, 0xff},
+        check(d, {0x02, 0x7e, 0xff, 0xff},
             error::invalid_distance_code);
-        check({0x0c, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00,
+        check(d, {0x0c, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00,
                0x90, 0xff, 0x6b, 0x04, 0x00},
             error::invalid_distance);
-        check({0x05,0xe0, 0x81, 0x91, 0x24, 0xcb, 0xb2, 0x2c,
+        check(d, {0x05,0xe0, 0x81, 0x91, 0x24, 0xcb, 0xb2, 0x2c,
                0x49, 0xe2, 0x0f, 0x2e, 0x8b, 0x9a, 0x47, 0x56,
                0x9f, 0xfb, 0xfe, 0xec, 0xd2, 0xff, 0x1f},
             error::end_of_stream);
-        check({0xed, 0xc0, 0x01, 0x01, 0x00, 0x00, 0x00, 0x40,
+        check(d, {0xed, 0xc0, 0x01, 0x01, 0x00, 0x00, 0x00, 0x40,
                0x20, 0xff, 0x57, 0x1b, 0x42, 0x2c, 0x4f},
             error::end_of_stream);
-        check({0x02, 0x08, 0x20, 0x80, 0x00, 0x03, 0x00},
+        check(d, {0x02, 0x08, 0x20, 0x80, 0x00, 0x03, 0x00},
             error::end_of_stream);
-        // TODO: Excess data (from golang test inflate suite), should this be an error?
-        check({0x78, 0x9c, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01, 0x78, 0x9c, 0xff},
+        check(d, {0x78, 0x9c, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01, 0x78, 0x9c, 0xff},
             error::invalid_stored_length);
     }
 
-    void testInvalidSettings()
+    void testInvalidSettings(IDecompressor& d)
     {
         except<std::domain_error>(
-            []()
+            [&]()
             {
-                inflate_stream is;
-                is.reset(7);
+                d.init(7);
             });
     }
 
-    void testFixedHuffmanFlushTrees()
+    void testFixedHuffmanFlushTrees(IDecompressor& d)
     {
         std::string out(5, 0);
-        z_params zs;
-        inflate_stream is;
-        is.reset();
+        d.init();
         boost::system::error_code ec;
         std::initializer_list<std::uint8_t> in = {
             0xf2, 0x48, 0xcd, 0xc9, 0xc9, 0x07, 0x00, 0x00,
             0x00, 0xff, 0xff};
-        zs.next_in = &*in.begin();
-        zs.next_out = &out[0];
-        zs.avail_in = in.size();
-        zs.avail_out = out.size();
-        is.write(zs, Flush::trees, ec);
+        d.next_in(&*in.begin());
+        d.next_out(&out[0]);
+        d.avail_in(in.size());
+        d.avail_out(out.size());
+        ec = d.write(Flush::trees);
         BEAST_EXPECT(!ec);
-        is.write(zs, Flush::sync, ec);
+        ec = d.write(Flush::sync);
         BEAST_EXPECT(!ec);
-        BEAST_EXPECT(zs.avail_out == 0);
+        BEAST_EXPECT(d.avail_out() == 0);
         BEAST_EXPECT(out == "Hello");
     }
 
-    void testUncompressedFlushTrees()
+    void testUncompressedFlushTrees(IDecompressor& d)
     {
         std::string out(5, 0);
-        z_params zs;
-        inflate_stream is;
-        is.reset();
+        d.init();
         boost::system::error_code ec;
         std::initializer_list<std::uint8_t> in = {
             0x00, 0x05, 0x00, 0xfa, 0xff, 0x48, 0x65, 0x6c,
             0x6c, 0x6f, 0x00, 0x00};
-        zs.next_in = &*in.begin();
-        zs.next_out = &out[0];
-        zs.avail_in = in.size();
-        zs.avail_out = out.size();
-        is.write(zs, Flush::trees, ec);
+        d.next_in(&*in.begin());
+        d.next_out(&out[0]);
+        d.avail_in(in.size());
+        d.avail_out(out.size());
+        ec = d.write(Flush::trees);
         BEAST_EXPECT(!ec);
-        is.write(zs, Flush::sync, ec);
+        ec = d.write(Flush::sync);
         BEAST_EXPECT(!ec);
-        BEAST_EXPECT(zs.avail_out == 0);
+        BEAST_EXPECT(d.avail_out() == 0);
         BEAST_EXPECT(out == "Hello");
     }
 
@@ -525,11 +640,16 @@ public:
         log <<
             "sizeof(inflate_stream) == " <<
             sizeof(inflate_stream) << std::endl;
-        testInflate();
-        testInflateErrors();
-        testInvalidSettings();
-        testFixedHuffmanFlushTrees();
-        testUncompressedFlushTrees();
+        testInflate(zlib_decompressor);
+        testInflate(beast_decompressor);
+        testInflateErrors(zlib_decompressor);
+        testInflateErrors(beast_decompressor);
+        testInvalidSettings(zlib_decompressor);
+        testInvalidSettings(beast_decompressor);
+        testFixedHuffmanFlushTrees(zlib_decompressor);
+        testFixedHuffmanFlushTrees(beast_decompressor);
+        testUncompressedFlushTrees(zlib_decompressor);
+        testUncompressedFlushTrees(beast_decompressor);
     }
 };
 
