@@ -23,6 +23,127 @@ namespace zlib {
 
 class inflate_stream_test : public beast::unit_test::suite
 {
+    struct IDecompressor {
+        virtual void init() = 0;
+        virtual void init(int windowBits) = 0;
+
+        virtual std::size_t avail_in() const noexcept = 0;
+        virtual void avail_in(std::size_t) noexcept = 0;
+        virtual void const* next_in() const noexcept = 0;
+        virtual void next_in(const void*) noexcept = 0;
+        virtual std::size_t avail_out() const noexcept = 0;
+        virtual void avail_out(std::size_t) noexcept = 0;
+        virtual void* next_out() const noexcept = 0;
+        virtual void next_out(void*) noexcept = 0;
+
+        virtual error_code write(Flush) = 0;
+        virtual ~IDecompressor() = default;
+    };
+    class ZlibDecompressor : public IDecompressor {
+       z_stream zs;
+
+    public:
+        ZlibDecompressor() = default;
+        void init(int windowBits) override
+        {
+            inflateEnd(&zs);
+            zs = {};
+            const auto res = inflateInit2(&zs, windowBits);
+            switch(res){
+            case Z_OK:
+               break;
+            case Z_MEM_ERROR:
+               BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: no memory"});
+            case Z_STREAM_ERROR:
+               BOOST_THROW_EXCEPTION(std::domain_error{"zlib decompressor: bad arg"});
+            }
+        }
+        void init() override {
+            inflateEnd(&zs);
+            zs = {};
+            const auto res = inflateInit2(&zs, -15);
+            switch(res){
+            case Z_OK:
+                break;
+            case Z_MEM_ERROR:
+                BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: no memory"});
+            case Z_STREAM_ERROR:
+               BOOST_THROW_EXCEPTION(std::domain_error{"zlib decompressor: bad arg"});
+            }
+        }
+
+        virtual std::size_t avail_in() const noexcept override  { return zs.avail_in; }
+        virtual void avail_in(std::size_t n) noexcept override { zs.avail_in = n; }
+        virtual void const* next_in() const noexcept override { return zs.next_in; }
+        virtual void next_in(const void* ptr) noexcept override { zs.next_in = const_cast<Bytef*>(static_cast<const Bytef*>(ptr)); }
+        virtual std::size_t avail_out() const noexcept override { return zs.avail_out; }
+        virtual void avail_out(std::size_t n_out) noexcept override { zs.avail_out = n_out; }
+        virtual void* next_out() const noexcept override { return zs.next_out; }
+        virtual void next_out(void* ptr) noexcept override { zs.next_out = (Bytef*)ptr; }
+
+        error_code write(Flush flush) override {
+            constexpr static int zlib_flushes[] = {0, Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH, Z_TREES};
+            const auto zlib_flush = zlib_flushes[static_cast<int>(flush)];
+            const auto res = inflate(&zs, zlib_flush);
+            switch(res){
+            case Z_OK:
+              return {};
+            case Z_STREAM_END:
+              return error::end_of_stream;
+            case Z_NEED_DICT:
+              return error::need_dict;
+            case Z_DATA_ERROR:
+            case Z_STREAM_ERROR:
+              return error::stream_error;
+            case Z_MEM_ERROR:
+              BOOST_THROW_EXCEPTION(std::bad_alloc{});
+            case Z_BUF_ERROR:
+              return error::need_buffers;
+            default:
+              BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: impossible value"});
+            }
+        }
+
+        ~ZlibDecompressor() override {
+          inflateEnd(&zs);
+        }
+    } zlib_decompressor{};
+    class BeastCompressor : public IDecompressor {
+        z_params zp;
+        inflate_stream is;
+
+    public:
+        BeastCompressor() = default;
+
+        void init(int windowBits) override
+        {
+            zp = {};
+            is.clear();
+            is.reset(windowBits);
+        }
+        void init() override {
+          zp = {};
+          is.clear();
+          is.reset();
+        }
+
+        virtual std::size_t avail_in() const noexcept override  { return zp.avail_in; }
+        virtual void avail_in(std::size_t n) noexcept override { zp.avail_in = n; }
+        virtual void const* next_in() const noexcept override { return zp.next_in; }
+        virtual void next_in(const void* ptr) noexcept override { zp.next_in = ptr; }
+        virtual std::size_t avail_out() const noexcept override { return zp.avail_out; }
+        virtual void avail_out(std::size_t n_out) noexcept override { zp.avail_out = n_out; }
+        virtual void* next_out() const noexcept override { return zp.next_out; }
+        virtual void next_out(void* ptr) noexcept override { zp.next_out = (Bytef*)ptr; }
+
+        error_code write(Flush flush) override {
+            error_code ec{};
+            is.write(zp, flush, ec);
+            return ec;
+        }
+
+        ~BeastCompressor() override = default;
+    } beast_decompressor{};
 public:
     // Lots of repeats, limited char range
     static

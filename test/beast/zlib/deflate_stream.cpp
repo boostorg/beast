@@ -25,6 +25,138 @@ namespace zlib {
 
 class deflate_stream_test : public beast::unit_test::suite
 {
+    struct ICompressor {
+        virtual void init() = 0;
+        virtual void init(
+            int level,
+            int windowBits,
+            int memLevel,
+            int strategy) = 0;
+
+        virtual std::size_t avail_in() const noexcept = 0;
+        virtual void avail_in(std::size_t) noexcept = 0;
+        virtual void const* next_in() const noexcept = 0;
+        virtual void next_in(const void*) noexcept = 0;
+        virtual std::size_t avail_out() const noexcept = 0;
+        virtual void avail_out(std::size_t) noexcept = 0;
+        virtual void* next_out() const noexcept = 0;
+        virtual void next_out(void*) noexcept = 0;
+        virtual std::size_t total_out() const noexcept = 0;
+
+        virtual std::size_t bound(std::size_t) = 0;
+        virtual error_code write(Flush) = 0;
+        virtual ~ICompressor() = default;
+    };
+    class ZlibCompressor : public ICompressor {
+        z_stream zs{};
+
+    public:
+        ZlibCompressor() = default;
+        void init() override {
+            deflateEnd(&zs);
+            zs = {};
+            const auto res = deflateInit2(&zs, -1, Z_DEFLATED, -15, 8, Z_DEFAULT_STRATEGY);
+            if(res != Z_OK)
+               throw std::invalid_argument{"zlib compressor: failure"};
+        }
+        void init(
+            int level,
+            int windowBits,
+            int memLevel,
+            int strategy) override
+        {
+            deflateEnd(&zs);
+            zs = {};
+            const auto res = deflateInit2(&zs, level, Z_DEFLATED, -windowBits, memLevel, strategy);
+            if(res != Z_OK)
+               BOOST_THROW_EXCEPTION(std::invalid_argument{"zlib compressor: bad arg"});
+        }
+
+        virtual std::size_t avail_in() const noexcept override  { return zs.avail_in; }
+        virtual void avail_in(std::size_t n) noexcept override { zs.avail_in = n; }
+        virtual void const* next_in() const noexcept override { return zs.next_in; }
+        virtual void next_in(const void* ptr) noexcept override { zs.next_in = const_cast<Bytef*>(static_cast<const Bytef*>(ptr)); }
+        virtual std::size_t avail_out() const noexcept override { return zs.avail_out; }
+        virtual void avail_out(std::size_t n_out) noexcept override { zs.avail_out = n_out; }
+        virtual void* next_out() const noexcept override { return zs.next_out; }
+        virtual void next_out(void* ptr) noexcept override { zs.next_out = (Bytef*)ptr; }
+        virtual std::size_t total_out() const noexcept override { return zs.total_out; }
+
+        std::size_t bound(std::size_t src_size) override {
+           return deflateBound(&zs, static_cast<uLong>(src_size));
+        }
+        error_code write(Flush flush) override {
+            constexpr static int zlib_flushes[] = {0, Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH, Z_TREES};
+            const auto zlib_flush = zlib_flushes[static_cast<int>(flush)];
+            if(zs.next_in == nullptr && zs.avail_in != 0)
+              BOOST_THROW_EXCEPTION(std::invalid_argument{"zlib compressor: invalid input"});
+            const auto res = deflate(&zs, zlib_flush);
+            switch(res){
+            case Z_OK:
+                return {};
+            case Z_STREAM_END:
+                return error::end_of_stream;
+            case Z_STREAM_ERROR:
+                return error::stream_error;
+            case Z_BUF_ERROR:
+                return error::need_buffers;
+            default:
+                throw;
+            }
+        }
+
+        ~ZlibCompressor() override {
+            deflateEnd(&zs);
+        }
+    } zlib_compressor;
+    class BeastCompressor : public ICompressor {
+        z_params zp;
+        deflate_stream ds;
+
+    public:
+        BeastCompressor() = default;
+        void init() override {
+          zp = {};
+          ds.clear();
+          ds.reset();
+        }
+        void init(
+            int level,
+            int windowBits,
+            int memLevel,
+            int strategy) override
+        {
+            zp = {};
+            ds.clear();
+            ds.reset(
+                level,
+                windowBits,
+                memLevel,
+                toStrategy(strategy));
+        }
+
+        virtual std::size_t avail_in() const noexcept override  { return zp.avail_in; }
+        virtual void avail_in(std::size_t n) noexcept override { zp.avail_in = n; }
+        virtual void const* next_in() const noexcept override { return zp.next_in; }
+        virtual void next_in(const void* ptr) noexcept override { zp.next_in = ptr; }
+        virtual std::size_t avail_out() const noexcept override { return zp.avail_out; }
+        virtual void avail_out(std::size_t n_out) noexcept override { zp.avail_out = n_out; }
+        virtual void* next_out() const noexcept override { return zp.next_out; }
+        virtual void next_out(void* ptr) noexcept override { zp.next_out = (Bytef*)ptr; }
+        virtual std::size_t total_out() const noexcept override { return zp.total_out; }
+
+        std::size_t bound(std::size_t src_size) override {
+            return ds.upper_bound(src_size);
+        }
+        error_code write(Flush flush) override {
+          error_code ec{};
+          ds.write(zp, flush, ec);
+          return ec;
+        }
+
+        ~BeastCompressor() override = default;
+    } beast_compressor;
+
 public:
     // Lots of repeats, limited char range
     static
