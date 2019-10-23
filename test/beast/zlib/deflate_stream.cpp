@@ -433,6 +433,7 @@ public:
     {
         doMatrix(c, "Hello, world!", &self::doDeflate1_beast);
         doMatrix(c, "Hello, world!", &self::doDeflate2_beast);
+        log << "no-silence keepalive" << std::endl;
         doMatrix(c, corpus1(56), &self::doDeflate2_beast);
         doMatrix(c, corpus1(1024), &self::doDeflate1_beast);
     }
