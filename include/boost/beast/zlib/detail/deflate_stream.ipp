@@ -399,7 +399,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
         }
     }
     else if(zs.avail_in == 0 && (
-            old_flush && flush <= *old_flush
+            old_flush && flush <= *old_flush // Caution: depends on enum order
         ) && flush != Flush::finish)
     {
         /* Make sure there is something to do and avoid duplicate consecutive
