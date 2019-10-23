@@ -67,7 +67,7 @@ public:
         case error::invalid_block_type: return "invalid block type";
         case error::invalid_stored_length: return "invalid stored block length";
         case error::too_many_symbols: return "too many symbols";
-        case error::invalid_code_lenths: return "invalid code lengths";
+        case error::invalid_code_lengths: return "invalid code lengths";
         case error::invalid_bit_length_repeat: return "invalid bit length repeat";
         case error::missing_eob: return "missing end of block code";
         case error::invalid_literal_length: return "invalid literal/length code";

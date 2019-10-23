@@ -95,7 +95,7 @@ enum class error
     too_many_symbols,
 
     /// Invalid code lengths
-    invalid_code_lenths,
+    invalid_code_lengths,
 
     /// Invalid bit length repeat
     invalid_bit_length_repeat,
