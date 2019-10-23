@@ -41,6 +41,7 @@ public:
     {
         check("boost.beast.zlib", error::need_buffers);
         check("boost.beast.zlib", error::end_of_stream);
+        check("boost.beast.zlib", error::need_dict);
         check("boost.beast.zlib", error::stream_error);
 
         check("boost.beast.zlib", error::invalid_block_type);
