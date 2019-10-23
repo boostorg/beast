@@ -404,7 +404,7 @@ public:
     };
 
     void
-    testInflate()
+    testInflate(IDecompressor& d)
     {
         {
             Matrix m{*this};
@@ -502,8 +502,8 @@ public:
         }
 #endif
 
-        check({0x63, 0x18, 0x05, 0x40, 0x0c, 0x00}, {}, 8,  3);
-        check({0xed, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x80,
+        check(d, {0x63, 0x18, 0x05, 0x40, 0x0c, 0x00}, {}, 8,  3);
+        check(d, {0xed, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x80,
                0xa0, 0xfd, 0xa9, 0x17, 0xa9, 0x00, 0x00, 0x00,
                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -511,7 +511,7 @@ public:
                0x00, 0x00, 0x00, 0x00, 0x00, 0x06}, {});
     }
 
-    std::string check(
+    std::string check(IDecompressor& d,
         std::initializer_list<std::uint8_t> const& in,
         error_code expected,
         std::size_t window_size = 15,
@@ -540,103 +540,97 @@ public:
         return out;
     }
 
-    void testInflateErrors()
+    void testInflateErrors(IDecompressor& d)
     {
-        check({0x00, 0x00, 0x00, 0x00, 0x00},
+        check(d, {0x00, 0x00, 0x00, 0x00, 0x00},
             error::invalid_stored_length);
-        check({0x03, 0x00},
+        check(d, {0x03, 0x00},
             error::end_of_stream);
-        check({0x06},
+        check(d, {0x06},
             error::invalid_block_type);
-        check({0xfc, 0x00, 0x00},
+        check(d, {0xfc, 0x00, 0x00},
             error::too_many_symbols);
-        check({0x04, 0x00, 0xfe, 0xff},
+        check(d, {0x04, 0x00, 0xfe, 0xff},
             error::incomplete_length_set);
-        check({0x04, 0x00, 0x24, 0x49, 0x00},
+        check(d, {0x04, 0x00, 0x24, 0x49, 0x00},
             error::invalid_bit_length_repeat);
-        check({0x04, 0x00, 0x24, 0xe9, 0xff, 0xff},
+        check(d, {0x04, 0x00, 0x24, 0xe9, 0xff, 0xff},
             error::invalid_bit_length_repeat);
-        check({0x04, 0x00, 0x24, 0xe9, 0xff, 0x6d},
+        check(d, {0x04, 0x00, 0x24, 0xe9, 0xff, 0x6d},
             error::missing_eob);
-        check({0x04, 0x80, 0x49, 0x92, 0x24, 0x49, 0x92, 0x24,
+        check(d, {0x04, 0x80, 0x49, 0x92, 0x24, 0x49, 0x92, 0x24,
                0x71, 0xff, 0xff, 0x93, 0x11, 0x00},
             error::over_subscribed_length);
-        check({0x04, 0x80, 0x49, 0x92, 0x24, 0x0f, 0xb4, 0xff,
+        check(d, {0x04, 0x80, 0x49, 0x92, 0x24, 0x0f, 0xb4, 0xff,
                0xff, 0xc3, 0x84},
             error::incomplete_length_set);
-        check({0x04, 0xc0, 0x81, 0x08, 0x00, 0x00, 0x00, 0x00,
+        check(d, {0x04, 0xc0, 0x81, 0x08, 0x00, 0x00, 0x00, 0x00,
                0x20, 0x7f, 0xeb, 0x0b, 0x00, 0x00},
             error::invalid_literal_length);
-        check({0x02, 0x7e, 0xff, 0xff},
+        check(d, {0x02, 0x7e, 0xff, 0xff},
             error::invalid_distance_code);
-        check({0x0c, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00,
+        check(d, {0x0c, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00,
                0x90, 0xff, 0x6b, 0x04, 0x00},
             error::invalid_distance);
-        check({0x05,0xe0, 0x81, 0x91, 0x24, 0xcb, 0xb2, 0x2c,
+        check(d, {0x05,0xe0, 0x81, 0x91, 0x24, 0xcb, 0xb2, 0x2c,
                0x49, 0xe2, 0x0f, 0x2e, 0x8b, 0x9a, 0x47, 0x56,
                0x9f, 0xfb, 0xfe, 0xec, 0xd2, 0xff, 0x1f},
             error::end_of_stream);
-        check({0xed, 0xc0, 0x01, 0x01, 0x00, 0x00, 0x00, 0x40,
+        check(d, {0xed, 0xc0, 0x01, 0x01, 0x00, 0x00, 0x00, 0x40,
                0x20, 0xff, 0x57, 0x1b, 0x42, 0x2c, 0x4f},
             error::end_of_stream);
-        check({0x02, 0x08, 0x20, 0x80, 0x00, 0x03, 0x00},
+        check(d, {0x02, 0x08, 0x20, 0x80, 0x00, 0x03, 0x00},
             error::end_of_stream);
-        // TODO: Excess data (from golang test inflate suite), should this be an error?
-        check({0x78, 0x9c, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01, 0x78, 0x9c, 0xff},
+        check(d, {0x78, 0x9c, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01, 0x78, 0x9c, 0xff},
             error::invalid_stored_length);
     }
 
-    void testInvalidSettings()
+    void testInvalidSettings(IDecompressor& d)
     {
         except<std::domain_error>(
-            []()
+            [&]()
             {
-                inflate_stream is;
-                is.reset(7);
+                d.init(7);
             });
     }
 
-    void testFixedHuffmanFlushTrees()
+    void testFixedHuffmanFlushTrees(IDecompressor& d)
     {
         std::string out(5, 0);
-        z_params zs;
-        inflate_stream is;
-        is.reset();
+        d.init();
         boost::system::error_code ec;
         std::initializer_list<std::uint8_t> in = {
             0xf2, 0x48, 0xcd, 0xc9, 0xc9, 0x07, 0x00, 0x00,
             0x00, 0xff, 0xff};
-        zs.next_in = &*in.begin();
-        zs.next_out = &out[0];
-        zs.avail_in = in.size();
-        zs.avail_out = out.size();
-        is.write(zs, Flush::trees, ec);
+        d.next_in(&*in.begin());
+        d.next_out(&out[0]);
+        d.avail_in(in.size());
+        d.avail_out(out.size());
+        ec = d.write(Flush::trees);
         BEAST_EXPECT(!ec);
-        is.write(zs, Flush::sync, ec);
+        ec = d.write(Flush::sync);
         BEAST_EXPECT(!ec);
-        BEAST_EXPECT(zs.avail_out == 0);
+        BEAST_EXPECT(d.avail_out() == 0);
         BEAST_EXPECT(out == "Hello");
     }
 
-    void testUncompressedFlushTrees()
+    void testUncompressedFlushTrees(IDecompressor& d)
     {
         std::string out(5, 0);
-        z_params zs;
-        inflate_stream is;
-        is.reset();
+        d.init();
         boost::system::error_code ec;
         std::initializer_list<std::uint8_t> in = {
             0x00, 0x05, 0x00, 0xfa, 0xff, 0x48, 0x65, 0x6c,
             0x6c, 0x6f, 0x00, 0x00};
-        zs.next_in = &*in.begin();
-        zs.next_out = &out[0];
-        zs.avail_in = in.size();
-        zs.avail_out = out.size();
-        is.write(zs, Flush::trees, ec);
+        d.next_in(&*in.begin());
+        d.next_out(&out[0]);
+        d.avail_in(in.size());
+        d.avail_out(out.size());
+        ec = d.write(Flush::trees);
         BEAST_EXPECT(!ec);
-        is.write(zs, Flush::sync, ec);
+        ec = d.write(Flush::sync);
         BEAST_EXPECT(!ec);
-        BEAST_EXPECT(zs.avail_out == 0);
+        BEAST_EXPECT(d.avail_out() == 0);
         BEAST_EXPECT(out == "Hello");
     }
 
@@ -646,11 +640,16 @@ public:
         log <<
             "sizeof(inflate_stream) == " <<
             sizeof(inflate_stream) << std::endl;
-        testInflate();
-        testInflateErrors();
-        testInvalidSettings();
-        testFixedHuffmanFlushTrees();
-        testUncompressedFlushTrees();
+        testInflate(zlib_decompressor);
+        testInflate(beast_decompressor);
+        testInflateErrors(zlib_decompressor);
+        testInflateErrors(beast_decompressor);
+        testInvalidSettings(zlib_decompressor);
+        testInvalidSettings(beast_decompressor);
+        testFixedHuffmanFlushTrees(zlib_decompressor);
+        testFixedHuffmanFlushTrees(beast_decompressor);
+        testUncompressedFlushTrees(zlib_decompressor);
+        testUncompressedFlushTrees(beast_decompressor);
     }
 };
 
