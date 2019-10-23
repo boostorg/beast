@@ -62,6 +62,7 @@ public:
         {
         case error::need_buffers: return "need buffers";
         case error::end_of_stream: return "unexpected end of deflate stream";
+        case error::need_dict: return "need dict";
         case error::stream_error: return "stream error";
 
         case error::invalid_block_type: return "invalid block type";
