@@ -11,15 +11,12 @@
 #define BOOST_BEAST_HTTP_WRITE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/buffers_cat.hpp>
-#include <boost/beast/core/buffers_suffix.hpp>
-#include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/serializer.hpp>
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/beast/http/detail/chunk_encode.hpp>
 #include <boost/beast/core/error.hpp>
-#include <boost/beast/core/string.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <iosfwd>
 #include <limits>
@@ -169,12 +166,16 @@ write_some(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    class WriteHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_some(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
-    WriteHandler&& handler);
+    WriteHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>{});
 
 //------------------------------------------------------------------------------
 
@@ -295,12 +296,16 @@ write_header(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    class WriteHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_header(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
-    WriteHandler&& handler);
+    WriteHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>{});
 
 //------------------------------------------------------------------------------
 
@@ -412,12 +417,16 @@ write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    class WriteHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write(
     AsyncWriteStream& stream,
     serializer<isRequest, Body, Fields>& sr,
-    WriteHandler&& handler);
+    WriteHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>{});
 
 //------------------------------------------------------------------------------
 
@@ -633,7 +642,9 @@ write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    class WriteHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>>
 #if BOOST_BEAST_DOXYGEN
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 #else
@@ -644,7 +655,9 @@ typename std::enable_if<
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields>& msg,
-    WriteHandler&& handler);
+    WriteHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>);
 
 /** Write a complete message to a stream asynchronously.
 
@@ -692,7 +705,9 @@ async_write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    class WriteHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>>
 #if BOOST_BEAST_DOXYGEN
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 #else
@@ -703,7 +718,9 @@ typename std::enable_if<
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
-    WriteHandler&& handler);
+    WriteHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncWriteStream>>{});
 
 //------------------------------------------------------------------------------
 

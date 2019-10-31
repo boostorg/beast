@@ -475,9 +475,12 @@ public:
         to ensure that the requested amount of data is read before the asynchronous
         operation completes.
     */
-    template<class MutableBufferSequence, class ReadHandler>
+    template<
+        class MutableBufferSequence,
+        class ReadHandler>
     BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
-    async_read_some(MutableBufferSequence const& buffers,
+    async_read_some(
+        MutableBufferSequence const& buffers,
         ReadHandler&& handler);
 
     /** Write some data to the stream.
@@ -550,9 +553,12 @@ public:
         the peer. Consider using the function `net::async_write` if you need
         to ensure that all data is written before the asynchronous operation completes.
     */
-    template<class ConstBufferSequence, class WriteHandler>
+    template<
+        class ConstBufferSequence,
+        class WriteHandler>
     BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
-    async_write_some(ConstBufferSequence const& buffers,
+    async_write_some(
+        ConstBufferSequence const& buffers,
         WriteHandler&& handler);
 
 #if ! BOOST_BEAST_DOXYGEN

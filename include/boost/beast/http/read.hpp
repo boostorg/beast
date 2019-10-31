@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/http/basic_parser.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/asio/async_result.hpp>
@@ -204,13 +205,17 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler>
+    class ReadHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncReadStream>>>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read_some(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
     basic_parser<isRequest>& parser,
-    ReadHandler&& handler);
+    ReadHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncReadStream>>{});
 
 //------------------------------------------------------------------------------
 
@@ -397,13 +402,17 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler>
+    class ReadHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncReadStream>>>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read_header(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
     basic_parser<isRequest>& parser,
-    ReadHandler&& handler);
+    ReadHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncReadStream>>{});
 
 //------------------------------------------------------------------------------
 
@@ -590,13 +599,17 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler>
+    class ReadHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncReadStream>>>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
     basic_parser<isRequest>& parser,
-    ReadHandler&& handler);
+    ReadHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncReadStream>>{});
 
 //------------------------------------------------------------------------------
 
@@ -792,13 +805,17 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Body, class Allocator,
-    class ReadHandler>
+    class ReadHandler =
+        net::default_completion_token_t<
+            executor_type<AsyncReadStream>>>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
     DynamicBuffer& buffer,
     message<isRequest, Body, basic_fields<Allocator>>& msg,
-    ReadHandler&& handler);
+    ReadHandler&& handler =
+        net::default_completion_token_t<
+            executor_type<AsyncReadStream>>{});
 
 } // http
 } // beast

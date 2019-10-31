@@ -261,10 +261,15 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
     */
-    template<class MutableBufferSequence, class ReadHandler>
+    template<
+        class MutableBufferSequence,
+        class ReadHandler =
+            net::default_completion_token_t<executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
-    async_read_some(MutableBufferSequence const& buffers,
-        ReadHandler&& handler);
+    async_read_some(
+        MutableBufferSequence const& buffers,
+        ReadHandler&& handler =
+            net::default_completion_token_t<executor_type>{});
 
     /** Write some data to the stream.
 
@@ -335,10 +340,15 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
     */
-    template<class ConstBufferSequence, class WriteHandler>
+    template<
+        class ConstBufferSequence,
+        class WriteHandler =
+            net::default_completion_token_t<executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
-    async_write_some(ConstBufferSequence const& buffers,
-        WriteHandler&& handler);
+    async_write_some(
+        ConstBufferSequence const& buffers,
+        WriteHandler&& handler =
+            net::default_completion_token_t<executor_type>{});
 };
 
 } // beast

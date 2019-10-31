@@ -1,3 +1,9 @@
+Version 275:
+
+* Async init-fns use the executor's default token
+
+--------------------------------------------------------------------------------
+
 Version 274:
 
 * Fix leftovers in basic_parser corner case
