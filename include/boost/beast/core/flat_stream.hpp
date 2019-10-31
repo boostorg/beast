@@ -253,7 +253,7 @@ public:
     */
     template<
         class MutableBufferSequence,
-        class ReadHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
             net::default_completion_token_t<executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
     async_read_some(
@@ -334,7 +334,7 @@ public:
     */
     template<
         class ConstBufferSequence,
-        class WriteHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
             net::default_completion_token_t<executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
     async_write_some(

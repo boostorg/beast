@@ -90,7 +90,15 @@ namespace net = boost::asio;
 
 #ifndef BOOST_BEAST_ASYNC_RESULT2
 #define BOOST_BEAST_ASYNC_RESULT2(type) \
-    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(type, void(::boost::beast::error_code, std::size_t))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(type, void(::boost::beast::error_code, ::std::size_t))
+#endif
+
+#ifndef BOOST_BEAST_ASYNC_TPARAM1
+#define BOOST_BEAST_ASYNC_TPARAM1 BOOST_ASIO_COMPLETION_TOKEN_FOR(void(::boost::beast::error_code))
+#endif
+
+#ifndef BOOST_BEAST_ASYNC_TPARAM2
+#define BOOST_BEAST_ASYNC_TPARAM2 BOOST_ASIO_COMPLETION_TOKEN_FOR(void(::boost::beast::error_code, ::std::size_t))
 #endif
 
 #endif

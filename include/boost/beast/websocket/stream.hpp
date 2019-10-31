@@ -876,7 +876,7 @@ public:
         @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<
-        class HandshakeHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
@@ -962,7 +962,7 @@ public:
         @li <a href="https://tools.ietf.org/html/rfc7230#section-5.3.1">origin-form (RFC7230)</a>
     */
     template<
-        class HandshakeHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
@@ -1286,7 +1286,7 @@ public:
         @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
     template<
-        class AcceptHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
@@ -1354,7 +1354,7 @@ public:
     */
     template<
         class ConstBufferSequence,
-        class AcceptHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
@@ -1419,7 +1419,7 @@ public:
     */
     template<
         class Body, class Allocator,
-        class AcceptHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
@@ -1554,7 +1554,7 @@ public:
         @li <a href="https://tools.ietf.org/html/rfc6455#section-7.1.2">Websocket Closing Handshake (RFC6455)</a>
     */
     template<
-        class CloseHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 CloseHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(CloseHandler)
@@ -1656,7 +1656,7 @@ public:
         manner equivalent to using `net::post`.
     */
     template<
-        class WriteHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 WriteHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
@@ -1764,7 +1764,7 @@ public:
         manner equivalent to using `net::post`.
     */
     template<
-        class WriteHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 WriteHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
@@ -1926,7 +1926,7 @@ public:
     */
     template<
         class DynamicBuffer,
-        class ReadHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
             net::default_completion_token_t<
                 executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
@@ -2105,7 +2105,7 @@ public:
     */
     template<
         class DynamicBuffer,
-        class ReadHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
             net::default_completion_token_t<
                 executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
@@ -2280,7 +2280,7 @@ public:
     */
     template<
         class MutableBufferSequence,
-        class ReadHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
             net::default_completion_token_t<
                 executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
@@ -2403,7 +2403,7 @@ public:
     */
     template<
         class ConstBufferSequence,
-        class WriteHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
             net::default_completion_token_t<
                 executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
@@ -2526,7 +2526,7 @@ public:
     */
     template<
         class ConstBufferSequence,
-        class WriteHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
             net::default_completion_token_t<
                 executor_type>>
     BOOST_BEAST_ASYNC_RESULT2(WriteHandler)

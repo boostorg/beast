@@ -205,7 +205,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
         net::default_completion_token_t<
             executor_type<AsyncReadStream>>>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
@@ -402,7 +402,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
         net::default_completion_token_t<
             executor_type<AsyncReadStream>>>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
@@ -599,7 +599,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
         net::default_completion_token_t<
             executor_type<AsyncReadStream>>>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
@@ -805,7 +805,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Body, class Allocator,
-    class ReadHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
         net::default_completion_token_t<
             executor_type<AsyncReadStream>>>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)

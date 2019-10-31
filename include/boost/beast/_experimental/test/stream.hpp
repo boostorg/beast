@@ -477,7 +477,7 @@ public:
     */
     template<
         class MutableBufferSequence,
-        class ReadHandler>
+        BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
     BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
     async_read_some(
         MutableBufferSequence const& buffers,
@@ -555,7 +555,7 @@ public:
     */
     template<
         class ConstBufferSequence,
-        class WriteHandler>
+        BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
     BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
     async_write_some(
         ConstBufferSequence const& buffers,

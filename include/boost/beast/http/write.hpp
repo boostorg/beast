@@ -166,7 +166,7 @@ write_some(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
         net::default_completion_token_t<
             executor_type<AsyncWriteStream>>>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
@@ -296,7 +296,7 @@ write_header(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
         net::default_completion_token_t<
             executor_type<AsyncWriteStream>>>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
@@ -417,7 +417,7 @@ write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
         net::default_completion_token_t<
             executor_type<AsyncWriteStream>>>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
@@ -642,7 +642,7 @@ write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
         net::default_completion_token_t<
             executor_type<AsyncWriteStream>>>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
@@ -704,7 +704,7 @@ async_write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler =
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
         net::default_completion_token_t<
             executor_type<AsyncWriteStream>>>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)

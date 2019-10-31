@@ -49,9 +49,13 @@ PREDEFINED             = \
                         BOOST_BEAST_SPLIT_COMPILATION=1 \
                         "BOOST_BEAST_ASYNC_RESULT1(t)=__deduced__" \
                         "BOOST_BEAST_ASYNC_RESULT2(t)=__deduced__" \
+                        "BOOST_BEAST_ASYNC_TPARAM1=class" \
+                        "BOOST_BEAST_ASYNC_TPARAM2=class" \
                         "BOOST_ASIO_INITFN_RESULT_TYPE(t,a)=__deduced__" \
+                        "BOOST_ASIO_COMPLETION_TOKEN_FOR(sig)=class" \
                         GENERATING_DOCUMENTATION \
                         BOOST_BEAST_DECL
+
 EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES
 

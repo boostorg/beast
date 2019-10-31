@@ -921,7 +921,7 @@ public:
         @see async_connect
     */
     template<
-        class ConnectHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 ConnectHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT1(ConnectHandler)
@@ -974,15 +974,19 @@ public:
     */
     template<
         class EndpointSequence,
-        class RangeConnectHandler =
-            net::default_completion_token_t<executor_type>
+        BOOST_ASIO_COMPLETION_TOKEN_FOR(
+            void(error_code, typename Protocol::endpoint))
+            RangeConnectHandler =
+                net::default_completion_token_t<executor_type>
     #if ! BOOST_BEAST_DOXYGEN
         ,class = typename std::enable_if<
             net::is_endpoint_sequence<
                 EndpointSequence>::value>::type
     #endif
     >
-    BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void (error_code, typename Protocol::endpoint))
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        RangeConnectHandler,
+        void(error_code, typename Protocol::endpoint))
     async_connect(
         EndpointSequence const& endpoints,
         RangeConnectHandler&& handler =
@@ -1063,15 +1067,19 @@ public:
     template<
         class EndpointSequence,
         class ConnectCondition,
-        class RangeConnectHandler =
-            net::default_completion_token_t<executor_type>
+        BOOST_ASIO_COMPLETION_TOKEN_FOR(
+            void(error_code, typename Protocol::endpoint))
+            RangeConnectHandler =
+                net::default_completion_token_t<executor_type>
     #if ! BOOST_BEAST_DOXYGEN
         ,class = typename std::enable_if<
             net::is_endpoint_sequence<
                 EndpointSequence>::value>::type
     #endif
     >
-    BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void (error_code, typename Protocol::endpoint))
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        RangeConnectHandler,
+        void(error_code, typename Protocol::endpoint))
     async_connect(
         EndpointSequence const& endpoints,
         ConnectCondition connect_condition,
@@ -1123,8 +1131,10 @@ public:
     */
     template<
         class Iterator,
-        class IteratorConnectHandler =
-            net::default_completion_token_t<executor_type>>
+        BOOST_ASIO_COMPLETION_TOKEN_FOR(
+            void(error_code, Iterator))
+            IteratorConnectHandler =
+                net::default_completion_token_t<executor_type>>
     BOOST_ASIO_INITFN_RESULT_TYPE(
         IteratorConnectHandler,
         void(error_code, Iterator))
@@ -1182,8 +1192,10 @@ public:
     template<
         class Iterator,
         class ConnectCondition,
-        class IteratorConnectHandler =
-            net::default_completion_token_t<executor_type>>
+        BOOST_ASIO_COMPLETION_TOKEN_FOR(
+            void(error_code, Iterator))
+            IteratorConnectHandler =
+                net::default_completion_token_t<executor_type>>
     BOOST_ASIO_INITFN_RESULT_TYPE(
         IteratorConnectHandler,
         void(error_code, Iterator))
@@ -1306,7 +1318,7 @@ public:
     */
     template<
         class MutableBufferSequence,
-        class ReadHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
             net::default_completion_token_t<executor_type>
     >
     BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
@@ -1429,7 +1441,7 @@ public:
     */
     template<
         class ConstBufferSequence,
-        class WriteHandler =
+        BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =
             net::default_completion_token_t<Executor>
     >
     BOOST_BEAST_ASYNC_RESULT2(WriteHandler)

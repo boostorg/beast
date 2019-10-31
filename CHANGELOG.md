@@ -3,6 +3,7 @@ Version 275:
 * Async init-fns use the executor's default token
 * Add basic_stream::rebind_executor
 * Use automatically deduced return types for all async operations
+* Support Concepts for completion token params
 
 --------------------------------------------------------------------------------
 
