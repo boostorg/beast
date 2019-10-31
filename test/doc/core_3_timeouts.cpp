@@ -356,7 +356,7 @@ https_get (std::string const& host, std::string const& target, error_code& ec)
             req.method(http::verb::get);
             req.target(target);
             req.version(11);
-            req.set(http::field::server, host);
+            req.set(http::field::host, host);
             req.set(http::field::user_agent, "Beast");
             http::async_write(stream, req, yield[ec]);
             if(ec)
