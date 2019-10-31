@@ -4,6 +4,7 @@ Version 275:
 * Add basic_stream::rebind_executor
 * Use automatically deduced return types for all async operations
 * Support Concepts for completion token params
+* https_get example sends the Host header
 
 --------------------------------------------------------------------------------
 
