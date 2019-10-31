@@ -217,6 +217,15 @@ public:
     */
     using executor_type = beast::executor_type<socket_type>;
 
+    /// Rebinds the stream type to another executor.
+    template<class Executor1>
+    struct rebind_executor
+    {
+        /// The stream type when rebound to the specified executor.
+        using other = basic_stream<
+            Protocol, Executor1, RatePolicy>;
+    };
+
     /// The protocol type.
     using protocol_type = Protocol;
 
