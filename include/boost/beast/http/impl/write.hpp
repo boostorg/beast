@@ -802,13 +802,13 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-typename std::enable_if<
-    is_mutable_body_writer<Body>::value,
-    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)>::type
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields>& msg,
-    WriteHandler&& handler)
+    WriteHandler&& handler,
+    typename std::enable_if<
+        is_mutable_body_writer<Body>::value>::type*)
 {
     static_assert(
         is_async_write_stream<AsyncWriteStream>::value,
@@ -831,13 +831,13 @@ template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
     class WriteHandler>
-typename std::enable_if<
-    ! is_mutable_body_writer<Body>::value,
-    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)>::type
+BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
-    WriteHandler&& handler)
+    WriteHandler&& handler,
+    typename std::enable_if<
+        ! is_mutable_body_writer<Body>::value>::type*)
 {
     static_assert(
         is_async_write_stream<AsyncWriteStream>::value,

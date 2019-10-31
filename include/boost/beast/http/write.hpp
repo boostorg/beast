@@ -645,19 +645,18 @@ template<
     class WriteHandler =
         net::default_completion_token_t<
             executor_type<AsyncWriteStream>>>
-#if BOOST_BEAST_DOXYGEN
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
-#else
-typename std::enable_if<
-    is_mutable_body_writer<Body>::value,
-    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)>::type
-#endif
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields>& msg,
     WriteHandler&& handler =
         net::default_completion_token_t<
-            executor_type<AsyncWriteStream>>);
+            executor_type<AsyncWriteStream>>{}
+#ifndef BOOST_BEAST_DOXYGEN
+    , typename std::enable_if<
+        is_mutable_body_writer<Body>::value>::type* = 0
+#endif
+    );
 
 /** Write a complete message to a stream asynchronously.
 
@@ -708,19 +707,19 @@ template<
     class WriteHandler =
         net::default_completion_token_t<
             executor_type<AsyncWriteStream>>>
-#if BOOST_BEAST_DOXYGEN
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
-#else
-typename std::enable_if<
-    ! is_mutable_body_writer<Body>::value,
-    BOOST_BEAST_ASYNC_RESULT2(WriteHandler)>::type
-#endif
 async_write(
     AsyncWriteStream& stream,
     message<isRequest, Body, Fields> const& msg,
     WriteHandler&& handler =
         net::default_completion_token_t<
-            executor_type<AsyncWriteStream>>{});
+            executor_type<AsyncWriteStream>>{}
+#ifndef BOOST_BEAST_DOXYGEN
+    , typename std::enable_if<
+        ! is_mutable_body_writer<Body>::value>::type* = 0
+#endif
+    );
+
 
 //------------------------------------------------------------------------------
 

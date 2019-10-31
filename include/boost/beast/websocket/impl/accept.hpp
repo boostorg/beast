@@ -591,13 +591,15 @@ template<class NextLayer, bool deflateSupported>
 template<
     class ConstBufferSequence,
     class AcceptHandler>
-typename std::enable_if<
-    ! http::detail::is_header<ConstBufferSequence>::value,
-    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)>::type
+BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept(
     ConstBufferSequence const& buffers,
-    AcceptHandler&& handler)
+    AcceptHandler&& handler,
+    typename std::enable_if<
+        ! http::detail::is_header<
+        ConstBufferSequence>::value>::type*
+)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
@@ -620,14 +622,15 @@ template<
     class ConstBufferSequence,
     class ResponseDecorator,
     class AcceptHandler>
-typename std::enable_if<
-    ! http::detail::is_header<ConstBufferSequence>::value,
-    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)>::type
+BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept_ex(
     ConstBufferSequence const& buffers,
     ResponseDecorator const& decorator,
-    AcceptHandler&& handler)
+    AcceptHandler&& handler,
+    typename std::enable_if<
+        ! http::detail::is_header<
+        ConstBufferSequence>::value>::type*)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");

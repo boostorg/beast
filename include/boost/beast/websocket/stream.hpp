@@ -1357,18 +1357,18 @@ public:
         class AcceptHandler =
             net::default_completion_token_t<executor_type>
     >
-#if BOOST_BEAST_DOXYGEN
-    void_or_deduced
-#else
-    typename std::enable_if<
-        ! http::detail::is_header<ConstBufferSequence>::value,
-        BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)>::type
-#endif
+    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept(
         ConstBufferSequence const& buffers,
         AcceptHandler&& handler =
             net::default_completion_token_t<
-                executor_type>{});
+                executor_type>{}
+#ifndef BOOST_BEAST_DOXYGEN
+        , typename std::enable_if<
+            ! http::detail::is_header<
+            ConstBufferSequence>::value>::type* = 0
+#endif
+    );
 
     /** Perform the WebSocket handshake asynchronously in the server role.
 
@@ -2644,13 +2644,14 @@ public:
         class ConstBufferSequence,
         class ResponseDecorator,
         class AcceptHandler>
-    typename std::enable_if<
-        ! http::detail::is_header<ConstBufferSequence>::value,
-        BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)>::type
+    BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept_ex(
         ConstBufferSequence const& buffers,
         ResponseDecorator const& decorator,
-        AcceptHandler&& handler);
+        AcceptHandler&& handler,
+        typename std::enable_if<
+            ! http::detail::is_header<
+            ConstBufferSequence>::value>::type* = 0);
 
     template<
         class Body, class Allocator,

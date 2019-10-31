@@ -1125,7 +1125,9 @@ public:
         class Iterator,
         class IteratorConnectHandler =
             net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        IteratorConnectHandler,
+        void(error_code, Iterator))
     async_connect(
         Iterator begin, Iterator end,
         IteratorConnectHandler&& handler =
@@ -1182,7 +1184,9 @@ public:
         class ConnectCondition,
         class IteratorConnectHandler =
             net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
+    BOOST_ASIO_INITFN_RESULT_TYPE(
+        IteratorConnectHandler,
+        void(error_code, Iterator))
     async_connect(
         Iterator begin, Iterator end,
         ConnectCondition connect_condition,

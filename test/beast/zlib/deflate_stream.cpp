@@ -403,7 +403,8 @@ public:
             explicit fixture(std::size_t n, Strategy s)
             {
                 ds.reset(8, 15, 1, s);
-                std::iota(in.begin(), in.end(), 0);
+                std::iota(in.begin(), in.end(),
+                    static_cast<std::uint8_t>(0));
                 out.resize(n);
                 zp.next_in = in.data();
                 zp.avail_in = in.size();
@@ -479,8 +480,10 @@ public:
             // 125 will mostly fill the lit buffer, so emitting a distance code
             // results in a flush.
             auto constexpr n = 125;
-            std::iota(in.begin(), in.begin() + n, 0);
-            std::iota(in.begin() + n, in.end(), 0);
+            std::iota(in.begin(), in.begin() + n,
+                static_cast<std::uint8_t>(0));
+            std::iota(in.begin() + n, in.end(),
+                static_cast<std::uint8_t>(0));
 
             ds.reset(8, 15, 1, Strategy::normal);
             std::string out;
