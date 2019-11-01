@@ -214,6 +214,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
     time_out()
     {
         timed_out = true;
+        change_status(status::closed);
         close_socket(get_lowest_layer(stream()));
     }
 

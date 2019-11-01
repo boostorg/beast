@@ -155,11 +155,40 @@ struct timer_test : unit_test::suite
         }
     }
 
+    // https://github.com/boostorg/beast/issues/1729#issuecomment-540481056
+    void
+    testCloseWhileRead()
+    {
+        net::io_context ioc;
+        stream<tcp::socket> ws1(ioc);
+        stream<tcp::socket> ws2(ioc);
+        test::connect(ws1.next_layer(), ws2.next_layer());
+
+        ws1.set_option(websocket::stream_base::timeout{
+            std::chrono::milliseconds(50),
+            websocket::stream_base::none(),
+            false});
+
+        ws1.async_accept(net::detached);
+        ws2.async_handshake(
+            "localhost", "/", net::detached);
+        ioc.run();
+        ioc.restart();
+
+        flat_buffer b;
+        ws1.async_read(b, test::fail_handler(
+            beast::error::timeout));
+        ws1.async_close({}, test::fail_handler(
+            net::error::operation_aborted));
+        ioc.run();
+    }
+
     void
     run() override
     {
         testIdlePing();
         testIssue1729();
+        testCloseWhileRead();
     }
 };
 
