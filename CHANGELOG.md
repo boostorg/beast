@@ -5,6 +5,7 @@ Version 275:
 * Use automatically deduced return types for all async operations
 * Support Concepts for completion token params
 * https_get example sends the Host header
+* Fix async_close error code when async_read times out
 
 --------------------------------------------------------------------------------
 

@@ -210,6 +210,14 @@ struct stream<NextLayer, deflateSupported>::impl_type
         timer.cancel();
     }
 
+    void
+    time_out()
+    {
+        timed_out = true;
+        change_status(status::closed);
+        close_socket(get_lowest_layer(stream()));
+    }
+
     // Called just before sending
     // the first frame of each message
     void
@@ -516,8 +524,7 @@ private:
             switch(impl.status_)
             {
             case status::handshake:
-                impl.timed_out = true;
-                close_socket(get_lowest_layer(impl.stream()));
+                impl.time_out();
                 return;
 
             case status::open:
@@ -537,14 +544,11 @@ private:
                     return;
                 }
 
-                // timeout
-                impl.timed_out = true;
-                close_socket(get_lowest_layer(impl.stream()));
+                impl.time_out();
                 return;
 
             case status::closing:
-                impl.timed_out = true;
-                close_socket(get_lowest_layer(impl.stream()));
+                impl.time_out();
                 return;
 
             case status::closed:
