@@ -107,6 +107,9 @@ enum class error
 
     /// Invalid code lengths
     invalid_code_lengths,
+#ifndef BOOST_BEAST_NO_DEPRECATED
+    invalid_code_lenths = invalid_code_lengths,
+#endif
 
     /// Invalid bit length repeat
     invalid_bit_length_repeat,
