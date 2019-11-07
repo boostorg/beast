@@ -7,14 +7,15 @@
 
 project beast/doc ;
 
+import generators ;
 import os ;
 import path ;
 import boostbook ;
 import quickbook ;
-import xsltproc ;
 import doxygen ;
 import modules ;
 import saxonhe ;
+import type ;
 
 #-------------------------------------------------------------------------------
 #
@@ -23,59 +24,41 @@ import saxonhe ;
 # docs can be rebuild if any of the header files change.
 #
 
-local sources = [ path.glob-tree ../include/boost/beast : *.hpp *.ipp : detail impl ] ;
-
-# Get the configured paths to doxygen and xsltproc
-
-.doxygen = [ doxygen.name ] ;
-.doxygen ?= doxygen ;
-
-#ECHO Using doxygen from "$(.doxygen)" ;
-
-.xsltproc = [ xsltproc.name ] ;
-.xsltproc ?= xsltproc ;
-
-#ECHO Using xsltproc from "$(.xsltproc)" ;
+type.register IPP : ipp : HPP ;
+local sources = [ glob-tree-ex ../include/boost/beast : *.hpp *.ipp : detail impl ] ;
 
 #-------------------------------------------------------------------------------
 #
-# Invoke Doxygen to process the header files and produce the XML
-# containing the description of the C++ declarations and extracted
-# Javadoc comments.
+# Generate transform.xsl. This xsl transfomration takes as input
+# the Doxygen-generated XML and produces QuickBook output.
 #
-make index.xml
+make transform.xsl
     :
-        ./source.dox
+        docca/include/docca/doxygen.xsl
+        xsl/config.xsl
+        xsl/class_detail.xsl
+        xsl/includes.xsl
+        xsl/includes_foot.xsl
     :
-        @make_doxygen_xml
-    :
-        <dependency>$(sources)
+        @make_transform
     ;
 
-rule make_doxygen_xml ( targets * : sources * : properties * )
+# Make a copy of the docca transform. Then, insert our
+# customizations into the speciall marked locations using sed.
+#
+actions make_transform
 {
-    LIB_DIR on $(targets) =
-        [ path.native [ path.parent [ path.root
-        [ on $(sources[1]) return $(SEARCH) ] [ path.pwd ] ] ] ] ;
+    cp $(2[1]) $(1)
+    sed -i -e "/<!-- CONFIG_TEMPLATE -->/{r $(2[2])" -e "d}" $(1)
+    sed -i -e "/<!-- CLASS_DETAIL_TEMPLATE -->/{r $(2[3])" -e "d}" $(1)
+    sed -i -e "/<!-- INCLUDES_TEMPLATE -->/{r $(2[4])" -e "d}" $(1)
+    sed -i -e "/<!-- INCLUDES_FOOT_TEMPLATE -->/{r $(2[5])" -e "d}" $(1)
 }
 
-if [ os.name ] = NT
-{
-    actions make_doxygen_xml
-    {
-        SET LIB_DIR=$(LIB_DIR)
-        SET XML_OUTPUT=$(1:D)
-        "$(.doxygen)" $(2)
-    }
-}
-else
-{
-    actions make_doxygen_xml
-    {
-        export LIB_DIR=$(LIB_DIR)
-        export XML_OUTPUT=$(1:D)
-        "$(.doxygen)" $(2)
-    }
+
+generators.register-composing $(__name__).docca-convert : DOXYGEN_XML XSLT : QUICKBOOK ;
+rule docca-convert  ( target : source stylesheet : properties * ) {
+  saxonhe.saxonhe $(target) : $(source) $(stylesheet) : $(properties) ;
 }
 
 #-------------------------------------------------------------------------------
@@ -204,43 +187,28 @@ actions make_dir
     mkdir $(1)
 }
 
-make combine.xslt : index.xml : @null_action ;
-
-actions touch_file
-{
-    touch $(1) ;
-}
-
-actions null_action
-{
-    touch -c $(1) ;
-}
-
-make reference.xml
+#-------------------------------------------------------------------------------
+#
+# Generate Doxygen configuration file
+path-constant HERE : . ;
+include $(HERE)/doxyfile.jam ;
+doxyfile reference.doxyfile
     :
-        combine.xslt
-        index.xml
+        $(sources)
+        doxygen-params
     :
-        @call-xsltproc
+        <doxygen:param>XML_OUTPUT=reference
+        <doxygen:param>GENERATE_XML=YES
     ;
-
-actions call-xsltproc
-{
-    "$(.xsltproc)" $(2) > $(1)
-}
 
 #-------------------------------------------------------------------------------
 #
-# Produce the reference.qbk file by running
+# Invoke Doxygen to process the header files and produce the XML
+# containing the description of the C++ declarations and extracted
+# Javadoc comments. Then produce the reference.qbk file by running
 # the reference xml through the transform.
 #
-#make reference.qbk
-#    :
-#        reference.xml
-#        transform.xsl
-#    :
-#        saxonhe.saxonhe
-#    ;
+quickbook reference.qbk : reference.doxyfile transform.xsl ;
 
 # We have to make a copy of reference.qbk and put it
 # in a place where the static .qbk files can find it
