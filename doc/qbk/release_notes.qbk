@@ -11,6 +11,50 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.72]
+
+[*Examples]
+
+* Add async-ssl-system-executor http client example
+
+* Add async-ssl-system-executor websocket client example
+
+[*Features]
+
+* Async init-fns use the executor's default token
+
+* Use automatically deduced return types for all async operations (since C++14)
+
+* Support Concepts for completion token params
+
+[*Fixes]
+
+* [issue 1664] Add default dtors to satisfy -Wnon-virtual-dtor
+
+* [issue 1682] Multiple I/O of the same type is not supported 
+
+* [issue 1687] Fix signed/unsigned mismatch in file_stdio::seek
+
+* [issue 1688] basic_stream dtor cannot throw
+
+* [issue 1734] Fix leftovers in basic_parser corner case: 
+
+* [issue 1751] https_get example sends the Host header
+
+* [issue 1754] Fix async_close error code when async_read times out 
+
+* [issue 1782] root_certificates.hpp is not for production
+
+* Fix data race in websocket examples
+ 
+* Fix data race in http server examples
+
+* Squelch spurious websocket timer assert
+
+* Use the executor type in basic_stream timer 
+
+[/-----------------------------------------------------------------------------]
+
 [heading Boost 1.71]
 
 
