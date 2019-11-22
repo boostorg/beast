@@ -1,5 +1,8 @@
-<!-- INCLUDES_TEMPLATE BEGIN -->
-  <xsl:text>Defined in header [include_file </xsl:text>
-  <xsl:value-of select="substring-after($file,'include/')"/>
-  <xsl:text>]&#xd;&#xd;</xsl:text>
-<!-- INCLUDES_TEMPLATE END -->
+<!-- INCLUDES_FOOT_TEMPLATE BEGIN -->
+<xsl:template mode="convenience-header" match="@file[contains(., 'boost/beast/core')]"     >core.hpp</xsl:template>
+<xsl:template mode="convenience-header" match="@file[contains(., 'boost/beast/http')]"     >http.hpp</xsl:template>
+<xsl:template mode="convenience-header" match="@file[contains(., 'boost/beast/ssl')]"      >ssl.hpp</xsl:template>
+<xsl:template mode="convenience-header" match="@file[contains(., 'boost/beast/websocket')]">websocket.hpp</xsl:template>
+<xsl:template mode="convenience-header" match="@file[contains(., 'boost/beast/zlib')]"     >zlib.hpp</xsl:template>
+<xsl:template mode="convenience-header" match="@file"/>
+<!-- INCLUDES_FOOT_TEMPLATE END -->

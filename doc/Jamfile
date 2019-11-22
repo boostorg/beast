@@ -94,7 +94,6 @@ else
 #
 make extract-xml-pages.xsl      : docca/include/docca/extract-xml-pages.xsl      : @copy_script ;
 make base-extract-xml-pages.xsl : docca/include/docca/base-extract-xml-pages.xsl : @copy_script ;
-make config.xsl                 : docca/include/docca/config.xsl                 : @copy_script ;
 make common.xsl                 : docca/include/docca/common.xsl                 : @copy_script ;
 make stage1.xsl                 : docca/include/docca/stage1.xsl                 : @copy_script ;
 make base-stage1.xsl            : docca/include/docca/base-stage1.xsl            : @copy_script ;
@@ -102,13 +101,22 @@ make stage2.xsl                 : docca/include/docca/stage2.xsl                
 make assemble-quickbook.xsl     : docca/include/docca/assemble-quickbook.xsl     : @copy_script ;
 make emphasized-types.xsl       : docca/include/docca/emphasized-types.xsl       : @copy_script ;
 
-# Beginning (failed) attempt to make all the xslt-visualizer code available
-#make xslt-visualizer : docca/include/xslt-visualizer : @copy_dir ;
-#
-#actions copy_dir
-#{
-#    cp -r $(2[1]) $(1)
-#}
+make config.xsl
+    :
+        docca/include/docca/config.xsl
+        xsl/config.xsl
+        xsl/class_detail.xsl
+        xsl/includes.xsl
+    :
+        @make_config
+    ;
+
+actions make_config
+{
+    cp $(2[1]) $(1)
+    sed -i -e "/<!-- CONFIG_TEMPLATE -->/{r $(2[2])" -e "d}" $(1)
+    sed -i -e "/<!-- INCLUDES_FOOT_TEMPLATE -->/{r $(2[4])" -e "d}" $(1)
+}
 
 # Make a copy of the given file.
 #
