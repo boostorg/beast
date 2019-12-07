@@ -11,7 +11,6 @@
 #define BOOST_BEAST_UNIT_TEST_SUITE_HPP
 
 #include <boost/beast/_experimental/unit_test/runner.hpp>
-#include <boost/throw_exception.hpp>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -566,7 +565,7 @@ fail(std::string const& reason)
     if(abort_)
     {
         aborted_ = true;
-        BOOST_THROW_EXCEPTION(abort_exception());
+        throw abort_exception();
     }
 }
 
@@ -584,7 +583,7 @@ suite::
 propagate_abort()
 {
     if(abort_ && aborted_)
-        BOOST_THROW_EXCEPTION(abort_exception());
+        throw abort_exception();
 }
 
 template<class>
