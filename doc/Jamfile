@@ -92,18 +92,19 @@ else
 #        an invocation of extract-xml-pages.xsl (which
 #        imports the former) must be run again.
 #
-make extract-xml-pages.xsl      : docca/include/docca/extract-xml-pages.xsl      : @copy_script ;
-make base-extract-xml-pages.xsl : docca/include/docca/base-extract-xml-pages.xsl : @copy_script ;
-make common.xsl                 : docca/include/docca/common.xsl                 : @copy_script ;
-make stage1.xsl                 : docca/include/docca/stage1.xsl                 : @copy_script ;
-make base-stage1.xsl            : docca/include/docca/base-stage1.xsl            : @copy_script ;
-make stage2.xsl                 : docca/include/docca/stage2.xsl                 : @copy_script ;
-make assemble-quickbook.xsl     : docca/include/docca/assemble-quickbook.xsl     : @copy_script ;
-make emphasized-types.xsl       : docca/include/docca/emphasized-types.xsl       : @copy_script ;
+path-constant docca : ../../../tools/docca ;
+make extract-xml-pages.xsl      : $(docca)/include/docca/extract-xml-pages.xsl      : @copy_script ;
+make base-extract-xml-pages.xsl : $(docca)/include/docca/base-extract-xml-pages.xsl : @copy_script ;
+make common.xsl                 : $(docca)/include/docca/common.xsl                 : @copy_script ;
+make stage1.xsl                 : $(docca)/include/docca/stage1.xsl                 : @copy_script ;
+make base-stage1.xsl            : $(docca)/include/docca/base-stage1.xsl            : @copy_script ;
+make stage2.xsl                 : $(docca)/include/docca/stage2.xsl                 : @copy_script ;
+make assemble-quickbook.xsl     : $(docca)/include/docca/assemble-quickbook.xsl     : @copy_script ;
+make emphasized-types.xsl       : $(docca)/include/docca/emphasized-types.xsl       : @copy_script ;
 
 make config.xsl
     :
-        docca/include/docca/config.xsl
+        $(docca)/include/docca/config.xsl
         xsl/config.xsl
         xsl/class_detail.xsl
         xsl/includes.xsl

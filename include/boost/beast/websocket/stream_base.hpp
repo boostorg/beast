@@ -159,7 +159,12 @@ struct stream_base
         }
     };
 
-protected:
+private:
+    template<
+        class NextLayer,
+        bool deflateSupported>
+    friend class stream;
+
     enum class status
     {
         //none,
