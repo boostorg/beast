@@ -1,3 +1,16 @@
+Version 278:
+
+* Update documentation
+* Update docca submodule
+
+--------------------------------------------------------------------------------
+
+Version 277:
+
+* Update release notes
+
+--------------------------------------------------------------------------------
+
 Version 276:
 
 * https_get example sends the Host header
