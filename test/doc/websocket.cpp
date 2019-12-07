@@ -7,12 +7,14 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/config.hpp>
 
 #ifdef BOOST_MSVC
 #pragma warning(push)
 #pragma warning(disable: 4459) // declaration hides global declaration
 #endif
+
+#include <boost/beast/_experimental/unit_test/suite.hpp>
 
 //[code_websocket_1a
 
