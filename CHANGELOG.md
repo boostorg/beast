@@ -1,3 +1,10 @@
+Version 279:
+
+* Fix pragma warning
+* Use superproject docca
+
+--------------------------------------------------------------------------------
+
 Version 278:
 
 * Update documentation
