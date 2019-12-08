@@ -2,6 +2,7 @@ Version 278:
 
 * Update documentation
 * Update docca submodule
+* Use regular throw in test
 
 --------------------------------------------------------------------------------
 

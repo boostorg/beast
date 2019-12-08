@@ -53,9 +53,9 @@ class inflate_stream_test : public beast::unit_test::suite
             case Z_OK:
                break;
             case Z_MEM_ERROR:
-               BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: no memory"});
+               throw std::runtime_error{"zlib decompressor: no memory"};
             case Z_STREAM_ERROR:
-               BOOST_THROW_EXCEPTION(std::domain_error{"zlib decompressor: bad arg"});
+               throw std::domain_error{"zlib decompressor: bad arg"};
             }
         }
         void init() override {
@@ -66,9 +66,9 @@ class inflate_stream_test : public beast::unit_test::suite
             case Z_OK:
                 break;
             case Z_MEM_ERROR:
-                BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: no memory"});
+                throw std::runtime_error{"zlib decompressor: no memory"};
             case Z_STREAM_ERROR:
-               BOOST_THROW_EXCEPTION(std::domain_error{"zlib decompressor: bad arg"});
+                throw std::domain_error{"zlib decompressor: bad arg"};
             }
         }
 
@@ -96,11 +96,11 @@ class inflate_stream_test : public beast::unit_test::suite
             case Z_STREAM_ERROR:
               return error::stream_error;
             case Z_MEM_ERROR:
-              BOOST_THROW_EXCEPTION(std::bad_alloc{});
+              throw std::bad_alloc{};
             case Z_BUF_ERROR:
               return error::need_buffers;
             default:
-              BOOST_THROW_EXCEPTION(std::runtime_error{"zlib decompressor: impossible value"});
+              throw std::runtime_error{"zlib decompressor: impossible value"};
             }
         }
 
