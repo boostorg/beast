@@ -86,6 +86,8 @@ if (MSVC)
 else()
     set (THREADS_PREFER_PTHREAD_FLAG ON)
     find_package (Threads)
+    link_libraries(Threads::Threads)
+
 
     set( CMAKE_CXX_FLAGS
       "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
@@ -115,6 +117,9 @@ if (APPLE AND NOT DEFINED ENV{OPENSSL_ROOT_DIR})
 endif()
 
 find_package(OpenSSL)
+if (NOT MSVC)
+    link_libraries(${OPENSSL_LIBRARIES})
+endif()
 
 #-------------------------------------------------------------------------------
 #
@@ -134,7 +139,14 @@ add_definitions (-DBOOST_ASIO_DISABLE_BOOST_DATE_TIME=1)
 add_definitions (-DBOOST_ASIO_DISABLE_BOOST_REGEX=1)
 add_definitions (-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1)
 
+if (MSVC)
 include_directories (${BOOST_ROOT})
+else()
+    set(BOOST_INCLUDEDIR ${BOOST_ROOT})
+    set(BOOST_LIBRARYDIR ${BOOST_ROOT}/stage/lib)
+    find_package(Boost COMPONENTS coroutine filesystem system REQUIRED)
+    link_libraries(Boost::coroutine Boost::filesystem Boost::system)
+endif()
 
 link_directories(${BOOST_ROOT}/stage/lib)
 
@@ -201,7 +213,7 @@ add_library (
 
 set_property(TARGET lib-beast PROPERTY FOLDER "static-libs")
 
-target_link_libraries(lib-asio lib-beast)
+target_link_libraries(lib-beast lib-asio)
 
 #-------------------------------------------------------------------------------
 #
