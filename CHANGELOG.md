@@ -1,14 +1,19 @@
+Version 280:
+
+* Fix non-msvc cmake
+* Use docca master branch
+
+--------------------------------------------------------------------------------
+
 Version 279:
 
+* Use regular throw in test
 * Fix pragma warning
-* Use superproject docca
 
 --------------------------------------------------------------------------------
 
 Version 278:
 
-* Update documentation
-* Update docca submodule
 * Use regular throw in test
 
 --------------------------------------------------------------------------------

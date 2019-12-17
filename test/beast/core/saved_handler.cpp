@@ -86,7 +86,7 @@ public:
 
         throwing_handler(throwing_handler&&)
         {
-            throw std::exception{};
+            BOOST_THROW_EXCEPTION(std::exception{});
         }
 
         void
