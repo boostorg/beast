@@ -13,7 +13,7 @@ import feature ;
 import boost ;
 import modules ;
 import testing ;
-import ../../config/checks/config : requires ;
+import ../config/checks/config : requires ;
 
 boost.use-project ;
 

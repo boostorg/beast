@@ -25,6 +25,48 @@ addons:
 
 matrix:
   include:
+    # Documentation build
+    - os: linux
+      dist: xenial
+      addons:
+        apt:
+          packages:
+            - docbook
+            - docbook-xml
+            - docbook-xsl
+            - xsltproc
+            - libsaxonhe-java
+            - default-jre-headless
+      install:
+        - cd ..
+        - mkdir tmp && cd tmp
+        - git clone -b 'Release_1_8_15' --depth 1 https://github.com/doxygen/doxygen.git
+        - cd doxygen
+        - cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release
+        - cd build
+        - sudo make install
+        - cd ../..
+        - wget -O saxonhe.zip https://sourceforge.net/projects/saxon/files/Saxon-HE/9.9/SaxonHE9-9-1-4J.zip/download
+        - unzip saxonhe.zip
+        - sudo rm /usr/share/java/Saxon-HE.jar
+        - sudo cp saxon9he.jar /usr/share/java/Saxon-HE.jar
+        - cd ..
+        - BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
+        - git clone -b $BOOST_BRANCH https://github.com/boostorg/boost.git boost-root
+        - cd boost-root
+        - git submodule update --init tools/boostdep
+        - git submodule update --init tools/quickbook
+        - git submodule update --init tools/boostbook
+        - git submodule update --init libs/context
+        - cp -r $TRAVIS_BUILD_DIR/* libs/beast
+        - python tools/boostdep/depinst/depinst.py ../tools/quickbook
+        - ./bootstrap.sh
+        - ./b2 headers
+      script:
+        - |-
+          echo "using doxygen ; using boostbook ; using saxonhe ;" > ~/user-config.jam
+        - ./b2 -j3 libs/beast/doc//boostrelease
+
     # GCC 6.0, Debug + Coverage
     - os: linux
       dist: trusty
