@@ -5,3 +5,11 @@ bin64/
 Win32/
 x64/
 
+# Default build location in vscode
+build/
+
+# Default Build locations in CLion
+cmake-build-*/
+
+# vs code local configuration files
+.vscode/
