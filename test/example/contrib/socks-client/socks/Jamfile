@@ -8,6 +8,7 @@
 #
 
 local SOURCES =
+    detail_char_type_test.cpp
     test.cpp
     ;
 

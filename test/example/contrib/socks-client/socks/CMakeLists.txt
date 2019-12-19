@@ -17,6 +17,7 @@ GroupSources (test/example/contrib/socks-client/socks "/")
 add_executable (socks-test
     ${BOOST_BEAST_FILES}
     ${TEST_MAIN}
+    detail_char_type_test.cpp
     test.cpp
 )
 
