@@ -1,0 +1,44 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <Objective-C>
+      <option name="INDENT_NAMESPACE_MEMBERS" value="0" />
+      <option name="INDENT_C_STRUCT_MEMBERS" value="2" />
+      <option name="INDENT_CLASS_MEMBERS" value="2" />
+      <option name="INDENT_INSIDE_CODE_BLOCK" value="2" />
+      <option name="INDENT_PREPROCESSOR_DIRECTIVE" value="2" />
+      <option name="INDENT_DIRECTIVE_AS_CODE" value="true" />
+      <option name="FUNCTION_BRACE_PLACEMENT" value="2" />
+      <option name="FUNCTION_PARAMETERS_WRAP" value="5" />
+      <option name="FUNCTION_CALL_ARGUMENTS_WRAP" value="5" />
+      <option name="TEMPLATE_DECLARATION_STRUCT_WRAP" value="5" />
+      <option name="TEMPLATE_PARAMETERS_NEW_LINE_AFTER_LT" value="true" />
+      <option name="TEMPLATE_PARAMETERS_NEW_LINE_BEFORE_GT" value="true" />
+      <option name="TEMPLATE_PARAMETERS_ALIGN_MULTILINE_PARS" value="true" />
+      <option name="CLASS_CONSTRUCTOR_INIT_LIST_WRAP" value="2" />
+      <option name="CLASS_CONSTRUCTOR_INIT_LIST_ALIGN_MULTILINE" value="false" />
+      <option name="CLASS_CONSTRUCTOR_INIT_LIST_COMMA_ON_NEXT_LINE" value="true" />
+      <option name="SUPERCLASS_LIST_WRAP" value="2" />
+      <option name="SUPERCLASS_LIST_ALIGN_MULTILINE" value="false" />
+      <option name="SUPERCLASS_LIST_COMMA_ON_NEXT_LINE" value="true" />
+      <option name="SUPERCLASS_LIST_BEFORE_COLON" value="1" />
+      <option name="SPACE_BEFORE_INIT_LIST" value="true" />
+    </Objective-C>
+    <codeStyleSettings language="ObjectiveC">
+      <option name="RIGHT_MARGIN" value="80" />
+      <option name="BRACE_STYLE" value="2" />
+      <option name="CLASS_BRACE_STYLE" value="2" />
+      <option name="ELSE_ON_NEW_LINE" value="true" />
+      <option name="SPACE_BEFORE_IF_PARENTHESES" value="false" />
+      <option name="SPACE_BEFORE_WHILE_PARENTHESES" value="false" />
+      <option name="SPACE_BEFORE_FOR_PARENTHESES" value="false" />
+      <option name="SPACE_BEFORE_CATCH_PARENTHESES" value="false" />
+      <option name="SPACE_BEFORE_SWITCH_PARENTHESES" value="false" />
+      <indentOptions>
+        <option name="INDENT_SIZE" value="2" />
+        <option name="CONTINUATION_INDENT_SIZE" value="2" />
+        <option name="TAB_SIZE" value="2" />
+        <option name="LABEL_INDENT_SIZE" value="1" />
+      </indentOptions>
+    </codeStyleSettings>
+  </code_scheme>
+</component>

@@ -5,3 +5,29 @@ bin64/
 Win32/
 x64/
 
+#
+# Jetbrains CLion IDE
+#
+
+# disallow all clion metadata except auto code formatting
+.idea/
+!./idea/codeStyles/*
+
+# Default Build locations in CLion
+cmake-build-*/
+
+#
+# Visual Studio Code
+#
+
+# vs code local configuration files
+.vscode/
+
+# **WARNING**
+# by default the cmake module in code selects /build for the root of the build tree
+# this is a conflict with the standard boost build directory which typically contains
+# jamfiles etc
+# This exclusion may be removed in future
+# Please reconfigure vscode to use a different build directory
+build/
+
