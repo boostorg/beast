@@ -22,6 +22,9 @@ using ::boost::beast::error_condition;
 
 enum class error
 {
+    /// Version field in response was non-zero
+    response_unrecognised_version = 1,
+
     /// SOCKS unsupported version.
     socks_unsupported_version = 1000,
 

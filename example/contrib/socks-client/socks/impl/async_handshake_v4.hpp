@@ -20,6 +20,8 @@
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/coroutine.hpp>
+
 #include <iostream>
 #include <string>
 #include <memory>
@@ -36,7 +38,7 @@ template<
     class Buffer,
     class base_type = boost::beast::async_base<
         Handler, typename Stream::executor_type>>
-class socks4_op : public base_type
+class socks4_op : public base_type, public net::coroutine
 {
 public:
     socks4_op(socks4_op&&) = default;
@@ -54,88 +56,113 @@ public:
         (*this)({}, 0); // start the operation
     }
 
+    auto request_buffer() -> Buffer&
+    {
+      return *request_;
+    }
+
+    auto response_buffer() -> Buffer&
+    {
+      return *response_;
+    }
+
+    error_code
+    prepare_request()
+    {
+      auto& request = request_buffer();
+
+      auto bytes_to_write = 9 + username_.size();
+      auto req = static_cast<char*>(request.prepare(bytes_to_write).data());
+
+      detail::write<uint8_t>(detail::SOCKS_VERSION_4, req); // SOCKS VERSION 4.
+      detail::write<uint8_t>(detail::SOCKS_CMD_CONNECT, req); // CONNECT.
+
+      detail::write<uint16_t>(port_, req); // DST PORT.
+
+      auto ec = error_code();
+
+      auto address = net::ip::make_address_v4(hostname_, ec);
+
+      if (not ec)
+      {
+        detail::write<uint32_t>(address.to_uint(), req); // DST I
+        std::copy(username_.begin(), username_.end(), req);    // USERID
+        req += username_.size();
+        detail::write<uint8_t>(0, req); // NULL.
+        request.commit(bytes_to_write);
+      }
+
+      return ec;
+    }
+
+    auto decode_response() -> error_code
+    {
+      auto& response = *response_;
+      auto resp = static_cast<const unsigned char*>(response.data().data());
+
+      auto result = error_code();
+
+      auto response_version = resp[0];
+      if (response_version != 0)
+      {
+        // response is from a version of socks higher than we recognise.
+        // we will mark as an error code but continue decoding. The user can decide
+        // whether he wants to check for this error code
+        result = error::response_unrecognised_version;
+      }
+
+      // response code CD is byte 1 of the response
+      auto response_code = resp[1];
+      switch(response_code)
+      {
+      case detail::SOCKS4_REQUEST_GRANTED:
+        // success
+        break;
+
+      case detail::SOCKS4_REQUEST_REJECTED_OR_FAILED:
+          result = error::socks_request_rejected_or_failed;
+          break;
+
+      case detail::SOCKS4_CANNOT_CONNECT_TARGET_SERVER:
+          result = error::socks_request_rejected_cannot_connect;
+          break;
+
+      case detail::SOCKS4_REQUEST_REJECTED_USER_NO_ALLOW:
+          result = error::socks_request_rejected_incorrect_userid;
+          break;
+
+      default:
+          // malformed response
+          result = error::socks_unknown_error;
+          break;
+      }
+
+      return result;
+    }
+
+#include <boost/asio/yield.hpp>
+
     void
     operator()(
         error_code ec,
         std::size_t bytes_transferred)
     {
-        boost::ignore_unused(bytes_transferred);
+      reenter(this)
+      {
+        ec = prepare_request();
+        if (ec) return this->complete(false, ec);
 
-        using detail::write;
-        using detail::read;
+        yield net::async_write(stream_, request_buffer(), std::move(*this));
+        if (ec) return this->complete_now(ec);
 
-        auto& response = *response_;
-        auto& request = *request_;
+        yield net::async_read(stream_, response_buffer(), net::transfer_exactly(8), std::move(*this));
+        if(ec) return this->complete_now(ec);
 
-        switch (ec ? 3 : step_)
-        {
-        case 0:
-        {
-            step_ = 1;
-
-            std::size_t bytes_to_write = 9 + username_.size();
-            auto req = static_cast<char*>(request.prepare(bytes_to_write).data());
-
-            write<uint8_t>(detail::SOCKS_VERSION_4, req); // SOCKS VERSION 4.
-            write<uint8_t>(detail::SOCKS_CMD_CONNECT, req); // CONNECT.
-
-            write<uint16_t>(port_, req); // DST PORT.
-
-            auto address = net::ip::make_address_v4(hostname_, ec);
-            if (ec)
-                break;
-
-            write<uint32_t>(address.to_uint(), req); // DST I
-
-            if (!username_.empty())
-            {
-                std::copy(username_.begin(), username_.end(), req);    // USERID
-                req += username_.size();
-            }
-            write<uint8_t>(0, req); // NULL.
-
-            request.commit(bytes_to_write);
-            return net::async_write(stream_, request, std::move(*this));
-        }
-        case 1:
-        {
-            step_ = 2;
-            return net::async_read(stream_, response,
-                net::transfer_exactly(8), std::move(*this));
-        }
-        case 2:
-        {
-            auto resp = static_cast<const unsigned char*>(response.data().data());
-
-            read<uint8_t>(resp); // VN is the version of the reply code and should be 0.
-            auto cd = read<uint8_t>(resp);
-
-            if (cd != detail::SOCKS4_REQUEST_GRANTED)
-            {
-                switch (cd)
-                {
-                case detail::SOCKS4_REQUEST_REJECTED_OR_FAILED:
-                    ec = error::socks_request_rejected_or_failed;
-                    break;
-                case detail::SOCKS4_CANNOT_CONNECT_TARGET_SERVER:
-                    ec = error::socks_request_rejected_cannot_connect;
-                    break;
-                case detail::SOCKS4_REQUEST_REJECTED_USER_NO_ALLOW:
-                    ec = error::socks_request_rejected_incorrect_userid;
-                    break;
-                default:
-                    ec = error::socks_unknown_error;
-                    break;
-                }
-            }
-            BOOST_FALLTHROUGH;
-        }
-        case 3:
-            break;
-        }
-
-        this->complete_now(ec);
+        return this->complete_now(decode_response());
+      }
     }
+
+#include <boost/asio/unyield.hpp>
 
 private:
     Stream& stream_;
@@ -202,23 +229,10 @@ async_handshake_v4(
     port,
     username
   );
-  /*
-    net::async_completion<Handler, void(error_code)> init{ handler };
-
-    using HandlerType = typename std::decay<decltype(init.completion_handler)>::type;
-
-
-    using Buffer = net::basic_streambuf<typename std::allocator_traits<
-        net::associated_allocator_t<HandlerType>>:: template rebind_alloc<char> >;
-
-    socks4_op<AsyncStream, HandlerType, Buffer>(stream, init.completion_handler,
-        hostname, port, username);
-
-    return init.result.get();
-  */
 }
 
 
 } // socks
+
 
 #endif
