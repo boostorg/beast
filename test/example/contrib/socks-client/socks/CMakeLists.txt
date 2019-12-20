@@ -18,6 +18,7 @@ add_executable (socks-test
     ${BOOST_BEAST_FILES}
     ${TEST_MAIN}
     detail_char_type_test.cpp
+    handshake_test.cpp
     test.cpp
 )
 

@@ -61,8 +61,8 @@ public:
     socks4_op(socks4_op const&) = default;
 
     socks4_op(Stream& stream, Handler& handler,
-        const std::string& hostname, unsigned short port,
-        const std::string& username)
+        string_view hostname, unsigned short port,
+        string_view username)
         : base_type(std::move(handler), stream.get_executor())
         , stream_(stream)
         , hostname_(hostname)
@@ -183,10 +183,10 @@ public:
     socks5_op(
         Stream& stream,
         Handler& handler,
-        const std::string& hostname,
+        string_view hostname,
         unsigned short port,
-        const std::string& username,
-        const std::string& password,
+        string_view username,
+        string_view password,
         bool use_hostname)
         : base_type(std::move(handler), stream.get_executor())
         , stream_(stream)
@@ -543,9 +543,9 @@ template<
 BOOST_BEAST_ASYNC_RESULT1(Handler)
 async_handshake_v4(
     AsyncStream& stream,
-    const std::string& hostname,
+    string_view hostname,
     unsigned short port,
-    std::string const& username,
+    string_view username,
     Handler&& handler)
 {
     net::async_completion<Handler, void(error_code)> init{ handler };
@@ -571,10 +571,10 @@ template<
 BOOST_BEAST_ASYNC_RESULT1(Handler)
 async_handshake_v5(
     AsyncStream& stream,
-    const std::string& hostname,
+    string_view hostname,
     unsigned short port,
-    std::string const& username,
-    std::string const& password,
+    string_view username,
+    string_view password,
     bool use_hostname,
     Handler&& handler)
 {

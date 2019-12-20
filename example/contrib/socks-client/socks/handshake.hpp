@@ -13,7 +13,7 @@
 #include <socks/config.hpp>
 #include <socks/error.hpp>
 #include <boost/asio/async_result.hpp>
-#include <string>
+#include <boost/utility/string_view.hpp>
 
 namespace socks {
 
@@ -26,9 +26,9 @@ template<
 BOOST_BEAST_ASYNC_RESULT1(Handler)
 async_handshake_v4(
     AsyncStream& stream,
-    const std::string& hostname,
+    string_view hostname,
     unsigned short port,
-    std::string const& username,
+    string_view username,
     Handler&& handler);
 
 /** Perform the SOCKS v5 handshake in the client role.
@@ -39,10 +39,10 @@ template<
 BOOST_BEAST_ASYNC_RESULT1(Handler)
 async_handshake_v5(
     AsyncStream& stream,
-    const std::string& hostname,
+    string_view hostname,
     unsigned short port,
-    std::string const& username,
-    std::string const& password,
+    string_view username,
+    string_view password,
     bool use_hostname,
     Handler&& handler);
 
