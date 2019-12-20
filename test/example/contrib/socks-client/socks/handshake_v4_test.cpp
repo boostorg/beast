@@ -11,15 +11,19 @@ namespace net = beast::net;
 namespace socks {
 namespace test {
 
-template<class Cond>
-void run_until_condition(net::io_context& ioc, Cond cond)
-{
-  while(not ioc.stopped() and not cond())
+namespace {
+
+  template<class Cond>
+  void run_until_condition(net::io_context& ioc, Cond cond)
   {
-    ioc.run_one();
+    while(not ioc.stopped() and not cond())
+    {
+      ioc.run_one();
+    }
+    ioc.restart();
   }
-  ioc.restart();
-}
+
+} // namespace <private>
 
 struct handshake_v4_test : beast::unit_test::suite 
 {
