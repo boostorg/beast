@@ -50,7 +50,7 @@ async_handshake_v5(
 
 } // socks
 
-#include <socks/impl/handshake.hpp>
 #include <socks/impl/async_handshake_v4.hpp>
+#include <socks/impl/async_handshake_v5.hpp>
 
 #endif

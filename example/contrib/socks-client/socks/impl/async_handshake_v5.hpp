@@ -8,8 +8,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef SOCKS_IMPL_HANDSHAKE_HPP
-#define SOCKS_IMPL_HANDSHAKE_HPP
+#ifndef SOCKS_IMPL_ASYNC_HANDSHAKE_V5_HPP
+#define SOCKS_IMPL_ASYNC_HANDSHAKE_V5_HPP
 
 #include <socks/detail/protocol.hpp>
 #include <boost/beast/core/async_base.hpp>
@@ -20,6 +20,7 @@
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/coroutine.hpp>
 #include <iostream>
 #include <string>
 #include <memory>
@@ -36,7 +37,7 @@ template<
     class Buffer,
     class base_type = boost::beast::async_base<
         Handler, typename Stream::executor_type>>
-class socks5_op : public base_type
+class socks5_op : public base_type, public net::coroutine
 {
 public:
     socks5_op(socks5_op&&) = default;

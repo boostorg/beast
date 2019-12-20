@@ -11,17 +11,21 @@ namespace net = beast::net;
 namespace socks {
 namespace test {
 
-template<class Cond>
-void run_until_condition(net::io_context& ioc, Cond cond)
-{
-  while(not ioc.stopped() and not cond())
-  {
-    ioc.run_one();
-  }
-  ioc.restart();
-}
+namespace {
 
-struct handshake_test : beast::unit_test::suite 
+  template<class Cond>
+  void run_until_condition(net::io_context& ioc, Cond cond)
+  {
+    while(not ioc.stopped() and not cond())
+    {
+      ioc.run_one();
+    }
+    ioc.restart();
+  }
+
+} // namespace <local>
+
+struct handshake_v5_test : beast::unit_test::suite 
 {
 
   auto v4_connect_request() -> std::string
@@ -136,7 +140,7 @@ struct handshake_test : beast::unit_test::suite
       testSocks4Protocol();
   }
 };
-BEAST_DEFINE_TESTSUITE(beast, socks, handshake);
+BEAST_DEFINE_TESTSUITE(beast, socks, handshake_v5);
 
 } // namespace test
 } // namespace socks

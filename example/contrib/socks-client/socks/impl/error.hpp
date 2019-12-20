@@ -24,7 +24,7 @@ struct is_error_code_enum<::socks::error>
 
 namespace socks {
 
-BOOST_BEAST_DECL
+inline
 error_code
 make_error_code(error e);
 
