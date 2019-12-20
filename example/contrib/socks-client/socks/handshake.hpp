@@ -36,6 +36,8 @@ async_handshake_v4(
 template<
     typename AsyncStream,
     typename Handler>
+
+
 BOOST_BEAST_ASYNC_RESULT1(Handler)
 async_handshake_v5(
     AsyncStream& stream,
@@ -49,5 +51,6 @@ async_handshake_v5(
 } // socks
 
 #include <socks/impl/handshake.hpp>
+#include <socks/impl/async_handshake_v4.hpp>
 
 #endif
