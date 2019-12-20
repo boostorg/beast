@@ -32,77 +32,73 @@
 
 namespace socks {
 
-template<
-    class Stream,
-    class Handler,
-    class Buffer,
-    class base_type = boost::beast::async_base<
-        Handler, typename Stream::executor_type>>
-class socks4_op : public base_type, public net::coroutine
+template
+<
+  class Stream,
+  class Handler,
+  class base_type = boost::beast::stable_async_base
+                    <
+                      Handler, 
+                      typename Stream::executor_type
+                    >
+>
+struct socks4_op 
+: base_type
+, net::coroutine
 {
-public:
-    socks4_op(socks4_op&&) = default;
-    socks4_op(socks4_op const&) = default;
+  using allocator_type = typename base_type::allocator_type;
+  using char_allocator_type = typename std::allocator_traits<allocator_type>::template rebind_alloc<char>;
+  using string_buffer_type = std::basic_string<char, std::char_traits<char>, char_allocator_type>;
 
-    socks4_op(Stream& stream, Handler&& handler,
-        string_view hostname, unsigned short port,
-        string_view username)
-        : base_type(std::move(handler), stream.get_executor())
-        , stream_(stream)
-        , hostname_(hostname)
-        , port_(port)
-        , username_(username)
+  struct state_data
+  {
+    state_data(allocator_type alloc)
+    : buffer(alloc)
     {
-        (*this)({}, 0); // start the operation
     }
 
-    auto request_buffer() -> Buffer&
+    auto prepare_request(string_view hostname, std::uint16_t port, string_view username) -> error_code
     {
-      return *request_;
-    }
+      auto result = error_code();
 
-    auto response_buffer() -> Buffer&
-    {
-      return *response_;
-    }
+      auto bytes_to_write = 9 + username.size();
+      buffer.resize(bytes_to_write);
+      auto write_ptr = std::addressof(buffer[0]);
+      
+      detail::write<uint8_t>(detail::SOCKS_VERSION_4, write_ptr); // SOCKS VERSION 4.
+      detail::write<uint8_t>(detail::SOCKS_CMD_CONNECT, write_ptr); // CONNECT.
 
-    error_code
-    prepare_request()
-    {
-      auto& request = request_buffer();
+      detail::write<uint16_t>(port, write_ptr); // DST PORT.
 
-      auto bytes_to_write = 9 + username_.size();
-      auto req = static_cast<char*>(request.prepare(bytes_to_write).data());
+      auto address = net::ip::make_address_v4(
+#if BOOST_ASIO_HAS_STRING_VIEW
+        hostname, 
+#else
+        std::string(hostname.begin(), hostname.end()),
+#endif        
+        result);
 
-      detail::write<uint8_t>(detail::SOCKS_VERSION_4, req); // SOCKS VERSION 4.
-      detail::write<uint8_t>(detail::SOCKS_CMD_CONNECT, req); // CONNECT.
-
-      detail::write<uint16_t>(port_, req); // DST PORT.
-
-      auto ec = error_code();
-
-      auto address = net::ip::make_address_v4(hostname_, ec);
-
-      if (not ec)
+      if (not result)
       {
-        detail::write<uint32_t>(address.to_uint(), req); // DST I
-        std::copy(username_.begin(), username_.end(), req);    // USERID
-        req += username_.size();
-        detail::write<uint8_t>(0, req); // NULL.
-        request.commit(bytes_to_write);
+        detail::write<uint32_t>(address.to_uint(), write_ptr); // DST I
+        std::copy(username.begin(), username.end(), write_ptr);    // USERID
+        write_ptr += username.size();
+        detail::write<uint8_t>(0, write_ptr); // NULL.
       }
 
-      return ec;
+      return result;
+    }
+
+    auto prepare_for_response() -> void
+    {
+      buffer.resize(8);
     }
 
     auto decode_response() -> error_code
     {
-      auto& response = *response_;
-      auto resp = static_cast<const unsigned char*>(response.data().data());
-
       auto result = error_code();
 
-      auto response_version = resp[0];
+      auto response_version = buffer[0];
       if (response_version != 0)
       {
         // response is from a version of socks higher than we recognise.
@@ -112,7 +108,7 @@ public:
       }
 
       // response code CD is byte 1 of the response
-      auto response_code = resp[1];
+      auto response_code = buffer[1];
       switch(response_code)
       {
       case detail::SOCKS4_REQUEST_GRANTED:
@@ -140,6 +136,27 @@ public:
       return result;
     }
 
+    string_buffer_type buffer;
+
+  };
+
+  socks4_op(socks4_op&&) = default;
+  socks4_op(socks4_op const&) = default;
+
+  socks4_op(Stream& stream, Handler&& handler,
+      string_view hostname, unsigned short port,
+      string_view username)
+      : base_type(std::move(handler), stream.get_executor())
+      , stream_(stream)
+      , state_(boost::beast::allocate_stable<state_data>(*this, this->get_allocator()))
+  {
+    auto error = state_.prepare_request(hostname, port, username);
+    if (error)
+      this->complete(false, error);
+    else
+      (*this)(error, 0); // start the operation
+  }
+
 #include <boost/asio/yield.hpp>
 
     void
@@ -149,32 +166,22 @@ public:
     {
       reenter(this)
       {
-        ec = prepare_request();
-        if (ec) return this->complete(false, ec);
-
-        yield net::async_write(stream_, request_buffer(), std::move(*this));
+        yield net::async_write(stream_, net::buffer(state_.buffer), std::move(*this));
         if (ec) return this->complete_now(ec);
 
-        yield net::async_read(stream_, response_buffer(), net::transfer_exactly(8), std::move(*this));
+        state_.prepare_for_response();
+        yield net::async_read(stream_, net::buffer(state_.buffer), std::move(*this));
         if(ec) return this->complete_now(ec);
 
-        return this->complete_now(decode_response());
+        return this->complete_now(state_.decode_response());
       }
     }
 
 #include <boost/asio/unyield.hpp>
 
 private:
-    Stream& stream_;
-
-    using BufferPtr = std::unique_ptr<Buffer>;
-    BufferPtr request_{ new Buffer() }; // std::make_unique c++14 or later.
-    BufferPtr response_{ new Buffer() };
-
-    std::string hostname_;
-    unsigned short port_;
-    std::string username_;
-    int step_ = 0;
+    Stream&     stream_;
+    state_data& state_;
 };
 
 /** Perform the SOCKS v4 handshake in the client role.
@@ -191,19 +198,16 @@ struct async_handshake_v4_initiator
     string_view username
   )
   {
-      using DecayedHandlerType = typename std::decay<HandlerType>::type;
+    using DecayedHandlerType = typename std::decay<HandlerType>::type;
 
-      using Buffer = net::basic_streambuf<typename std::allocator_traits<
-        net::associated_allocator_t<DecayedHandlerType>>:: template rebind_alloc<char> >;
-
-      socks4_op<AsyncStream, DecayedHandlerType, Buffer>
-      (
-        stream, 
-        std::forward<HandlerType>(handler),
-        hostname, 
-        port, 
-        username
-      );
+    socks4_op<AsyncStream, DecayedHandlerType>
+    (
+      stream, 
+      std::forward<HandlerType>(handler),
+      hostname, 
+      port, 
+      username
+    );
   }
 
 };
@@ -230,7 +234,6 @@ async_handshake_v4(
     username
   );
 }
-
 
 } // socks
 

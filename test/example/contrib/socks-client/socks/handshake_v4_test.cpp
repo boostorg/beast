@@ -132,6 +132,20 @@ struct handshake_v4_test : beast::unit_test::suite
         server_stream.close();
         beast::test::run(ioc);
     }
+
+    // invalid and very long hostname
+    {
+        beast::test::stream client_stream(ioc);
+        beast::test::stream server_stream(ioc);
+        beast::test::connect(client_stream, server_stream);
+
+        async_handshake_v4(client_stream, 
+                           "excessivly-long-subdomain.long-domain-name.com", 
+                           80, 
+                           "bob", 
+                           beast::test::fail_handler(net::error::invalid_argument));
+        beast::test::run(ioc);
+    }
   }
 
   void
