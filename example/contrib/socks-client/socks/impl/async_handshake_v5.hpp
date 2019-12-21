@@ -34,18 +34,25 @@ namespace socks {
 template<
     class Stream,
     class Handler,
-    class Buffer,
     class base_type = boost::beast::async_base<
         Handler, typename Stream::executor_type>>
-class socks5_op : public base_type, public net::coroutine
+class socks5_op 
+: public base_type
+, public boost::asio::coroutine
 {
+  using allocator_type = typename base_type::allocator_type;
+  using Buffer = net::basic_streambuf
+                <
+                  typename std::allocator_traits<allocator_type>:: template rebind_alloc<char> 
+                >;
+
 public:
     socks5_op(socks5_op&&) = default;
     socks5_op(socks5_op const&) = default;
 
     socks5_op(
         Stream& stream,
-        Handler& handler,
+        Handler&& handler,
         string_view hostname,
         unsigned short port,
         string_view username,
@@ -397,6 +404,35 @@ private:
     int step_ = 0;
 };
 
+struct async_handshake_v5_initiator
+{
+  template<class HandlerType, class AsyncStream>
+  void operator()(
+    HandlerType&& handler,
+    AsyncStream& stream,
+    string_view hostname,
+    unsigned short port,
+    string_view username,
+    string_view password,
+    bool use_hostname
+  )
+  {
+    using DecayedHandlerType = typename std::decay<HandlerType>::type;
+
+    socks5_op<AsyncStream, DecayedHandlerType>
+    (
+      stream, 
+      std::forward<HandlerType>(handler),
+      hostname, 
+      port, 
+      username, 
+      password, 
+      use_hostname
+    );
+  }
+
+};
+
 /** Perform the SOCKS v5 handshake in the client role.
 */
 template<
@@ -412,19 +448,17 @@ async_handshake_v5(
     bool use_hostname,
     Handler&& handler)
 {
-    net::async_completion<Handler, void(error_code)> init{ handler };
-    using HandlerType = typename std::decay<decltype(init.completion_handler)>::type;
-
-    static_assert(boost::beast::detail::is_invocable<HandlerType,
-        void(error_code)>::value, "Handler type requirements not met");
-
-    using Buffer = net::basic_streambuf<typename std::allocator_traits<
-        net::associated_allocator_t<HandlerType>>:: template rebind_alloc<char> >;
-
-    socks5_op<AsyncStream, HandlerType, Buffer>(stream, init.completion_handler,
-        hostname, port, username, password, use_hostname);
-
-    return init.result.get();
+  return net::async_initiate<Handler, void(error_code)>
+  (
+    async_handshake_v5_initiator(),
+    handler,
+    stream,
+    hostname,
+    port,
+    username, 
+    password, 
+    use_hostname
+  );
 }
 
 } // socks

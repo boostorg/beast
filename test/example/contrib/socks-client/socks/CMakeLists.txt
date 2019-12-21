@@ -19,7 +19,8 @@ add_executable (socks-test
     ${TEST_MAIN}
     detail_char_type_test.cpp
     handshake_v4_test.cpp
-    handshake_v5_test.cpp
+#    handshake_v5_test.cpp
+    socks5_auth_username_password_test.cpp
     test.cpp
 )
 

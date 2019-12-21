@@ -44,7 +44,7 @@ template
 >
 struct socks4_op 
 : base_type
-, net::coroutine
+, boost::asio::coroutine
 {
   // this is necessary because allocator_type is a dependency type of the base class template
   // https://en.cppreference.com/w/cpp/language/dependent_name
@@ -210,7 +210,6 @@ struct async_handshake_v4_initiator
       username
     );
   }
-
 };
 
 template<
