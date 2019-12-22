@@ -193,7 +193,8 @@ private:
   // Attempt to build the connect frame in the buffer space.
   // Return an error_code to indicate success
   // @pre the buffer_ must already contain the username paramter
-  auto prepare_request(net::ip::tcp::endpoint endpoint) -> void
+  void
+  prepare_request(net::ip::tcp::endpoint endpoint)
   {
     // construct a temporary buffer to build the elements prior to the username
     // this does not have to be stable so we can make use of any SBO.
@@ -210,7 +211,7 @@ private:
     buffer_ += '\x00'; // username is null terminated in SOCKS4
   }
 
-  auto prepare_for_response() -> void
+  void prepare_for_response()
   {
     buffer_.resize(8);
   }
