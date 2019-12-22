@@ -38,6 +38,8 @@ make_error_code(error e)
       {
       case error::response_unrecognised_version:
           return "SOCKS RESPONSE unrecognised version";
+        case error::socks_not_implemented:
+          return "SOCKS feature not implemented";
       case error::socks_unsupported_version:
           return "SOCKS unsupported version";
       case error::socks_username_required:

@@ -73,7 +73,7 @@ struct handshake_v4_test : beast::unit_test::suite
         beast::test::stream server_stream(ioc);
         beast::test::connect(client_stream, server_stream);
 
-        async_handshake_v4(client_stream, "1.1.1.1", 80, "bob", beast::test::success_handler());
+        async_handshake_v4(client_stream, "1.1.1.1", "80", "bob", beast::test::success_handler());
 
         {
           run_until_condition(ioc, [&]{
@@ -95,7 +95,7 @@ struct handshake_v4_test : beast::unit_test::suite
         beast::test::stream server_stream(ioc);
         beast::test::connect(client_stream, server_stream);
 
-        async_handshake_v4(client_stream, "1.1.1.1", 80, "bob", beast::test::fail_handler(socks::error::socks_request_rejected_or_failed));
+        async_handshake_v4(client_stream, "1.1.1.1", "80", "bob", beast::test::fail_handler(socks::error::socks_request_rejected_or_failed));
 
         {
           run_until_condition(ioc, [&]{
@@ -117,7 +117,7 @@ struct handshake_v4_test : beast::unit_test::suite
         beast::test::stream server_stream(ioc);
         beast::test::connect(client_stream, server_stream);
 
-        async_handshake_v4(client_stream, "1.1.1.1", 80, "bob", beast::test::fail_handler(net::error::eof));
+        async_handshake_v4(client_stream, "1.1.1.1", "80", "bob", beast::test::fail_handler(net::error::eof));
 
         {
           run_until_condition(ioc, [&]{
@@ -141,9 +141,9 @@ struct handshake_v4_test : beast::unit_test::suite
 
         async_handshake_v4(client_stream, 
                            "excessivly-long-subdomain.long-domain-name.com", 
-                           80, 
+                           "80",
                            "bob", 
-                           beast::test::fail_handler(net::error::invalid_argument));
+                           beast::test::fail_handler(net::error::host_not_found));
         beast::test::run(ioc);
     }
   }

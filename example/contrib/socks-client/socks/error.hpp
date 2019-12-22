@@ -25,6 +25,9 @@ enum class error
     /// Version field in response was non-zero
     response_unrecognised_version = 1,
 
+    /// Feature not yet implemented
+    socks_not_implemented,
+
     /// SOCKS unsupported version.
     socks_unsupported_version = 1000,
 

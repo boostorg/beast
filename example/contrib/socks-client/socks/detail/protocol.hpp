@@ -15,34 +15,34 @@
 namespace socks {
 namespace detail {
 
-enum
+enum : char
 {
     SOCKS_VERSION_4 = 4,
     SOCKS_VERSION_5 = 5
 };
 
-enum
+enum : char
 {
     SOCKS5_AUTH_NONE = 0x00,
     SOCKS5_AUTH = 0x02,
-    SOCKS5_AUTH_UNACCEPTABLE = 0xFF
+    SOCKS5_AUTH_UNACCEPTABLE = '\xFF'
 };
 
-enum
+enum : char
 {
     SOCKS_CMD_CONNECT = 0x01,
     SOCKS_CMD_BIND = 0x02,
     SOCKS5_CMD_UDP = 0x03
 };
 
-enum
+enum : char
 {
     SOCKS5_ATYP_IPV4 = 0x01,
     SOCKS5_ATYP_DOMAINNAME = 0x03,
     SOCKS5_ATYP_IPV6 = 0x04
 };
 
-enum
+enum : char
 {
     SOCKS5_SUCCEEDED = 0x00,
     SOCKS5_GENERAL_SOCKS_SERVER_FAILURE,
@@ -55,7 +55,7 @@ enum
     SOCKS5_UNASSIGNED
 };
 
-enum
+enum : char
 {
     SOCKS4_REQUEST_GRANTED = 90,
     SOCKS4_REQUEST_REJECTED_OR_FAILED,

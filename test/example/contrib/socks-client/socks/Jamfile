@@ -10,7 +10,6 @@
 local SOURCES =
     detail_char_type_test.cpp
     handshake_v4_test.cpp
-    handshake_v5_test.cpp
     test.cpp
     ;
 

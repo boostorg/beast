@@ -68,8 +68,15 @@ do_session(
     // socks handshake.
     int socks_version = socks_url.scheme() == "socks4" ? 4 : 0;
     socks_version = socks_url.scheme() == "socks5" ? 5 : socks_version;
-    if (socks_version == 0)
+
+    switch(socks_version)
     {
+      case 4:
+        break;
+      case 5:
+        std::cerr << "socks 5 not supported\n";
+        return;
+      default:
         std::cerr << "incorrect socks version\n";
         return;
     }
@@ -87,22 +94,12 @@ do_session(
     if (ec)
         return fail(ec, "connect");
 
-    if(socks_version == 4)
-        socks::async_handshake_v4(
-            socket,
-            host,
-            static_cast<unsigned short>(std::atoi(port.c_str())),
-            std::string(socks_url.username()),
-            yield[ec]);
-    else
-        socks::async_handshake_v5(
-            socket,
-            host,
-            static_cast<unsigned short>(std::atoi(port.c_str())),
-            std::string(socks_url.username()),
-            std::string(socks_url.password()),
-            true,
-            yield[ec]);
+      socks::async_handshake_v4(
+          socket,
+          host,
+          port,
+          std::string(socks_url.username()),
+          yield[ec]);
 
     if (ec)
         return fail(ec, "socks async_handshake");

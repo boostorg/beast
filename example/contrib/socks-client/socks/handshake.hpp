@@ -18,6 +18,16 @@
 namespace socks {
 
 /** Perform the SOCKS v4 handshake in the client role.
+ * @param stream is a reference to the stream object
+ * @param hostanme is a string_view representing the target host. It may be
+ *                 dotted decimal ip4 or a fqdn. If an fqdn is provided, it will
+ *                 be resolved during this async operation
+ * @param service is a string_view containing the port or service name of the
+ *                intended remote connection
+ * @param username is a string_view containing the username for socks4
+ *                 authentication
+ * @param Handler is a CompletionHandler which will be be invoked exactly once
+ *                as if by @see post
 */
 template<
     typename AsyncStream,
@@ -27,30 +37,12 @@ BOOST_BEAST_ASYNC_RESULT1(Handler)
 async_handshake_v4(
     AsyncStream& stream,
     string_view hostname,
-    unsigned short port,
+    string_view service,
     string_view username,
-    Handler&& handler);
-
-/** Perform the SOCKS v5 handshake in the client role.
-*/
-template<
-    typename AsyncStream,
-    typename Handler>
-
-
-BOOST_BEAST_ASYNC_RESULT1(Handler)
-async_handshake_v5(
-    AsyncStream& stream,
-    string_view hostname,
-    unsigned short port,
-    string_view username,
-    string_view password,
-    bool use_hostname,
     Handler&& handler);
 
 } // socks
 
 #include <socks/impl/async_handshake_v4.hpp>
-#include <socks/impl/async_handshake_v5.hpp>
 
 #endif

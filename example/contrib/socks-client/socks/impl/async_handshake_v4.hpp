@@ -8,6 +8,9 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+// An implementation of the SOCKS4 handshake protocol
+// @see https://tools.ietf.org/html/rfc1413
+
 #ifndef SOCKS_IMPL_ASYNC_HANDSHAKE_V4_HPP
 #define SOCKS_IMPL_ASYNC_HANDSHAKE_V4_HPP
 
@@ -22,13 +25,12 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/coroutine.hpp>
 
+#include <ciso646>
 #include <iostream>
-#include <string>
 #include <memory>
 #include <utility>
+#include <string>
 #include <type_traits>
-
-#include "../detail/read_write.hpp"
 
 namespace socks {
 
@@ -36,19 +38,20 @@ template
 <
   class Stream,
   class Handler,
-  class base_type = boost::beast::stable_async_base
+  class base_type = boost::beast::async_base
                     <
-                      Handler, 
+                      Handler,
                       typename Stream::executor_type
                     >
 >
-struct socks4_op 
+struct socks4_op
 : base_type
 , boost::asio::coroutine
 {
   // this is necessary because allocator_type is a dependency type of the base class template
   // https://en.cppreference.com/w/cpp/language/dependent_name
   using allocator_type = typename base_type::allocator_type;
+  using executor_type = typename base_type::executor_type;
 
   // Rebind the composed operation's allocator type to allow the allocation of chars
   using char_allocator_type = typename std::allocator_traits<allocator_type>::template rebind_alloc<char>;
@@ -56,55 +59,155 @@ struct socks4_op
   // build a new string type that shares the composed operation's allocator
   using string_buffer_type = std::basic_string<char, std::char_traits<char>, char_allocator_type>;
 
+  // we want the resolver's async handler to be invoked on our executor
+  using resolver_type = net::ip::tcp::resolver;
+
   socks4_op(socks4_op&&) = default;
+
   socks4_op(socks4_op const&) = default;
 
-  socks4_op(Stream& stream, Handler&& handler,
-      string_view hostname, unsigned short port,
-      string_view username)
-      : base_type(std::move(handler), stream.get_executor())
-      , stream_(stream)
-      , buffer_(boost::beast::allocate_stable<string_buffer_type>(*this, this->get_allocator()))
+  socks4_op(Stream &stream, Handler &&handler,
+            string_view hostname, string_view service,
+            string_view username)
+    : base_type(std::move(handler), stream.get_executor())
+    , stream_(stream)
+    , buffer_(build_stable_buffer())
+    , resolver_(this->get_executor())
   {
-    auto error = prepare_request(hostname, port, username);
-    if (error)
-      this->complete(false, error);
-    else
-      (*this)(error, 0); // start the operation
+    // cache the username in the buffer to avoid having to allocate more space
+    buffer_.assign(std::begin(username), std::end(username));
+
+    auto service_string =
+    #if BOOST_ASIO_HAS_STRING_VIEW
+      service;
+    #else
+      std::string(std::begin(service), std::end(service));
+    #endif
+
+    auto host_string =
+    #if BOOST_ASIO_HAS_STRING_VIEW
+      hostname;
+    #else
+      std::string(std::begin(hostname), std::end(hostname));
+    #endif
+
+    resolver_.async_resolve(host_string, service_string, std::move(*this));
+  }
+
+  #include <boost/asio/yield.hpp>
+
+  // handler overload for resolve step. This is not a coroutine but it may
+  // initiate the main coroutine if successful
+  void operator()
+    (
+      error_code ec,
+      net::ip::tcp::resolver::results_type candidates
+    )
+  {
+    if(not ec)
+    {
+      for(auto &&candidate : candidates)
+      {
+        if(not candidate.endpoint().address().is_v4())
+          continue;
+
+        // invoke the main coroutine
+        prepare_request(candidate.endpoint());
+        return (*this)(ec, 0);
+      }
+
+      // could not find an ip4 candidate
+      // socks 4 does not understand ipv6
+
+      ec = make_error_code(net::error::host_not_found);
+    }
+
+    this->complete_now(ec);
+  }
+
+  void
+  operator()(
+    error_code ec,
+    std::size_t /*bytes_transferred*/ = 0)
+  {
+    reenter(this)
+    {
+      yield net::async_write(stream_, net::buffer(buffer_), std::move(*this));
+      if (ec) return this->complete_now(ec);
+
+      prepare_for_response();
+      yield net::async_read(stream_, net::buffer(buffer_), std::move(*this));
+      if(ec) return this->complete_now(ec);
+
+      return this->complete_now(decode_response());
+    }
+  }
+
+#include <boost/asio/unyield.hpp>
+
+private:
+
+  // return a string in which the allocated data is guaranteed to be at a
+  // stable address when the string is moved
+  // The implementation intentionally defeats the SBO of the std basic_string
+  // template.
+  // The returned buffer is associated with a copy of the completion handler's
+  // allocator in order to take advantage of any available efficiencies
+  auto build_stable_buffer(std::size_t hint = 0) -> string_buffer_type
+  {
+    auto result = string_buffer_type(this->get_allocator());
+
+    // an empty string's capacity is the maxmimum number of chars it can
+    // contain before allocating storage from the associated allocator
+    auto min_to_be_stable = result.capacity() + 1;
+
+    result.reserve(std::max(min_to_be_stable, hint));
+
+    return result;
+  }
+
+  template<class T, std::size_t byte_count = sizeof(T)>
+  static auto as_big_endian_bytes(T value) -> std::array<char, byte_count>
+  {
+    auto result = std::array<char, byte_count>();
+
+    auto shift = 8 * byte_count;
+    for(auto& out : result)
+    {
+      shift -= 8;
+      auto shifted = value >> shift;
+      out = static_cast<char>(shifted & T(0xff));
+    }
+
+    return result;
+  }
+
+  template<class TargetContainer, class SourceContainer>
+  auto append_container(TargetContainer &target,
+                        SourceContainer const &source) -> TargetContainer &
+  {
+    target.append(std::begin(source), std::end(source));
+    return target;
   }
 
   // Attempt to build the connect frame in the buffer space.
   // Return an error_code to indicate success
-  auto prepare_request(string_view hostname, std::uint16_t port, string_view username) -> error_code
+  // @pre the buffer_ must already contain the username paramter
+  auto prepare_request(net::ip::tcp::endpoint endpoint) -> void
   {
-    auto result = error_code();
+    // construct a temporary buffer to build the elements prior to the username
+    // this does not have to be stable so we can make use of any SBO.
+    // this is a use case for fixed_length_string or similar
+    auto temp = string_buffer_type();
+    temp += detail::SOCKS_VERSION_4;
+    temp += detail::SOCKS_CMD_CONNECT;
+    append_container(temp, as_big_endian_bytes(std::int16_t(endpoint.port())));
+    append_container(temp, endpoint.address().to_v4().to_bytes());
 
-    auto bytes_to_write = 9 + username.size();
-    buffer_.resize(bytes_to_write);
-    auto write_ptr = std::addressof(buffer_[0]);
-    
-    detail::write<uint8_t>(detail::SOCKS_VERSION_4, write_ptr); // SOCKS VERSION 4.
-    detail::write<uint8_t>(detail::SOCKS_CMD_CONNECT, write_ptr); // CONNECT.
-
-    detail::write<uint16_t>(port, write_ptr); // DST PORT.
-
-    auto address = net::ip::make_address_v4(
-#if BOOST_ASIO_HAS_STRING_VIEW
-      hostname, 
-#else
-      std::string(hostname.begin(), hostname.end()),
-#endif        
-      result);
-
-    if (not result)
-    {
-      detail::write<uint32_t>(address.to_uint(), write_ptr); // DST I
-      std::copy(username.begin(), username.end(), write_ptr);    // USERID
-      write_ptr += username.size();
-      detail::write<uint8_t>(0, write_ptr); // NULL.
-    }
-
-    return result;
+    // insert the temporary buffer prior to the username which has been cached
+    // there
+    buffer_.insert(std::begin(buffer_), std::begin(temp), std::end(temp));
+    buffer_ += '\x00'; // username is null terminated in SOCKS4
   }
 
   auto prepare_for_response() -> void
@@ -154,35 +257,17 @@ struct socks4_op
     return result;
   }
 
-#include <boost/asio/yield.hpp>
-
-    void
-    operator()(
-        error_code ec,
-        std::size_t bytes_transferred)
-    {
-      reenter(this)
-      {
-        yield net::async_write(stream_, net::buffer(buffer_), std::move(*this));
-        if (ec) return this->complete_now(ec);
-
-        prepare_for_response();
-        yield net::async_read(stream_, net::buffer(buffer_), std::move(*this));
-        if(ec) return this->complete_now(ec);
-
-        return this->complete_now(decode_response());
-      }
-    }
-
-#include <boost/asio/unyield.hpp>
-
 private:
     // a reference to the stream object passed by the initiator
     Stream&     stream_;
 
-    // a reference to the buffer space object that will be managed by this composed
-    // operation
-    string_buffer_type& buffer_;
+    // A string will associated allocator in which the character data is
+    // guaranteed to have a stable address
+    string_buffer_type buffer_;
+
+    // The socks4 protocol supports only ip4 addresses, not FQDNs therefore
+    // we provide address resolution on behalf of the caller
+    net::ip::tcp::resolver resolver_;
 };
 
 /** Perform the SOCKS v4 handshake in the client role.
@@ -195,7 +280,7 @@ struct async_handshake_v4_initiator
     HandlerType&& handler,
     AsyncStream& stream,
     string_view hostname,
-    unsigned short port,
+    string_view service,
     string_view username
   )
   {
@@ -203,10 +288,10 @@ struct async_handshake_v4_initiator
 
     socks4_op<AsyncStream, DecayedHandlerType>
     (
-      stream, 
+      stream,
       std::forward<HandlerType>(handler),
-      hostname, 
-      port, 
+      hostname,
+      service,
       username
     );
   }
@@ -220,7 +305,7 @@ BOOST_BEAST_ASYNC_RESULT1(Handler)
 async_handshake_v4(
     AsyncStream& stream,
     string_view hostname,
-    unsigned short port,
+    string_view service,
     string_view username,
     Handler&& handler)
 {
@@ -230,7 +315,7 @@ async_handshake_v4(
     handler,
     stream,
     hostname,
-    port,
+    service,
     username
   );
 }
