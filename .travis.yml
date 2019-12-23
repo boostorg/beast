@@ -54,10 +54,11 @@ matrix:
         - BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
         - git clone -b $BOOST_BRANCH https://github.com/boostorg/boost.git boost-root
         - cd boost-root
-        - git submodule update --init tools/boostdep
-        - git submodule update --init tools/quickbook
-        - git submodule update --init tools/boostbook
         - git submodule update --init libs/context
+        - git submodule update --init tools/boostbook
+        - git submodule update --init tools/boostdep
+        - git submodule update --init tools/docca
+        - git submodule update --init tools/quickbook
         - cp -r $TRAVIS_BUILD_DIR/* libs/beast
         - python tools/boostdep/depinst/depinst.py ../tools/quickbook
         - ./bootstrap.sh
