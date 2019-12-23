@@ -332,6 +332,7 @@ async_echo(
 
 struct move_only_handler
 {
+    move_only_handler() = default;
     move_only_handler(move_only_handler&&) = default;
     move_only_handler(move_only_handler const&) = delete;
 
