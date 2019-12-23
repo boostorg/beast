@@ -11,6 +11,7 @@
 #define BOOST_BEAST_CORE_IMPL_FILE_STDIO_IPP
 
 #include <boost/beast/core/file_stdio.hpp>
+#include <boost/beast/core/detail/win32_unicode_path.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/core/exchange.hpp>
 #include <limits>
@@ -79,31 +80,47 @@ open(char const* path, file_mode mode, error_code& ec)
         fclose(f_);
         f_ = nullptr;
     }
+    ec = {};
+#ifdef BOOST_MSVC
+    boost::winapi::WCHAR_ const* s;
+    detail::win32_unicode_path unicode_path(path, ec);
+    if (ec)
+        return;
+#else
     char const* s;
+#endif
     switch(mode)
     {
     default:
     case file_mode::read:
+    #ifdef BOOST_MSVC
+        s = L"rb";
+    #else
         s = "rb";
+    #endif
         break;
 
     case file_mode::scan:
     #ifdef BOOST_MSVC
-        s = "rbS";
+        s = L"rbS";
     #else
         s = "rb";
     #endif
         break;
 
     case file_mode::write:
+    #ifdef BOOST_MSVC
+        s = L"wb+";
+    #else
         s = "wb+";
+    #endif
         break;
 
     case file_mode::write_new:
     {
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
         FILE* f0;
-        auto const ev = ::fopen_s(&f0, path, "rb");
+        auto const ev = ::_wfopen_s(&f0, unicode_path.c_str(), L"rb");
         if(! ev)
         {
             std::fclose(f0);
@@ -116,20 +133,29 @@ open(char const* path, file_mode mode, error_code& ec)
             ec.assign(ev, generic_category());
             return;
         }
-        s = "wb";
+        s = L"wb";
+#elif defined(BOOST_MSVC)
+        s = L"wbx";
 #else
-        
         s = "wbx";
 #endif
         break;
     }
 
     case file_mode::write_existing:
+    #ifdef BOOST_MSVC
+        s = L"rb+";
+    #else
         s = "rb+";
+    #endif
         break;
 
     case file_mode::append:
+    #ifdef BOOST_MSVC
+        s = L"ab";
+    #else
         s = "ab";
+    #endif
         break;
 
     case file_mode::append_existing:
@@ -137,7 +163,7 @@ open(char const* path, file_mode mode, error_code& ec)
 #ifdef BOOST_MSVC
         FILE* f0;
         auto const ev =
-            ::fopen_s(&f0, path, "rb+");
+            ::_wfopen_s(&f0, unicode_path.c_str(), L"rb+");
         if(ev)
         {
             ec.assign(ev, generic_category());
@@ -153,13 +179,17 @@ open(char const* path, file_mode mode, error_code& ec)
         }
 #endif
         std::fclose(f0);
+    #ifdef BOOST_MSVC
+        s = L"ab";
+    #else
         s = "ab";
+    #endif
         break;
     }
     }
 
 #ifdef BOOST_MSVC
-    auto const ev = ::fopen_s(&f_, path, s);
+    auto const ev = ::_wfopen_s(&f_, unicode_path.c_str(), s);
     if(ev)
     {
         f_ = nullptr;
@@ -174,7 +204,6 @@ open(char const* path, file_mode mode, error_code& ec)
         return;
     }
 #endif
-    ec = {};
 }
 
 std::uint64_t
