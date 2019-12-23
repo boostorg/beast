@@ -15,6 +15,7 @@
 #include <boost/beast/core/file_base.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <cstdio>
 #include <string>
 #include <type_traits>
@@ -22,7 +23,7 @@
 namespace boost {
 namespace beast {
 
-template<class File>
+template<class File, bool append_unicode_suffix = false>
 void
 test_file()
 {
@@ -35,16 +36,38 @@ test_file()
 
     namespace fs = boost::filesystem;
 
+    static constexpr
+#ifdef _WIN32
+    boost::winapi::WCHAR_ unicode_suffix[] = { 0xd83e, 0xdd84, 0x0000 }; // UTF-16-LE unicorn
+#else
+    char                  unicode_suffix[] = { 0xf0, 0x9f, 0xa6, 0x84, 0x00 }; // UTF-8 unicorn
+#endif
+
     class temp_path
     {
         fs::path path_;
-        std::string str_;
+        std::vector<char> utf8_str_;
 
     public:
         temp_path()
             : path_(fs::unique_path())
-            , str_(path_.string<std::string>())
         {
+            if (append_unicode_suffix)
+                path_ += unicode_suffix;
+#ifdef _WIN32
+            constexpr auto cp = boost::winapi::CP_UTF8_;
+            constexpr auto flags = boost::winapi::WC_ERR_INVALID_CHARS_;
+            auto sz = boost::winapi::WideCharToMultiByte(
+                cp, flags, path_.c_str(), -1, nullptr, 0,
+                nullptr, nullptr);
+            BEAST_EXPECT(sz != 0);
+            utf8_str_.resize(sz);
+            auto ret = boost::winapi::WideCharToMultiByte(
+                cp, flags, path_.c_str(), -1,
+                utf8_str_.data(), sz,
+                nullptr, nullptr);
+            BEAST_EXPECT(ret == sz);
+#endif
         }
 
         operator fs::path const&()
@@ -54,25 +77,27 @@ test_file()
 
         operator char const*()
         {
-            return str_.c_str();
+#ifdef _WIN32
+            return utf8_str_.data();
+#else
+            return path_.c_str();
+#endif
         }
     };
 
     auto const create =
         [](fs::path const& path)
         {
-            auto const s =
-                path.string<std::string>();
             BEAST_EXPECT(! fs::exists(path));
-            FILE* f = ::fopen(s.c_str(), "w");
-            if( BEAST_EXPECT(f != nullptr))
-                ::fclose(f);
+            fs::ofstream out(path);
+            BEAST_EXPECT(out.is_open());
         };
 
     auto const remove =
         [](fs::path const& path)
         {
             fs::remove(path);
+            BEAST_EXPECT(! fs::exists(path));
         };
 
     temp_path path;
