@@ -2,6 +2,7 @@ Version 282:
 
 * Use superproject docca
 * Fix release build of docs
+* file_win32 supports UTF-8 paths
 
 --------------------------------------------------------------------------------
 
