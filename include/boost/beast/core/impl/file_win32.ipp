@@ -14,16 +14,13 @@
 
 #if BOOST_BEAST_USE_WIN32_FILE
 
+#include <boost/beast/core/detail/win32_unicode_path.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/winapi/access_rights.hpp>
-#include <boost/winapi/character_code_conversion.hpp>
 #include <boost/winapi/error_codes.hpp>
-#include <boost/winapi/file_management.hpp>
 #include <boost/winapi/get_last_error.hpp>
-#include <array>
 #include <limits>
 #include <utility>
-#include <vector>
 
 namespace boost {
 namespace beast {
@@ -190,41 +187,11 @@ open(char const* path, file_mode mode, error_code& ec)
         break;
     }
     
-    constexpr auto cp = boost::winapi::CP_UTF8_;
-    constexpr auto flags = boost::winapi::MB_ERR_INVALID_CHARS_;
-    std::array<boost::winapi::WCHAR_, boost::winapi::MAX_PATH_> static_unicode_path;
-    std::vector<boost::winapi::WCHAR_> dynamic_unicode_path;
-    int ret = boost::winapi::MultiByteToWideChar(
-        cp, flags, path, -1,
-        static_unicode_path.data(),
-        static_unicode_path.size());
-    if (ret == 0)
-    {
-        int sz = boost::winapi::MultiByteToWideChar(
-            cp, flags, path, -1,
-            nullptr, 0);
-        if (sz == 0)
-        {
-            ec.assign(boost::winapi::GetLastError(),
-                system_category());
-            return;
-        }
-        dynamic_unicode_path.resize(sz);
-        int ret2 = boost::winapi::MultiByteToWideChar(
-            cp, flags, path, -1,
-            dynamic_unicode_path.data(),
-            dynamic_unicode_path.size());
-        if (ret2 == 0)
-        {
-            ec.assign(boost::winapi::GetLastError(),
-                system_category());
-            return;
-        }
-    }
+    detail::win32_unicode_path unicode_path(path, ec);
+    if (ec)
+        return;
     h_ = ::CreateFileW(
-        dynamic_unicode_path.empty() ?
-            static_unicode_path.data() :
-            dynamic_unicode_path.data(),
+        unicode_path.c_str(),
         desired_access,
         share_mode,
         NULL,
