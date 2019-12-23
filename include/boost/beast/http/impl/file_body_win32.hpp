@@ -339,7 +339,6 @@ class write_some_win32_op
         Protocol, Executor>& sock_;
     serializer<isRequest,
         basic_file_body<file_win32>, Fields>& sr_;
-    std::size_t bytes_transferred_ = 0;
     bool header_ = false;
 
 public:
@@ -415,14 +414,8 @@ public:
         error_code ec,
         std::size_t bytes_transferred = 0)
     {
-        bytes_transferred_ += bytes_transferred;
-        if(! ec)
+        if(! ec && ! header_)
         {
-            if(header_)
-            {
-                header_ = false;
-                return (*this)();
-            }
             auto& w = sr_.writer_impl();
             w.pos_ += bytes_transferred;
             BOOST_ASSERT(w.pos_ <= w.body_.last_);
@@ -433,7 +426,7 @@ public:
                 BOOST_ASSERT(sr_.is_done());
             }
         }
-        this->complete_now(ec, bytes_transferred_);
+        this->complete_now(ec, bytes_transferred);
     }
 };
 

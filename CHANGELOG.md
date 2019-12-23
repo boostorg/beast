@@ -2,6 +2,7 @@ Version 281:
 
 * Travis builds docs
 * Fix echo-op test
+* file_win32 bodies respect http::serializer::split
 
 --------------------------------------------------------------------------------
 
