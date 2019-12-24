@@ -40,7 +40,7 @@ test_file()
 #ifdef _WIN32
     boost::winapi::WCHAR_ unicode_suffix[] = { 0xd83e, 0xdd84, 0x0000 }; // UTF-16-LE unicorn
 #else
-    char                  unicode_suffix[] = { 0xf0, 0x9f, 0xa6, 0x84, 0x00 }; // UTF-8 unicorn
+    char                  unicode_suffix[] = { '\xf0', '\x9f', '\xa6', '\x84', '\x00' }; // UTF-8 unicorn
 #endif
 
     class temp_path
