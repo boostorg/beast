@@ -14,10 +14,10 @@
 
 #if BOOST_BEAST_USE_WIN32_FILE
 
+#include <boost/beast/core/detail/win32_unicode_path.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/winapi/access_rights.hpp>
 #include <boost/winapi/error_codes.hpp>
-#include <boost/winapi/file_management.hpp>
 #include <boost/winapi/get_last_error.hpp>
 #include <limits>
 #include <utility>
@@ -186,8 +186,12 @@ open(char const* path, file_mode mode, error_code& ec)
         flags_and_attributes = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
         break;
     }
-    h_ = ::CreateFileA(
-        path,
+    
+    detail::win32_unicode_path unicode_path(path, ec);
+    if (ec)
+        return;
+    h_ = ::CreateFileW(
+        unicode_path.c_str(),
         desired_access,
         share_mode,
         NULL,
