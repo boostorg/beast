@@ -1,3 +1,8 @@
+Version 282:
+
+* file_win32 supports UTF-8 paths
+* file_stdio supports unicode paths
+
 Version 281:
 
 * Travis builds docs
