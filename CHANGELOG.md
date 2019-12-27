@@ -1,3 +1,10 @@
+Version 282:
+
+* Use superproject docca
+* Fix release build of docs
+
+--------------------------------------------------------------------------------
+
 Version 281:
 
 * Travis builds docs

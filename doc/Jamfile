@@ -15,6 +15,7 @@ import xsltproc ;
 import doxygen ;
 import modules ;
 import saxonhe ;
+import common ;
 
 #-------------------------------------------------------------------------------
 #
@@ -176,15 +177,18 @@ make stage1/results
         config.xsl
         common.xsl
     :
-        saxonhe.saxonhe
+        saxonhe.saxonhe_dir
     ;
 
 make stage2/results
     :
         stage1/results
         stage2.xsl
+
+        # additional dependencies
+        emphasized-types.xsl
     :
-        saxonhe.saxonhe
+        saxonhe.saxonhe_dir
     ;
 
 make reference.qbk
