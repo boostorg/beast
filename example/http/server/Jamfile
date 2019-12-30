@@ -8,6 +8,7 @@
 #
 
 build-project async ;
+build-project clean-shutdown ;
 build-project coro ;
 build-project fast ;
 build-project small ;
