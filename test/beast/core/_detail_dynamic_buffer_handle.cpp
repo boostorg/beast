@@ -11,7 +11,6 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/dynamic_buffer_handle.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <boost/type_index.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include "v1_dynamic_string_buffer.hpp"
 
@@ -19,7 +18,8 @@ namespace boost {
 namespace beast {
 namespace detail {
 
-class dynamic_buffer_handle_test : public beast::unit_test::suite
+class dynamic_buffer_handle_test
+    : public beast::unit_test::suite
 {
 public:
     void
@@ -37,30 +37,33 @@ public:
         using copy_of_dynamic_type = dynamic_buffer_handle_t<expected_type>;
         if (!BEAST_EXPECT((std::is_same<expected_type, copy_of_dynamic_type>::value)))
         {
-            log << "  dynamic_buffer_handle_t<expected_type> results in "
-                << boost::typeindex::type_id<copy_of_dynamic_type>().pretty_name()
-                << "\n  expected: " << boost::typeindex::type_id<expected_type>().pretty_name();
+            log << "  dynamic_buffer_handle_t<expected_type>:\n"
+                   "    results in " << typeid(copy_of_dynamic_type).name()
+                << "\n  expected:\n"
+                   "    " << typeid(expected_type).name();
         }
 
         auto copied = make_dynamic_buffer_handle(handle);
         if (!BEAST_EXPECT((std::is_same<decltype(copied), decltype(handle)>::value)))
         {
-            log << "  make_dynamic_buffer(dynamic_buffer_handle_t<expected_type> const&) results in "
-                << boost::typeindex::type_id<decltype(copied)>().pretty_name()
-                << "\n  expected: " << boost::typeindex::type_id<decltype(handle)>().pretty_name();
+            log << "  make_dynamic_buffer(dynamic_buffer_handle_t<expected_type> const&)\n"
+                   "  results in " << typeid(copied).name()
+                << "\n  expected:\n"
+                   "    " << typeid(handle).name();
         }
 
         auto moved = make_dynamic_buffer_handle(std::move(handle));
         if (!BEAST_EXPECT((std::is_same<decltype(moved), decltype(handle)>::value)))
         {
             log << "  make_dynamic_buffer(dynamic_buffer_handle_t<expected_type> &&) results in:\n"
-                   "    " << boost::typeindex::type_id<decltype(moved)>().pretty_name()
+                   "    " << typeid(moved).name()
                 << "\n  expected:\n"
-                   "    " << boost::typeindex::type_id<decltype(handle)>().pretty_name();
+                   "    " << typeid(handle).name();
         }
     }
 
-    void testDetection()
+    void
+    testDetection()
     {
         auto target = std::string();
 
@@ -165,7 +168,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,dynamic_buffer_handle);
+BEAST_DEFINE_TESTSUITE(beast, core, dynamic_buffer_handle);
 
 } // detail
 } // beast
