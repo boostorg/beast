@@ -44,6 +44,18 @@ template<class DynamicBuffer, class Behaviour>
 struct dynamic_buffer_handle;
 
 
+template<class T>
+struct is_dynamic_buffer_handle_test
+{
+    template<class...Us> static auto test(dynamic_buffer_handle<Us...>*) -> std::true_type;
+    static auto test(...) -> std::false_type;
+
+    using type = decltype(test((T*)0));
+};
+
+template<class T>
+struct is_dynamic_buffer_handle : is_dynamic_buffer_handle_test<T>::type {};
+
 // a meta-function who's result type indicates a behaviour flas
 template<class DynamicBuffer, class = void>
 struct dynamic_buffer_select_behaviour;
@@ -52,12 +64,20 @@ template<class DynamicBuffer>
 using dynamic_buffer_select_behaviour_t =
     typename dynamic_buffer_select_behaviour<DynamicBuffer>::type;
 
+// meta-function to select a dynamic_buffer_handle variant from a given DynamicBuffer and behaviour
+// this is the general case
+template<class DynamicBuffer, class Behaviour = dynamic_buffer_select_behaviour_t<DynamicBuffer>>
+struct select_dynamic_buffer_variant
+{
+    using type =
+        dynamic_buffer_handle<
+            DynamicBuffer,
+            dynamic_buffer_select_behaviour_t <DynamicBuffer>
+        >;
+};
+
 template<class DynamicBuffer>
-using dynamic_buffer_handle_t =
-    dynamic_buffer_handle<
-        DynamicBuffer,
-        dynamic_buffer_select_behaviour_t <DynamicBuffer>
-    >;
+using dynamic_buffer_handle_t = typename select_dynamic_buffer_variant<DynamicBuffer>::type;
 
 // flag types indicating selected dynamic_buffer_handle implementation behaviour
 
@@ -75,6 +95,47 @@ struct asio_v2_behaviour {};
 // * non-moveable, non-copyable
 // * asio dynamic_buffer version 1 interface
 struct beast_v1_behaviour {};
+
+struct dynamic_buffer_handle_behaviour {};
+
+// specialise for recursive creation of dyamic_buffer_handle from another dynamic_buffer_handle
+
+template<class Underlying>
+struct select_dynamic_buffer_variant<Underlying, dynamic_buffer_handle_behaviour>
+{
+    using type = Underlying;
+};
+
+template<class DynamicBuffer>
+struct
+dynamic_buffer_select_behaviour
+    <
+        DynamicBuffer,
+        typename std::enable_if
+            <
+                is_dynamic_buffer_handle<DynamicBuffer>::value
+            >::type
+    >
+{
+    using type = dynamic_buffer_handle_behaviour;
+};
+
+template<class...Ts>
+auto
+make_dynamic_buffer_handle(dynamic_buffer_handle<Ts...> const & source)
+-> dynamic_buffer_handle<Ts...>
+{
+    return source;
+}
+
+template<class...Ts>
+auto
+make_dynamic_buffer_handle(dynamic_buffer_handle<Ts...> && source)
+-> dynamic_buffer_handle<Ts...>&&
+{
+    return std::move(source);
+}
+
 
 // a base class designed to be used with CRTP which implements a complet dynamic_buffer_v1 interface
 // when the derived class is holding some kind of pointer to an underlying dynamic buffer which also
@@ -133,7 +194,8 @@ dynamic_buffer_select_behaviour
     <
         net::is_dynamic_buffer_v1<DynamicBuffer>::value &&
         !net::is_dynamic_buffer_v2<DynamicBuffer>::value &&
-        !is_beast_dynamic_buffer_v1<DynamicBuffer>::value
+        !is_beast_dynamic_buffer_v1<DynamicBuffer>::value &&
+        !is_dynamic_buffer_handle<DynamicBuffer>::value
     >::type
 >
 {
@@ -198,7 +260,8 @@ dynamic_buffer_select_behaviour
         typename std::enable_if
             <
                 net::is_dynamic_buffer_v2<DynamicBuffer>::value &&
-                !is_beast_dynamic_buffer_v1<DynamicBuffer>::value
+                !is_beast_dynamic_buffer_v1<DynamicBuffer>::value &&
+                !is_dynamic_buffer_handle<DynamicBuffer>::value
             >::type
     >
 {
@@ -322,7 +385,8 @@ dynamic_buffer_select_behaviour
             <
                 net::is_dynamic_buffer_v1<DynamicBuffer>::value &&
                 !net::is_dynamic_buffer_v2<DynamicBuffer>::value &&
-                is_beast_dynamic_buffer_v1<DynamicBuffer>::value
+                is_beast_dynamic_buffer_v1<DynamicBuffer>::value &&
+                !is_dynamic_buffer_handle<DynamicBuffer>::value
             >::type
     >
 {
