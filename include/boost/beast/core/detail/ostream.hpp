@@ -51,7 +51,7 @@ class ostream_buffer
     using traits_type = typename
         std::basic_streambuf<CharT, Traits>::traits_type;
 
-    DynamicBuffer& b_;
+    DynamicBuffer b_;
 
 public:
     ostream_buffer(ostream_buffer&&) = default;
@@ -63,9 +63,10 @@ public:
     }
 
     explicit
-    ostream_buffer(DynamicBuffer& b)
-        : b_(b)
+    ostream_buffer(DynamicBuffer b)
+        : b_(std::move(b))
     {
+        b_.prepare(0);
     }
 
     int_type
@@ -120,7 +121,7 @@ class ostream_buffer
     using traits_type = typename
         std::basic_streambuf<CharT, Traits>::traits_type;
 
-    DynamicBuffer& b_;
+    DynamicBuffer b_;
 
 public:
     ostream_buffer(ostream_buffer&&) = delete;
@@ -132,8 +133,8 @@ public:
     }
 
     explicit
-    ostream_buffer(DynamicBuffer& b)
-        : b_(b)
+    ostream_buffer(DynamicBuffer b)
+        : b_(std::move(b))
     {
     }
 
@@ -188,16 +189,16 @@ class ostream_helper<
 
 public:
     explicit
-    ostream_helper(DynamicBuffer& b);
+    ostream_helper(DynamicBuffer b);
 
     ostream_helper(ostream_helper&& other);
 };
 
 template<class DynamicBuffer, class CharT, class Traits>
 ostream_helper<DynamicBuffer, CharT, Traits, true>::
-ostream_helper(DynamicBuffer& b)
+ostream_helper(DynamicBuffer b)
     : std::basic_ostream<CharT, Traits>(&this->osb_)
-    , osb_(b)
+    , osb_(std::move(b))
 {
 }
 

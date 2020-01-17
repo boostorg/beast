@@ -11,6 +11,7 @@
 #define BOOST_BEAST_STATIC_BUFFER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/is_beast_dynamic_buffer_v1.hpp>
 #include <boost/beast/core/detail/buffers_pair.hpp>
 #include <boost/asio/buffer.hpp>
 #include <cstddef>
@@ -285,6 +286,15 @@ public:
         return N;
     }
 };
+
+namespace detail
+{
+template<>
+struct is_beast_dynamic_buffer_v1<::boost::beast::static_buffer_base> : std::true_type {};
+
+template<std::size_t N>
+struct is_beast_dynamic_buffer_v1<::boost::beast::static_buffer<N>> : std::true_type {};
+}
 
 } // beast
 } // boost

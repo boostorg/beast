@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/ostream.hpp>
+#include <boost/beast/core/detail/dynamic_buffer_handle.hpp>
 #include <type_traits>
 #include <streambuf>
 #include <utility>
@@ -52,17 +53,22 @@ template<class DynamicBuffer>
 __implementation_defined__
 #else
 detail::ostream_helper<
-    DynamicBuffer, char, std::char_traits<char>,
+    detail::dynamic_buffer_handle_t<typename std::decay<DynamicBuffer>::type>,
+        char, std::char_traits<char>,
         detail::basic_streambuf_movable::value>
 #endif
-ostream(DynamicBuffer& buffer)
+ostream(DynamicBuffer&& buffer)
 {
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<detail::dynamic_buffer_handle_t<typename std::decay<DynamicBuffer>::type>>::value,
         "DynamicBuffer type requirements not met");
+
+    auto handle = detail::make_dynamic_buffer_handle(std::forward<DynamicBuffer>(buffer));
+
     return detail::ostream_helper<
-        DynamicBuffer, char, std::char_traits<char>,
-            detail::basic_streambuf_movable::value>{buffer};
+        detail::dynamic_buffer_handle_t<typename std::decay<DynamicBuffer>::type>,
+            char, std::char_traits<char>,
+            detail::basic_streambuf_movable::value>(std::move(handle));
 }
 
 //------------------------------------------------------------------------------

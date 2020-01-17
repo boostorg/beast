@@ -11,6 +11,7 @@
 #define BOOST_BEAST_FLAT_STATIC_BUFFER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/is_beast_dynamic_buffer_v1.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <cstddef>
@@ -325,6 +326,17 @@ public:
         return N;
     }
 };
+
+// mark the basic_flat_buffer as having beast v1 buffer behaviour (pass by reference)
+namespace detail
+{
+template<>
+struct is_beast_dynamic_buffer_v1<::boost::beast::flat_static_buffer_base> : std::true_type {};
+
+template<std::size_t N>
+struct is_beast_dynamic_buffer_v1<::boost::beast::flat_static_buffer<N>> : std::true_type {};
+} // namespace detail
+
 
 } // beast
 } // boost

@@ -11,6 +11,7 @@
 #define BOOST_BEAST_MULTI_BUFFER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/is_beast_dynamic_buffer_v1.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/core/empty_value.hpp>
@@ -585,6 +586,13 @@ private:
     element& alloc(std::size_t size);
     void debug_check() const;
 };
+
+// mark the basic_multi_buffer as having beast v1 buffer behaviour (pass by reference)
+namespace detail
+{
+template<class Allocator>
+struct is_beast_dynamic_buffer_v1<::boost::beast::basic_multi_buffer<Allocator>> : std::true_type {};
+} // namespace detail
 
 /// A typical multi buffer
 using multi_buffer = basic_multi_buffer<std::allocator<char>>;

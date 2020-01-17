@@ -17,6 +17,7 @@
 #include <limits>
 #include <memory>
 #include <type_traits>
+#include <boost/beast/core/detail/is_beast_dynamic_buffer_v1.hpp>
 
 namespace boost {
 namespace beast {
@@ -520,6 +521,13 @@ private:
     void swap(basic_flat_buffer&, std::false_type);
     char* alloc(std::size_t n);
 };
+
+// mark the basic_flat_buffer as having beast v1 buffer behaviour (pass by reference)
+namespace detail
+{
+template<class Allocator>
+struct is_beast_dynamic_buffer_v1<basic_flat_buffer<Allocator>> : std::true_type {};
+} // namespace detail
 
 /// A flat buffer which uses the default allocator.
 using flat_buffer =
