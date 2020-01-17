@@ -12,6 +12,8 @@
 #include <boost/beast/core/detail/dynamic_buffer_handle.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/type_index.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include "v1_dynamic_string_buffer.hpp"
 
 namespace boost {
 namespace beast {
@@ -51,9 +53,107 @@ public:
         auto moved = make_dynamic_buffer_handle(std::move(handle));
         if (!BEAST_EXPECT((std::is_same<decltype(moved), decltype(handle)>::value)))
         {
-            log << "  make_dynamic_buffer(dynamic_buffer_handle_t<expected_type> &&) results in "
-                << boost::typeindex::type_id<decltype(moved)>().pretty_name()
-                << "\n  expected: " << boost::typeindex::type_id<decltype(handle)>().pretty_name();
+            log << "  make_dynamic_buffer(dynamic_buffer_handle_t<expected_type> &&) results in:\n"
+                   "    " << boost::typeindex::type_id<decltype(moved)>().pretty_name()
+                << "\n  expected:\n"
+                   "    " << boost::typeindex::type_id<decltype(handle)>().pretty_name();
+        }
+    }
+
+    void testDetection()
+    {
+        auto target = std::string();
+
+        // asio v1 buffer
+        {
+            auto v1_buffer = v1_dynamic_string_buffer(target);
+            using v1_buffer_behaviour = dynamic_buffer_select_behaviour_t<decltype(v1_buffer)>;
+            auto is_v1_correct = std::is_same<v1_buffer_behaviour, asio_v1_behaviour>::value;
+            if (!BEAST_EXPECT(is_v1_correct))
+            {
+                log << "  dynamic_buffer_select_behaviour_t<v1_buffer_type> result in:\n"
+                       "    " << typeid(v1_buffer_behaviour).name()
+                    << "\n  expected:\n"
+                       "    " << typeid(asio_v1_behaviour).name();
+            }
+
+            using dyn_buffer_type = dynamic_buffer_handle_t<decltype(v1_buffer)>;
+            using expected_dyn_buffer_type = dynamic_buffer_handle<decltype(v1_buffer), asio_v1_behaviour>;
+
+            if (!BEAST_EXPECT((std::is_same<dyn_buffer_type, expected_dyn_buffer_type>::value)))
+            {
+                log << "  dynamic_buffer_handle_t<v1_buffer_type> result in:\n"
+                       "    " << typeid(dyn_buffer_type).name()
+                    << "\n  expected:\n"
+                       "    " << typeid(expected_dyn_buffer_type).name();
+            }
+
+            // construct from copy & move should be equivalent
+            auto dyn_buf = make_dynamic_buffer_handle(v1_buffer);
+            auto dyn_buf2 = make_dynamic_buffer_handle((std::move(v1_buffer)));
+            BEAST_EXPECT((std::is_same<decltype(dyn_buf), decltype(dyn_buf2)>::value));
+            BEAST_EXPECT((std::is_same<decltype(dyn_buf), expected_dyn_buffer_type>::value));
+        }
+
+        // asio v2 buffer
+        {
+            auto buffer = net::dynamic_buffer(target);
+            using buffer_behaviour = dynamic_buffer_select_behaviour_t<decltype(buffer)>;
+            auto is_correct = std::is_same<buffer_behaviour, asio_v2_behaviour>::value;
+            if (!BEAST_EXPECT(is_correct))
+            {
+                log << "  dynamic_buffer_select_behaviour_t<buffer_type> results in:\n"
+                       "    " << typeid(buffer_behaviour).name()
+                    << "\n  expected:\n"
+                       "    " << typeid(asio_v2_behaviour).name();
+            }
+
+            using dyn_buffer_type = dynamic_buffer_handle_t<decltype(buffer)>;
+            using expected_dyn_buffer_type = dynamic_buffer_handle<decltype(buffer), asio_v2_behaviour>;
+
+            if (!BEAST_EXPECT((std::is_same<dyn_buffer_type, expected_dyn_buffer_type>::value)))
+            {
+                log << "  dynamic_buffer_handle_t<buffer_type> result in:\n"
+                       "    " << typeid(dyn_buffer_type).name()
+                    << "\n  expected:\n"
+                       "    " << typeid(expected_dyn_buffer_type).name();
+            }
+
+            // construct from copy & move should be equivalent
+            auto dyn_buf = make_dynamic_buffer_handle(buffer);
+            auto dyn_buf2 = make_dynamic_buffer_handle((std::move(buffer)));
+            BEAST_EXPECT((std::is_same<decltype(dyn_buf), decltype(dyn_buf2)>::value));
+            BEAST_EXPECT((std::is_same<decltype(dyn_buf), expected_dyn_buffer_type>::value));
+        }
+
+        // beast dynamic buffers
+        {
+            auto buffer = ::boost::beast::flat_buffer();
+            using buffer_behaviour = dynamic_buffer_select_behaviour_t<decltype(buffer)>;
+            auto is_correct = std::is_same<buffer_behaviour, beast_v1_behaviour>::value;
+            if (!BEAST_EXPECT(is_correct))
+            {
+                log << "  dynamic_buffer_select_behaviour_t<buffer_type> results in:\n"
+                       "    " << typeid(buffer_behaviour).name()
+                    << "\n  expected:\n"
+                       "    " << typeid(beast_v1_behaviour).name();
+            }
+
+            using dyn_buffer_type = dynamic_buffer_handle_t<decltype(buffer)>;
+            using expected_dyn_buffer_type = dynamic_buffer_handle<decltype(buffer), beast_v1_behaviour>;
+
+            if (!BEAST_EXPECT((std::is_same<dyn_buffer_type, expected_dyn_buffer_type>::value)))
+            {
+                log << "  dynamic_buffer_handle_t<buffer_type> result in:\n"
+                       "    " << typeid(dyn_buffer_type).name()
+                    << "\n  expected:\n"
+                       "    " << typeid(expected_dyn_buffer_type).name();
+            }
+
+            // construct from copy & move should be equivalent
+            auto dyn_buf = make_dynamic_buffer_handle(buffer);
+            BEAST_EXPECT((std::is_same<decltype(dyn_buf), expected_dyn_buffer_type>::value));
+            // todo: think of a test that asserts that make_dynamic_buffer_handle(std::move(buffer)) must not compile
         }
     }
 
@@ -61,6 +161,7 @@ public:
     run() override
     {
         testConstruction();
+        testDetection();
     }
 };
 

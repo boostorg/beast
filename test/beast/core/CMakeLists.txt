@@ -17,6 +17,7 @@ add_executable (tests-beast-core
     file_test.hpp
     stream_tests.hpp
     test_handler.hpp
+    v1_dynamic_string_buffer.hpp
     _detail_base64.cpp
     _detail_bind_continuation.cpp
     _detail_buffer.cpp
