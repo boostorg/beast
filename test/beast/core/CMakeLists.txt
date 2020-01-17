@@ -21,6 +21,7 @@ add_executable (tests-beast-core
     _detail_bind_continuation.cpp
     _detail_buffer.cpp
     _detail_clamp.cpp
+    _detail_dynamic_buffer_handle.cpp
     _detail_get_io_context.cpp
     _detail_is_invocable.cpp
     _detail_read.cpp
