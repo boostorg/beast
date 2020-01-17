@@ -15,6 +15,7 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/beast/core/detail/is_beast_dynamic_buffer_v1.hpp>
 #include <memory>
+#include <boost/assert.hpp>
 
 namespace boost {
 namespace beast {
@@ -120,17 +121,21 @@ dynamic_buffer_select_behaviour
     using type = dynamic_buffer_handle_behaviour;
 };
 
-template<class...Ts>
+template<class...Ts, class Allocator = std::allocator<void>>
 auto
-make_dynamic_buffer_handle(dynamic_buffer_handle<Ts...> const & source)
+make_dynamic_buffer_handle(
+    dynamic_buffer_handle<Ts...> const & source,
+    Allocator = Allocator())
 -> dynamic_buffer_handle<Ts...>
 {
     return source;
 }
 
-template<class...Ts>
+template<class...Ts, class Allocator = std::allocator<void>>
 auto
-make_dynamic_buffer_handle(dynamic_buffer_handle<Ts...> && source)
+make_dynamic_buffer_handle(
+    dynamic_buffer_handle<Ts...> && source,
+    Allocator = Allocator())
 -> dynamic_buffer_handle<Ts...>&&
 {
     return std::move(source);
@@ -215,9 +220,16 @@ struct dynamic_buffer_handle<
     >
 >
 {
-    dynamic_buffer_handle(AsioV1DynamicBuffer underlying)
-    : impl_(std::make_shared<AsioV1DynamicBuffer>(std::move(underlying)))
-    {}
+    template<class Allocator>
+    dynamic_buffer_handle(Allocator alloc, AsioV1DynamicBuffer underlying)
+    : impl_(
+        allocate_impl(
+            alloc,
+            std::move(underlying))
+        )
+    {
+        BOOST_ASSERT(impl_);
+    }
 
     AsioV1DynamicBuffer& dyn_buf()
     {
@@ -230,24 +242,39 @@ struct dynamic_buffer_handle<
     }
 
 private:
-    using implementation_type = std::shared_ptr<AsioV1DynamicBuffer>;
+
+    using impl_class = AsioV1DynamicBuffer;
+
+    using implementation_type = std::shared_ptr<impl_class>;
+
+    template<class Allocator>
+    static auto
+    allocate_impl(Allocator alloc, AsioV1DynamicBuffer underlying)
+    -> implementation_type
+    {
+        return std::allocate_shared<impl_class>(
+            alloc,
+            std::move(underlying));
+    }
+
+private:
     implementation_type impl_;
 };
 
-template<class AsioV1DynamicBuffer>
-    auto
-    make_dynamic_buffer_handle(AsioV1DynamicBuffer underlying)
-    ->
-    typename std::enable_if
-    <
-        std::is_same<
-            dynamic_buffer_select_behaviour_t<AsioV1DynamicBuffer>,
-            asio_v1_behaviour
-        >::value,
-        dynamic_buffer_handle_t<AsioV1DynamicBuffer>
-    >::type
+template<class AsioV1DynamicBuffer, class Allocator = std::allocator<void>>
+auto
+make_dynamic_buffer_handle(AsioV1DynamicBuffer underlying, Allocator alloc = Allocator())
+->
+typename std::enable_if
+<
+    std::is_same<
+        dynamic_buffer_select_behaviour_t<AsioV1DynamicBuffer>,
+        asio_v1_behaviour
+    >::value,
+    dynamic_buffer_handle_t<AsioV1DynamicBuffer>
+>::type
 {
-    return dynamic_buffer_handle_t<AsioV1DynamicBuffer>(std::move(underlying));
+    return dynamic_buffer_handle_t<AsioV1DynamicBuffer>(alloc, std::move(underlying));
 }
 
 // specialise for asio v2 buffers
@@ -271,11 +298,18 @@ dynamic_buffer_select_behaviour
 template<class AsioV2DynamicBuffer>
 struct dynamic_buffer_handle<AsioV2DynamicBuffer, asio_v2_behaviour>
 {
+public:
+
     using const_buffers_type = typename AsioV2DynamicBuffer::const_buffers_type;
     using mutable_buffers_type = typename AsioV2DynamicBuffer::mutable_buffers_type;
 
-    dynamic_buffer_handle(AsioV2DynamicBuffer underlying)
-    : impl_(std::make_shared<impl_class>(std::move(underlying)))
+    template<class Allocator>
+    dynamic_buffer_handle(
+        Allocator alloc,
+        AsioV2DynamicBuffer underlying)
+    : impl_(allocate_impl(
+                alloc,
+                std::move(underlying)))
     {}
 
     std::size_t
@@ -337,13 +371,27 @@ private:
     struct impl_class
     {
         impl_class(AsioV2DynamicBuffer dyn_buf_)
-        : dyn_buf(std::move(dyn_buf_))
-        , prepared(0)
+            : dyn_buf(std::move(dyn_buf_))
+            , prepared(0)
         {}
 
         AsioV2DynamicBuffer dyn_buf; // a copy of the dynamic buffer
         std::size_t prepared; // the value of n in the last call to prepare(n)
     };
+
+    using implementation_type = std::shared_ptr<impl_class>;
+
+    template<class Allocator>
+    static auto
+    allocate_impl(Allocator alloc, AsioV2DynamicBuffer underlying)
+    -> implementation_type
+    {
+        using atraits = std::allocator_traits<Allocator>;
+        using our_allocator = typename atraits::template rebind_alloc<impl_class>;
+        return std::allocate_shared<impl_class>(
+            our_allocator(alloc),
+            std::move(underlying));
+    }
 
     auto get_impl() const -> impl_class const&
     {
@@ -355,12 +403,14 @@ private:
         return *impl_;
     }
 
-    std::shared_ptr<impl_class> impl_;
+    implementation_type impl_;
 };
 
-template<class AsioV2DynamicBuffer>
+template<class AsioV2DynamicBuffer, class Allocator = std::allocator<void>>
 auto
-make_dynamic_buffer_handle(AsioV2DynamicBuffer underlying)
+make_dynamic_buffer_handle(
+    AsioV2DynamicBuffer underlying,
+    Allocator alloc = Allocator())
 ->
 typename std::enable_if
 <
@@ -371,7 +421,9 @@ typename std::enable_if
     dynamic_buffer_handle_t<AsioV2DynamicBuffer>
 >::type
 {
-    return dynamic_buffer_handle_t<AsioV2DynamicBuffer>(std::move(underlying));
+    return dynamic_buffer_handle_t<AsioV2DynamicBuffer>(
+        std::move(alloc),
+        std::move(underlying));
 }
 
 // specialise for beast v1 behaviour
@@ -424,9 +476,9 @@ private:
     implementation_type impl_;
 };
 
-template<class BeastV1DynamicBuffer>
+template<class BeastV1DynamicBuffer, class Allocator = std::allocator<void>>
 auto
-make_dynamic_buffer_handle(BeastV1DynamicBuffer& underlying)
+make_dynamic_buffer_handle(BeastV1DynamicBuffer& underlying, Allocator = Allocator())
 ->
 typename std::enable_if
     <
