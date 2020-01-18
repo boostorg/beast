@@ -18,6 +18,26 @@ namespace boost {
 namespace beast {
 namespace detail {
 
+template<class...Args>
+struct can_call_make_dynamic_buffer_handle_machinery
+{
+    static auto test(...) -> std::false_type;
+
+    template<class...Args2>
+    static auto test(Args2&&...) -> decltype(make_dynamic_buffer_handle(std::declval<Args2>()...), void(), std::true_type());
+
+    using type = decltype(test(std::declval<Args>()...));
+};
+
+template<class...Args>
+constexpr bool
+can_call_make_dynamic_buffer_handle()
+{
+    using truefalse = typename can_call_make_dynamic_buffer_handle_machinery<Args...>::type;
+    return truefalse();
+}
+
+
 class dynamic_buffer_handle_test
     : public beast::unit_test::suite
 {
@@ -156,7 +176,13 @@ public:
             // construct from copy & move should be equivalent
             auto dyn_buf = make_dynamic_buffer_handle(buffer);
             BEAST_EXPECT((std::is_same<decltype(dyn_buf), expected_dyn_buffer_type>::value));
-            // todo: think of a test that asserts that make_dynamic_buffer_handle(std::move(buffer)) must not compile
+
+            // check that dyn buffer handles can only be created from l-value mutable references to
+            // Beast V1 dynamic buffers
+            using buftype = ::boost::beast::flat_buffer;
+            BEAST_EXPECT(can_call_make_dynamic_buffer_handle<buftype&>());
+            BEAST_EXPECT(!can_call_make_dynamic_buffer_handle<buftype&&>());
+            BEAST_EXPECT(!can_call_make_dynamic_buffer_handle<buftype const&>());
         }
     }
 
