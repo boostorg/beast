@@ -17,6 +17,7 @@
 #include <boost/asio/basic_stream_socket.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/throw_exception.hpp>
+#include <boost/beast/core/detail/dynamic_buffer_handle.hpp>
 
 namespace boost {
 namespace beast {
@@ -34,7 +35,7 @@ struct dynamic_read_ops
 // condition is met or an error occurs
 template<
     class Stream,
-    class DynamicBuffer,
+    class DynamicBufferHandle,
     class Condition,
     class Handler>
 class read_op
@@ -43,7 +44,7 @@ class read_op
         Handler, beast::executor_type<Stream>>
 {
     Stream& s_;
-    DynamicBuffer& b_;
+    DynamicBufferHandle b_;
     Condition cond_;
     error_code ec_;
     std::size_t total_ = 0;
@@ -55,14 +56,14 @@ public:
     read_op(
         Handler_&& h,
         Stream& s,
-        DynamicBuffer& b,
+        DynamicBufferHandle b,
         Condition_&& cond)
         : async_base<Handler,
             beast::executor_type<Stream>>(
                 std::forward<Handler_>(h),
                     s.get_executor())
         , s_(s)
-        , b_(b)
+        , b_(std::move(b))
         , cond_(std::forward<Condition_>(cond))
     {
         (*this)({}, 0, false);
@@ -109,14 +110,14 @@ struct run_read_op
 {
     template<
         class AsyncReadStream,
-        class DynamicBuffer,
+        class ...DynBufferArgs,
         class Condition,
         class ReadHandler>
     void
     operator()(
         ReadHandler&& h,
         AsyncReadStream* s,
-        DynamicBuffer* b,
+        detail::dynamic_buffer_handle<DynBufferArgs...> b,
         Condition&& c)
     {
         // If you get an error on the following line it means
@@ -130,12 +131,12 @@ struct run_read_op
 
         read_op<
             AsyncReadStream,
-            DynamicBuffer,
+            detail::dynamic_buffer_handle<DynBufferArgs...>,
             typename std::decay<Condition>::type,
             typename std::decay<ReadHandler>::type>(
                 std::forward<ReadHandler>(h),
                 *s,
-                *b,
+                std::move(b),
                 std::forward<Condition>(c));
     }
 
@@ -181,18 +182,18 @@ template<
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     CompletionCondition cond,
     error_code& ec)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<DynamicBuffer>::value || boost::beast::detail::is_dynamic_buffer_handle<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value,
+            void(error_code&, std::size_t, decltype(boost::beast::detail::make_dynamic_buffer_handle(std::forward<DynamicBuffer>(buffer)))&)>::value,
         "CompletionCondition type requirements not met");
     ec = {};
     std::size_t total = 0;
@@ -219,26 +220,29 @@ template<
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     CompletionCondition&& cond,
     ReadHandler&& handler)
 {
     static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value,
+            void(error_code&, std::size_t, decltype(::boost::beast::detail::make_dynamic_buffer_handle(std::declval<DynamicBuffer&&>()))&)>::value,
         "CompletionCondition type requirements not met");
+
+    // conversion to dynamic_buffer_handle must take place here while its type is in deduced context
     return net::async_initiate<
         ReadHandler,
         void(error_code, std::size_t)>(
             typename dynamic_read_ops::run_read_op{},
             handler,
             &stream,
-            &buffer,
+            detail::make_dynamic_buffer_handle(
+                std::forward<DynamicBuffer>(buffer)),
             std::forward<CompletionCondition>(cond));
 }
 

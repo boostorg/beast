@@ -18,6 +18,7 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/read.hpp>
 #include <boost/asio/error.hpp>
+#include <boost/beast/core/detail/dynamic_buffer_handle.hpp>
 
 namespace boost {
 namespace beast {
@@ -158,7 +159,7 @@ struct read_all_condition
 //------------------------------------------------------------------------------
 
 template<
-    class Stream, class DynamicBuffer,
+    class Stream, class DynamicBufferHandle,
     bool isRequest, class Body, class Allocator,
     class Handler>
 class read_msg_op
@@ -195,7 +196,7 @@ public:
     read_msg_op(
         Handler_&& h,
         Stream& s,
-        DynamicBuffer& b,
+        DynamicBufferHandle b,
         message_type& m)
         : stable_async_base<
             Handler, beast::executor_type<Stream>>(
@@ -203,7 +204,7 @@ public:
         , d_(beast::allocate_stable<data>(
             *this, s, m))
     {
-        http::async_read(d_.s, b, d_.p, std::move(*this));
+        http::async_read(d_.s, std::move(b), d_.p, std::move(*this));
     }
 
     void
@@ -222,13 +223,13 @@ struct run_read_msg_op
     template<
         class ReadHandler,
         class AsyncReadStream,
-        class DynamicBuffer,
+        class DynamicBufferHandle,
         bool isRequest, class Body, class Allocator>
     void
     operator()(
         ReadHandler&& h,
         AsyncReadStream* s,
-        DynamicBuffer* b,
+        DynamicBufferHandle b,
         message<isRequest, Body,
             basic_fields<Allocator>>* m)
     {
@@ -243,10 +244,10 @@ struct run_read_msg_op
 
         read_msg_op<
             AsyncReadStream,
-            DynamicBuffer,
+            DynamicBufferHandle,
             isRequest, Body, Allocator,
             typename std::decay<ReadHandler>::type>(
-                std::forward<ReadHandler>(h), *s, *b, *m);
+                std::forward<ReadHandler>(h), *s, std::move(b), *m);
     }
 };
 
@@ -261,18 +262,18 @@ template<
 std::size_t
 read_some(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser)
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        http::read_some(stream, buffer, parser, ec);
+        http::read_some(stream, std::forward<DynamicBuffer>(buffer), parser, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -285,7 +286,7 @@ template<
 std::size_t
 read_some(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser,
     error_code& ec)
 {
@@ -293,9 +294,9 @@ read_some(
         is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
-    return beast::detail::read(stream, buffer,
+    return beast::detail::read(stream, ::boost::beast::detail::make_dynamic_buffer_handle(buffer),
         detail::read_some_condition<
             isRequest>{parser}, ec);
 }
@@ -308,13 +309,13 @@ template<
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read_some(
     AsyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser,
     ReadHandler&& handler)
 {
     return beast::detail::async_read(
         stream,
-        buffer,
+        ::boost::beast::detail::make_dynamic_buffer_handle(std::forward<DynamicBuffer>(buffer)),
         detail::read_some_condition<
             isRequest>{parser},
         std::forward<ReadHandler>(handler));
@@ -329,18 +330,21 @@ template<
 std::size_t
 read_header(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser)
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        http::read_header(stream, buffer, parser, ec);
+        http::read_header(stream,
+                  ::boost::beast::detail::make_dynamic_buffer_handle(std::forward<DynamicBuffer>(buffer)),
+                  parser,
+                  ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -353,7 +357,7 @@ template<
 std::size_t
 read_header(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser,
     error_code& ec)
 {
@@ -361,12 +365,13 @@ read_header(
         is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value || boost::beast::detail::is_dynamic_buffer_handle<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
     parser.eager(false);
-    return beast::detail::read(stream, buffer,
-        detail::read_header_condition<
-            isRequest>{parser}, ec);
+    return beast::detail::read(stream,
+               ::boost::beast::detail::make_dynamic_buffer_handle(std::forward<DynamicBuffer>(buffer)),
+               detail::read_header_condition<isRequest>{parser},
+               ec);
 }
 
 template<
@@ -377,14 +382,14 @@ template<
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read_header(
     AsyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser,
     ReadHandler&& handler)
 {
     parser.eager(false);
     return beast::detail::async_read(
         stream,
-        buffer,
+        ::boost::beast::detail::make_dynamic_buffer_handle(std::forward<DynamicBuffer>(buffer)),
         detail::read_header_condition<
             isRequest>{parser},
         std::forward<ReadHandler>(handler));
@@ -399,18 +404,18 @@ template<
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser)
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        http::read(stream, buffer, parser, ec);
+        http::read(stream, std::forward<DynamicBuffer>(buffer), parser, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -423,7 +428,7 @@ template<
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser,
     error_code& ec)
 {
@@ -431,12 +436,14 @@ read(
         is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
     parser.eager(true);
-    return beast::detail::read(stream, buffer,
-        detail::read_all_condition<
-            isRequest>{parser}, ec);
+    return beast::detail::read(stream,
+        ::boost::beast::detail::make_dynamic_buffer_handle(
+            std::forward<DynamicBuffer>(buffer)),
+        detail::read_all_condition<isRequest>{parser},
+        ec);
 }
 
 template<
@@ -447,7 +454,7 @@ template<
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     basic_parser<isRequest>& parser,
     ReadHandler&& handler)
 {
@@ -455,12 +462,14 @@ async_read(
         is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value
+        || ::boost::beast::detail::is_dynamic_buffer_handle<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
     parser.eager(true);
     return beast::detail::async_read(
         stream,
-        buffer,
+        ::boost::beast::detail::make_dynamic_buffer_handle(
+            std::forward<DynamicBuffer>(buffer)),
         detail::read_all_condition<
             isRequest>{parser},
         std::forward<ReadHandler>(handler));
@@ -475,14 +484,14 @@ template<
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     message<isRequest, Body, basic_fields<Allocator>>& msg)
 {
     static_assert(
         is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
     static_assert(is_body<Body>::value,
         "Body type requirements not met");
@@ -490,7 +499,7 @@ read(
         "BodyReader type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        http::read(stream, buffer, msg, ec);
+        http::read(stream, std::forward<DynamicBuffer>(buffer), msg, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -503,7 +512,7 @@ template<
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     message<isRequest, Body, basic_fields<Allocator>>& msg,
     error_code& ec)
 {
@@ -511,7 +520,7 @@ read(
         is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
     static_assert(is_body<Body>::value,
         "Body type requirements not met");
@@ -520,7 +529,7 @@ read(
     parser<isRequest, Body, Allocator> p(std::move(msg));
     p.eager(true);
     auto const bytes_transferred =
-        http::read(stream, buffer, p, ec);
+        http::read(stream, std::forward<DynamicBuffer>(buffer), p, ec);
     if(ec)
         return bytes_transferred;
     msg = p.release();
@@ -535,7 +544,7 @@ template<
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     message<isRequest, Body, basic_fields<Allocator>>& msg,
     ReadHandler&& handler)
 {
@@ -543,7 +552,7 @@ async_read(
         is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value,
         "DynamicBuffer type requirements not met");
     static_assert(is_body<Body>::value,
         "Body type requirements not met");
@@ -553,7 +562,11 @@ async_read(
         ReadHandler,
         void(error_code, std::size_t)>(
             detail::run_read_msg_op{},
-                handler, &stream, &buffer, &msg);
+                handler,
+                &stream,
+                ::boost::beast::detail::make_dynamic_buffer_handle(
+                    std::forward<DynamicBuffer>(buffer))
+                , &msg);
 }
 
 } // http

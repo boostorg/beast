@@ -16,6 +16,7 @@
 #include <boost/beast/core/detail/is_invocable.hpp>
 #include <boost/asio/async_result.hpp>
 #include <cstdlib>
+#include "dynamic_buffer_handle.hpp"
 
 namespace boost {
 namespace beast {
@@ -74,9 +75,9 @@ template<
 #if ! BOOST_BEAST_DOXYGEN
     , class = typename std::enable_if<
         is_sync_read_stream<SyncReadStream>::value &&
-        net::is_dynamic_buffer<DynamicBuffer>::value &&
+            (net::is_dynamic_buffer<DynamicBuffer>::value || boost::beast::detail::is_dynamic_buffer_handle<DynamicBuffer>::value)&&
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value
+            void(error_code&, std::size_t, boost::beast::detail::reference_to_converted_dynamic_buffer_t<DynamicBuffer>)>::value
     >::type
 #endif
 >
@@ -144,7 +145,7 @@ template<
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     CompletionCondition completion_condition,
     error_code& ec);
 
@@ -223,16 +224,18 @@ template<
 #if ! BOOST_BEAST_DOXYGEN
     , class = typename std::enable_if<
         is_async_read_stream<AsyncReadStream>::value &&
-        net::is_dynamic_buffer<DynamicBuffer>::value &&
+            (net::is_dynamic_buffer<typename std::decay<DynamicBuffer>::type>::value
+            || boost::beast::detail::is_dynamic_buffer_handle<DynamicBuffer>::value) &&
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value
+            void(error_code&, std::size_t,
+                 decltype(::boost::beast::detail::make_dynamic_buffer_handle(std::declval<DynamicBuffer&&>()))&)>::value
     >::type
 #endif
 >
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer&& buffer,
     CompletionCondition&& completion_condition,
     ReadHandler&& handler);
 

@@ -55,7 +55,7 @@ struct is_dynamic_buffer_handle_test
 };
 
 template<class T>
-struct is_dynamic_buffer_handle : is_dynamic_buffer_handle_test<T>::type {};
+struct is_dynamic_buffer_handle : is_dynamic_buffer_handle_test<typename std::decay<T>::type>::type {};
 
 // a meta-function who's result type indicates a behaviour flas
 template<class DynamicBuffer, class = void>
@@ -78,7 +78,10 @@ struct select_dynamic_buffer_variant
 };
 
 template<class DynamicBuffer>
-using dynamic_buffer_handle_t = typename select_dynamic_buffer_variant<DynamicBuffer>::type;
+using dynamic_buffer_handle_t = typename select_dynamic_buffer_variant<typename std::decay<DynamicBuffer>::type>::type;
+
+template<class SourceBuffer>
+using reference_to_converted_dynamic_buffer_t = typename std::add_lvalue_reference<dynamic_buffer_handle_t<SourceBuffer>>::type;
 
 // flag types indicating selected dynamic_buffer_handle implementation behaviour
 
