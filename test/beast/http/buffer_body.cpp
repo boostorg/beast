@@ -44,6 +44,7 @@ public:
         read_header(ts, fb, p, ec);
         auto const bytes_transferred =
             read(ts, fb, p, ec);
+        boost::ignore_unused(bytes_transferred);
         BEAST_EXPECTS(! ec, ec.message());
 
         // VFALCO What should the read algorithms return?
