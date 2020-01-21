@@ -1,6 +1,7 @@
 Version 283:
 
 * ostream_buffer satisfies preconditions of DynamicBuffer_v1::commit
+* Add accessor function to File member of basic_file_body
 
 Version 282:
 

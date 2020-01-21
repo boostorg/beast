@@ -78,6 +78,11 @@ struct basic_file_body<file_win32>
         value_type(value_type&& other) = default;
         value_type& operator=(value_type&& other) = default;
 
+        file_win32& file()
+        {
+            return file_;
+        }
+
         bool
         is_open() const
         {
