@@ -111,6 +111,12 @@ public:
     /// Move assignment
     value_type& operator=(value_type&& other) = default;
 
+    /// Return the file
+    File& file()
+    {
+        return file_;
+    }
+
     /// Returns `true` if the file is open
     bool
     is_open() const
