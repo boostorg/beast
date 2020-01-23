@@ -1,3 +1,7 @@
+Version 283:
+
+* ostream_buffer satisfies preconditions of DynamicBuffer_v1::commit
+
 Version 282:
 
 * Use superproject docca

@@ -66,6 +66,7 @@ public:
     ostream_buffer(DynamicBuffer& b)
         : b_(b)
     {
+        b_.prepare(0);
     }
 
     int_type
