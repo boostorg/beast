@@ -153,7 +153,15 @@ enum class error
         a new parser for each message. This can be easily done by
         storing the parser in an boost or std::optional container.
     */
-    stale_parser
+    stale_parser,
+
+    /** The message body is shorter than expected.
+
+        This error is returned by @ref file_body when an unexpected
+        unexpected end-of-file condition is encountered while trying
+        to read from the file.
+    */
+    short_read
 };
 
 } // http
