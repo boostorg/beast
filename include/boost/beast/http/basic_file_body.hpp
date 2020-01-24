@@ -363,6 +363,12 @@ get(error_code& ec) ->
     if(ec)
         return boost::none;
 
+    if (nread == 0)
+    {
+        ec = error::short_read;
+        return boost::none;
+    }
+
     // Make sure there is forward progress
     BOOST_ASSERT(nread != 0);
     BOOST_ASSERT(nread <= remain_);

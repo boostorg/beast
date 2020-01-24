@@ -141,7 +141,10 @@ In this table:
         set `ec` to `errc::invalid_argument` and return immediately.
         The function will ensure that `!ec` is `true` if there was
         no error or set to the appropriate error code if an error
-        occurred. 
+        occurred.
+        If an end-of-file condition is detected prior to reading any
+        bytes, the function will ensure that `!ec` is `true` and the
+        return value shall be 0.
     ]
 ]
 [

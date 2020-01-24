@@ -17,6 +17,7 @@
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
+#include <boost/beast/http/error.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/http/serializer.hpp>
 #include <boost/asio/async_result.hpp>
@@ -133,14 +134,17 @@ struct basic_file_body<file_win32>
         template<bool isRequest, class Fields>
         writer(header<isRequest, Fields>&, value_type& b)
             : body_(b)
+            , pos_(body_.first_)
         {
+            // The file must already be open
+            BOOST_ASSERT(body_.file_.is_open());
         }
 
         void
-        init(error_code&)
+        init(error_code& ec)
         {
             BOOST_ASSERT(body_.file_.is_open());
-            pos_ = body_.first_;
+            ec.clear();
         }
 
         boost::optional<std::pair<const_buffers_type, bool>>
@@ -156,6 +160,11 @@ struct basic_file_body<file_win32>
             auto const nread = body_.file_.read(buf_, n, ec);
             if(ec)
                 return boost::none;
+            if (nread == 0)
+            {
+                ec = error::short_read;
+                return boost::none;
+            }
             BOOST_ASSERT(nread != 0);
             pos_ += nread;
             ec = {};

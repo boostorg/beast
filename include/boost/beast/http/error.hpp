@@ -153,7 +153,16 @@ enum class error
         a new parser for each message. This can be easily done by
         storing the parser in an boost or std::optional container.
     */
-    stale_parser
+    stale_parser,
+
+    /** The body is shorter than claimed
+
+        This happens when writing to a stream from a file_body if
+        an end of file condition is discovered in the underlying
+        file object embedded in the body before all expected
+        bytes have been read.
+     */
+     short_read
 };
 
 } // http

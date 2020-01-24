@@ -1,3 +1,9 @@
+Version XXX:
+
+* clarify end-of-file behaviour in File::read docs
+* basic_file_body::writer::get reports short_read on eof
+* fix bug in win32 file_body
+
 Version 283:
 
 * ostream_buffer satisfies preconditions of DynamicBuffer_v1::commit
