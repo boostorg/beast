@@ -1,3 +1,9 @@
+Version XXX:
+
+* updated root certificates in examples
+
+--------------------------------------------------------------------------------
+
 Version 283:
 
 * ostream_buffer satisfies preconditions of DynamicBuffer_v1::commit
