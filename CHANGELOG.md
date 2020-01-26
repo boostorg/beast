@@ -1,5 +1,6 @@
 Version XXX:
 
+* examples use strands correctly
 * updated root certificates in examples
 
 --------------------------------------------------------------------------------
