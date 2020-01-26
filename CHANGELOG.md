@@ -1,5 +1,6 @@
 Version XXX:
 
+* examples use strands correctly
 * update root certificates in examples
 * clarify end-of-file behaviour in File::read docs
 * file_body returns short_read on eof during read

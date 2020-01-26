@@ -51,12 +51,12 @@ class session : public std::enable_shared_from_this<session>
     http::response<http::string_body> res_;
 
 public:
-    // Objects are constructed with a strand to
-    // ensure that handlers do not execute concurrently.
     explicit
-    session(net::io_context& ioc, ssl::context& ctx)
-        : resolver_(net::make_strand(ioc))
-        , stream_(net::make_strand(ioc), ctx)
+    session(
+        net::executor ex,
+        ssl::context& ctx)
+    : resolver_(ex)
+    , stream_(ex, ctx)
     {
     }
 
@@ -229,7 +229,12 @@ int main(int argc, char** argv)
     ctx.set_verify_mode(ssl::verify_peer);
 
     // Launch the asynchronous operation
-    std::make_shared<session>(ioc, ctx)->run(host, port, target, version);
+    // The session is constructed with a strand to
+    // ensure that handlers do not execute concurrently.
+    std::make_shared<session>(
+        net::make_strand(ioc),
+        ctx
+        )->run(host, port, target, version);
 
     // Run the I/O service. The call will return when
     // the get operation is complete.
