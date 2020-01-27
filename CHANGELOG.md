@@ -1,3 +1,9 @@
+Version XXX:
+
+* fix compilation macro documentation
+
+--------------------------------------------------------------------------------
+
 Version 283:
 
 * ostream_buffer satisfies preconditions of DynamicBuffer_v1::commit

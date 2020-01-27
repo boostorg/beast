@@ -96,5 +96,8 @@ effect:
 [include 5_buffers.qbk]
 [include 6_files.qbk]
 [include 7_composed.qbk]
-[8_conf_macros.qbk]
+[endsect]
+
+[section:config Configuration]
+[include 8_conf_macros.qbk]
 [endsect]
