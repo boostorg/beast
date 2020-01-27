@@ -1,3 +1,9 @@
+Version XXX:
+
+* enable circleci integration
+
+--------------------------------------------------------------------------------
+
 Version 284:
 
 * fix compilation macro documentation
