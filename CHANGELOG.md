@@ -1,5 +1,6 @@
 Version XXX:
 
+* fix compilation macro documentation
 * examples use strands correctly
 * update root certificates in examples
 * clarify end-of-file behaviour in File::read docs
