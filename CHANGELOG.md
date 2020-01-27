@@ -1,4 +1,4 @@
-Version XXX:
+Version 284:
 
 * fix compilation macro documentation
 * examples use strands correctly
