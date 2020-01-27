@@ -1,5 +1,6 @@
 Version XXX:
 
+* enable circleci integration
 * flat_buffer shrink_to_fit is noexcept
 * moved-from dynamic buffers do not clear if different allocator
 * fix erase field
