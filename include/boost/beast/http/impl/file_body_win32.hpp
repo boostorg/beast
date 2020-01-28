@@ -26,6 +26,7 @@
 #include <boost/make_unique.hpp>
 #include <boost/smart_ptr/make_shared_array.hpp>
 #include <boost/winapi/basic_types.hpp>
+#include <boost/winapi/error_codes.hpp>
 #include <boost/winapi/get_last_error.hpp>
 #include <algorithm>
 #include <cstring>
@@ -337,6 +338,47 @@ public:
     }
 };
 
+// https://github.com/boostorg/beast/issues/1815
+// developer commentary:
+// This function mimics the behaviour of ASIO.
+// Perhaps the correct fix is to insist on the use
+// of an appropriate error_condition to detect
+// connection_reset and connection_refused?
+inline
+error_code
+make_win32_error(
+    boost::winapi::DWORD_ dwError) noexcept
+{
+    // from
+    // https://github.com/boostorg/asio/blob/6534af41b471288091ae39f9ab801594189b6fc9/include/boost/asio/detail/impl/socket_ops.ipp#L842
+    switch(dwError)
+    {
+    case boost::winapi::ERROR_NETNAME_DELETED_:
+        return net::error::connection_reset;
+    case boost::winapi::ERROR_PORT_UNREACHABLE_:
+        return net::error::connection_refused;
+    case boost::winapi::WSAEMSGSIZE_:
+    case boost::winapi::ERROR_MORE_DATA_:
+        return {};
+    }
+    return error_code(
+        static_cast<int>(dwError),
+        system_category());
+}
+
+inline
+error_code
+make_win32_error(
+    error_code ec) noexcept
+{
+    if(ec.category() !=
+        system_category())
+        return ec;
+    return make_win32_error(
+        static_cast<boost::winapi::DWORD_>(
+            ec.value()));
+}
+
 //------------------------------------------------------------------------------
 
 #if BOOST_ASIO_HAS_WINDOWS_OVERLAPPED_PTR
@@ -415,8 +457,8 @@ public:
         {
             // VFALCO This needs review, is 0 the right number?
             // completed immediately (with error?)
-            overlapped.complete(error_code{static_cast<int>(dwError),
-                    system_category()}, 0);
+            overlapped.complete(
+                make_win32_error(dwError), 0);
             return;
         }
         overlapped.release();
@@ -427,7 +469,11 @@ public:
         error_code ec,
         std::size_t bytes_transferred = 0)
     {
-        if(! ec && ! header_)
+        if(ec)
+        {
+            ec = make_win32_error(ec);
+        }
+        else if(! ec && ! header_)
         {
             auto& w = sr_.writer_impl();
             w.pos_ += bytes_transferred;
@@ -527,9 +573,8 @@ write_some(
         0);
     if(! bSuccess)
     {
-        ec.assign(static_cast<int>(
-            boost::winapi::GetLastError()),
-                system_category());
+        ec = detail::make_win32_error(
+            boost::winapi::GetLastError());
         return 0;
     }
     w.pos_ += nNumberOfBytesToWrite;

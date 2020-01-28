@@ -1,5 +1,6 @@
 Version XXX:
 
+* Translate some win32 errors to net error codes
 * enable circleci integration
 * flat_buffer shrink_to_fit is noexcept
 * moved-from dynamic buffers do not clear if different allocator
