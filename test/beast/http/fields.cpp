@@ -989,6 +989,21 @@ public:
     }
 
     void
+    testIssue1828()
+    {
+        beast::http::fields req;
+        req.insert("abc", "1");
+        req.insert("abc", "2");
+        req.insert("abc", "3");
+        BEAST_EXPECT(req.count("abc") == 3);
+        auto iter = req.find("abc");
+        BEAST_EXPECT(iter->value() == "1");
+        req.insert("abc", "4");
+        req.erase(iter);
+        BEAST_EXPECT(req.count("abc") == 3);
+    }
+
+    void
     run() override
     {
         testMembers();
@@ -1002,6 +1017,8 @@ public:
         testKeepAlive();
         testContentLength();
         testChunked();
+
+        testIssue1828();
     }
 };
 

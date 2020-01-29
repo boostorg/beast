@@ -1,3 +1,9 @@
+Version XXX:
+
+* fix erase field
+
+--------------------------------------------------------------------------------
+
 Version 284:
 
 * fix compilation macro documentation
