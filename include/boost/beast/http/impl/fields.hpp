@@ -617,7 +617,7 @@ erase(const_iterator pos) ->
 {
     auto next = pos;
     auto& e = *next++;
-    set_.erase(e);
+    set_.erase(set_.iterator_to(e));
     list_.erase(pos);
     delete_element(const_cast<element&>(e));
     return next;
