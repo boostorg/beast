@@ -358,17 +358,17 @@ public:
     void
     reserve(std::size_t n);
 
-    /** Reallocate the buffer to fit the readable bytes exactly.
+    /** Request the removal of unused capacity.
 
-        Buffer sequences previously obtained using @ref data or
-        @ref prepare become invalid.
+        This function attempts to reduce @ref capacity()
+        to @ref size(), which may not succeed.
 
         @esafe
 
-        Strong guarantee.
+        No-throw guarantee.
     */
     void
-    shrink_to_fit();
+    shrink_to_fit() noexcept;
 
     /** Set the size of the readable and writable bytes to zero.
 

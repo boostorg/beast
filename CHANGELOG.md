@@ -1,3 +1,9 @@
+Version XXX:
+
+* flat_buffer shrink_to_fit is noexcept
+
+--------------------------------------------------------------------------------
+
 Version 284:
 
 * fix compilation macro documentation
