@@ -382,7 +382,6 @@ basic_fields(basic_fields&& other, Allocator const& alloc)
     if(this->get() != other.get())
     {
         copy_all(other);
-        other.clear_all();
     }
     else
     {
@@ -1139,7 +1138,6 @@ move_assign(basic_fields& other, std::false_type)
     if(this->get() != other.get())
     {
         copy_all(other);
-        other.clear_all();
     }
     else
     {

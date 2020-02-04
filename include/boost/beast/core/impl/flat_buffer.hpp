@@ -124,8 +124,6 @@ basic_flat_buffer(
         end_ = nullptr;
         max_ = other.max_;
         copy_from(other);
-        other.clear();
-        other.shrink_to_fit();
         return;
     }
 
@@ -436,8 +434,6 @@ move_assign(basic_flat_buffer& other, std::false_type)
     if(this->get() != other.get())
     {
         copy_from(other);
-        other.clear();
-        other.shrink_to_fit();
     }
     else
     {

@@ -1,5 +1,6 @@
 Version XXX:
 
+* moved-from dynamic buffers do not clear if different allocator
 * fix erase field
 
 --------------------------------------------------------------------------------
