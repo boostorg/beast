@@ -1,3 +1,9 @@
+Version XXX:
+
+* moved-from dynamic buffers do not clear if different allocator
+
+--------------------------------------------------------------------------------
+
 Version 284:
 
 * fix compilation macro documentation

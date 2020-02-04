@@ -237,8 +237,8 @@ public:
                 ostream(b1) << "Hello";
                 unequal_t a;
                 basic_multi_buffer<unequal_t> b2{std::move(b1), a};
-                BEAST_EXPECT(b1.size() == 0);
-                BEAST_EXPECT(b1.capacity() == 0);
+                BEAST_EXPECT(b1.size() != 0);
+                BEAST_EXPECT(b1.capacity() != 0);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
                 BEAST_EXPECT(b1.max_size() == b2.max_size());
             }
@@ -300,8 +300,8 @@ public:
                 basic_multi_buffer<na_t> b2;
                 b2 = std::move(b1);
                 BEAST_EXPECT(b1.get_allocator() != b2.get_allocator());
-                BEAST_EXPECT(b1.size() == 0);
-                BEAST_EXPECT(b1.capacity() == 0);
+                BEAST_EXPECT(b1.size() != 0);
+                BEAST_EXPECT(b1.capacity() != 0);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {

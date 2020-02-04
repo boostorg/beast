@@ -502,8 +502,6 @@ basic_multi_buffer(
     {
         out_ = list_.end();
         copy_from(other);
-        other.clear();
-        other.shrink_to_fit();
         return;
     }
 
@@ -1060,8 +1058,6 @@ move_assign(basic_multi_buffer& other, std::false_type)
     if(this->get() != other.get())
     {
         copy_from(other);
-        other.clear();
-        other.shrink_to_fit();
     }
     else
     {
