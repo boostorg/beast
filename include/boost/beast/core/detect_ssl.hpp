@@ -458,9 +458,7 @@ public:
     // Completion handlers must be MoveConstructible.
     detect_ssl_op(detect_ssl_op&&) = default;
 
-    // Construct the operation. The handler is deduced through
-    // the template type `DetectHandler_`, this lets the same constructor
-    // work properly for both lvalues and rvalues.
+    // Construct the operation implementation.
     //
     detect_ssl_op(
         AsyncReadStream& stream,
@@ -473,8 +471,12 @@ public:
     // Our main entry point. This will get called as our
     // intermediate operations complete. Definition below.
     //
-    // The parameter `cont` indicates if we are being called subsequently
-    // from the original invocation
+    // The template parameter self refers to the containing operation
+    // which has been synthesised for us by @ref async_compose.
+    //
+    // The parameters `ec` and `bytes_transferred` are defaulted because
+    // this function is called once by the containing operation with no
+    // arguments in order to initiate the operation.
     //
     template<class Self>
     void operator()(
@@ -496,7 +498,7 @@ namespace detail {
 // easier to read. This include file defines the necessary macros and types.
 #include <boost/asio/yield.hpp>
 
-// detect_ssl_op is callable with the signature void(error_code, bytes_transferred),
+// detect_ssl_op's container is callable with the signature void(error_code, bytes_transferred),
 // allowing `*this` to be used as a ReadHandler
 //
 template<
