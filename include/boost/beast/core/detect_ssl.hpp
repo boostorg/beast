@@ -17,6 +17,7 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/logic/tribool.hpp>
 #include <boost/asio/async_result.hpp>
+#include <boost/asio/compose.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <type_traits>
 
@@ -342,47 +343,9 @@ namespace detail {
 
 // The composed operation object
 template<
-    class DetectHandler,
     class AsyncReadStream,
     class DynamicBuffer>
 class detect_ssl_op;
-
-// This is a function object which `net::async_initiate` can use to launch
-// our composed operation. This is a relatively new feature in networking
-// which allows the asynchronous operation to be "lazily" executed (meaning
-// that it is launched later). Users don't need to worry about this, but
-// authors of composed operations need to write it this way to get the
-// very best performance, for example when using Coroutines TS (`co_await`).
-
-struct run_detect_ssl_op
-{
-    // The implementation of `net::async_initiate` captures the
-    // arguments of the initiating function, and then calls this
-    // function object later with the captured arguments in order
-    // to launch the composed operation. All we need to do here
-    // is take those arguments and construct our composed operation
-    // object.
-    //
-    // `async_initiate` takes care of transforming the completion
-    // token into the "real handler" which must have the correct
-    // signature, in this case `void(error_code, boost::tri_bool)`.
-
-    template<
-        class DetectHandler,
-        class AsyncReadStream,
-        class DynamicBuffer>
-    void operator()(
-        DetectHandler&& h,
-        AsyncReadStream* s, // references are passed as pointers
-        DynamicBuffer& b)
-    {
-        detect_ssl_op<
-            typename std::decay<DetectHandler>::type,
-            AsyncReadStream,
-            DynamicBuffer>(
-                std::forward<DetectHandler>(h), *s, b);
-    }
-};
 
 } // detail
 
@@ -433,13 +396,15 @@ async_detect_ssl(
     // Non-const references need to be passed as pointers,
     // since we don't want a decay-copy.
 
-    return net::async_initiate<
+    return net::async_compose<
         CompletionToken,
         void(error_code, bool)>(
-            detail::run_detect_ssl_op{},
+            detail::detect_ssl_op<
+                AsyncReadStream,
+                DynamicBuffer>
+                { stream, buffer },
             token,
-            &stream, // pass the reference by pointer
-            buffer);
+            stream);
 }
 
 //]
@@ -470,14 +435,10 @@ namespace detail {
 // `executor_type` returns the type of executor used by an
 // I/O object.
 //
-template<
-    class DetectHandler,
-    class AsyncReadStream,
+template<class AsyncReadStream,
     class DynamicBuffer>
 class detect_ssl_op
     : public boost::asio::coroutine
-    , public async_base<
-        DetectHandler, executor_type<AsyncReadStream>>
 {
     // This composed operation has trivial state,
     // so it is just kept inside the class and can
@@ -501,26 +462,12 @@ public:
     // the template type `DetectHandler_`, this lets the same constructor
     // work properly for both lvalues and rvalues.
     //
-    template<class DetectHandler_>
     detect_ssl_op(
-        DetectHandler_&& handler,
         AsyncReadStream& stream,
         DynamicBuffer& buffer)
-        : beast::async_base<
-            DetectHandler,
-            beast::executor_type<AsyncReadStream>>(
-                std::forward<DetectHandler_>(handler),
-                stream.get_executor())
-        , stream_(stream)
+        : stream_(stream)
         , buffer_(buffer)
     {
-        // This starts the operation. We pass `false` to tell the
-        // algorithm that it needs to use net::post if it wants to
-        // complete immediately. This is required by Networking,
-        // as initiating functions are not allowed to invoke the
-        // completion handler on the caller's thread before
-        // returning.
-        (*this)({}, 0, false);
     }
 
     // Our main entry point. This will get called as our
@@ -529,10 +476,11 @@ public:
     // The parameter `cont` indicates if we are being called subsequently
     // from the original invocation
     //
+    template<class Self>
     void operator()(
-        error_code ec,
-        std::size_t bytes_transferred,
-        bool cont = true);
+        Self& self,
+        error_code ec = {},
+        std::size_t bytes_transferred = 0);
 };
 
 } // detail
@@ -553,11 +501,12 @@ namespace detail {
 //
 template<
     class AsyncStream,
-    class DynamicBuffer,
-    class Handler>
+    class DynamicBuffer>
+template<
+    class Self>
 void
-detect_ssl_op<AsyncStream, DynamicBuffer, Handler>::
-operator()(error_code ec, std::size_t bytes_transferred, bool cont)
+detect_ssl_op<AsyncStream, DynamicBuffer>::
+operator()(Self& self, error_code ec, std::size_t bytes_transferred)
 {
     namespace beast = boost::beast;
 
@@ -592,7 +541,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
             // initiating function.
 
             yield stream_.async_read_some(buffer_.prepare(
-                read_size(buffer_, 1536)), std::move(*this));
+                read_size(buffer_, 1536)), std::move(self));
 
             // Commit what we read into the buffer's input area.
             buffer_.commit(bytes_transferred);
@@ -613,7 +562,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
         // function template. This reduces compile times and the size
         // of the program executable.
 
-        if(! cont)
+        if(! asio_handler_is_continuation(&self))
         {
             // Save the error, otherwise it will be overwritten with
             // a successful error code when this read completes
@@ -626,7 +575,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
             // used in the call to async_read_some above, to avoid
             // instantiating another version of the function template.
 
-            yield stream_.async_read_some(buffer_.prepare(0), std::move(*this));
+            yield stream_.async_read_some(buffer_.prepare(0), std::move(self));
 
             // Restore the saved error code
             ec = ec_;
@@ -636,7 +585,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
         // At this point, we are guaranteed that the original initiating
         // function is no longer on our stack frame.
 
-        this->complete_now(ec, static_cast<bool>(result_));
+        self.complete(ec, static_cast<bool>(result_));
     }
 }
 
