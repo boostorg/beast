@@ -28,7 +28,51 @@ static std::size_t constexpr default_max_stack_buffer = 16384;
 
 //------------------------------------------------------------------------------
 
-struct dynamic_read_ops
+struct async_op_common
+{
+    struct completion_helper
+    {
+        struct completion_tag {};
+
+        template<class Self, class...Args>
+        void
+        do_completion(Self& self, Args&&...args)
+        {
+            // Important: Allow ADL to find the correct overload.
+            // Calling boost::asio::asio_handler_is_continuation will
+            // call the default overload because Self is a type in the
+            // boost::asio::detail namespace
+            if (asio_handler_is_continuation(&self))
+            {
+                (*this)(
+                    self,
+                    completion_tag(),
+                    std::forward<Args>(args)...);
+            }
+            else
+            {
+                boost::asio::post(
+                    beast::bind_front_handler(
+                        std::move(self),
+                        completion_tag(),
+                        std::forward<Args>(args)...));
+            }
+        }
+
+        template<class Self, class...Args>
+        void
+        operator()(
+            Self& self,
+            completion_tag,
+            Args&&...args)
+        {
+            self.complete(std::forward<Args>(args)...);
+        }
+
+    };
+};
+
+struct dynamic_read_ops : async_op_common
 {
 // read into a dynamic buffer until the
 // condition is met or an error occurs
@@ -37,7 +81,8 @@ template<
     class DynamicBuffer,
     class Condition>
 struct read_op
-: boost::asio::coroutine
+: completion_helper
+, boost::asio::coroutine
 {
     Stream& s_;
     DynamicBuffer& b_;
@@ -45,7 +90,6 @@ struct read_op
 
     error_code ec_ = {};
     std::size_t total_ = 0;
-    bool must_post_ = true;
 
     read_op(
         Stream &s,
@@ -56,6 +100,8 @@ struct read_op
     , cond_(std::move(cond))
     {
     }
+
+    using completion_helper::operator();
 
     template<class Self>
     void
@@ -72,24 +118,13 @@ struct read_op
                 max_prepare = beast::read_size(b_, cond_(ec, total_, b_));
                 if(max_prepare == 0)
                     break;
-                must_post_ = false;
                 BOOST_ASIO_CORO_YIELD
                 s_.async_read_some(
                     b_.prepare(max_prepare), std::move(self));
                 b_.commit(bytes_transferred);
                 total_ += bytes_transferred;
             }
-            if(must_post_)
-            {
-                // run this handler "as-if" using net::post
-                // to reduce template instantiations
-                ec_ = ec;
-                BOOST_ASIO_CORO_YIELD
-                s_.async_read_some(
-                    b_.prepare(0), std::move(self));
-                ec = ec_;
-            }
-            self.complete(ec, total_);
+            do_completion(self, ec, total_);
         }
     }
 };
