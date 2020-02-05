@@ -97,15 +97,205 @@ async_echo (
                 >::return_type;
 //]
 
-//[example_core_echo_op_3
+//[example_core_echo_op_4
 
-template<class AsyncStream, class Handler>
-class echo_op;
+// This nested class implements the echo composed operation as a
+// stateful completion handler. We allow async_compose to
+// take care of boilerplate and we derived from asio::coroutine to
+// allow the reenter and yield keywords to work.
+
+template<class AsyncStream, class DynamicBuffer>
+class echo_op : public boost::asio::coroutine
+{
+    AsyncStream& stream_;
+    DynamicBuffer& buffer_;
+
+public:
+    echo_op(
+        AsyncStream& stream,
+        DynamicBuffer& buffer)
+    : stream_(stream)
+    , buffer_(buffer)
+    {
+    }
+
+    // If a newline is present in the buffer sequence, this function returns
+    // the number of characters from the beginning of the buffer up to the
+    // newline, including the newline character. Otherwise it returns zero.
+
+    std::size_t
+    find_newline(typename DynamicBuffer::const_buffers_type const& buffers)
+    {
+        // The `buffers_iterator` class template provides random-access
+        // iterators into a buffer sequence. Use the standard algorithm
+        // to look for the new line if it exists.
+
+        auto begin = net::buffers_iterator<
+            typename DynamicBuffer::const_buffers_type>::begin(buffers);
+        auto end =   net::buffers_iterator<
+            typename DynamicBuffer::const_buffers_type>::end(buffers);
+        auto result = std::find(begin, end, '\n');
+
+        if(result == end)
+            return 0; // not found
+
+        return result + 1 - begin;
+    }
+
+    // A type to differentiate the source of an invocation of Self
+
+    struct completion_tag {};
+
+    // It is a requirement of async operations that the completion handler must be
+    // invoked as if by @ref post. The composed operation must know whether it is
+    // a continuation or not. This function and the operator()(completion_tag, ...)
+    // allow us to detect whether we should post the completion or simply call it as a continuation.
+
+    template<class Self>
+    void
+    do_completion(Self& self, beast::error_code const& ec)
+    {
+        // Important: Allow ADL to find the correct overload.
+        // Calling boost::asio::asio_handler_is_continuation will
+        // call the default overload because Self is a type in the
+        // boost::asio::detail namespace
+        if (asio_handler_is_continuation(&self))
+        {
+            (*this)(self, completion_tag(), ec);
+        }
+        else
+        {
+            boost::asio::post(
+                beast::bind_front_handler(
+                    std::move(self),
+                    echo_op::completion_tag(),
+                    ec));
+        }
+    }
+
+    // Invoke the completion handler directly
+
+    template<class Self>
+    void
+    operator()(
+        Self& self,
+        echo_op::completion_tag,
+        beast::error_code const& ec)
+    {
+        self.complete(ec);
+    }
+
+    // This is the entry point of our completion handler. Every time an
+    // asynchronous operation completes, this function will be invoked.
 
 // This example uses the Asio's stackless "fauxroutines", implemented
 // using a macro-based solution. It makes the code easier to write and
 // easier to read. This include file defines the necessary macros and types.
 #include <boost/asio/yield.hpp>
+
+    template<class Self>
+    void
+    operator()(
+        Self& self,
+        beast::error_code ec = {},
+        std::size_t bytes_transferred = 0)
+    {
+        // The `reenter` keyword transfers control to the last
+        // yield point, or to the beginning of the scope if
+        // this is the first time.
+
+        reenter(*this)
+            {
+                for(;;)
+                {
+                    std::size_t pos;
+
+                    // Search for a newline in the readable bytes of the buffer
+                    pos = find_newline(buffer_.data());
+
+                    // If we don't have the newline, then read more
+                    if(pos == 0)
+                    {
+                        std::size_t bytes_to_read;
+
+                        // Determine the number of bytes to read,
+                        // using available capacity in the buffer first.
+
+                        bytes_to_read = std::min<std::size_t>(
+                            std::max<std::size_t>(512,                // under 512 is too little,
+                                                  buffer_.capacity() - buffer_.size()),
+                            std::min<std::size_t>(65536,              // and over 65536 is too much.
+                                                  buffer_.max_size() - buffer_.size()));
+
+                        // Read some data into our dynamic buffer_. We transfer
+                        // ownership of the composed operation by using the
+                        // `std::move(*this)` idiom. The `yield` keyword causes
+                        // the function to return immediately after the initiating
+                        // function returns.
+
+                        yield stream_.async_read_some(
+                            buffer_.prepare(bytes_to_read), std::move(self));
+
+                        // After the `async_read_some` completes, control is
+                        // transferred to this line by the `reenter` keyword.
+
+                        // Move the bytes read from the writable area to the
+                        // readable area.
+
+                        buffer_.commit(bytes_transferred);
+
+                        // If an error occurs, deliver it to the caller's completion handler.
+                        if(ec)
+                            break;
+
+                        // Keep looping until we get the newline
+                        continue;
+                    }
+
+                    // We have our newline, so send the first `pos` bytes of the
+                    // buffers. The function `buffers_prefix` returns the front part
+                    // of the buffers we want.
+
+                    yield net::async_write(stream_,
+                        beast::buffers_prefix(pos, buffer_.data()), std::move(self));
+
+                    // After the `async_write` completes, our completion handler will
+                    // be invoked with the error and the number of bytes transferred,
+                    // and the `reenter` statement above will cause control to jump
+                    // to the following line. The variable `pos` is no longer valid
+                    // (remember that we returned from the function using `yield` above)
+                    // but we can use `bytes_transferred` to know how much of the buffer
+                    // to consume. With "real" coroutines this will be easier and more
+                    // natural.
+
+                    buffer_.consume(bytes_transferred);
+
+                    // The loop terminates here, and we will either deliver a
+                    // successful result or an error to the caller's completion handler.
+
+                    break;
+                }
+
+                // When a composed operation completes immediately, it must not
+                // directly invoke the completion handler otherwise it could
+                // lead to unfairness, starvation, or stack overflow. Therefore,
+                // we defer to @ref do_completion which will detect whether this
+                // operation is a continuation or not.
+
+                do_completion(self, ec);
+            }
+    }
+
+// Including this file undefines the macros used by the stackless fauxroutines.
+#include <boost/asio/unyield.hpp>
+};
+
+//]
+
+//[example_core_echo_op_3
+
+template<class AsyncStream, class DynamicBuffer>
+class echo_op;
 
 // Read a line and echo it back
 //
@@ -131,202 +321,24 @@ async_echo(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
 
-    // This class template deduces the actual handler type from a
-    // CompletionToken, captures a local reference to the handler,
-    // and creates the `async_result` object which becomes the
-    // return value of this initiating function.
+    // Create the composed operation and launch it. @ref async_compose
+    // takes care of creating the composed operation, embedding the completion
+    // handler and binding the correct executor and allocators.
+    // We must provide the implementation of the operation (echo_op) and
+    // pass the completion token plus any io_objects involved in the composed operation.
+    // This allows async_compose to ensure that the executors associated with those
+    // objects do not run out of work. In our case, we pass just the stream in addition
+    // to the completion token.
 
-    net::async_completion<CompletionToken, void(beast::error_code)> init(token);
-
-    // The helper macro BOOST_ASIO_HANDLER_TYPE converts the completion
-    // token type into a concrete handler type of the correct signature.
-
-    using handler_type = BOOST_ASIO_HANDLER_TYPE(CompletionToken, void(beast::error_code));
-
-    // The class template `async_base` holds the caller's completion
-    // handler for us, and provides all of the boilerplate for forwarding
-    // the associated allocator and associated executor from the caller's
-    // handler to our operation. It also maintains a `net::executor_work_guard`
-    // for the executor associated with the stream. This work guard is
-    // inexpensive, and prevents the execution context from running out
-    // of work. It is usually necessary although rarely it can be skipped
-    // depending on the operation (this echo example needs it because it
-    // performs more than one asynchronous operation in a row).
-    // We declare this type alias to make the code easier to read.
-
-    using base_type = beast::async_base<
-        handler_type, /*< The type of the completion handler obtained from the token >*/
-        beast::executor_type<AsyncStream> /*< The type of executor used by the stream to dispatch asynchronous operations >*/
-    >;
-
-    // This nested class implements the echo composed operation as a
-    // stateful completion handler. We derive from `async_base` to
-    // take care of boilerplate and we derived from asio::coroutine to
-    // allow the reenter and yield keywords to work.
-
-    struct echo_op : base_type, boost::asio::coroutine
-    {
-        AsyncStream& stream_;
-        DynamicBuffer& buffer_;
-
-        echo_op(
-            AsyncStream& stream,
-            DynamicBuffer& buffer,
-            handler_type&& handler)
-            : base_type(
-                std::move(handler), /*< The `async_base` helper takes ownership of the handler, >*/
-                stream.get_executor()) /*<  and also needs to know which executor to use. >*/
-            , stream_(stream)
-            , buffer_(buffer)
-        {
-            // Launch the operation directly from the constructor. We
-            // pass `false` for `cont` to indicate that the calling
-            // thread does not represent a continuation of our
-            // asynchronous control flow.
-            (*this)({}, 0, false);
-        }
-
-        // If a newline is present in the buffer sequence, this function returns
-        // the number of characters from the beginning of the buffer up to the
-        // newline, including the newline character. Otherwise it returns zero.
-
-        std::size_t
-        find_newline(typename DynamicBuffer::const_buffers_type const& buffers)
-        {
-            // The `buffers_iterator` class template provides random-access
-            // iterators into a buffer sequence. Use the standard algorithm
-            // to look for the new line if it exists.
-
-            auto begin = net::buffers_iterator<
-                typename DynamicBuffer::const_buffers_type>::begin(buffers);
-            auto end =   net::buffers_iterator<
-                typename DynamicBuffer::const_buffers_type>::end(buffers);
-            auto result = std::find(begin, end, '\n');
-
-            if(result == end)
-                return 0; // not found
-
-            return result + 1 - begin;
-        }
-
-        // This is the entry point of our completion handler. Every time an
-        // asynchronous operation completes, this function will be invoked.
-
-        void
-        operator()(
-            beast::error_code ec,
-            std::size_t bytes_transferred = 0,
-            bool cont = true) /*< Second and subsequent invocations will seee `cont=true`. */
-        {
-            // The `reenter` keyword transfers control to the last
-            // yield point, or to the beginning of the scope if
-            // this is the first time.
-
-            reenter(*this)
-            {
-                for(;;)
-                {
-                    std::size_t pos;
-
-                    // Search for a newline in the readable bytes of the buffer
-                    pos = find_newline(buffer_.data());
-
-                    // If we don't have the newline, then read more
-                    if(pos == 0)
-                    {
-                        std::size_t bytes_to_read;
-
-                        // Determine the number of bytes to read,
-                        // using available capacity in the buffer first.
-
-                        bytes_to_read = std::min<std::size_t>(
-                              std::max<std::size_t>(512,                // under 512 is too little,
-                                  buffer_.capacity() - buffer_.size()),
-                              std::min<std::size_t>(65536,              // and over 65536 is too much.
-                                  buffer_.max_size() - buffer_.size()));
-
-                        // Read some data into our dynamic buffer_. We transfer
-                        // ownership of the composed operation by using the
-                        // `std::move(*this)` idiom. The `yield` keyword causes
-                        // the function to return immediately after the initiating
-                        // function returns.
-
-                        yield stream_.async_read_some(
-                            buffer_.prepare(bytes_to_read), std::move(*this));
-
-                        // After the `async_read_some` completes, control is
-                        // transferred to this line by the `reenter` keyword.
-
-                        // Move the bytes read from the writable area to the
-                        // readable area.
-
-                        buffer_.commit(bytes_transferred);
-
-                        // If an error occurs, deliver it to the caller's completion handler.
-                        if(ec)
-                            break;
-
-                        // Keep looping until we get the newline
-                        continue;
-                    }
-
-                    // We have our newline, so send the first `pos` bytes of the
-                    // buffers. The function `buffers_prefix` returns the front part
-                    // of the buffers we want.
-
-                    yield net::async_write(stream_,
-                        beast::buffers_prefix(pos, buffer_.data()), std::move(*this));
-
-                    // After the `async_write` completes, our completion handler will
-                    // be invoked with the error and the number of bytes transferred,
-                    // and the `reenter` statement above will cause control to jump
-                    // to the following line. The variable `pos` is no longer valid
-                    // (remember that we returned from the function using `yield` above)
-                    // but we can use `bytes_transferred` to know how much of the buffer
-                    // to consume. With "real" coroutines this will be easier and more
-                    // natural.
-
-                    buffer_.consume(bytes_transferred);
-
-                    // The loop terminates here, and we will either deliver a
-                    // successful result or an error to the caller's completion handler.
-
-                    break;
-                }
-
-                // When a composed operation completes immediately, it must not
-                // directly invoke the completion handler otherwise it could
-                // lead to unfairness, starvation, or stack overflow. Therefore,
-                // if cont == false (meaning, that the call stack still includes
-                // the frame of the initiating function) then we need to use
-                // `net::post` to cause us to be called again after the initiating
-                // function. The function `async_base::invoke` takes care of
-                // calling the final completion handler, using post if the
-                // first argument is false, otherwise invoking it directly.
-
-                this->complete(cont, ec);
-            }
-        }
-    };
-
-    // Create the composed operation and launch it. This is a constructor
-    // call followed by invocation of operator(). We use BOOST_ASIO_HANDLER_TYPE
-    // to convert the completion token into the correct handler type,
-    // allowing user-defined specializations of the async_result template
-    // to be used.
-
-    echo_op(stream, buffer, std::move(init.completion_handler));
-
-    // This hook lets the caller see a return value when appropriate.
-    // For example this might return std::future<error_code> if
-    // CompletionToken is net::use_future, or this might
-    // return an error code if CompletionToken specifies a coroutine.
-
-    return init.result.get();
+    return boost::asio::async_compose<CompletionToken,
+        void(beast::error_code)>(
+            echo_op<
+                AsyncStream, DynamicBuffer>(
+                    stream, buffer),
+            token,
+            stream
+        );
 }
-
-// Including this file undefines the macros used by the stackless fauxroutines.
-#include <boost/asio/unyield.hpp>
 
 //]
 
