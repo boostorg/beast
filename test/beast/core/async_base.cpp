@@ -584,54 +584,74 @@ public:
 
     //--------------------------------------------------------------------------
 
+    template<class Handler, class AsyncReadStream>
+    struct async_read_op
+    : async_base<Handler, typename AsyncReadStream::executor_type>
+    {
+        AsyncReadStream& stream_;
+        net::mutable_buffer buffer_;
+        std::size_t total_bytes_transferred_;
+
+        template<class DeducedHandler>
+        async_read_op(
+            AsyncReadStream& stream,
+            net::mutable_buffer buffer,
+            DeducedHandler&& handler)
+            : async_base<Handler,
+                typename AsyncReadStream::executor_type>(
+                    std::forward<DeducedHandler>(handler), stream.get_executor())
+            , stream_(stream)
+            , buffer_(buffer)
+            , total_bytes_transferred_(0)
+        {
+            (*this)({}, 0, false); // start the operation
+        }
+
+        void operator()(error_code ec, std::size_t bytes_transferred, bool is_continuation = true)
+        {
+            // Adjust the count of bytes and advance our buffer
+            total_bytes_transferred_ += bytes_transferred;
+            buffer_ = buffer_ + bytes_transferred;
+
+            // Keep reading until buffer is full or an error occurs
+            if(! ec && buffer_.size() > 0)
+                return stream_.async_read_some(buffer_, std::move(*this));
+
+            // Call the completion handler with the result. If `is_continuation` is
+            // false, which happens on the first time through this function, then
+            // `net::post` will be used to call the completion handler, otherwise
+            // the completion handler will be invoked directly.
+
+            this->complete(is_continuation, ec, total_bytes_transferred_);
+        }
+    };
+
+    struct initiate_async_read_op
+    {
+        template<class Handler, class AsyncReadStream>
+        void operator()(
+            Handler&& handler,
+            AsyncReadStream& stream,
+            net::mutable_buffer buffer)
+        {
+            async_read_op<typename std::decay<Handler>::type,
+                AsyncReadStream>(
+                    stream, buffer, std::forward<Handler>(handler));
+        }
+    };
+
     // Asynchronously read into a buffer until the buffer is full, or an error occurs
     template<class AsyncReadStream, class ReadHandler>
     typename net::async_result<ReadHandler, void(error_code, std::size_t)>::return_type
     async_read(AsyncReadStream& stream, net::mutable_buffer buffer, ReadHandler&& handler)
     {
-        using handler_type = BOOST_ASIO_HANDLER_TYPE(ReadHandler, void(error_code, std::size_t));
-        using base_type = async_base<handler_type, typename AsyncReadStream::executor_type>;
-
-        struct op : base_type
-        {
-            AsyncReadStream& stream_;
-            net::mutable_buffer buffer_;
-            std::size_t total_bytes_transferred_;
-
-            op(
-                AsyncReadStream& stream,
-                net::mutable_buffer buffer,
-                handler_type& handler)
-                : base_type(std::move(handler), stream.get_executor())
-                , stream_(stream)
-                , buffer_(buffer)
-                , total_bytes_transferred_(0)
-            {
-                (*this)({}, 0, false); // start the operation
-            }
-
-            void operator()(error_code ec, std::size_t bytes_transferred, bool is_continuation = true)
-            {
-                // Adjust the count of bytes and advance our buffer
-                total_bytes_transferred_ += bytes_transferred;
-                buffer_ = buffer_ + bytes_transferred;
-
-                // Keep reading until buffer is full or an error occurs
-                if(! ec && buffer_.size() > 0)
-                    return stream_.async_read_some(buffer_, std::move(*this));
-
-                // Call the completion handler with the result. If `is_continuation` is
-                // false, which happens on the first time through this function, then
-                // `net::post` will be used to call the completion handler, otherwise
-                // the completion handler will be invoked directly.
-
-                this->complete(is_continuation, ec, total_bytes_transferred_);
-            }
-        };
-
-        net::async_completion<ReadHandler, void(error_code, std::size_t)> init{handler};
-        op(stream, buffer, init.completion_handler);
-        return init.result.get();
+        return
+            net::async_initiate<ReadHandler,
+                void(error_code, std::size_t)>(
+                    initiate_async_read_op(),
+                    handler,
+                    stream,
+                    buffer);
     }
 
     // Asynchronously send a message multiple times, once per second
