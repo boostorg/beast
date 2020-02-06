@@ -24,7 +24,7 @@ import common ;
 # docs can be rebuild if any of the header files change.
 #
 
-local sources = [ path.glob-tree ../include/boost/beast : *.hpp *.ipp : detail impl ] ;
+local sources = [ path.glob-tree $(HEADERS) : *.hpp *.ipp : detail impl ] ;
 
 # Get the configured paths to doxygen and xsltproc
 
@@ -93,6 +93,7 @@ else
 #        an invocation of extract-xml-pages.xsl (which
 #        imports the former) must be run again.
 #
+path-constant HEADERS : ../include/boost/beast ;
 path-constant docca : ../../../tools/docca ;
 make extract-xml-pages.xsl      : $(docca)/include/docca/extract-xml-pages.xsl      : @copy_script ;
 make base-extract-xml-pages.xsl : $(docca)/include/docca/base-extract-xml-pages.xsl : @copy_script ;

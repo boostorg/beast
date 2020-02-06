@@ -1,5 +1,6 @@
 Version XXX:
 
+* fix doc Jamfile
 * async_base example uses async_initiate
 
 --------------------------------------------------------------------------------
