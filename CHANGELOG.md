@@ -8,6 +8,7 @@ Version 286:
 * Fix missing include in sha1.hpp
 * Fix ostream warning
 * Field digest is endian-independent
+* update broken links in README
 
 API Changes:
 
