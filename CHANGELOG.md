@@ -1,3 +1,13 @@
+Version 286:
+
+* Refactor multi_buffer
+
+API Changes:
+
+* multi_buffer::mutable_data_type is deprecated. Use multi_buffer::mutable_buffers_type instead
+
+--------------------------------------------------------------------------------
+
 Version 285:
 
 * Translate some win32 errors to net error codes
