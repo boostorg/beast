@@ -25,6 +25,7 @@ public:
     {
         multi_buffer b;
         ostream(b) << "Hello, ";
+        BEAST_EXPECT(buffers_to_string(b.data()) == "Hello, ");
         ostream(b) << "world!";
         BEAST_EXPECT(buffers_to_string(b.data()) == "Hello, world!");
     }

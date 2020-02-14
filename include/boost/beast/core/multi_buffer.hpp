@@ -111,7 +111,7 @@ class basic_multi_buffer
     };
 
     template<bool>
-    class readable_bytes;
+    class subrange;
 
     using size_type = typename
         detail::allocator_traits<Allocator>::size_type;
@@ -156,6 +156,23 @@ class basic_multi_buffer
     size_type out_end_ = 0; // output end offset in list_.back()
 
 public:
+#if BOOST_BEAST_DOXYGEN
+    /// The ConstBufferSequence used to represent the readable bytes.
+    using const_buffers_type = __implementation_defined__;
+
+    /// The MutableBufferSequence used to represent the writable bytes.
+    using mutable_buffers_type = __implementation_defined__;
+#else
+    using const_buffers_type = subrange<false>;
+
+    using mutable_buffers_type = subrange<true>;
+
+#ifdef BOOST_BEAST_ALLOW_DEPRECATED
+    using mutable_data_type = subrange<true>;
+#endif
+
+#endif
+
     /// The type of allocator used.
     using allocator_type = Allocator;
 
@@ -447,21 +464,6 @@ public:
 
     //--------------------------------------------------------------------------
 
-#if BOOST_BEAST_DOXYGEN
-    /// The ConstBufferSequence used to represent the readable bytes.
-    using const_buffers_type = __implementation_defined__;
-
-    /// The MutableBufferSequence used to represent the readable bytes.
-    using mutable_data_type = __implementation_defined__;
-
-    /// The MutableBufferSequence used to represent the writable bytes.
-    using mutable_buffers_type = __implementation_defined__;
-#else
-    using const_buffers_type = readable_bytes<false>;
-    using mutable_data_type = readable_bytes<true>;
-    class mutable_buffers_type;
-#endif
-
     /// Returns the number of readable bytes.
     size_type
     size() const noexcept
@@ -501,7 +503,7 @@ public:
 
         @note The sequence may contain multiple contiguous memory regions.
     */
-    mutable_data_type
+    mutable_buffers_type
     data() noexcept;
 
     /** Returns a mutable buffer sequence representing writable bytes.
