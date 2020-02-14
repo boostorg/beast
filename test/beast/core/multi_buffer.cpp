@@ -37,10 +37,10 @@ public:
 
 #if ! BOOST_WORKAROUND(BOOST_LIBSTDCXX_VERSION, < 50000) && \
     ! BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
-        multi_buffer::const_buffers_type>::value);
-    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
-        multi_buffer::mutable_data_type>::value);
+//    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
+//        multi_buffer::const_buffers_type>::value);
+//    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
+//        multi_buffer::mutable_data_type>::value);
 #endif
 
     template<class Alloc1, class Alloc2>
@@ -816,13 +816,11 @@ public:
     void
     run() override
     {
-#if 1
         testShrinkToFit();
         testDynamicBuffer();
         testMembers();
         testMatrix1();
         testMatrix2();
-#endif
     }
 };
 

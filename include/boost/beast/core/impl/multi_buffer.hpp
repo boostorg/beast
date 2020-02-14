@@ -17,6 +17,7 @@
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <exception>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -98,17 +99,155 @@ namespace beast {
 
 template<class Allocator>
 template<bool isMutable>
-class basic_multi_buffer<Allocator>::readable_bytes
+class basic_multi_buffer<Allocator>::subrange
 {
     basic_multi_buffer const* b_;
+    const_iter begin_;
+    const_iter end_;
+    size_type begin_pos_;   // offset in begin_
+    size_type last_pos_;    // offset in std::prev(end_)
 
     friend class basic_multi_buffer;
 
-    explicit
-    readable_bytes(
-        basic_multi_buffer const& b) noexcept
+    subrange(
+        basic_multi_buffer const& b,
+        size_type pos,
+        size_type n) noexcept
         : b_(&b)
     {
+        auto const set_empty = [&]
+        {
+            begin_ = b_->list_.end();
+            end_ = b_->list_.end();
+            begin_pos_ = 0;
+            last_pos_ = 0;
+        };
+
+        // VFALCO Handle this trivial case of
+        // pos larger than total size, otherwise
+        // the addition to pos can overflow.
+        //if(pos >= b_->in_size_)
+        // skip unused prefix
+        pos = pos + b_->in_pos_;
+
+        // iterate the buffers
+        auto it = b_->list_.begin();
+
+        // is the list empty?
+        if(it == b_->list_.end())
+        {
+            set_empty();
+            return;
+        }
+        
+        // is the requested size zero?
+        if(n == 0)
+        {
+            set_empty();
+            return;
+        }
+
+
+        // get last buffer and its size
+        auto const last =
+            std::prev(b_->list_.end());
+        auto const last_end =
+            [&]
+            {
+                if(b_->out_end_ == 0)
+                    return last->size();
+                return b_->out_end_;
+            }();
+
+        // only one buffer in list?
+        if(it == last)
+        {
+            if(pos >= last_end)
+            {
+                set_empty();
+                return;
+            }
+
+            begin_ = it;
+            begin_pos_ = pos;
+            end_ = std::next(it);
+            if(n > last_end - pos)
+                last_pos_ = last_end;
+            else
+                last_pos_ = pos + n;
+            return;
+        }
+
+        for(;;)
+        {
+            // is pos in this buffer?
+            if(pos < it->size())
+            {
+                begin_ = it;
+                begin_pos_ = pos;
+
+                // does this buffer satisfy n?
+                auto const avail =
+                    it->size() - pos;
+                if(n <= avail)
+                {
+                    end_ = ++it;
+                    last_pos_ = pos + n;
+                    return;
+                }
+
+                n -= avail;
+                ++it;
+                break;
+            }
+
+            pos -= it->size();
+            ++it;
+
+            // did we reach the last buffer?
+            if(it == last)
+            {
+                // is pos past the end?
+                if(pos >= last_end)
+                {
+                    set_empty();
+                    return;
+                }
+
+                // satisfy the request
+                begin_ = it;
+                begin_pos_ = pos;
+                end_ = std::next(it);
+                if(n < last_end - pos)
+                    last_pos_ = pos + n;
+                else
+                    last_pos_ = last_end;
+                return;
+            }
+        }
+
+        // find pos+n
+        for(;;)
+        {
+            if(it == last)
+            {
+                end_ = ++it;
+                if(n >= last_end)
+                    last_pos_ = last_end;
+                else
+                    last_pos_ = n;
+                return;
+            }
+            if(n <= it->size())
+            {
+                end_ = ++it;
+                last_pos_ = n;
+                return;
+            }
+            
+            n -= it->size();
+            ++it;
+        }
     }
 
 public:
@@ -120,39 +259,55 @@ public:
 
     class const_iterator;
 
-    readable_bytes() = delete;
+    subrange() = delete;
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-    readable_bytes(readable_bytes const& other)
+    subrange(subrange const& other)
         : b_(other.b_)
+        , begin_(other.begin_)
+        , end_(other.end_)
+        , begin_pos_(other.begin_pos_)
+        , last_pos_(other.last_pos_)
     {
     }
 
-    readable_bytes& operator=(readable_bytes const& other)
+    subrange& operator=(subrange const& other)
     {
         b_ = other.b_;
+        begin_ = other.begin_;
+        end_ = other.end_;
+        begin_pos_ = other.begin_pos_;
+        last_pos_ = other.last_pos_;
         return *this;
     }
 #else
-    readable_bytes(readable_bytes const&) = default;
-    readable_bytes& operator=(readable_bytes const&) = default;
+    subrange(subrange const&) = default;
+    subrange& operator=(subrange const&) = default;
 #endif
 
     template<
         bool isMutable_ = isMutable,
         class = typename std::enable_if<! isMutable_>::type>
-    readable_bytes(
-        readable_bytes<true> const& other) noexcept
+    subrange(
+        subrange<true> const& other) noexcept
         : b_(other.b_)
-    {
+        , begin_(other.begin_)
+        , end_(other.end_)
+        , begin_pos_(other.begin_pos_)
+        , last_pos_(other.last_pos_)
+   {
     }
 
     template<
         bool isMutable_ = isMutable,
         class = typename std::enable_if<! isMutable_>::type>
-    readable_bytes& operator=(
-        readable_bytes<true> const& other) noexcept
+    subrange& operator=(
+        subrange<true> const& other) noexcept
     {
         b_ = other.b_;
+        begin_ = other.begin_;
+        end_ = other.end_;
+        begin_pos_ = other.begin_pos_;
+        last_pos_ = other.last_pos_;
         return *this;
     }
 
@@ -176,15 +331,25 @@ template<class Allocator>
 template<bool isMutable>
 class
     basic_multi_buffer<Allocator>::
-    readable_bytes<isMutable>::
+    subrange<isMutable>::
     const_iterator
 {
-    basic_multi_buffer const* b_ = nullptr;
+    friend class subrange;
+
+    subrange const* sr_ = nullptr;
     typename list_type::const_iterator it_;
+
+    const_iterator(
+        subrange const& sr, typename
+        list_type::const_iterator const& it) noexcept
+        : sr_(&sr)
+        , it_(it)
+    {
+    }
 
 public:
     using value_type =
-        typename readable_bytes::value_type;
+        typename subrange::value_type;
     using pointer = value_type const*;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
@@ -197,22 +362,16 @@ public:
     const_iterator& operator=(
         const_iterator const& other) = default;
 
-    const_iterator(
-        basic_multi_buffer const& b, typename
-        list_type::const_iterator const& it) noexcept
-        : b_(&b)
-        , it_(it)
+    bool
+    operator==(
+        const_iterator const& other) const noexcept
     {
+        return sr_ == other.sr_ && it_ == other.it_;
     }
 
     bool
-    operator==(const_iterator const& other) const noexcept
-    {
-        return b_ == other.b_ && it_ == other.it_;
-    }
-
-    bool
-    operator!=(const_iterator const& other) const noexcept
+    operator!=(
+        const_iterator const& other) const noexcept
     {
         return !(*this == other);
     }
@@ -220,125 +379,17 @@ public:
     reference
     operator*() const noexcept
     {
-        auto const& e = *it_;
-        return value_type{e.data(),
-           (b_->out_ == b_->list_.end() ||
-                &e != &*b_->out_) ? e.size() : b_->out_pos_} +
-                   (&e == &*b_->list_.begin() ? b_->in_pos_ : 0);
-    }
-
-    pointer
-    operator->() const = delete;
-
-    const_iterator&
-    operator++() noexcept
-    {
-        ++it_;
-        return *this;
-    }
-
-    const_iterator
-    operator++(int) noexcept
-    {
-        auto temp = *this;
-        ++(*this);
-        return temp;
-    }
-
-    const_iterator&
-    operator--() noexcept
-    {
-        --it_;
-        return *this;
-    }
-
-    const_iterator
-    operator--(int) noexcept
-    {
-        auto temp = *this;
-        --(*this);
-        return temp;
-    }
-};
-
-//------------------------------------------------------------------------------
-
-template<class Allocator>
-class basic_multi_buffer<Allocator>::mutable_buffers_type
-{
-    basic_multi_buffer const* b_;
-
-    friend class basic_multi_buffer;
-
-    explicit
-    mutable_buffers_type(
-        basic_multi_buffer const& b) noexcept
-        : b_(&b)
-    {
-    }
-
-public:
-    using value_type = net::mutable_buffer;
-
-    class const_iterator;
-
-    mutable_buffers_type() = delete;
-    mutable_buffers_type(mutable_buffers_type const&) = default;
-    mutable_buffers_type& operator=(mutable_buffers_type const&) = default;
-
-    const_iterator begin() const noexcept;
-    const_iterator end() const noexcept;
-};
-
-//------------------------------------------------------------------------------
-
-template<class Allocator>
-class basic_multi_buffer<Allocator>::mutable_buffers_type::const_iterator
-{
-    basic_multi_buffer const* b_ = nullptr;
-    typename list_type::const_iterator it_;
-
-public:
-    using value_type = typename
-        mutable_buffers_type::value_type;
-    using pointer = value_type const*;
-    using reference = value_type;
-    using difference_type = std::ptrdiff_t;
-    using iterator_category =
-        std::bidirectional_iterator_tag;
-
-    const_iterator() = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
-
-    const_iterator(
-        basic_multi_buffer const& b,
-        typename list_type::const_iterator const& it) noexcept
-        : b_(&b)
-        , it_(it)
-    {
-    }
-
-    bool
-    operator==(const_iterator const& other) const noexcept
-    {
-        return b_ == other.b_ && it_ == other.it_;
-    }
-
-    bool
-    operator!=(const_iterator const& other) const noexcept
-    {
-        return !(*this == other);
-    }
-
-    reference
-    operator*() const noexcept
-    {
-        auto const& e = *it_;
-        return value_type{e.data(),
-            &e == &*std::prev(b_->list_.end()) ?
-                b_->out_end_ : e.size()} +
-                   (&e == &*b_->out_ ? b_->out_pos_ : 0);
+        value_type result;
+        BOOST_ASSERT(sr_->last_pos_ != 0);
+        if(it_ == std::prev(sr_->end_))
+            result = {
+                it_->data(), sr_->last_pos_ };
+        else
+            result = {
+                it_->data(), it_->size() };
+        if(it_ == sr_->begin_)
+            result += sr_->begin_pos_;
+        return result;
     }
 
     pointer
@@ -381,44 +432,24 @@ template<class Allocator>
 template<bool isMutable>
 auto
 basic_multi_buffer<Allocator>::
-readable_bytes<isMutable>::
+subrange<isMutable>::
 begin() const noexcept ->
     const_iterator
 {
-    return const_iterator{*b_, b_->list_.begin()};
+    return const_iterator(
+        *this, begin_);
 }
 
 template<class Allocator>
 template<bool isMutable>
 auto
 basic_multi_buffer<Allocator>::
-readable_bytes<isMutable>::
+subrange<isMutable>::
 end() const noexcept ->
     const_iterator
 {
-    return const_iterator{*b_, b_->out_ ==
-        b_->list_.end() ? b_->list_.end() :
-            std::next(b_->out_)};
-}
-
-template<class Allocator>
-auto
-basic_multi_buffer<Allocator>::
-mutable_buffers_type::
-begin() const noexcept ->
-    const_iterator
-{
-    return const_iterator{*b_, b_->out_};
-}
-
-template<class Allocator>
-auto
-basic_multi_buffer<Allocator>::
-mutable_buffers_type::
-end() const noexcept ->
-    const_iterator
-{
-    return const_iterator{*b_, b_->list_.end()};
+    return const_iterator(
+        *this, end_);
 }
 
 //------------------------------------------------------------------------------
@@ -631,7 +662,8 @@ basic_multi_buffer<Allocator>::
 data() const noexcept ->
     const_buffers_type
 {
-    return const_buffers_type(*this);
+    return const_buffers_type(
+        *this, 0, in_size_);
 }
 
 template<class Allocator>
@@ -640,7 +672,8 @@ basic_multi_buffer<Allocator>::
 data() noexcept ->
     mutable_data_type
 {
-    return mutable_data_type(*this);
+    return mutable_data_type(
+        *this, 0, in_size_);
 }
 
 template<class Allocator>
@@ -818,6 +851,7 @@ basic_multi_buffer<Allocator>::
 prepare(size_type n) ->
     mutable_buffers_type
 {
+    auto const n0 = n;
     if(in_size_ > max_ || n > (max_ - in_size_))
         BOOST_THROW_EXCEPTION(std::length_error{
             "basic_multi_buffer too long"});
@@ -878,7 +912,7 @@ prepare(size_type n) ->
         destroy(reuse);
         if(n > 0)
         {
-            static auto const growth_factor = 2.0f;
+            auto const growth_factor = 2.0f;
             auto const size =
                 (std::min<std::size_t>)(
                     max_ - total,
@@ -897,7 +931,12 @@ prepare(size_type n) ->
         #endif
         }
     }
-    return mutable_buffers_type(*this);
+    auto const result =
+        mutable_buffers_type(
+            *this, in_size_, n0);
+    BOOST_ASSERT(
+        net::buffer_size(result) == n0);
+    return result;
 }
 
 template<class Allocator>
