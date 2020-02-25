@@ -43,7 +43,7 @@ class buffers_adaptor
         buffers_iterator_type<MutableBufferSequence>;
 
     template<bool>
-    class readable_bytes;
+    class subrange;
 
     MutableBufferSequence bs_;
     iter_type begin_;
@@ -106,16 +106,17 @@ public:
     /// The ConstBufferSequence used to represent the readable bytes.
     using const_buffers_type = __implementation_defined__;
 
-    /// The MutableBufferSequence used to represent the readable bytes.
-    using mutable_data_type = __implementation_defined__;
-
     /// The MutableBufferSequence used to represent the writable bytes.
     using mutable_buffers_type = __implementation_defined__;
 
 #else
-    using const_buffers_type = readable_bytes<false>;
-    using mutable_data_type = readable_bytes<true>;
-    class mutable_buffers_type;
+    using const_buffers_type = subrange<false>;
+
+#ifdef BOOST_BEAST_ALLOW_DEPRECATED
+    using mutable_data_type = subrange<true>;
+#endif
+
+    using mutable_buffers_type = subrange<true>;
 #endif
 
     /// Returns the number of readable bytes.
@@ -151,7 +152,7 @@ public:
     }
 
     /// Returns a mutable buffer sequence representing the readable bytes.
-    mutable_data_type
+    mutable_buffers_type
     data() noexcept;
 
     /** Returns a mutable buffer sequence representing writable bytes.
@@ -216,6 +217,17 @@ public:
     */
     void
     consume(std::size_t n) noexcept;
+
+private:
+
+    subrange<true>
+    make_subrange(std::size_t pos, std::size_t n);
+
+    subrange<false>
+    make_subrange(std::size_t pos, std::size_t n) const;
+
+    friend struct buffers_adaptor_test_hook;
+
 };
 
 } // beast

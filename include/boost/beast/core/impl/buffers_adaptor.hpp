@@ -11,6 +11,7 @@
 #define BOOST_BEAST_IMPL_BUFFERS_ADAPTOR_HPP
 
 #include <boost/beast/core/buffer_traits.hpp>
+#include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/throw_exception.hpp>
@@ -34,71 +35,88 @@ namespace beast {
 
 template<class MutableBufferSequence>
 template<bool isMutable>
-class buffers_adaptor<MutableBufferSequence>::
-    readable_bytes
+class buffers_adaptor<MutableBufferSequence>::subrange
 {
-    buffers_adaptor const* b_;
-
 public:
-    using value_type = typename
-        std::conditional<isMutable,
-            net::mutable_buffer,
-            net::const_buffer>::type;
+    using value_type = typename std::conditional<
+        isMutable,
+        net::mutable_buffer,
+        net::const_buffer>::type;
 
-    class const_iterator;
+    struct iterator;
 
-    readable_bytes() = delete;
+    // construct from two iterators plus optionally subrange definition
+    subrange(
+        iter_type first,        // iterator to first buffer in storage
+        iter_type last,         // iterator to last buffer in storage
+        std::size_t pos = 0,    // the offset in bytes from the beginning of the storage
+        std::size_t n =         // the total length of the subrange
+        (std::numeric_limits<std::size_t>::max)());
 
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-    readable_bytes(
-        readable_bytes const& other)
-        : b_(other.b_)
+    subrange(
+        subrange const& other)
+        : first_(other.first_)
+        , last_(other.last_)
+        , first_offset_(other.first_offset_)
+        , last_size_(other.last_size_)
     {
     }
 
-    readable_bytes& operator=(
-        readable_bytes const& other)
+    subrange& operator=(
+        subrange const& other)
     {
-        b_ = other.b_;
+        first_ = other.first_;
+        last_ = other.last_;
+        first_offset_ = other.first_offset_;
+        last_size_ = other.last_size_;
         return *this;
     }
 #else
-    readable_bytes(
-        readable_bytes const&) = default;
-    readable_bytes& operator=(
-        readable_bytes const&) = default;
+    subrange(
+        subrange const&) = default;
+    subrange& operator=(
+        subrange const&) = default;
 #endif
 
-    template<bool isMutable_ = isMutable, class =
-        typename std::enable_if<! isMutable_>::type>
-    readable_bytes(
-        readable_bytes<true> const& other) noexcept
-        : b_(other.b_)
+    // allow conversion from mutable to const
+    template<bool isMutable_ = isMutable, typename
+        std::enable_if<!isMutable_>::type * = nullptr>
+    subrange(subrange<true> const &other)
+        : first_(other.first_)
+        , last_(other.last_)
+        , first_offset_(other.first_offset_)
+        , last_size_(other.last_size_)
     {
     }
 
-    template<bool isMutable_ = isMutable, class =
-        typename std::enable_if<! isMutable_>::type>
-    readable_bytes& operator=(
-        readable_bytes<true> const& other) noexcept
-    {
-        b_ = other.b_;
-        return *this;
-    }
-
-    const_iterator
+    iterator
     begin() const;
 
-    const_iterator
+    iterator
     end() const;
 
 private:
-    friend class buffers_adaptor;
 
-    readable_bytes(buffers_adaptor const& b)
-        : b_(&b)
-    {
-    }
+    friend subrange<!isMutable>;
+
+    void
+    adjust(
+        std::size_t pos,
+        std::size_t n);
+
+private:
+    // points to the first buffer in the sequence
+    iter_type first_;
+
+    // Points to one past the end of the underlying buffer sequence
+    iter_type last_;
+
+    // The initial offset into the first buffer
+    std::size_t first_offset_;
+
+    // how many bytes in the penultimate buffer are used (if any)
+    std::size_t last_size_;
 };
 
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
@@ -109,256 +127,54 @@ private:
 
 template<class MutableBufferSequence>
 template<bool isMutable>
-class buffers_adaptor<MutableBufferSequence>::
-      readable_bytes<isMutable>::
-      const_iterator
+struct buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+    iterator
 {
-    iter_type it_{};
-    buffers_adaptor const* b_ = nullptr;
-
-public:
+    using iterator_category = std::bidirectional_iterator_tag;
     using value_type = typename
-        std::conditional<isMutable,
-            net::mutable_buffer,
-            net::const_buffer>::type;
-    using pointer = value_type const*;
-    using reference = value_type;
+        buffers_adaptor<MutableBufferSequence>::
+        template subrange<isMutable>::
+        value_type;
+    using reference = value_type&;
+    using pointer = value_type*;
     using difference_type = std::ptrdiff_t;
-    using iterator_category =
-        std::bidirectional_iterator_tag;
 
-    const_iterator() = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
+    iterator(
+        subrange<isMutable> const *parent,
+        iter_type it);
 
-    bool
-    operator==(const_iterator const& other) const
-    {
-        return b_ == other.b_ && it_ == other.it_;
-    }
+    iterator();
 
-    bool
-    operator!=(const_iterator const& other) const
-    {
-        return !(*this == other);
-    }
-
-    reference
-    operator*() const
-    {
-        value_type const b = *it_;
-        return value_type{b.data(),
-            (b_->out_ == net::buffer_sequence_end(b_->bs_) ||
-                it_ != b_->out_) ? b.size() : b_->out_pos_} +
-                    (it_ == b_->begin_ ? b_->in_pos_ : 0);
-    }
+    value_type
+    operator*() const;
 
     pointer
     operator->() const = delete;
 
-    const_iterator&
-    operator++()
-    {
-        ++it_;
-        return *this;
-    }
+    iterator &
+    operator++();
 
-    const_iterator
-    operator++(int)
-    {
-        auto temp = *this;
-        ++(*this);
-        return temp;
-    }
+    iterator
+    operator++(int);
 
-    const_iterator&
-    operator--()
-    {
-        --it_;
-        return *this;
-    }
+    iterator &
+    operator--();
 
-    const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
-        return temp;
-    }
-
-private:
-    friend class readable_bytes;
-
-    const_iterator(
-        buffers_adaptor const& b,
-        iter_type iter)
-        : it_(iter)
-        , b_(&b)
-    {
-    }
-};
-
-template<class MutableBufferSequence>
-template<bool isMutable>
-auto
-buffers_adaptor<MutableBufferSequence>::
-readable_bytes<isMutable>::
-begin() const ->
-    const_iterator
-{
-    return const_iterator{*b_, b_->begin_};
-}
-
-template<class MutableBufferSequence>
-template<bool isMutable>
-auto
-buffers_adaptor<MutableBufferSequence>::
-readable_bytes<isMutable>::
-readable_bytes::end() const ->
-    const_iterator
-{
-    return const_iterator{*b_, b_->end_impl()};
-}
-
-//------------------------------------------------------------------------------
-
-template<class MutableBufferSequence>
-class buffers_adaptor<MutableBufferSequence>::
-mutable_buffers_type
-{
-    buffers_adaptor const* b_;
-
-public:
-    using value_type = net::mutable_buffer;
-
-    class const_iterator;
-
-    mutable_buffers_type() = delete;
-    mutable_buffers_type(
-        mutable_buffers_type const&) = default;
-    mutable_buffers_type& operator=(
-        mutable_buffers_type const&) = default;
-
-    const_iterator
-    begin() const;
-
-    const_iterator
-    end() const;
-
-private:
-    friend class buffers_adaptor;
-
-    mutable_buffers_type(
-            buffers_adaptor const& b)
-        : b_(&b)
-    {
-    }
-};
-
-template<class MutableBufferSequence>
-class buffers_adaptor<MutableBufferSequence>::
-mutable_buffers_type::const_iterator
-{
-    iter_type it_{};
-    buffers_adaptor const* b_ = nullptr;
-
-public:
-    using value_type = net::mutable_buffer;
-    using pointer = value_type const*;
-    using reference = value_type;
-    using difference_type = std::ptrdiff_t;
-    using iterator_category =
-        std::bidirectional_iterator_tag;
-
-    const_iterator() = default;
-    const_iterator(const_iterator const& other) = default;
-    const_iterator& operator=(const_iterator const& other) = default;
+    iterator
+    operator--(int);
 
     bool
-    operator==(const_iterator const& other) const
-    {
-        return b_ == other.b_ && it_ == other.it_;
-    }
+    operator==(iterator const &b) const;
 
     bool
-    operator!=(const_iterator const& other) const
-    {
-        return !(*this == other);
-    }
-
-    reference
-    operator*() const
-    {
-        value_type const b = *it_;
-        return value_type{b.data(),
-            it_ == std::prev(b_->end_) ?
-                b_->out_end_ : b.size()} +
-                    (it_ == b_->out_ ? b_->out_pos_ : 0);
-    }
-
-    pointer
-    operator->() const = delete;
-
-    const_iterator&
-    operator++()
-    {
-        ++it_;
-        return *this;
-    }
-
-    const_iterator
-    operator++(int)
-    {
-        auto temp = *this;
-        ++(*this);
-        return temp;
-    }
-
-    const_iterator&
-    operator--()
-    {
-        --it_;
-        return *this;
-    }
-
-    const_iterator
-    operator--(int)
-    {
-        auto temp = *this;
-        --(*this);
-        return temp;
-    }
+    operator!=(iterator const &b) const;
 
 private:
-    friend class mutable_buffers_type;
 
-    const_iterator(buffers_adaptor const& b,
-            iter_type iter)
-        : it_(iter)
-        , b_(&b)
-    {
-    }
+    subrange<isMutable> const *parent_;
+    iter_type it_;
 };
-
-template<class MutableBufferSequence>
-auto
-buffers_adaptor<MutableBufferSequence>::
-mutable_buffers_type::
-begin() const ->
-    const_iterator
-{
-    return const_iterator{*b_, b_->out_};
-}
-
-template<class MutableBufferSequence>
-auto
-buffers_adaptor<MutableBufferSequence>::
-mutable_buffers_type::
-end() const ->
-    const_iterator
-{
-    return const_iterator{*b_, b_->end_};
-}
 
 //------------------------------------------------------------------------------
 
@@ -479,16 +295,20 @@ buffers_adaptor<MutableBufferSequence>::
 data() const noexcept ->
     const_buffers_type
 {
-    return const_buffers_type{*this};
+    return const_buffers_type(
+        begin_, end_,
+        in_pos_, in_size_);
 }
 
 template<class MutableBufferSequence>
 auto
 buffers_adaptor<MutableBufferSequence>::
 data() noexcept ->
-    mutable_data_type
+    mutable_buffers_type
 {
-    return mutable_data_type{*this};
+    return mutable_buffers_type(
+        begin_, end_,
+        in_pos_, in_size_);
 }
 
 template<class MutableBufferSequence>
@@ -497,6 +317,7 @@ buffers_adaptor<MutableBufferSequence>::
 prepare(std::size_t n) ->
     mutable_buffers_type
 {
+    auto prepared = n;
     end_ = out_;
     if(end_ != net::buffer_sequence_end(bs_))
     {
@@ -529,7 +350,7 @@ prepare(std::size_t n) ->
     if(n > 0)
         BOOST_THROW_EXCEPTION(std::length_error{
             "buffers_adaptor too long"});
-    return mutable_buffers_type{*this};
+    return mutable_buffers_type(out_, end_, out_pos_, prepared);
 }
 
 template<class MutableBufferSequence>
@@ -599,6 +420,285 @@ consume(std::size_t n) noexcept
         in_size_ -= avail;
         in_pos_ = out_pos_;
     }
+}
+
+template<class MutableBufferSequence>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    make_subrange(std::size_t pos, std::size_t n) ->
+        subrange<true>
+{
+    return subrange<true>(
+        begin_, net::buffer_sequence_end(bs_),
+        in_pos_ + pos, n);
+}
+
+template<class MutableBufferSequence>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    make_subrange(std::size_t pos, std::size_t n) const ->
+        subrange<false>
+{
+    return subrange<false>(
+        begin_, net::buffer_sequence_end(bs_),
+        in_pos_ + pos, n);
+}
+
+// -------------------------------------------------------------------------
+// subrange
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+buffers_adaptor<MutableBufferSequence>::
+subrange<isMutable>::
+subrange(
+    iter_type first,  // iterator to first buffer in storage
+    iter_type last,   // iterator to last buffer in storage
+    std::size_t pos,        // the offset in bytes from the beginning of the storage
+    std::size_t n)         // the total length of the subrange
+    : first_(first)
+    , last_(last)
+    , first_offset_(0)
+    , last_size_((std::numeric_limits<std::size_t>::max)())
+{
+    adjust(pos, n);
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+void
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+adjust(
+    std::size_t pos,
+    std::size_t n)
+{
+    if (n == 0)
+        last_ = first_;
+
+    if (first_ == last_)
+    {
+        first_offset_ = 0;
+        last_size_ = 0;
+        return;
+    }
+
+    auto is_last = [this](iter_type iter) {
+        return std::next(iter) == last_;
+    };
+
+
+    pos += first_offset_;
+    while (pos)
+    {
+        auto adjust = (std::min)(pos, first_->size());
+        if (adjust >= first_->size())
+        {
+            ++first_;
+            first_offset_ = 0;
+            pos -= adjust;
+        }
+        else
+        {
+            first_offset_ = adjust;
+            pos = 0;
+            break;
+        }
+    }
+
+    auto current = first_;
+    auto max_elem = current->size() - first_offset_;
+    if (is_last(current))
+    {
+        // both first and last element
+        last_size_ = (std::min)(max_elem, n);
+        last_ = std::next(current);
+        return;
+    }
+    else if (max_elem >= n)
+    {
+        last_ = std::next(current);
+        last_size_ = n;
+    }
+    else
+    {
+        n -= max_elem;
+        ++current;
+    }
+
+    for (;;)
+    {
+        max_elem = current->size();
+        if (is_last(current))
+        {
+            last_size_ = (std::min)(n, last_size_);
+            return;
+        }
+        else if (max_elem < n)
+        {
+            n -= max_elem;
+            ++current;
+        }
+        else
+        {
+            last_size_ = n;
+            last_ = std::next(current);
+            return;
+        }
+    }
+}
+
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+begin() const ->
+iterator
+{
+    return iterator(this, first_);
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+end() const ->
+iterator
+{
+    return iterator(this, last_);
+}
+
+// -------------------------------------------------------------------------
+// buffers_adaptor::subrange::iterator
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+buffers_adaptor<MutableBufferSequence>::
+subrange<isMutable>::
+iterator::
+iterator()
+    : parent_(nullptr)
+    , it_()
+{
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+buffers_adaptor<MutableBufferSequence>::
+subrange<isMutable>::
+iterator::
+iterator(subrange<isMutable> const *parent,
+    iter_type it)
+    : parent_(parent)
+    , it_(it)
+{
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+    iterator::
+operator*() const ->
+    value_type
+{
+    value_type result = *it_;
+
+    if (it_ == parent_->first_)
+        result += parent_->first_offset_;
+
+    if (std::next(it_) == parent_->last_)
+    {
+        result = value_type(
+            result.data(),
+            (std::min)(
+                parent_->last_size_,
+                result.size()));
+    }
+
+    return result;
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+    iterator::
+operator++() ->
+    iterator &
+{
+    ++it_;
+    return *this;
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+    iterator::
+operator++(int) ->
+    iterator
+{
+    auto result = *this;
+    ++it_;
+    return result;
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+    iterator::
+operator--() ->
+    iterator &
+{
+    --it_;
+    return *this;
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+    iterator::
+operator--(int) ->
+    iterator
+{
+    auto result = *this;
+    --it_;
+    return result;
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+    iterator::
+operator==(iterator const &b) const ->
+    bool
+{
+    return it_ == b.it_;
+}
+
+template<class MutableBufferSequence>
+template<bool isMutable>
+auto
+buffers_adaptor<MutableBufferSequence>::
+    subrange<isMutable>::
+    iterator::
+operator!=(iterator const &b) const ->
+    bool
+{
+    return !(*this == b);
 }
 
 } // beast
