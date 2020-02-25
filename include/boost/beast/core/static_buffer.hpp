@@ -94,14 +94,15 @@ public:
     /// The ConstBufferSequence used to represent the readable bytes.
     using const_buffers_type = __implementation_defined__;
 
-    /// The MutableBufferSequence used to represent the readable bytes.
-    using mutable_data_type = __implementation_defined__;
-
     /// The MutableBufferSequence used to represent the writable bytes.
     using mutable_buffers_type = __implementation_defined__;
 #else
     using const_buffers_type   = detail::buffers_pair<false>;
+
+#ifdef BOOST_BEAST_ALLOW_DEPRECATED
     using mutable_data_type    = detail::buffers_pair<true>;
+#endif
+
     using mutable_buffers_type = detail::buffers_pair<true>;
 #endif
 
@@ -140,7 +141,7 @@ public:
 
     /// Returns a mutable buffer sequence representing the readable bytes
     BOOST_BEAST_DECL
-    mutable_data_type
+    mutable_buffers_type
     data() noexcept;
 
     /** Returns a mutable buffer sequence representing writable bytes.
