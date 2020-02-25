@@ -56,7 +56,7 @@ data() const noexcept ->
 auto
 static_buffer_base::
 data() noexcept ->
-    mutable_data_type
+    mutable_buffers_type
 {
     if(in_off_ + in_size_ <= capacity_)
         return {
