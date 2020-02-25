@@ -100,6 +100,7 @@ public:
         b_.commit(
             (this->pptr() - this->pbase()) *
             sizeof(CharT));
+        this->setp(nullptr, nullptr);
         return 0;
     }
 };
@@ -169,6 +170,7 @@ public:
         b_.commit(
             (this->pptr() - this->pbase()) *
             sizeof(CharT));
+        this->setp(nullptr, nullptr);
         return 0;
     }
 };

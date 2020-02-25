@@ -66,6 +66,31 @@ public:
                 fail("wrong exception", __FILE__, __LINE__);
             }
         }
+
+        // flush
+        {
+            // Issue #1853
+            flat_static_buffer<16> b;
+            auto half_view = string_view(s.data(), 8);
+            {
+                auto os = ostream(b);
+                os << half_view;
+                os.flush();
+            }
+            BEAST_EXPECT(buffers_to_string(b.data()) == half_view);
+        }
+
+        {
+            flat_static_buffer<16> b;
+            {
+                auto os = ostream(b);
+                os << string_view(s.data(), 8);
+                os.flush();
+                os << string_view(s.data() + 8, 8);
+                os.flush();
+            }
+            BEAST_EXPECT(buffers_to_string(b.data()) == s);
+        }
     }
 
     void
