@@ -9,6 +9,7 @@ Version 286:
 * Fix ostream warning
 * Field digest is endian-independent
 * update broken links in README
+* Fix ostream flush
 
 API Changes:
 
