@@ -1,3 +1,7 @@
+Version 286:
+
+* fix ostream flush
+
 Version 285:
 
 * Translate some win32 errors to net error codes
