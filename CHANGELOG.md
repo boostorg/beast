@@ -1,10 +1,12 @@
 Version 286:
 
 * Refactor multi_buffer
+* Refactor buffers_adapter
 
 API Changes:
 
 * multi_buffer::mutable_data_type is deprecated. Use multi_buffer::mutable_buffers_type instead
+* buffers_adaptor::mutable_data_type is deprecated. Use buffers_adaptor::mutable_buffers_type instead
 
 --------------------------------------------------------------------------------
 
