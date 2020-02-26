@@ -244,7 +244,7 @@ struct is_mutable_dynamic_buffer<T, detail::void_t<decltype(
         std::declval<T const&>().data(),
     std::declval<typename T::const_buffers_type&>() =
         std::declval<T&>().cdata(),
-    std::declval<typename T::mutable_data_type&>() =
+    std::declval<typename T::mutable_buffers_type&>() =
         std::declval<T&>().data()
     ) > > : net::is_dynamic_buffer_v1<T>
 {
@@ -287,11 +287,11 @@ test_mutable_dynamic_buffer(
 {
     BOOST_STATIC_ASSERT(
         net::is_mutable_buffer_sequence<typename
-            MutableDynamicBuffer_v0::mutable_data_type>::value);
+            MutableDynamicBuffer_v0::mutable_buffers_type>::value);
 
     BOOST_STATIC_ASSERT(
         std::is_convertible<
-            typename MutableDynamicBuffer_v0::mutable_data_type,
+            typename MutableDynamicBuffer_v0::mutable_buffers_type,
             typename MutableDynamicBuffer_v0::const_buffers_type>::value);
 
     string_view src = "Hello, world!";
