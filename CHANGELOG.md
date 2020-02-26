@@ -4,14 +4,24 @@ Version 286:
 * Refactor buffers_adapter
 * Refactor static_buffer
 * Refactor flat_buffer
+* Refactor flat_static_buffer
 
 API Changes:
 
-* multi_buffer::mutable_data_type is deprecated. Use multi_buffer::mutable_buffers_type instead.
-* buffers_adaptor::mutable_data_type is deprecated. Use buffers_adaptor::mutable_buffers_type instead.
-* static_buffer::mutable_data_type is deprecated. Use static_buffer::mutable_buffers_type instead.
-* static_buffer_base::mutable_data_type is deprecated. Use static_buffer_base::mutable_buffers_type instead.
-* flat_buffer::mutable_data_type is deprecated. Use flat_buffer::mutable_buffers_type instead.
+* Nested const and mutable buffer types for all
+  Beast dynamic buffers are refactored. Affected types:
+  - buffers_adapter
+  - flat_buffer
+  - flat_static_buffer
+  - multi_buffer
+  - static_buffer
+  
+* Nested mutable_data_type in Beast dynamic buffers is deprecated:
+
+Changes Required:
+
+* Use nested mutable_buffers_type instad of mutable_data_type,
+  or define BOOST_BEAST_ALLOW_DEPRECATED
 
 --------------------------------------------------------------------------------
 

@@ -114,8 +114,9 @@ public:
     /// The ConstBufferSequence used to represent the readable bytes.
     using const_buffers_type = net::const_buffer;
 
-    /// The MutableBufferSequence used to represent the readable bytes.
+#ifdef BOOST_BEAST_ALLOW_DEPRECATED
     using mutable_data_type = net::mutable_buffer;
+#endif
 
     /// The MutableBufferSequence used to represent the writable bytes.
     using mutable_buffers_type = net::mutable_buffer;
@@ -156,7 +157,7 @@ public:
     }
 
     /// Returns a mutable buffer sequence representing the readable bytes
-    mutable_data_type
+    mutable_buffers_type
     data() noexcept
     {
         return {in_, dist(in_, out_)};
