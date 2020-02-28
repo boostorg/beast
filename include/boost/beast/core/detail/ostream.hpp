@@ -42,7 +42,7 @@ class ostream_buffer;
 
 template<class DynamicBuffer, class CharT, class Traits>
 class ostream_buffer
-        <DynamicBuffer, CharT, Traits, true>
+        <DynamicBuffer, CharT, Traits, true> final
     : public std::basic_streambuf<CharT, Traits>
 {
     using int_type = typename
