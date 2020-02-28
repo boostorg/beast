@@ -7,6 +7,7 @@ Version 286:
 * Refactor flat_static_buffer
 * Fix missing include in sha1.hpp
 * Fix ostream warning
+* Field digest is endian-independent
 
 API Changes:
 
