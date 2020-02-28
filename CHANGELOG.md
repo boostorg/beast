@@ -5,6 +5,7 @@ Version 286:
 * Refactor static_buffer
 * Refactor flat_buffer
 * Refactor flat_static_buffer
+* Fix missing include in sha1.hpp
 
 API Changes:
 
