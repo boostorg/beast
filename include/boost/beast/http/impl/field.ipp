@@ -24,6 +24,22 @@ namespace detail {
 
 struct field_table
 {
+    static
+    std::uint32_t
+    get_chars(
+        unsigned char const* p) noexcept
+    {
+        // VFALCO memcpy is endian-dependent
+        //std::memcpy(&v, p, 4);
+        // Compiler should be smart enough to
+        // optimize this down to one instruction.
+        return
+             p[0] |
+            (p[1] <<  8) |
+            (p[2] << 16) |
+            (p[3] << 24);
+    }
+
     using array_type =
         std::array<string_view, 353>;
 
@@ -34,16 +50,19 @@ struct field_table
     {
         std::uint32_t r = 0;
         std::size_t n = s.size();
-        unsigned char const* p =reinterpret_cast<
+        auto p = reinterpret_cast<
             unsigned char const*>(s.data());
+        // consume N characters at a time
+        // VFALCO Can we do 8 on 64-bit systems?
         while(n >= 4)
         {
-            std::uint32_t v;
-            std::memcpy(&v, p, 4);
-            r = r * 5 + ( v | 0x20202020 );
+            auto const v = get_chars(p);
+            r = (r * 5 + (
+                v | 0x20202020 )); // convert to lower
             p += 4;
             n -= 4;
         }
+        // handle remaining characters
         while( n > 0 )
         {
             r = r * 5 + ( *p | 0x20 );
@@ -59,20 +78,21 @@ struct field_table
     bool
     equals(string_view lhs, string_view rhs)
     {
-        using Int = std::uint32_t; // or std::size_t
+        using Int = std::uint32_t; // VFALCO std::size_t?
         auto n = lhs.size();
         if(n != rhs.size())
             return false;
-        auto p1 = lhs.data();
-        auto p2 = rhs.data();
+        auto p1 = reinterpret_cast<
+            unsigned char const*>(lhs.data());
+        auto p2 = reinterpret_cast<
+            unsigned char const*>(rhs.data());
         auto constexpr S = sizeof(Int);
         auto constexpr Mask = static_cast<Int>(
             0xDFDFDFDFDFDFDFDF & ~Int{0});
         for(; n >= S; p1 += S, p2 += S, n -= S)
         {
-            Int v1, v2;
-            std::memcpy( &v1, p1, S );
-            std::memcpy( &v2, p2, S );
+            Int const v1 = get_chars(p1);
+            Int const v2 = get_chars(p2);
             if((v1 ^ v2) & Mask)
                 return false;
         }
