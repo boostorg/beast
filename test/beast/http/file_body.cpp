@@ -64,7 +64,7 @@ public:
 
         temp_file(temp_file&&) = default;
         temp_file(temp_file const&) = delete;
-        temp_file& operator=(temp_file&&) = default;
+        temp_file& operator=(temp_file&&) = delete;
         temp_file& operator=(temp_file const&) = delete;
 
         boost::filesystem::path const& path() const
