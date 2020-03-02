@@ -57,3 +57,4 @@ jobs:
             command: |
               ./b2 -j 2 cxxstd=latest libs/beast/test
               ./b2 -j 2 cxxstd=latest libs/beast/example
+            no_output_timeout: 20m
