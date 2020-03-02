@@ -160,12 +160,81 @@ public:
     }
 
 
+    struct pad
+    {
+        pad() = default;
+        pad(pad const&) = delete;
+        pad& operator=(pad const&) = delete;
+
+
+        template<class...Sizes>
+        void
+        allocate(Sizes... size_values)
+        {
+            auto sizes = std::array<std::size_t, sizeof...(size_values)>{
+                std::size_t(size_values)...
+            };
+
+            blocks.resize(sizes.size());
+            buffers.resize(sizes.size());
+            for (std::size_t i = 0 ; i < sizes.size() ; ++i)
+            {
+                blocks[i] = std::string(sizes[i], ' ');
+                buffers[i] = net::buffer(blocks[i]);
+            }
+        }
+
+        auto
+        create()
+        -> buffers_adaptor<std::vector<net::mutable_buffer>>
+        {
+            return buffers_adaptor<std::vector<net::mutable_buffer>>(buffers);
+        }
+
+
+        template<class...Sizes>
+        auto
+        generate(Sizes... size_values)
+        -> buffers_adaptor<std::vector<net::mutable_buffer>>
+        {
+            allocate(size_values...);
+            return create();
+        }
+
+        std::vector<std::string> blocks;
+        std::vector<net::mutable_buffer> buffers;
+    };
+
+    void
+    testV2Interop()
+    {
+        pad my_pad;
+
+        test_dynamic_buffer_v0_v2_consistency(
+            [&]{ return my_pad.generate(4096, 2048, 2048); });
+        test_dynamic_buffer_v0_v2_operation(my_pad.generate(16));
+
+        my_pad.allocate(1000000,1000000,1000000);
+        struct generator
+        {
+            pad& my_pad;
+            static constexpr std::size_t size() { return 26; }
+            buffers_adaptor<std::vector<net::mutable_buffer>>
+            make_store()
+            {
+                return my_pad.create();
+            }
+        };
+        test_v0_v2_data_rotations(generator{my_pad});
+    }
+
     void
     run() override
     {
         testDynamicBuffer();
         testSpecial();
         testIssue386();
+        testV2Interop();
 #if 0
         testBuffersAdapter();
         testCommit();

@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_IMPL_FLAT_BUFFER_HPP
 #define BOOST_BEAST_IMPL_FLAT_BUFFER_HPP
 
+#include <boost/beast/core/detail/buffer.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
@@ -537,6 +538,36 @@ alloc(std::size_t n)
             "A basic_flat_buffer exceeded the allocator's maximum size"));
     return alloc_traits::allocate(this->get(), n);
 }
+
+
+template<class Allocator>
+auto
+basic_flat_buffer<Allocator>::
+data_impl(std::size_t pos, std::size_t n)
+-> mutable_buffers_type
+{
+    return detail::trimmed(data(), pos, n);
+}
+
+template<class Allocator>
+auto
+basic_flat_buffer<Allocator>::
+data_impl(std::size_t pos, std::size_t n) const
+-> const_buffers_type
+{
+    return detail::trimmed(data(), pos, n);
+}
+
+template<class Allocator>
+auto
+basic_flat_buffer<Allocator>::
+shrink_impl(std::size_t n)
+-> void
+{
+    boost::ignore_unused(prepare(0));
+    out_ -= (std::min)(n, size());
+}
+
 
 } // beast
 } // boost

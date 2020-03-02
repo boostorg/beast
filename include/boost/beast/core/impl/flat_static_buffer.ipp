@@ -11,6 +11,7 @@
 #define BOOST_BEAST_IMPL_FLAT_STATIC_BUFFER_IPP
 
 #include <boost/beast/core/flat_static_buffer.hpp>
+#include <boost/beast/core/detail/buffer.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <cstring>
@@ -82,6 +83,32 @@ reset(void* p, std::size_t n) noexcept
     last_ = begin_;
     end_ = begin_ + n;
 }
+
+auto
+flat_static_buffer_base::
+data_impl(std::size_t pos, std::size_t n)
+-> mutable_buffers_type
+{
+    return detail::trimmed(data(), pos, n);
+}
+
+auto
+flat_static_buffer_base::
+data_impl(std::size_t pos, std::size_t n) const
+-> const_buffers_type
+{
+    return detail::trimmed(data(), pos, n);
+}
+
+void
+flat_static_buffer_base::
+shrink_impl(std::size_t n)
+{
+    boost::ignore_unused(prepare(0));
+    n = (std::min)(size(), n);
+    out_ -= n;
+}
+
 
 } // beast
 } // boost

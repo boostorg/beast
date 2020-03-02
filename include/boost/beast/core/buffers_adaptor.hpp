@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
+#include <boost/beast/core/dynamic_buffer.hpp>
 #include <boost/optional.hpp>
 #include <type_traits>
 
@@ -228,7 +229,124 @@ private:
 
     friend struct buffers_adaptor_test_hook;
 
+
+private:
+
+    friend detail::dynamic_buffer_v2_access;
+
+    auto
+    data_impl(std::size_t pos, std::size_t n)
+    -> mutable_buffers_type
+    {
+        return mutable_buffers_type (begin_, end_,
+            in_pos_ + pos, (std::min)(size(), n));
+    }
+
+    auto
+    data_impl(std::size_t pos, std::size_t n) const
+    -> const_buffers_type
+    {
+        return const_buffers_type (begin_, end_,
+           in_pos_ + pos, (std::min)(size(), n));
+    }
+
+    void
+    shrink_impl(std::size_t n)
+    {
+        boost::ignore_unused(prepare(0));
+
+        if (n == 0)
+            return;
+
+        auto erase_backwards = [this](iter_type i) -> iter_type
+        {
+            auto prev = std::prev(i);
+            end_ = i;
+            return prev;
+        };
+
+        auto i = out_;
+        if (i == end_)
+        {
+            // there is no output region
+            BOOST_ASSERT(out_pos_ == 0);
+            BOOST_ASSERT(out_end_ == 0);
+            if (i == begin_)
+            {
+                // buffer is empty
+                BOOST_ASSERT(in_size_ == 0);
+                return;
+            }
+            i = std::prev(i);
+        }
+        else
+        {
+            auto used = in_size_;
+            auto adjust = (std::min)(n, used);
+            n -= adjust;
+            if (adjust == used)
+            {
+                i = erase_backwards(i);
+                in_pos_ = 0;
+                in_size_ = 0;
+                out_pos_ = 0;
+                out_end_ = 0;
+            }
+            else
+            {
+                in_size_ -= adjust;
+                out_pos_ = out_end_ = in_pos_ + in_size_;
+            }
+        }
+
+        while(n)
+        {
+            BOOST_ASSERT(out_pos_ == 0);
+            BOOST_ASSERT(out_end_ == 0);
+
+            // at this point in_pos is relevant only if we are in the first element
+            if (i == begin_)
+            {
+                auto used = i->size() - in_pos_;
+                auto adjust = (std::min)(used, n);
+                in_size_ -= adjust;
+                n -= adjust;
+                if (adjust == used)
+                {
+                    in_size_ = 0;
+                    in_pos_ = 0;
+                    end_ = i;
+                }
+                else
+                {
+                    out_ = i;
+                    out_end_ = out_pos_ = in_pos_ + in_size_;
+                }
+                break;
+            }
+            else
+            {
+                auto used = i->size();
+                auto adjust = (std::min)(used, n);
+                in_size_ -= adjust;
+                n -= adjust;
+                if (adjust == used)
+                    i = erase_backwards(i);
+            }
+        }
+    }
 };
+
+namespace detail
+{
+template<class MutableBufferSequence>
+struct is_dynamic_buffer_v0<buffers_adaptor<MutableBufferSequence>>
+: std::true_type
+{
+};
+
+} // detail
+
 
 } // beast
 } // boost

@@ -308,7 +308,7 @@ data() noexcept ->
 {
     return mutable_buffers_type(
         begin_, end_,
-        in_pos_, in_size_);
+        in_pos_, size());
 }
 
 template<class MutableBufferSequence>

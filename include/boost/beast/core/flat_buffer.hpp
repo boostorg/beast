@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
+#include <boost/beast/core/dynamic_buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/core/empty_value.hpp>
 #include <limits>
@@ -64,6 +65,8 @@ class basic_flat_buffer
 {
     template<class OtherAlloc>
     friend class basic_flat_buffer;
+
+    friend detail::dynamic_buffer_v2_access;
 
     using base_alloc_type = typename
         detail::allocator_traits<Allocator>::
@@ -518,7 +521,20 @@ private:
     void swap(basic_flat_buffer&, std::true_type);
     void swap(basic_flat_buffer&, std::false_type);
     char* alloc(std::size_t n);
+
+    auto data_impl(std::size_t, std::size_t) -> mutable_buffers_type;
+    auto data_impl(std::size_t, std::size_t) const -> const_buffers_type;
+    void shrink_impl(std::size_t);
 };
+
+namespace detail
+{
+template<class Allocator>
+struct is_dynamic_buffer_v0<basic_flat_buffer<Allocator>>
+: std::true_type
+{
+};
+}
 
 /// A flat buffer which uses the default allocator.
 using flat_buffer =

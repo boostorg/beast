@@ -11,6 +11,7 @@
 #define BOOST_BEAST_FLAT_STATIC_BUFFER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/dynamic_buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <algorithm>
 #include <cstddef>
@@ -60,6 +61,8 @@ class flat_static_buffer_base
         flat_static_buffer_base const& other) = delete;
     flat_static_buffer_base& operator=(
         flat_static_buffer_base const&) = delete;
+
+    friend detail::dynamic_buffer_v2_access;
 
 public:
     /** Constructor
@@ -262,6 +265,10 @@ private:
     {
         return static_cast<std::size_t>(last - first);
     }
+
+    auto data_impl(std::size_t, std::size_t) -> mutable_buffers_type;
+    auto data_impl(std::size_t, std::size_t) const -> const_buffers_type;
+    void shrink_impl(std::size_t);
 };
 
 //------------------------------------------------------------------------------
@@ -326,6 +333,16 @@ public:
         return N;
     }
 };
+
+namespace detail
+{
+template<std::size_t N>
+struct is_dynamic_buffer_v0<
+    flat_static_buffer<N>>
+: std::true_type
+{
+};
+}
 
 } // beast
 } // boost

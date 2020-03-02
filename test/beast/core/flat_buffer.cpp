@@ -12,6 +12,7 @@
 
 #include "test_buffer.hpp"
 
+#include <boost/beast/core/dynamic_buffer.hpp>
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/string.hpp>
@@ -425,10 +426,25 @@ public:
     }
 
     void
+    testV2Interop()
+    {
+        test_dynamic_buffer_v0_v2_consistency<flat_buffer>();
+        test_dynamic_buffer_v0_v2_operation(flat_buffer(16));
+
+        struct generator
+        {
+            static constexpr std::size_t size() { return 26; }
+            static flat_buffer make_store() { return flat_buffer(size()); }
+        };
+        test_v0_v2_data_rotations(generator());
+    }
+
+    void
     run() override
     {
         testDynamicBuffer();
         testSpecialMembers();
+        testV2Interop();
     }
 };
 
