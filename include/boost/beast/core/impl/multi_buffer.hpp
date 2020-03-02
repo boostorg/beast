@@ -108,6 +108,7 @@ class basic_multi_buffer<Allocator>::subrange
     size_type last_pos_;    // offset in std::prev(end_)
 
     friend class basic_multi_buffer;
+    friend detail::dynamic_buffer_v2_access;
 
     subrange(
         basic_multi_buffer const& b,
@@ -1276,6 +1277,16 @@ debug_check() const
         BOOST_ASSERT(&out != &back  || out_pos_ <= out_end_);
     }
 #endif
+}
+
+namespace detail {
+
+template<class Allocator>
+struct is_dynamic_buffer_v0<basic_multi_buffer<Allocator>>
+    : std::true_type
+{
+};
+
 }
 
 } // beast

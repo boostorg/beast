@@ -149,6 +149,7 @@
           <member><link linkend="beast.ref.boost__beast__buffers_range">buffers_range</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_range_ref">buffers_range_ref</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_to_string">buffers_to_string</link></member>
+          <member><link linkend="beast.ref.boost__beast__dynamic_buffer">dynamic_buffer</link></member>
           <member><link linkend="beast.ref.boost__beast__make_printable">make_printable</link></member>
           <member><link linkend="beast.ref.boost__beast__ostream">ostream</link></member>
           <member><link linkend="beast.ref.boost__beast__read_size">read_size</link></member>

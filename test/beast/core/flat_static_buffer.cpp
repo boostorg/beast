@@ -126,10 +126,25 @@ public:
         }
     }
 
+    void
+    testV2Interop()
+    {
+        test_dynamic_buffer_v0_v2_consistency<flat_static_buffer<8192>>();
+        test_dynamic_buffer_v0_v2_operation(flat_static_buffer<16>());
+
+        struct generator
+        {
+            static constexpr std::size_t size() { return 26; }
+            static flat_static_buffer<26> make_store() { return {}; }
+        };
+        test_v0_v2_data_rotations(generator());
+    }
+
     void run() override
     {
         testDynamicBuffer();
         testMembers();
+        testV2Interop();
     }
 };
 

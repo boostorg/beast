@@ -10,15 +10,20 @@
 #ifndef BOOST_BEAST_TEST_BUFFER_HPP
 #define BOOST_BEAST_TEST_BUFFER_HPP
 
+#include "intervals.hpp"
+
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
+#include <boost/beast/core/dynamic_buffer.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
+#include <boost/type_index.hpp>
 #include <algorithm>
+#include <random>
 #include <string>
 #include <type_traits>
 
@@ -592,6 +597,233 @@ test_dynamic_buffer(
     detail::test_mutable_dynamic_buffer(b0,
         is_mutable_dynamic_buffer<DynamicBuffer_v0>{});
 }
+
+template<class Generator>
+void test_conversion_v0(Generator generator)
+{
+    using DynamicBuffer_v0 = typename std::decay<decltype(generator())>::type;
+    BEAST_EXPECT(detail::convertible_to_dynamic_buffer_v2<DynamicBuffer_v0&>::value == true);
+
+    // const references not convertible
+    BEAST_EXPECT(detail::convertible_to_dynamic_buffer_v2<DynamicBuffer_v0 const&>::value == false);
+    BEAST_EXPECT(detail::convertible_to_dynamic_buffer_v2<DynamicBuffer_v0 const&&>::value == false);
+
+    // cannot take ownership
+    BEAST_EXPECT(detail::convertible_to_dynamic_buffer_v2<DynamicBuffer_v0>::value == false);
+    BEAST_EXPECT(detail::convertible_to_dynamic_buffer_v2<DynamicBuffer_v0&&>::value == false);
+
+    auto storage = generator();
+    auto expected = std::string("Hello, World!");
+    storage.commit(
+        net::buffer_copy(
+            storage.prepare(expected.size()),
+                net::buffer(expected)));
+
+    auto buffer = dynamic_buffer(storage);
+    BEAST_EXPECTS(typeid(buffer) == typeid(detail::dynamic_buffer_v0_proxy<DynamicBuffer_v0>),
+                  boost::typeindex::type_id_runtime(buffer).pretty_name());
+    {
+        auto result = buffers_to_string(buffer.data(0, buffer.size()));
+        BEAST_EXPECTS(result == expected, result);
+    }
+
+    // taking dynamic_buffer of the result of a dynamic buffer results in a cheap
+    // copy which refers to the same underlying data
+    auto buffer2 = detail::impl_dynamic_buffer(buffer);
+    BEAST_EXPECTS(typeid(buffer2) == typeid(buffer),
+                  boost::typeindex::type_id_runtime(buffer2).pretty_name());
+    {
+        auto result = buffers_to_string(buffer2.data(0, buffer2.size()));
+        BEAST_EXPECTS(result == expected, result);
+    }
+}
+
+template<class DynamicBuffer_v0>
+void test_conversion_v0()
+{
+    test_conversion_v0([]{ return DynamicBuffer_v0(); });
+}
+
+inline
+std::string
+generate_reference_data(std::size_t length = 2048)
+{
+    std::string result;
+    static auto engine = std::default_random_engine();
+    auto range = std::uniform_int_distribution<unsigned int>(0, 61);
+    std::generate_n(std::back_inserter(result),
+                    length,
+                    [&]{
+                        auto code = range(engine);
+                        static const char chars[] =
+                            "0123456789"
+                            "abcdefghijklmnopqrstuvwxyz"
+                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                        return chars[code];
+                    });
+    return result;
+}
+
+struct dynamic_buffer_test_strings
+{
+    std::string initial_data, added_data, junk;
+};
+
+inline
+dynamic_buffer_test_strings
+get_test_strings()
+{
+    static const dynamic_buffer_test_strings result = {
+        generate_reference_data(),
+        generate_reference_data(),
+        generate_reference_data()
+    };
+
+    return result;
+}
+
+template<class Generator>
+void test_dynamic_buffer_v0_v2_consistency(Generator generator)
+{
+    test_conversion_v0(generator);
+
+    auto strs = get_test_strings();
+
+    auto transition_test = [&](
+        std::size_t residual_front,
+        std::size_t initial_size,
+        std::size_t extra_prep,
+        std::size_t grow_size,
+        std::size_t shrink_size)
+    {
+        auto store = generator();
+
+        store.commit(net::buffer_size(store.prepare(residual_front)));
+        store.consume(residual_front);
+
+        auto out = store.prepare(initial_size);
+        net::buffer_copy(out, net::buffer(strs.initial_data));
+        store.commit(initial_size);
+        net::buffer_copy(store.prepare(extra_prep), net::buffer(strs.junk));
+
+        auto size = store.size();
+        auto b = dynamic_buffer(store);
+        BEAST_EXPECT(size == b.size());
+        b.grow(grow_size);
+        net::buffer_copy(b.data(size, grow_size), net::buffer(strs.added_data));
+        BEAST_EXPECT(b.size() == size + grow_size);
+        BEAST_EXPECT(store.size() == size + grow_size);
+        auto expected = strs.initial_data.substr(0, initial_size) +
+            strs.added_data.substr(0, grow_size);
+        auto got = buffers_to_string(store.data());
+        BEAST_EXPECT(got == expected);
+        auto got2 = buffers_to_string(b.data(0, initial_size + grow_size));
+        BEAST_EXPECT(got2 == expected);
+        b.shrink(shrink_size);
+        expected = expected.substr(0, shrink_size > expected.size() ? 0 : expected.size() - shrink_size);
+        BEAST_EXPECT(store.size() == expected.size());
+        BEAST_EXPECT(b.size() == expected.size());
+        BEAST_EXPECT(buffers_to_string(store.data()) == expected);
+        BEAST_EXPECT(buffers_to_string(b.data(0, expected.size())) == expected);
+    };
+
+    for (auto residual_front : testing::intervals(0, 1024, 256))
+    for (auto initial_size : testing::intervals(0, strs.initial_data.size(), 128))
+    for (auto extra_prep : testing::intervals(0, 712, 256))
+    for (auto grow_size : testing::intervals(0, strs.added_data.size(), 128))
+    for (auto shrink_size : testing::intervals(0, grow_size + initial_size, 128))
+    transition_test(residual_front, initial_size, extra_prep, grow_size, shrink_size);
+}
+
+template<class DynamicBuffer_v0>
+void test_dynamic_buffer_v0_v2_consistency()
+{
+    test_dynamic_buffer_v0_v2_consistency([]{ return DynamicBuffer_v0(); });
+}
+
+template<class DynamicBuffer_v0>
+void
+test_dynamic_buffer_v0_v2_operation(DynamicBuffer_v0 storage)
+{
+    BOOST_ASSERT(storage.max_size() == 16);
+    BOOST_ASSERT(storage.size() == 0);
+
+    using storage_type = decltype(storage);
+
+    BEAST_EXPECT(detail::is_dynamic_buffer_v0<storage_type>::value);
+
+    auto dyn_buf = dynamic_buffer(storage);
+
+
+    BEAST_EXPECT(dyn_buf.size() < dyn_buf.max_size());
+    BEAST_EXPECT(dyn_buf.size() == 0);
+    BEAST_EXPECT(net::buffer_size(dyn_buf.data(0, dyn_buf.size())) == 0);
+
+    auto do_insert = [&dyn_buf](net::const_buffer source)
+    {
+        auto start = dyn_buf.size();
+        auto len = source.size();
+        dyn_buf.grow(len);
+        auto insert_region = dyn_buf.data(start, len);
+        BEAST_EXPECT(net::buffer_size(insert_region) == len);
+        auto copied = net::buffer_copy(insert_region, source);
+        BEAST_EXPECT(copied == len);
+    };
+
+    do_insert(net::buffer(std::string("0123456789")));
+    dyn_buf.shrink(1);
+    auto output_region = dyn_buf.data(0, dyn_buf.size());
+    BEAST_EXPECT(net::buffer_size(output_region) == 9);
+    BEAST_EXPECT(buffers_to_string(output_region) == "012345678");
+
+    do_insert(net::buffer(std::string("9abcdef")));
+    dyn_buf.shrink(0);
+    output_region = dyn_buf.data(0, dyn_buf.size());
+    BEAST_EXPECT(net::buffer_size(output_region) == 16);
+    BEAST_EXPECT(buffers_to_string(output_region) == "0123456789abcdef");
+
+    BEAST_THROWS(dyn_buf.grow(1), std::length_error);
+
+    dyn_buf.consume(10);
+    output_region = dyn_buf.data(0, dyn_buf.size());
+    BEAST_EXPECT(net::buffer_size(output_region) == 6);
+    BEAST_EXPECT(buffers_to_string(output_region) == "abcdef");
+
+    dyn_buf.consume(10);
+    output_region = dyn_buf.data(0, dyn_buf.size());
+    BEAST_EXPECT(net::buffer_size(output_region) == 0);
+}
+
+template<class G>
+void test_v0_v2_data_rotations(G gen)
+{
+    auto constexpr size = gen.size();
+    auto source = std::string(size, 'x');
+    char x = 'A';
+    std::generate_n(source.begin(), size, [&x]() { return x++; });
+    auto check = [&](std::size_t shift, std::size_t pos , std::size_t n)
+    {
+        auto store = gen.make_store();
+        auto buf = dynamic_buffer(store);
+        store.commit(net::buffer_copy(store.prepare(size), net::buffer(source)));
+        std::vector<char> tmp(shift);
+        store.consume(net::buffer_copy(net::buffer(tmp), store.data()));
+        store.commit(net::buffer_copy(store.prepare(tmp.size()), net::buffer(tmp)));
+        auto expected = source;
+        std::rotate(expected.begin(), expected.begin() + shift, expected.end());
+        if(!BEAST_EXPECT(expected == beast::buffers_to_string(store.data())))
+            BOOST_ASSERT(!"die");
+        auto yielded = beast::buffers_to_string(buf.data(pos, n));
+        expected = expected.substr(pos, n);
+        BEAST_EXPECT(yielded == expected);
+
+    };
+    for (std::size_t shift = 0 ; shift < size ; ++shift)
+        for (std::size_t pos = 0 ; pos < size ; ++pos)
+            for(std::size_t n = 0 ; n < (size-pos) ; ++n)
+                check(shift, pos, n);
+}
+
 
 } // beast
 } // boost

@@ -37,6 +37,24 @@ operator=(flat_static_buffer const& other) ->
     return *this;
 }
 
+namespace detail {
+
+template<>
+struct is_dynamic_buffer_v0<
+    flat_static_buffer_base>
+: std::true_type
+{
+};
+
+template<std::size_t N>
+struct is_dynamic_buffer_v0<
+    flat_static_buffer<N>>
+: std::true_type
+{
+};
+
+}
+
 } // beast
 } // boost
 

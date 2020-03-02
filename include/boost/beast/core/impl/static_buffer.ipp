@@ -11,6 +11,7 @@
 #define BOOST_BEAST_IMPL_STATIC_BUFFER_IPP
 
 #include <boost/beast/core/static_buffer.hpp>
+#include <boost/beast/core/detail/buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/throw_exception.hpp>
 #include <stdexcept>
@@ -122,6 +123,32 @@ consume(std::size_t n) noexcept
         in_size_ = 0;
     }
 }
+
+auto
+static_buffer_base::
+data_impl(std::size_t pos, std::size_t n)
+-> mutable_buffers_type
+{
+    return detail::trimmed(data(), pos, n);
+}
+
+auto
+static_buffer_base::
+data_impl(std::size_t pos, std::size_t n) const
+-> const_buffers_type
+{
+    return trimmed(data(), pos, n);
+}
+
+void
+static_buffer_base::
+shrink_impl(std::size_t n)
+{
+    boost::ignore_unused(prepare(0));
+    n = (std::min)(n, in_size_);
+    in_size_ -= n;
+}
+
 
 } // beast
 } // boost

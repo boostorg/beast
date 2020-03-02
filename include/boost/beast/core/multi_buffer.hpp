@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
+#include <boost/beast/core/dynamic_buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/intrusive/list.hpp>
@@ -586,6 +587,108 @@ private:
     void destroy(element& e);
     element& alloc(std::size_t size);
     void debug_check() const;
+
+    friend detail::dynamic_buffer_v2_access;
+
+    void
+    shrink_impl(std::size_t n)
+    {
+        boost::ignore_unused(prepare(0));
+
+        if (n == 0)
+            return;
+
+        auto erase_backwards = [this](iter i) -> iter
+        {
+            auto prev = std::prev(i);
+            list_.erase(i);
+            return prev;
+        };
+
+        auto i = out_;
+        if (i == list_.end())
+        {
+            // there is no output region
+            BOOST_ASSERT(out_pos_ == 0);
+            BOOST_ASSERT(out_end_ == 0);
+            if (i == list_.begin())
+            {
+                // buffer is empty
+                BOOST_ASSERT(in_size_ == 0);
+                return;
+            }
+            i = std::prev(i);
+        }
+        else
+        {
+            auto used = in_size_;
+            auto adjust = (std::min)(n, used);
+            n -= adjust;
+            if (adjust == used)
+            {
+                i = erase_backwards(i);
+                in_pos_ = 0;
+                in_size_ = 0;
+                out_pos_ = 0;
+                out_end_ = 0;
+            }
+            else
+            {
+                in_size_ -= adjust;
+                out_pos_ = out_end_ = in_pos_ + in_size_;
+            }
+        }
+
+        while(n)
+        {
+            BOOST_ASSERT(out_pos_ == 0);
+            BOOST_ASSERT(out_end_ == 0);
+
+            // at this point in_pos is relevant only if we are in the first element
+            if (i == list_.begin())
+            {
+                auto used = i->size() - in_pos_;
+                auto adjust = (std::min)(used, n);
+                in_size_ -= adjust;
+                n -= adjust;
+                if (adjust == used)
+                {
+                    in_size_ = 0;
+                    in_pos_ = 0;
+                    list_.erase(i);
+                }
+                else
+                {
+                    out_ = i;
+                    out_end_ = out_pos_ = in_pos_ + in_size_;
+                }
+                break;
+            }
+            else
+            {
+                auto used = i->size();
+                auto adjust = (std::min)(used, n);
+                in_size_ -= adjust;
+                n -= adjust;
+                if (adjust == used)
+                    i = erase_backwards(i);
+            }
+        }
+    }
+
+    mutable_buffers_type
+    data_impl(std::size_t pos, std::size_t n)
+    {
+        return mutable_buffers_type(*this, pos, n);
+    }
+
+    const_buffers_type
+    data_impl(std::size_t pos, std::size_t n) const
+    {
+        return const_buffers_type(*this, pos, n);
+    }
+
+
 };
 
 /// A typical multi buffer

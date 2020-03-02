@@ -10,9 +10,11 @@
 #ifndef BOOST_BEAST_DETAIL_BUFFERS_PAIR_HPP
 #define BOOST_BEAST_DETAIL_BUFFERS_PAIR_HPP
 
+#include <boost/beast/core/detail/buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/assert.hpp>
 #include <boost/config/workaround.hpp>
+#include <boost/core/exchange.hpp>
 #include <type_traits>
 
 namespace boost {
@@ -36,6 +38,7 @@ public:
             net::mutable_buffer,
             net::const_buffer>::type;
 
+    using iterator = value_type*;
     using const_iterator = value_type const*;
 
     buffers_pair() = default;
@@ -92,8 +95,22 @@ public:
         return &b_[0];
     }
 
+    iterator
+    begin() noexcept
+    {
+        return &b_[0];
+    }
+
     const_iterator
     end() const noexcept
+    {
+        if(b_[1].size() > 0)
+            return &b_[2];
+        return &b_[1];
+    }
+
+    iterator
+    end() noexcept
     {
         if(b_[1].size() > 0)
             return &b_[2];
@@ -103,6 +120,25 @@ public:
 private:
     value_type b_[2];
 };
+
+template<bool isMutable>
+buffers_pair<isMutable>&
+trim(buffers_pair<isMutable>& input, std::size_t pos, std::size_t n)
+{
+
+    trim_buffer_span(input.begin(), input.end(), pos, n);
+    return input;
+}
+
+template<bool isMutable>
+buffers_pair<isMutable>
+trimmed(buffers_pair<isMutable> bp, std::size_t pos, std::size_t n)
+{
+
+    trim(bp, pos, n);
+    return bp;
+}
+
 
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
 # pragma warning (pop)

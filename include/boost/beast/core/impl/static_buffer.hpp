@@ -39,6 +39,16 @@ operator=(static_buffer const& other) noexcept ->
     return *this;
 }
 
+namespace detail {
+
+template<std::size_t N>
+struct is_dynamic_buffer_v0<static_buffer<N>>
+: std::true_type
+{
+};
+
+}
+
 } // beast
 } // boost
 

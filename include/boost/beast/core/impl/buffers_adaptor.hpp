@@ -444,6 +444,117 @@ buffers_adaptor<MutableBufferSequence>::
         in_pos_ + pos, n);
 }
 
+template<class MutableBufferSequence>
+auto
+buffers_adaptor<MutableBufferSequence>::
+data_impl(std::size_t pos, std::size_t n)
+-> mutable_buffers_type
+{
+    return mutable_buffers_type (begin_, end_,
+                                 in_pos_ + pos, (std::min)(size(), n));
+}
+
+template<class MutableBufferSequence>
+auto
+buffers_adaptor<MutableBufferSequence>::
+data_impl(std::size_t pos, std::size_t n) const
+-> const_buffers_type
+{
+    return const_buffers_type (begin_, end_,
+                               in_pos_ + pos, (std::min)(size(), n));
+}
+
+template<class MutableBufferSequence>
+void
+buffers_adaptor<MutableBufferSequence>::
+shrink_impl(std::size_t n)
+{
+    boost::ignore_unused(prepare(0));
+
+    if (n == 0)
+        return;
+
+    auto erase_backwards = [this](iter_type i)
+    {
+        end_ = i;
+        return std::prev(i);
+    };
+
+    auto it = out_;
+    if (it == end_)
+    {
+        // there is no output region
+        BOOST_ASSERT(out_pos_ == 0);
+        BOOST_ASSERT(out_end_ == 0);
+        if (it == begin_)
+        {
+            // buffer is empty
+            BOOST_ASSERT(in_size_ == 0);
+            return;
+        }
+        it = std::prev(it);
+    }
+    else
+    {
+        auto used = in_size_;
+        auto adjust = (std::min)(n, used);
+        n -= adjust;
+        if (adjust == used)
+        {
+            it = erase_backwards(it);
+            in_pos_ = 0;
+            in_size_ = 0;
+            out_pos_ = 0;
+            out_end_ = 0;
+        }
+        else
+        {
+            in_size_ -= adjust;
+            out_pos_ = out_end_ = in_pos_ + in_size_;
+        }
+    }
+
+    while(n)
+    {
+        BOOST_ASSERT(out_pos_ == 0);
+        BOOST_ASSERT(out_end_ == 0);
+
+        // at this point in_pos is relevant only if we are in the first element
+        if (it == begin_)
+        {
+            auto used = it->size() - in_pos_;
+            auto adjust = (std::min)(used, n);
+            in_size_ -= adjust;
+            n -= adjust;
+            if (adjust == used)
+            {
+                in_size_ = 0;
+                in_pos_ = 0;
+                end_ = it;
+            }
+            else
+            {
+                out_ = it;
+                out_pos_ = in_pos_ + in_size_;
+                out_end_ = out_pos_;
+            }
+            break;
+        }
+        else
+        {
+            auto used = it->size();
+            auto adjust = (std::min)(used, n);
+            in_size_ -= adjust;
+            n -= adjust;
+            if (adjust == used)
+                it = erase_backwards(it);
+        }
+    }
+}
+
+
+
+
 // -------------------------------------------------------------------------
 // subrange
 
@@ -699,6 +810,16 @@ operator!=(iterator const &b) const ->
     bool
 {
     return !(*this == b);
+}
+
+namespace detail {
+
+template<class MutableBufferSequence>
+struct is_dynamic_buffer_v0<buffers_adaptor<MutableBufferSequence>>
+    : std::true_type
+{
+};
+
 }
 
 } // beast

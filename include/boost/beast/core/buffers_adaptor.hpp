@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
+#include <boost/beast/core/dynamic_buffer.hpp>
 #include <boost/optional.hpp>
 #include <type_traits>
 
@@ -226,8 +227,18 @@ private:
     subrange<false>
     make_subrange(std::size_t pos, std::size_t n) const;
 
-    friend struct buffers_adaptor_test_hook;
+private:
 
+    friend detail::dynamic_buffer_v2_access;
+
+    mutable_buffers_type
+    data_impl(std::size_t pos, std::size_t n);
+
+    const_buffers_type
+    data_impl(std::size_t pos, std::size_t n) const;
+
+    void
+    shrink_impl(std::size_t n);
 };
 
 } // beast

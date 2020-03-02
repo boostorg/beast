@@ -41,6 +41,7 @@ add_executable (tests-beast-core
     buffers_suffix.cpp
     buffers_to_string.cpp
     detect_ssl.cpp
+    dynamic_buffer.cpp
     error.cpp
     file.cpp
     file_base.cpp

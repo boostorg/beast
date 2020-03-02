@@ -12,6 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/buffers_pair.hpp>
+#include <boost/beast/core/dynamic_buffer.hpp>
 #include <boost/asio/buffer.hpp>
 #include <cstddef>
 
@@ -59,6 +60,8 @@ class static_buffer_base
 
     static_buffer_base(static_buffer_base const& other) = delete;
     static_buffer_base& operator=(static_buffer_base const&) = delete;
+
+    friend detail::dynamic_buffer_v2_access;
 
 public:
     /** Constructor
@@ -206,6 +209,21 @@ public:
     BOOST_BEAST_DECL
     void
     consume(std::size_t n) noexcept;
+
+private:
+
+    BOOST_BEAST_DECL
+    auto
+    data_impl(std::size_t pos, std::size_t n)
+    -> mutable_buffers_type;
+
+    BOOST_BEAST_DECL
+    auto
+    data_impl(std::size_t pos, std::size_t n) const
+    -> const_buffers_type;
+
+    BOOST_BEAST_DECL
+    void shrink_impl(std::size_t n);
 };
 
 //------------------------------------------------------------------------------
@@ -244,6 +262,8 @@ template<std::size_t N>
 class static_buffer : public static_buffer_base
 {
     char buf_[N];
+
+    friend detail::dynamic_buffer_v2_access;
 
 public:
     /// Constructor

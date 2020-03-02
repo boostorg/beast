@@ -24,33 +24,6 @@
 namespace boost {
 namespace beast {
 
-struct buffers_adaptor_test_hook
-{
-    template<class MutableBufferSequence>
-    static
-    auto
-    make_subrange(
-        buffers_adaptor <MutableBufferSequence> &adaptor,
-        std::size_t pos = 0,
-        std::size_t n = (std::numeric_limits<std::size_t>::max)())
-    -> typename buffers_adaptor<MutableBufferSequence>::mutable_buffers_type
-    {
-        return adaptor.make_subrange(pos, n);
-    }
-
-    template<class MutableBufferSequence>
-    static
-    auto
-    make_subrange(
-        buffers_adaptor<MutableBufferSequence> const& adaptor,
-        std::size_t pos = 0,
-        std::size_t n = (std::numeric_limits<std::size_t>::max)())
-    -> typename buffers_adaptor<MutableBufferSequence>::const_buffers_type
-    {
-        return adaptor.make_subrange(pos, n);
-    }
-};
-
 class buffers_adaptor_test : public unit_test::suite
 {
 public:
@@ -112,53 +85,73 @@ public:
         read_size(ba, 1024);
     }
 
-    template<bool isMutable>
-    void
-    testSubrange()
+    struct pad
     {
-        auto exemplar = std::string("the quick brown fox jumps over the lazy dog");
+        pad() = default;
+        pad(pad const&) = delete;
+        pad& operator=(pad const&) = delete;
 
-        auto iterate_test = [&](
-            std::size_t a,
-            std::size_t b,
-            std::size_t c)
+
+        template<class...Sizes>
+        void
+        allocate(Sizes... size_values)
         {
-            static const auto func = "iterate_test";
-            auto buffers = std::vector<net::mutable_buffer>();
-            if (a)
-                buffers.push_back(net::buffer(&exemplar[0], a));
-            if (b - a)
-                buffers.push_back(net::buffer(&exemplar[a], (b - a)));
-            if (c - b)
-                buffers.push_back(net::buffer(&exemplar[b], (c - b)));
-            auto adapter = buffers_adaptor<std::vector<net::mutable_buffer>>(buffers);
+            auto sizes = std::array<std::size_t, sizeof...(size_values)>{
+                std::size_t(size_values)...
+            };
+
+            blocks.resize(sizes.size());
+            buffers.resize(sizes.size());
+            for (std::size_t i = 0 ; i < sizes.size() ; ++i)
+            {
+                blocks[i] = std::string(sizes[i], ' ');
+                buffers[i] = net::buffer(blocks[i]);
+            }
+        }
+
+        auto
+        create()
+        -> buffers_adaptor<std::vector<net::mutable_buffer>>
+        {
+            return buffers_adaptor<std::vector<net::mutable_buffer>>(buffers);
+        }
 
 
-            using value_type =
-            typename std::conditional<
-                isMutable,
-                net::mutable_buffer,
-                net::const_buffer>::type;
+        template<class...Sizes>
+        auto
+        generate(Sizes... size_values)
+        -> buffers_adaptor<std::vector<net::mutable_buffer>>
+        {
+            allocate(size_values...);
+            return create();
+        }
 
-            using maybe_mutable =
-            typename std::conditional<
-                isMutable,
-                buffers_adaptor<std::vector<net::mutable_buffer>>&,
-                buffers_adaptor<std::vector<net::mutable_buffer>> const&>::type;
+        std::vector<std::string> blocks;
+        std::vector<net::mutable_buffer> buffers;
+    };
 
-            auto sub = buffers_adaptor_test_hook::make_subrange(static_cast<maybe_mutable>(adapter));
-            BEAST_EXPECTS(typeid(typename decltype(sub)::value_type) == typeid(value_type), func);
-            BEAST_EXPECT(buffers_to_string(sub) == exemplar.substr(0, c));
+    void
+    testV2Interop()
+    {
+        pad my_pad;
+
+        test_dynamic_buffer_v0_v2_consistency(
+            [&]{ return my_pad.generate(4096, 2048, 2048); });
+        test_dynamic_buffer_v0_v2_operation(my_pad.generate(16));
+
+        my_pad.allocate(1000000,1000000,1000000);
+        struct generator
+        {
+            pad& my_pad;
+            static constexpr std::size_t size() { return 26; }
+            buffers_adaptor<std::vector<net::mutable_buffer>>
+            make_store()
+            {
+                return my_pad.create();
+            }
         };
-
-        iterate_test(0, 0, 1);
-
-        for (std::size_t a = 0; a <= exemplar.size(); ++a)
-            for (std::size_t b = a; b <= exemplar.size(); ++b)
-                for (std::size_t c = b; c <= exemplar.size(); ++c)
-                    iterate_test(a, b, c);
+        test_v0_v2_data_rotations(generator{my_pad});
     }
-
 
     void
     run() override
@@ -166,12 +159,11 @@ public:
         testDynamicBuffer();
         testSpecial();
         testIssue386();
+        testV2Interop();
 #if 0
         testBuffersAdapter();
         testCommit();
 #endif
-        testSubrange<true>();
-        testSubrange<false>();
     }
 };
 

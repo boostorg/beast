@@ -1,3 +1,9 @@
+Version XXX:
+
+* Add dynamic_buffer function
+
+--------------------------------------------------------------------------------
+
 Version 286:
 
 * Refactor multi_buffer
