@@ -69,21 +69,21 @@ namespace detail {
 */    
 template<
     class SyncReadStream,
-    class DynamicBuffer,
+    class DynamicBuffer_v2,
     class CompletionCondition
 #if ! BOOST_BEAST_DOXYGEN
     , class = typename std::enable_if<
         is_sync_read_stream<SyncReadStream>::value &&
-        net::is_dynamic_buffer<DynamicBuffer>::value &&
+        net::is_dynamic_buffer_v2<DynamicBuffer_v2>::value &&
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value
+            void(error_code&, std::size_t, DynamicBuffer_v2)>::value
     >::type
 #endif
 >
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer_v2 buffer,
     CompletionCondition completion_condition);
 
 /** Read data into a dynamic buffer from a stream until a condition is met.
@@ -130,21 +130,21 @@ read(
 */    
 template<
     class SyncReadStream,
-    class DynamicBuffer,
+    class DynamicBuffer_v2,
     class CompletionCondition
 #if ! BOOST_BEAST_DOXYGEN
     , class = typename std::enable_if<
         is_sync_read_stream<SyncReadStream>::value &&
-        net::is_dynamic_buffer<DynamicBuffer>::value &&
+        net::is_dynamic_buffer_v2<DynamicBuffer_v2>::value &&
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value
+            void(error_code&, std::size_t, DynamicBuffer_v2)>::value
     >::type
 #endif
 >
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer_v2 buffer,
     CompletionCondition completion_condition,
     error_code& ec);
 
@@ -217,22 +217,22 @@ read(
 */
 template<
     class AsyncReadStream,
-    class DynamicBuffer,
+    class DynamicBuffer_v2,
     class CompletionCondition,
     class ReadHandler
 #if ! BOOST_BEAST_DOXYGEN
     , class = typename std::enable_if<
         is_async_read_stream<AsyncReadStream>::value &&
-        net::is_dynamic_buffer<DynamicBuffer>::value &&
+        net::is_dynamic_buffer_v2<DynamicBuffer_v2>::value &&
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value
+            void(error_code&, std::size_t, DynamicBuffer_v2)>::value
     >::type
 #endif
 >
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer_v2 buffer,
     CompletionCondition&& completion_condition,
     ReadHandler&& handler);
 

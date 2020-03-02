@@ -33,7 +33,7 @@ namespace beast {
 */
 template<class DynamicBuffer>
 std::size_t
-read_size(DynamicBuffer& buffer, std::size_t max_size);
+read_size(DynamicBuffer const& buffer, std::size_t max_size);
 
 /** Returns a natural read size or throw if the buffer is full.
 
@@ -52,7 +52,7 @@ read_size(DynamicBuffer& buffer, std::size_t max_size);
 */
 template<class DynamicBuffer>
 std::size_t
-read_size_or_throw(DynamicBuffer& buffer,
+read_size_or_throw(DynamicBuffer const& buffer,
     std::size_t max_size);
 
 } // beast

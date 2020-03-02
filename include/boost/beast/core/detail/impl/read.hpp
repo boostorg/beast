@@ -34,7 +34,7 @@ struct dynamic_read_ops
 // condition is met or an error occurs
 template<
     class Stream,
-    class DynamicBuffer,
+    class DynamicBuffer_v2,
     class Condition,
     class Handler>
 class read_op
@@ -43,10 +43,11 @@ class read_op
         Handler, beast::executor_type<Stream>>
 {
     Stream& s_;
-    DynamicBuffer& b_;
+    DynamicBuffer_v2 b_;
     Condition cond_;
     error_code ec_;
     std::size_t total_ = 0;
+    std::size_t grown_ = 0;
 
 public:
     read_op(read_op&&) = default;
@@ -55,7 +56,7 @@ public:
     read_op(
         Handler_&& h,
         Stream& s,
-        DynamicBuffer& b,
+        DynamicBuffer_v2 b,
         Condition_&& cond)
         : async_base<Handler,
             beast::executor_type<Stream>>(
@@ -65,6 +66,7 @@ public:
         , b_(b)
         , cond_(std::forward<Condition_>(cond))
     {
+        static_assert(!std::is_pointer<DynamicBuffer_v2>::value, "");
         (*this)({}, 0, false);
     }
 
@@ -83,9 +85,14 @@ public:
                 if(max_prepare == 0)
                     break;
                 BOOST_ASIO_CORO_YIELD
-                s_.async_read_some(
-                    b_.prepare(max_prepare), std::move(*this));
-                b_.commit(bytes_transferred);
+                {
+                    grown_ = max_prepare;
+                    auto pos = b_.size();
+                    b_.grow(max_prepare);
+                    s_.async_read_some(
+                        b_.data(pos, grown_), std::move(*this));
+                }
+                b_.shrink(grown_ - bytes_transferred);
                 total_ += bytes_transferred;
             }
             if(! cont)
@@ -95,7 +102,8 @@ public:
                 ec_ = ec;
                 BOOST_ASIO_CORO_YIELD
                 s_.async_read_some(
-                    b_.prepare(0), std::move(*this));
+                    b_.data(b_.size(), 0),
+                    std::move(*this));
                 ec = ec_;
             }
             this->complete_now(ec, total_);
@@ -109,14 +117,14 @@ struct run_read_op
 {
     template<
         class AsyncReadStream,
-        class DynamicBuffer,
+        class DynamicBuffer_v2,
         class Condition,
         class ReadHandler>
     void
     operator()(
         ReadHandler&& h,
         AsyncReadStream* s,
-        DynamicBuffer* b,
+        DynamicBuffer_v2 b,
         Condition&& c)
     {
         // If you get an error on the following line it means
@@ -130,12 +138,12 @@ struct run_read_op
 
         read_op<
             AsyncReadStream,
-            DynamicBuffer,
+            DynamicBuffer_v2,
             typename std::decay<Condition>::type,
             typename std::decay<ReadHandler>::type>(
                 std::forward<ReadHandler>(h),
                 *s,
-                *b,
+                b,
                 std::forward<Condition>(c));
     }
 
@@ -147,23 +155,23 @@ struct run_read_op
 
 template<
     class SyncReadStream,
-    class DynamicBuffer,
+    class DynamicBuffer_v2,
     class CompletionCondition,
     class>
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer_v2 buffer,
     CompletionCondition cond)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer_v2<DynamicBuffer_v2>::value,
         "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value,
+            void(error_code&, std::size_t, DynamicBuffer_v2)>::value,
         "CompletionCondition type requirements not met");
     error_code ec;
     auto const bytes_transferred = detail::read(
@@ -175,24 +183,24 @@ read(
 
 template<
     class SyncReadStream,
-    class DynamicBuffer,
+    class DynamicBuffer_v2,
     class CompletionCondition,
     class>
 std::size_t
 read(
     SyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer_v2 buffer,
     CompletionCondition cond,
     error_code& ec)
 {
     static_assert(is_sync_read_stream<SyncReadStream>::value,
         "SyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer_v2<DynamicBuffer_v2>::value,
         "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value,
+            void(error_code&, std::size_t, DynamicBuffer_v2)>::value,
         "CompletionCondition type requirements not met");
     ec = {};
     std::size_t total = 0;
@@ -202,9 +210,11 @@ read(
         max_prepare =  beast::read_size(buffer, cond(ec, total, buffer));
         if(max_prepare == 0)
             break;
+        auto pos = buffer.size();
+        buffer.grow(max_prepare);
         std::size_t const bytes_transferred =
-            stream.read_some(buffer.prepare(max_prepare), ec);
-        buffer.commit(bytes_transferred);
+            stream.read_some(buffer.data(pos, max_prepare), ec);
+        buffer.shrink(max_prepare - bytes_transferred);
         total += bytes_transferred;
     }
     return total;
@@ -212,25 +222,25 @@ read(
 
 template<
     class AsyncReadStream,
-    class DynamicBuffer,
+    class DynamicBuffer_v2,
     class CompletionCondition,
     class ReadHandler,
     class>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
-    DynamicBuffer& buffer,
+    DynamicBuffer_v2 buffer,
     CompletionCondition&& cond,
     ReadHandler&& handler)
 {
     static_assert(is_async_read_stream<AsyncReadStream>::value,
         "AsyncReadStream type requirements not met");
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer_v2<DynamicBuffer_v2>::value,
         "DynamicBuffer type requirements not met");
     static_assert(
         detail::is_invocable<CompletionCondition,
-            void(error_code&, std::size_t, DynamicBuffer&)>::value,
+            void(error_code&, std::size_t, DynamicBuffer_v2)>::value,
         "CompletionCondition type requirements not met");
     return net::async_initiate<
         ReadHandler,
@@ -238,7 +248,7 @@ async_read(
             typename dynamic_read_ops::run_read_op{},
             handler,
             &stream,
-            &buffer,
+            buffer,
             std::forward<CompletionCondition>(cond));
 }
 

@@ -81,12 +81,12 @@ public:
             #if 0
                 if(! BEAST_EXPECTS(
                     se.code() == test::error::test_failure,
-                    se.code().message()))
+                    se.code().message() + " when n=" + std::to_string(n)))
                     throw;
             #endif
                 if(! BEAST_EXPECTS(
                     clock_type::now() < expires_at,
-                    "a test timeout occurred"))
+                    "a test timeout occurred with n = " + std::to_string(n)))
                     break;
             }
         }

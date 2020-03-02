@@ -101,4 +101,12 @@ namespace net = boost::asio;
 #define BOOST_BEAST_ASYNC_TPARAM2 BOOST_ASIO_COMPLETION_TOKEN_FOR(void(::boost::beast::error_code, ::std::size_t))
 #endif
 
+#ifndef BOOST_BEAST_V1_DYNAMIC_BUFFER_PROXY
+#define BOOST_BEAST_V1_DYNAMIC_BUFFER_PROXY(type) \
+    typename std::enable_if< \
+        ::boost::beast::detail::is_byref_v1_dynamic_buffer< \
+            type>::value, \
+            ::boost::beast::detail::v1_byref_dynamic_buffer_proxy<type>>::type
+#endif
+
 #endif

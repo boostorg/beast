@@ -25,14 +25,14 @@ struct has_read_size_helper : std::false_type {};
 
 template<class T>
 struct has_read_size_helper<T, decltype(
-    read_size_helper(std::declval<T&>(), 512),
+    read_size_helper(std::declval<T const&>(), 512),
     (void)0)> : std::true_type
 {
 };
 
 template<class DynamicBuffer>
 std::size_t
-read_size(DynamicBuffer& buffer,
+read_size(DynamicBuffer const& buffer,
     std::size_t max_size, std::true_type)
 {
     return read_size_helper(buffer, max_size);
@@ -40,11 +40,12 @@ read_size(DynamicBuffer& buffer,
 
 template<class DynamicBuffer>
 std::size_t
-read_size(DynamicBuffer& buffer,
+read_size(DynamicBuffer const& buffer,
     std::size_t max_size, std::false_type)
 {
     static_assert(
-        net::is_dynamic_buffer<DynamicBuffer>::value,
+        net::is_dynamic_buffer_v1<DynamicBuffer>::value ||
+            net::is_dynamic_buffer_v2<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
     auto const size = buffer.size();
     auto const limit = buffer.max_size() - size;
@@ -59,7 +60,7 @@ read_size(DynamicBuffer& buffer,
 template<class DynamicBuffer>
 std::size_t
 read_size(
-    DynamicBuffer& buffer, std::size_t max_size)
+    DynamicBuffer const& buffer, std::size_t max_size)
 {
     return detail::read_size(buffer, max_size,
         detail::has_read_size_helper<DynamicBuffer>{});

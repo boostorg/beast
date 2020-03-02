@@ -246,6 +246,26 @@ public:
             failMatrix<false>(res[i], do_yield);
     }
 
+    struct multi_buffer_holder
+    {
+        multi_buffer buffer;
+    };
+
+    struct net_string_buffer_holder
+    {
+        net_string_buffer_holder()
+        : s()
+        , buffer(s)
+        {}
+
+        std::string s;
+        net::dynamic_string_buffer<char,
+            std::char_traits<char>,
+            std::allocator<char>>
+            buffer;
+    };
+
+    template<class BufferHolder>
     void testRead(yield_context do_yield)
     {
         static std::size_t constexpr limit = 100;
@@ -264,7 +284,8 @@ public:
             request<dynamic_body> m;
             try
             {
-                multi_buffer b;
+                BufferHolder bh;
+                auto& b = bh.buffer;
                 read(c, b, m);
                 break;
             }
@@ -286,7 +307,8 @@ public:
             };
             request<dynamic_body> m;
             error_code ec = test::error::test_failure;
-            multi_buffer b;
+            BufferHolder bh;
+            auto& b = bh.buffer;
             read(ts, b, m, ec);
             if(! ec)
                 break;
@@ -305,7 +327,8 @@ public:
             };
             request<dynamic_body> m;
             error_code ec = test::error::test_failure;
-            multi_buffer b;
+            BufferHolder bh;
+            auto& b = bh.buffer;
             async_read(c, b, m, do_yield[ec]);
             if(! ec)
                 break;
@@ -324,7 +347,8 @@ public:
             };
             request_parser<dynamic_body> m;
             error_code ec = test::error::test_failure;
-            multi_buffer b;
+            BufferHolder bh;
+            auto& b = bh.buffer;
             async_read_some(c, b, m, do_yield[ec]);
             if(! ec)
                 break;
@@ -532,16 +556,22 @@ public:
     void
     run() override
     {
+        yield_to([&](yield_context yield)
+                 {
+                     testRead<multi_buffer_holder>(yield);
+                 });
+
+        yield_to([&](yield_context yield)
+                 {
+                     testRead<net_string_buffer_holder>(yield);
+                 });
+
         testThrow();
         testBufferOverflow();
 
         yield_to([&](yield_context yield)
         {
             testFailures(yield);
-        });
-        yield_to([&](yield_context yield)
-        {
-            testRead(yield);
         });
         yield_to([&](yield_context yield)
         {
