@@ -1,3 +1,9 @@
+Version XXX:
+
+* Remove CODE_OF_CONDUCT.md
+
+--------------------------------------------------------------------------------
+
 Version 286:
 
 * Refactor multi_buffer
