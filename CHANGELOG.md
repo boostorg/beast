@@ -2,6 +2,7 @@ Version XXX:
 
 * Remove CODE_OF_CONDUCT.md
 * Refactor websocket read
+* Correct buffer_bytes documentation
 
 --------------------------------------------------------------------------------
 
