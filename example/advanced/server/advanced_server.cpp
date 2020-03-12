@@ -18,6 +18,7 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/bind_executor.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/make_unique.hpp>
@@ -439,8 +440,17 @@ public:
     void
     run()
     {
-        do_read();
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        net::dispatch(
+            stream_.get_executor(),
+            beast::bind_front_handler(
+                &http_session::do_read,
+                this->shared_from_this()));
     }
+
 
 private:
     void
@@ -588,7 +598,15 @@ public:
     void
     run()
     {
-        do_accept();
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        net::dispatch(
+            acceptor_.get_executor(),
+            beast::bind_front_handler(
+                &listener::do_accept,
+                this->shared_from_this()));
     }
 
 private:

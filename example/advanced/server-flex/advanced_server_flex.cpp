@@ -21,6 +21,7 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/bind_executor.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/strand.hpp>
@@ -817,6 +818,20 @@ public:
     // Launch the detector
     void
     run()
+    {
+        // We need to be executing within a strand to perform async operations
+        // on the I/O objects in this session. Although not strictly necessary
+        // for single-threaded contexts, this example code is written to be
+        // thread-safe by default.
+        net::dispatch(
+            stream_.get_executor(),
+            beast::bind_front_handler(
+                &detect_session::on_run,
+                this->shared_from_this()));
+    }
+
+    void
+    on_run()
     {
         // Set the timeout.
         stream_.expires_after(std::chrono::seconds(30));

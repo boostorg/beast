@@ -1,3 +1,9 @@
+Version XXX:
+
+* Fix examples to dispatch to strand
+
+--------------------------------------------------------------------------------
+
 Version 286:
 
 * Refactor multi_buffer
