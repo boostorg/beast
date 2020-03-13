@@ -1,3 +1,9 @@
+Version XXX:
+
+* Ensure basic_stream::close will not throw
+
+--------------------------------------------------------------------------------
+
 Version 286:
 
 * Refactor multi_buffer
