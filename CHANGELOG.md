@@ -4,6 +4,7 @@ Version XXX:
 * Refactor websocket read
 * Correct buffer_bytes documentation
 * Fix examples to dispatch to strand
+* Ensure basic_stream::close will not throw
 
 --------------------------------------------------------------------------------
 

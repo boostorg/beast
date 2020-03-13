@@ -143,21 +143,19 @@ template<class Protocol, class Executor, class RatePolicy>
 void
 basic_stream<Protocol, Executor, RatePolicy>::
 impl_type::
-close()
+close() noexcept
 {
     {
         error_code ec;
         socket.close(ec);
     }
-    timer.cancel();
-
-
-    // have to let the read/write ops cancel the timer,
-    // otherwise we will get error::timeout on close when
-    // we actually want net::error::operation_aborted.
-    //
-    //read.timer.cancel();
-    //write.timer.cancel();
+    try
+    {
+        timer.cancel();
+    }
+    catch(...)
+    {
+    }
 }
 
 //------------------------------------------------------------------------------

@@ -291,8 +291,8 @@ private:
         template<class Executor2>
         void on_timer(Executor2 const& ex2);
 
-        void reset();       // set timeouts to never
-        void close();       // cancel everything
+        void reset();           // set timeouts to never
+        void close() noexcept;  // cancel everything
     };
 
     // We use shared ownership for the state so it can
