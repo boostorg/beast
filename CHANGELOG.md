@@ -1,6 +1,7 @@
 Version XXX:
 
 * Remove CODE_OF_CONDUCT.md
+* Refactor websocket read
 
 --------------------------------------------------------------------------------
 

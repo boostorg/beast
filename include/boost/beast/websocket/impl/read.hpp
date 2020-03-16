@@ -432,7 +432,9 @@ public:
                         impl.rd_size += bytes_transferred;
                     }
                 }
-                impl.rd_done = impl.rd_remain == 0 && impl.rd_fh.fin;
+                BOOST_ASSERT( ! impl.rd_done );
+                if( impl.rd_remain == 0 && impl.rd_fh.fin )
+                    impl.rd_done = true;
             }
             else
             {
@@ -1142,7 +1144,9 @@ loop:
                 impl.rd_size += bytes_transferred;
             }
         }
-        impl.rd_done = impl.rd_remain == 0 && impl.rd_fh.fin;
+        BOOST_ASSERT( ! impl.rd_done );
+        if( impl.rd_remain == 0 && impl.rd_fh.fin )
+            impl.rd_done = true;
     }
     else
     {
