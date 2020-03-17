@@ -1,4 +1,4 @@
-Version XXX:
+Version 287:
 
 * Remove CODE_OF_CONDUCT.md
 * Refactor websocket read
