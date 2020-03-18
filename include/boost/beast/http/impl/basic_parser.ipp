@@ -50,9 +50,7 @@ basic_parser<isRequest>::
 content_length() const
 {
     BOOST_ASSERT(is_header_done());
-    if(! (f_ & flagContentLength))
-        return boost::none;
-    return len0_;
+    return content_length_unchecked();
 }
 
 template<bool isRequest>
@@ -786,30 +784,48 @@ do_field(field f,
     // Content-Length
     if(f == field::content_length)
     {
-        if(f_ & flagContentLength)
+        auto bad_content_length = [&ec]
         {
-            // duplicate
             ec = error::bad_content_length;
-            return;
-        }
+        };
 
+        // conflicting field
         if(f_ & flagChunked)
+            return bad_content_length();
+
+        // Content-length may be a comma-separated list of integers
+        auto tokens_unprocessed = 1 +
+            std::count(value.begin(), value.end(), ',');
+        auto tokens = opt_token_list(value);
+        if (tokens.begin() == tokens.end() ||
+            !validate_list(tokens))
+                return bad_content_length();
+
+        auto existing = this->content_length_unchecked();
+        for (auto tok : tokens)
         {
-            // conflicting field
-            ec = error::bad_content_length;
-            return;
+            std::uint64_t v;
+            if (!parse_dec(tok, v))
+                return bad_content_length();
+            --tokens_unprocessed;
+            if (existing.has_value())
+            {
+                if (v != *existing)
+                    return bad_content_length();
+            }
+            else
+            {
+                existing = v;
+            }
         }
 
-        std::uint64_t v;
-        if(! parse_dec(value, v))
-        {
-            ec = error::bad_content_length;
-            return;
-        }
+        if (tokens_unprocessed)
+            return bad_content_length();
 
+        BOOST_ASSERT(existing.has_value());
         ec = {};
-        len_ = v;
-        len0_ = v;
+        len_ = *existing;
+        len0_ = *existing;
         f_ |= flagContentLength;
         return;
     }

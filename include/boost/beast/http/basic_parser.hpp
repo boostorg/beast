@@ -624,6 +624,10 @@ protected:
     on_finish_impl(error_code& ec) = 0;
 
 private:
+
+    boost::optional<std::uint64_t>
+    content_length_unchecked() const;
+
     template<class ConstBufferSequence>
     std::size_t
     put_from_stack(

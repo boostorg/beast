@@ -358,6 +358,65 @@ public:
     }
 
     void
+    testIssue1880()
+    {
+        // A user raised the issue that multiple Content-Length fields and
+        // values are permissible provided all values are the same.
+        // See rfc7230 section-3.3.2
+        // https://tools.ietf.org/html/rfc7230#section-3.3.2
+        // Credit: Dimitry Bulsunov
+
+        auto checkPass = [&](std::string const& message)
+        {
+            response_parser<string_body> parser;
+            error_code ec;
+            parser.put(net::buffer(message), ec);
+            BEAST_EXPECTS(!ec.failed(), ec.message());
+        };
+
+        auto checkFail = [&](std::string const& message)
+        {
+            response_parser<string_body> parser;
+            error_code ec;
+            parser.put(net::buffer(message), ec);
+            BEAST_EXPECTS(ec == error::bad_content_length, ec.message());
+        };
+
+        // multiple contents lengths the same
+        checkPass(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 0\r\n"
+            "Content-Length: 0\r\n"
+            "\r\n");
+
+        // multiple contents lengths different
+        checkFail(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 0\r\n"
+            "Content-Length: 1\r\n"
+            "\r\n");
+
+        // multiple content in same header
+        checkPass(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 0, 0, 0\r\n"
+            "\r\n");
+
+        // multiple content in same header but mismatch (case 1)
+        checkFail(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 0, 0, 1\r\n"
+            "\r\n");
+
+        // multiple content in same header but mismatch (case 2)
+        checkFail(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 0, 0, 0\r\n"
+            "Content-Length: 1\r\n"
+            "\r\n");
+    }
+
+    void
     run() override
     {
         testParse();
@@ -366,6 +425,7 @@ public:
         testGotSome();
         testIssue818();
         testIssue1187();
+        testIssue1880();
     }
 };
 
