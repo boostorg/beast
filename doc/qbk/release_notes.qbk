@@ -11,6 +11,56 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.73]
+
+[*API Changes]
+
+* Nested `mutable_data_type` in Beast dynamic buffers is deprecated. Affected types:
+  - `buffers_adaptor`
+  - `flat_buffer`
+  - `flat_static_buffer`
+  - `multi_buffer`
+  - `static_buffer`
+
+
+[*Changes Required]
+
+* Use nested `mutable_buffers_type` instead of `mutable_data_type`,
+  or define `BOOST_BEAST_ALLOW_DEPRECATED`
+
+[*Miscellaneous]
+
+* Update root certificates in examples
+
+[*Fixes]
+
+* Fix Content-Length parsing
+* Correct `buffer_bytes` documentation
+* Fix examples to dispatch to strand
+* Ensure `basic_stream::close` will not throw
+* Fix missing include in sha1.hpp
+* Fix ostream warning
+* Field digest is endian-independent
+* Update broken links in README
+* Fix ostream flush
+* Translate some win32 errors to net error codes
+* `flat_buffer::shrink_to_fit` is `noexcept`
+* Moved-from dynamic buffers do not clear if different allocator
+* Fix erase field
+* Fix compilation macro documentation
+* Examples use strands correctly
+* Clarify end-of-file behaviour in `File::read` docs
+* `file_body` returns `short_read` on eof during read
+* Fix bug in win32 `file_body`
+* ostream_buffer satisfies preconditions of DynamicBuffer_v1::commit
+* Add accessor function to File member of `basic_file_body`
+* Fix release build of docs
+* `file_win32` supports UTF-8 paths
+* `file_stdio` supports unicode paths
+* Fix `echo-op` test
+* `file_win32` bodies respect `http::serializer::split`
+* Fix non-msvc cmake
+
 [heading Boost 1.72]
 
 [*Examples]
