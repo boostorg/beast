@@ -150,6 +150,27 @@ stream:
 
 [code_websocket_2_5]
 
+[heading Subprotocols]
+
+The WebSocket protocol understands the concept of subprotocols. If the client
+is requesting one of a set of subprotocols it will set the header
+[@https://tools.ietf.org/html/rfc6455#section-11.3.4 Sec-WebSocket-Protocol]
+in the initial WebSocket Upgrade HTTP request. It is up to the server to
+parse the header and select one of the protocols to accept. The server
+indicates the selected protocol by setting the
+[@https://tools.ietf.org/html/rfc6455#section-11.3.4 Sec-WebSocket-Protocol]
+header in the accept header.
+
+This is accomplished with a
+[link beast.ref.boost__beast__websocket__stream_base__decorator `decorator`].
+
+The code that follows demonstrates how a server reads an HTTP request, identifies it
+as a WebSocket Upgrade, and then checks for a preferred matching subprotocol before
+performing the WebSocket handshake:
+
+[code_websocket_2_6]
+
+
 [/-----------------------------------------------------------------------------]
 
 [endsect]
