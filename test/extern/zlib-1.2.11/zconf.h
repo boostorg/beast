@@ -211,7 +211,7 @@
 #if !defined(STDC) && (defined(__STDC__) || defined(__cplusplus))
 #  define STDC
 #endif
-#if !defined(STDC) && (defined(__GNUC__) || defined(__BORLANDC__))
+#if !defined(STDC) && (defined(__GNUC__) || defined(__BORLANDC__)) && !defined(__clang__)
 #  define STDC
 #endif
 #if !defined(STDC) && (defined(MSDOS) || defined(WINDOWS) || defined(WIN32))
@@ -320,7 +320,7 @@
 #  if (defined(__SMALL__) || defined(__MEDIUM__))
      /* Turbo C small or medium model */
 #    define SMALL_MEDIUM
-#    ifdef __BORLANDC__
+#    ifdef __BORLANDC__ && !defined(__clang__)
 #      define FAR _far
 #    else
 #      define FAR far
@@ -333,7 +333,7 @@
     * This is not mandatory, but it offers a little performance increase.
     */
 #  ifdef ZLIB_DLL
-#    if defined(WIN32) && (!defined(__BORLANDC__) || (__BORLANDC__ >= 0x500))
+#    if defined(WIN32) && (!defined(__BORLANDC__) || defined(__clang__) || (__BORLANDC__ >= 0x500))
 #      ifdef ZLIB_INTERNAL
 #        define ZEXTERN extern __declspec(dllexport)
 #      else
