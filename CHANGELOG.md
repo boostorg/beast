@@ -1,3 +1,4 @@
+* Fix FILE namespace qualification
 * Fix http read bytes_transferred (API Change)
 
 API Changes:

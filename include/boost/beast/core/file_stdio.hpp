@@ -26,14 +26,14 @@ namespace beast {
 */
 class file_stdio
 {
-    FILE* f_ = nullptr;
+    std::FILE* f_ = nullptr;
 
 public:
     /** The type of the underlying file handle.
 
         This is platform-specific.
     */
-    using native_handle_type = FILE*;
+    using native_handle_type = std::FILE*;
 
     /** Destructor
 
@@ -63,7 +63,7 @@ public:
     file_stdio& operator=(file_stdio&& other);
 
     /// Returns the native handle associated with the file.
-    FILE*
+    std::FILE*
     native_handle() const
     {
         return f_;
@@ -77,7 +77,7 @@ public:
     */
     BOOST_BEAST_DECL
     void
-    native_handle(FILE* f);
+    native_handle(std::FILE* f);
 
     /// Returns `true` if the file is open
     bool
