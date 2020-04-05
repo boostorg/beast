@@ -638,7 +638,7 @@ int main(argc,argv)
         ret_value = do_list(uf);
     else if (opt_do_extract==1)
     {
-#ifdef _WIN32
+#ifdef _WIN32 && !(defined(__BORLANDC__) && defined(__clang__))
         if (opt_extractdir && _chdir(dirname))
 #else
         if (opt_extractdir && chdir(dirname))
