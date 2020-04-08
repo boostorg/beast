@@ -101,10 +101,15 @@ public:
     }
 
     void
-    on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
+    on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
     {
         if(ec)
             return fail(ec, "connect");
+
+        // Update the host_ string. This will provide the value of the
+        // Host HTTP header during the WebSocket handshake.
+        // See https://tools.ietf.org/html/rfc7230#section-5.4
+        host_ += ':' + std::to_string(ep.port());
 
         // Set a timeout on the operation
         beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));

@@ -1,3 +1,9 @@
+Version XXX:
+
+* Fix Host header in websocket examples
+
+--------------------------------------------------------------------------------
+
 Version 288:
 
 * Fix Content-Length parsing
