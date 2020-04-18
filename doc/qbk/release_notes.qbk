@@ -34,31 +34,31 @@
 
 [*Fixes]
 
-* Fix Content-Length parsing
+* [issue 1880] Fix Content-Length parsing
+* [issue 1852] Fix examples to dispatch to strand
+* [issue 1875] Ensure `basic_stream::close` will not throw
+* [issue 1863] Field digest is endian-independent
+* [issue 1853] Fix ostream flush
+* [issue 1831] `flat_buffer::shrink_to_fit` is `noexcept`
+* [issue 1828] Fix erase field
+* [issue 1822] Examples use strands correctly
+* [issue 1818] `file_body` returns `short_read` on eof during read
+* [issue 1786] Fix bug in win32 `file_body`
+* [issue 1260] Add accessor function to File member of `basic_file_body`
+* [issue 793] `file_win32` supports UTF-8 paths
+* [issue 793] `file_stdio` supports unicode paths
+* [issue 1786] `file_win32` bodies respect `http::serializer::split`
 * Correct `buffer_bytes` documentation
-* Fix examples to dispatch to strand
-* Ensure `basic_stream::close` will not throw
 * Fix missing include in sha1.hpp
 * Fix ostream warning
-* Field digest is endian-independent
 * Update broken links in README
-* Fix ostream flush
 * Translate some win32 errors to net error codes
-* `flat_buffer::shrink_to_fit` is `noexcept`
 * Moved-from dynamic buffers do not clear if different allocator
-* Fix erase field
 * Fix compilation macro documentation
-* Examples use strands correctly
 * Clarify end-of-file behaviour in `File::read` docs
-* `file_body` returns `short_read` on eof during read
-* Fix bug in win32 `file_body`
 * ostream_buffer satisfies preconditions of DynamicBuffer_v1::commit
-* Add accessor function to File member of `basic_file_body`
 * Fix release build of docs
-* `file_win32` supports UTF-8 paths
-* `file_stdio` supports unicode paths
 * Fix `echo-op` test
-* `file_win32` bodies respect `http::serializer::split`
 * Fix non-msvc cmake
 
 [heading Boost 1.72]
