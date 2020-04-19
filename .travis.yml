@@ -16,7 +16,8 @@ addons:
     sources: &base_sources
       - ubuntu-toolchain-r-test
     packages: &base_packages
-      - python-software-properties
+      #- python-software-properties
+      - software-properties-common
       - libffi-dev
       - libstdc++6
       - binutils-gold
@@ -70,7 +71,6 @@ matrix:
 
     # GCC 6.0, Debug + Coverage
     - os: linux
-      dist: trusty
       compiler: g++-6
       env:
         - VARIANT=beast_coverage
@@ -91,7 +91,6 @@ matrix:
 
     # Default clang++ with libc++
     - os: linux
-      dist: trusty
       compiler: clang++-libc++
       env:
         - VARIANT=debug
@@ -107,7 +106,7 @@ matrix:
 
     # GCC 5.0, Valgrind
     - os: linux
-      dist: trusty
+      dist: bionic
       compiler: g++-5
       env:
         - VARIANT=beast_valgrind

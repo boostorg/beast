@@ -111,6 +111,7 @@ function build_bjam ()
       libs/beast/test/beast/zlib//fat-tests \
       toolset=$TOOLSET \
       variant=$VARIANT \
+      link=static \
       -j${JOBS}
   elif [[ $VARIANT == "debug" ]]; then
     b2 \
