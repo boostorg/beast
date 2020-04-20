@@ -1,3 +1,8 @@
+Version 290:
+
+* Travis build host now bionic
+* Update Release Notes
+
 Version 289:
 
 * Fix Host header in websocket examples
