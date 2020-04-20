@@ -116,29 +116,22 @@ public:
     void
     testSubrange()
     {
-        auto exemplar = std::string("the quick brown fox jumps over the lazy dog");
+        std::string s =
+            "the quick brown fox jumps over the lazy dog";
 
         auto iterate_test = [&](
             std::size_t a,
             std::size_t b,
             std::size_t c)
         {
-            static const auto func = "iterate_test";
             auto buffers = std::vector<net::mutable_buffer>();
             if (a)
-                buffers.push_back(net::buffer(&exemplar[0], a));
+                buffers.push_back(net::buffer(&s[0], a));
             if (b - a)
-                buffers.push_back(net::buffer(&exemplar[a], (b - a)));
+                buffers.push_back(net::buffer(&s[a], (b - a)));
             if (c - b)
-                buffers.push_back(net::buffer(&exemplar[b], (c - b)));
+                buffers.push_back(net::buffer(&s[b], (c - b)));
             auto adapter = buffers_adaptor<std::vector<net::mutable_buffer>>(buffers);
-
-
-            using value_type =
-            typename std::conditional<
-                isMutable,
-                net::mutable_buffer,
-                net::const_buffer>::type;
 
             using maybe_mutable =
             typename std::conditional<
@@ -147,15 +140,19 @@ public:
                 buffers_adaptor<std::vector<net::mutable_buffer>> const&>::type;
 
             auto sub = buffers_adaptor_test_hook::make_subrange(static_cast<maybe_mutable>(adapter));
-            //BEAST_EXPECTS(typeid(typename decltype(sub)::value_type) == typeid(value_type), func);
-            BEAST_EXPECT(buffers_to_string(sub) == exemplar.substr(0, c));
+            /*
+            using value_type = typename std::conditional<
+                isMutable, net::mutable_buffer, net::const_buffer>::type;
+            BEAST_EXPECTS(typeid(typename decltype(sub)::value_type) == typeid(value_type), "iterate_test");
+            */
+            BEAST_EXPECT(buffers_to_string(sub) == s.substr(0, c));
         };
 
         iterate_test(0, 0, 1);
 
-        for (std::size_t a = 0; a <= exemplar.size(); ++a)
-            for (std::size_t b = a; b <= exemplar.size(); ++b)
-                for (std::size_t c = b; c <= exemplar.size(); ++c)
+        for (std::size_t a = 0; a <= s.size(); ++a)
+            for (std::size_t b = a; b <= s.size(); ++b)
+                for (std::size_t c = b; c <= s.size(); ++c)
                     iterate_test(a, b, c);
     }
 
@@ -166,10 +163,6 @@ public:
         testDynamicBuffer();
         testSpecial();
         testIssue386();
-#if 0
-        testBuffersAdapter();
-        testCommit();
-#endif
         testSubrange<true>();
         testSubrange<false>();
     }
