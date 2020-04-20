@@ -39,7 +39,7 @@ fail(beast::error_code ec, char const* what)
 // Sends a WebSocket message and prints the response
 void
 do_session(
-    std::string const& host,
+    std::string host,
     std::string const& port,
     std::string const& text,
     net::io_context& ioc,
@@ -60,9 +60,14 @@ do_session(
     beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(30));
 
     // Make the connection on the IP address we get from a lookup
-    beast::get_lowest_layer(ws).async_connect(results, yield[ec]);
+    auto ep = beast::get_lowest_layer(ws).async_connect(results, yield[ec]);
     if(ec)
         return fail(ec, "connect");
+
+    // Update the host_ string. This will provide the value of the
+    // Host HTTP header during the WebSocket handshake.
+    // See https://tools.ietf.org/html/rfc7230#section-5.4
+    host += ':' + std::to_string(ep.port());
 
     // Turn off the timeout on the tcp_stream, because
     // the websocket stream has its own timeout system.
