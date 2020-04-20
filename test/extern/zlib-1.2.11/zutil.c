@@ -185,7 +185,7 @@ void ZLIB_INTERNAL zmemzero(dest, len)
 
 #ifdef SYS16BIT
 
-#ifdef __TURBOC__
+#ifdef __TURBOC__ && !defined(__clang__)
 /* Turbo C in 16-bit mode */
 
 #  define MY_ZCALLOC
