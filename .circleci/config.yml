@@ -55,5 +55,6 @@ jobs:
             name: build tests
             working_directory: /tmp/boost
             command: |
+              ./b2 -j 2 toolset=clang stdlib=libc++ cxxstd=latest cxxflags=-fcoroutines-ts variant=release,debug libs/beast/test
               ./b2 -j 2 cxxstd=latest libs/beast/test
               ./b2 -j 2 cxxstd=latest libs/beast/example

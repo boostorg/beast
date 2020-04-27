@@ -1,3 +1,9 @@
+Version XXX:
+
+* Add circleci configuration for clang coroutines-ts
+
+--------------------------------------------------------------------------------
+
 Version 290:
 
 * Travis build host now bionic
