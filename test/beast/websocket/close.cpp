@@ -16,6 +16,9 @@
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
+#if BOOST_ASIO_HAS_CO_AWAIT
+#include <boost/asio/use_awaitable.hpp>
+#endif
 
 namespace boost {
 namespace beast {
@@ -735,6 +738,15 @@ public:
         }
     };
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+    void testAwaitableCompiles(stream<test::stream>& s, close_reason cr )
+    {
+        static_assert(std::is_same_v<
+            net::awaitable<void>, decltype(
+            s.async_close(cr, net::use_awaitable))>);
+    }
+#endif
+
     void
     run() override
     {
@@ -742,6 +754,9 @@ public:
         testTimeout();
         testSuspend();
         testMoveOnly();
+#if BOOST_ASIO_HAS_CO_AWAIT
+        boost::ignore_unused(&close_test::testAwaitableCompiles);
+#endif
     }
 };
 

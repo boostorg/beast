@@ -14,7 +14,9 @@
 #include <boost/beast/_experimental/test/tcp.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include "test.hpp"
-
+#if BOOST_ASIO_HAS_CO_AWAIT
+#include <boost/asio/use_awaitable.hpp>
+#endif
 namespace boost {
 namespace beast {
 namespace websocket {
@@ -810,6 +812,27 @@ public:
         }
     }
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+    void testAwaitableCompiles(
+        stream<net::ip::tcp::socket>& s,
+        http::request<http::empty_body>& req,
+        net::mutable_buffer buf
+        )
+    {
+        static_assert(std::is_same_v<
+            net::awaitable<void>, decltype(
+            s.async_accept(net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<void>, decltype(
+            s.async_accept(req, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<void>, decltype(
+            s.async_accept(buf, net::use_awaitable))>);
+    }
+#endif
+
     void
     run() override
     {
@@ -820,6 +843,9 @@ public:
         testInvalidInputs();
         testEndOfStream();
         testAsync();
+#if BOOST_ASIO_HAS_CO_AWAIT
+        boost::ignore_unused(&accept_test::testAwaitableCompiles);
+#endif
     }
 };
 

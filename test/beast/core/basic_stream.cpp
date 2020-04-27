@@ -30,6 +30,13 @@
 #include <array>
 #include <thread>
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/use_awaitable.hpp>
+#endif
+
+
 namespace boost {
 namespace beast {
 
@@ -258,7 +265,7 @@ private:
     {
         string_view s_;
         net::ip::tcp::socket socket_;
-        
+
     public:
         session(
             string_view s,
@@ -1297,6 +1304,52 @@ public:
 
     //--------------------------------------------------------------------------
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+    void testAwaitableCompilation(
+        basic_stream<net::ip::tcp>& stream,
+        net::mutable_buffer outbuf,
+        net::const_buffer inbuf,
+        net::ip::tcp::resolver::results_type resolve_results)
+    {
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+                stream.async_read_some(outbuf, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+                stream.async_write_some(inbuf, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<net::ip::tcp::resolver::results_type::const_iterator>, decltype(
+                stream.async_connect(
+                    resolve_results.begin(),
+                    resolve_results.end(),
+                    net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<net::ip::tcp::endpoint>, decltype(
+            stream.async_connect(
+                resolve_results,
+                net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<void>, decltype(
+            stream.async_connect(
+                resolve_results.begin()->endpoint(),
+                net::use_awaitable))>);
+
+        auto comparison_function = [](error_code&, net::ip::tcp::endpoint) { return true; };
+
+        static_assert(std::is_same_v<
+            net::awaitable<net::ip::tcp::resolver::results_type::const_iterator>, decltype(
+            stream.async_connect(
+                resolve_results.begin(),
+                resolve_results.end(),
+                comparison_function,
+                net::use_awaitable))>);
+    }
+#endif
+
     void
     run()
     {
@@ -1307,6 +1360,11 @@ public:
         testMembers();
         testJavadocs();
         testIssue1589();
+
+#if BOOST_ASIO_HAS_CO_AWAIT
+        // test for compilation success only
+        boost::ignore_unused(&basic_stream_test::testAwaitableCompilation);
+#endif
     }
 };
 

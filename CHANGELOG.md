@@ -1,5 +1,11 @@
 Version XXX:
 
+* Test websocket with use_awaitable
+* Test http write with use_awaitable
+* Test http read with use_awaitable
+* Fix use buffered_read_stream with use_awaitable
+* Implement is_completion_token_for trait
+* Test use_awaitable with basic_stream
 * Fix async_detect_ssl with use_awaitable
 * Add clang coroutines-ts to circleci config
 
