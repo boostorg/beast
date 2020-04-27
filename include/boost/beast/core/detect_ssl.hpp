@@ -374,13 +374,13 @@ struct run_detect_ssl_op
     void operator()(
         DetectHandler&& h,
         AsyncReadStream* s, // references are passed as pointers
-        DynamicBuffer& b)
+        DynamicBuffer* b)
     {
         detect_ssl_op<
             typename std::decay<DetectHandler>::type,
             AsyncReadStream,
             DynamicBuffer>(
-                std::forward<DetectHandler>(h), *s, b);
+                std::forward<DetectHandler>(h), *s, *b);
     }
 };
 
@@ -439,7 +439,7 @@ async_detect_ssl(
             detail::run_detect_ssl_op{},
             token,
             &stream, // pass the reference by pointer
-            buffer);
+            &buffer);
 }
 
 //]

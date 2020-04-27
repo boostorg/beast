@@ -1,5 +1,6 @@
 Version XXX:
 
+* Fix async_detect_ssl with use_awaitable
 * Add clang coroutines-ts to circleci config
 
 --------------------------------------------------------------------------------

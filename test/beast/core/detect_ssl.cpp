@@ -16,6 +16,11 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/string.hpp>
 #include <boost/core/exchange.hpp>
+#if BOOST_ASIO_HAS_CO_AWAIT
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/use_awaitable.hpp>
+#endif
 namespace boost {
 namespace beast {
 
@@ -166,12 +171,25 @@ public:
         }
     }
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+    void testAwaitableCompiles(test::stream& stream, flat_buffer& b)
+    {
+        static_assert(
+            std::is_same_v<
+                net::awaitable<bool>, decltype(
+                async_detect_ssl(stream, b, net::use_awaitable))>);
+    }
+#endif
+
     void
     run() override
     {
         testDetect();
         testRead();
         testAsyncRead();
+#if BOOST_ASIO_HAS_CO_AWAIT
+        boost::ignore_unused(&detect_ssl_test::testAwaitableCompiles);
+#endif
     }
 };
 
