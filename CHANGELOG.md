@@ -1,5 +1,6 @@
 Version XXX:
 
+* Fix async_detect_ssl for net::use_awaitable #1918
 * Add circleci configuration for clang coroutines-ts
 
 --------------------------------------------------------------------------------
