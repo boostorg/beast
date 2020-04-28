@@ -12,6 +12,8 @@
 
 #include <type_traits>
 #include <utility>
+#include <boost/asio/compose.hpp>
+#include <boost/type_traits/make_void.hpp>
 
 namespace boost {
 namespace beast {
@@ -50,6 +52,26 @@ struct is_invocable<C, R(A...)>
 {
 };
 /** @} */
+
+template<class CompletionToken, class Signature, class = void>
+struct is_completion_token_for : std::false_type
+{
+};
+
+struct dummy_initiation
+{
+    template<class...AnyArgs>
+    void operator()(AnyArgs&&...);
+};
+
+template<class CompletionToken, class R, class...Args>
+struct is_completion_token_for<
+    CompletionToken, R(Args...), boost::void_t<decltype(
+        boost::asio::async_initiate<CompletionToken, R(Args...)>(
+            dummy_initiation(), std::declval<CompletionToken&>())
+        )>> : std::true_type
+{
+};
 
 } // detail
 } // beast
