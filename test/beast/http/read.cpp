@@ -25,6 +25,9 @@
 #include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <atomic>
+#if BOOST_ASIO_HAS_CO_AWAIT
+#include <boost/asio/use_awaitable.hpp>
+#endif
 
 namespace boost {
 namespace beast {
@@ -529,6 +532,49 @@ public:
         }
     }
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+    void testAwaitableCompiles(
+        test::stream& stream,
+        flat_buffer& dynbuf,
+        parser<true, string_body>& request_parser,
+        request<http::string_body>& request,
+        parser<false, string_body>& response_parser,
+        response<http::string_body>& response)
+    {
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            http::async_read(stream, dynbuf, request, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            http::async_read(stream, dynbuf, request_parser, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            http::async_read(stream, dynbuf, response, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            http::async_read(stream, dynbuf, response_parser, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            http::async_read_some(stream, dynbuf, request_parser, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            http::async_read_some(stream, dynbuf, response_parser, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            http::async_read_header(stream, dynbuf, request_parser, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            http::async_read_header(stream, dynbuf, response_parser, net::use_awaitable))>);
+    }
+#endif
+
     void
     run() override
     {
@@ -552,6 +598,9 @@ public:
         testRegression430();
         testReadGrind();
         testAsioHandlerInvoke();
+#if BOOST_ASIO_HAS_CO_AWAIT
+        boost::ignore_unused(&read_test::testAwaitableCompiles);
+#endif
     }
 };
 
