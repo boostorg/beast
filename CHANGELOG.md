@@ -1,5 +1,6 @@
 Version XXX:
 
+* Fix use buffered_read_stream with use_awaitable #1920
 * Implement is_completion_token_for trait
 * Test use_awaitable with basic_stream (#1920)
 * Fix async_detect_ssl for net::use_awaitable #1918
