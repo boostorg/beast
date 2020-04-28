@@ -14,6 +14,10 @@
 
 #include <boost/asio/write.hpp>
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+#include <boost/asio/use_awaitable.hpp>
+#endif
+
 #include <boost/config/workaround.hpp>
 #if BOOST_WORKAROUND(BOOST_GCC, < 80200)
 #define BOOST_BEAST_SYMBOL_HIDDEN __attribute__ ((visibility("hidden")))
@@ -673,10 +677,34 @@ public:
         }
     }
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+    void testAwaitableCompiles(
+        stream<test::stream>& s,
+        flat_buffer& dynbuf,
+        net::mutable_buffer buf,
+        std::size_t limit)
+    {
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            s.async_read(dynbuf, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            s.async_read_some(buf, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            s.async_read_some(dynbuf, limit, net::use_awaitable))>);
+    }
+#endif
+
     void
     run() override
     {
         testRead();
+#if BOOST_ASIO_HAS_CO_AWAIT
+        boost::ignore_unused(&read2_test::testAwaitableCompiles);
+#endif
     }
 };
 

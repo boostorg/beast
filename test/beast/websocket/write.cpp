@@ -13,6 +13,10 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+#include <boost/asio/use_awaitable.hpp>
+#endif
+
 #include "test.hpp"
 
 namespace boost {
@@ -716,6 +720,22 @@ public:
         BEAST_EXPECT(n1 < n0 + s.size());
     }
 
+#if BOOST_ASIO_HAS_CO_AWAIT
+    void testAwaitableCompiles(
+        stream<test::stream>& s,
+        net::mutable_buffer buf,
+        bool fin)
+    {
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            s.async_write(buf, net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<std::size_t>, decltype(
+            s.async_write_some(fin, buf, net::use_awaitable))>);
+    }
+#endif
+
     void
     run() override
     {
@@ -726,6 +746,9 @@ public:
         testMoveOnly();
         testIssue300();
         testIssue1666();
+#if BOOST_ASIO_HAS_CO_AWAIT
+        boost::ignore_unused(&write_test::testAwaitableCompiles);
+#endif
     }
 };
 

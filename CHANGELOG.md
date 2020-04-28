@@ -1,5 +1,6 @@
 Version XXX:
 
+* Test websocket with use_awaitable (#1920)
 * Test http write with use_awaitable (#1920)
 * Test http read with use_awaitable (#1920)
 * Fix use buffered_read_stream with use_awaitable #1920
