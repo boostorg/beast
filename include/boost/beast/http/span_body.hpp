@@ -36,8 +36,10 @@ template<class T>
 struct span_body
 {
 private:
-    static_assert(std::is_pod<T>::value,
-        "POD requirements not met");
+    static_assert(
+        std::is_trivial<T>::value &&
+        std::is_standard_layout<T>::value,
+            "POD requirements not met");
 
 public:
     /** The type of container used for the body
