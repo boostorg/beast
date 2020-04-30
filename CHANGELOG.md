@@ -1,3 +1,7 @@
+* Fix c++20 deprecation warning in span_body
+
+--------------------------------------------------------------------------------
+
 Version 291:
 
 * Test websocket with use_awaitable
