@@ -542,7 +542,7 @@ accept(
 
 template<class NextLayer, bool deflateSupported>
 template<
-    class AcceptHandler>
+    BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept(
@@ -564,7 +564,7 @@ async_accept(
 template<class NextLayer, bool deflateSupported>
 template<
     class ResponseDecorator,
-    class AcceptHandler>
+    BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept_ex(
@@ -590,7 +590,7 @@ async_accept_ex(
 template<class NextLayer, bool deflateSupported>
 template<
     class ConstBufferSequence,
-    class AcceptHandler>
+    BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept(
@@ -621,7 +621,7 @@ template<class NextLayer, bool deflateSupported>
 template<
     class ConstBufferSequence,
     class ResponseDecorator,
-    class AcceptHandler>
+    BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept_ex(
@@ -654,7 +654,7 @@ async_accept_ex(
 template<class NextLayer, bool deflateSupported>
 template<
     class Body, class Allocator,
-    class AcceptHandler>
+    BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept(
@@ -678,7 +678,7 @@ template<class NextLayer, bool deflateSupported>
 template<
     class Body, class Allocator,
     class ResponseDecorator,
-    class AcceptHandler>
+    BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept_ex(

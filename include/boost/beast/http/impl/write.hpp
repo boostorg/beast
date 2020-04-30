@@ -463,7 +463,7 @@ write_some_impl(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_some_impl(
     AsyncWriteStream& stream,
@@ -526,7 +526,7 @@ write_some(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_some(
     AsyncWriteStream& stream,
@@ -608,7 +608,7 @@ write_header(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_header(
     AsyncWriteStream& stream,
@@ -681,7 +681,7 @@ write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write(
     AsyncWriteStream& stream,
@@ -801,7 +801,7 @@ write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write(
     AsyncWriteStream& stream,
@@ -830,7 +830,7 @@ async_write(
 template<
     class AsyncWriteStream,
     bool isRequest, class Body, class Fields,
-    class WriteHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write(
     AsyncWriteStream& stream,

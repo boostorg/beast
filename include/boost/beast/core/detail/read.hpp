@@ -219,7 +219,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     class CompletionCondition,
-    class ReadHandler
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler
 #if ! BOOST_BEAST_DOXYGEN
     , class = typename std::enable_if<
         is_async_read_stream<AsyncReadStream>::value &&

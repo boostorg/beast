@@ -141,7 +141,7 @@ buffered_read_stream(Args&&... args)
 }
 
 template<class Stream, class DynamicBuffer>
-template<class ConstBufferSequence, class WriteHandler>
+template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 buffered_read_stream<Stream, DynamicBuffer>::
 async_write_some(
@@ -212,7 +212,7 @@ read_some(MutableBufferSequence const& buffers,
 }
 
 template<class Stream, class DynamicBuffer>
-template<class MutableBufferSequence, class ReadHandler>
+template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 buffered_read_stream<Stream, DynamicBuffer>::
 async_read_some(

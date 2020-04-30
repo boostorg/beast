@@ -1,3 +1,5 @@
+* Fix compile errors on Visual Studio with /std:c++latest
+
 Version 291:
 
 * Test websocket with use_awaitable

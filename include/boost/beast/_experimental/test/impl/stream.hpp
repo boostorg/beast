@@ -306,7 +306,7 @@ read_some(MutableBufferSequence const& buffers,
     return 0;
 }
 
-template<class MutableBufferSequence, class ReadHandler>
+template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 stream::
 async_read_some(
@@ -386,7 +386,7 @@ write_some(
     return n;
 }
 
-template<class ConstBufferSequence, class WriteHandler>
+template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 stream::
 async_write_some(
