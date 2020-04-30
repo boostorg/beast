@@ -1,3 +1,5 @@
+* Update docs to reflect OpenSSL version requirements
+
 Version 291:
 
 * Test websocket with use_awaitable
