@@ -11,10 +11,12 @@
 #define BOOST_BEAST_HTTP_IMPL_FIELD_IPP
 
 #include <boost/beast/http/field.hpp>
+#include <boost/assert.hpp>
 #include <algorithm>
 #include <array>
 #include <cstring>
-#include <boost/assert.hpp>
+#include <ostream>
+
 
 namespace boost {
 namespace beast {
@@ -563,6 +565,12 @@ field
 string_to_field(string_view s)
 {
     return detail::get_field_table().string_to_field(s);
+}
+
+std::ostream&
+operator<<(std::ostream& os, field f)
+{
+    return os << to_string(f);
 }
 
 } // http

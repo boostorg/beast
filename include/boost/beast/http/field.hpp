@@ -396,12 +396,9 @@ field
 string_to_field(string_view s);
 
 /// Write the text for a field name to an output stream.
-inline
+BOOST_BEAST_DECL
 std::ostream&
-operator<<(std::ostream& os, field f)
-{
-    return os << to_string(f);
-}
+operator<<(std::ostream& os, field f);
 
 } // http
 } // beast

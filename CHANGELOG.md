@@ -1,3 +1,4 @@
+* Fix standalone compilation error with std::string_view 
 * OpenSSL 1.0.2 or later is required
 * Fix c++20 deprecation warning in span_body
 
