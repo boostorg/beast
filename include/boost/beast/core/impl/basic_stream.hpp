@@ -776,7 +776,7 @@ close()
 //------------------------------------------------------------------------------
 
 template<class Protocol, class Executor, class RatePolicy>
-template<class ConnectHandler>
+template<BOOST_BEAST_ASYNC_TPARAM1 ConnectHandler>
 BOOST_BEAST_ASYNC_RESULT1(ConnectHandler)
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
@@ -795,7 +795,7 @@ async_connect(
 template<class Protocol, class Executor, class RatePolicy>
 template<
     class EndpointSequence,
-    class RangeConnectHandler,
+    BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, typename Protocol::endpoint)) RangeConnectHandler,
     class>
 BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void(error_code, typename Protocol::endpoint))
 basic_stream<Protocol, Executor, RatePolicy>::
@@ -817,7 +817,7 @@ template<class Protocol, class Executor, class RatePolicy>
 template<
     class EndpointSequence,
     class ConnectCondition,
-    class RangeConnectHandler,
+    BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, typename Protocol::endpoint)) RangeConnectHandler,
     class>
 BOOST_ASIO_INITFN_RESULT_TYPE(RangeConnectHandler,void (error_code, typename Protocol::endpoint))
 basic_stream<Protocol, Executor, RatePolicy>::
@@ -839,7 +839,7 @@ async_connect(
 template<class Protocol, class Executor, class RatePolicy>
 template<
     class Iterator,
-    class IteratorConnectHandler>
+    BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, Iterator)) IteratorConnectHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
@@ -860,7 +860,7 @@ template<class Protocol, class Executor, class RatePolicy>
 template<
     class Iterator,
     class ConnectCondition,
-    class IteratorConnectHandler>
+    BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, Iterator)) IteratorConnectHandler>
 BOOST_ASIO_INITFN_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
@@ -881,7 +881,7 @@ async_connect(
 //------------------------------------------------------------------------------
 
 template<class Protocol, class Executor, class RatePolicy>
-template<class MutableBufferSequence, class ReadHandler>
+template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 basic_stream<Protocol, Executor, RatePolicy>::
 async_read_some(
@@ -901,7 +901,7 @@ async_read_some(
 }
 
 template<class Protocol, class Executor, class RatePolicy>
-template<class ConstBufferSequence, class WriteHandler>
+template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 basic_stream<Protocol, Executor, RatePolicy>::
 async_write_some(

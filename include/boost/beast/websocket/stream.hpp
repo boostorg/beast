@@ -2634,7 +2634,7 @@ public:
 
     template<
         class ResponseDecorator,
-        class AcceptHandler>
+        BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
     BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept_ex(
         ResponseDecorator const& decorator,
@@ -2643,7 +2643,7 @@ public:
     template<
         class ConstBufferSequence,
         class ResponseDecorator,
-        class AcceptHandler>
+            BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
     BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept_ex(
         ConstBufferSequence const& buffers,
@@ -2656,7 +2656,7 @@ public:
     template<
         class Body, class Allocator,
         class ResponseDecorator,
-        class AcceptHandler>
+            BOOST_BEAST_ASYNC_TPARAM1 AcceptHandler>
     BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
     async_accept_ex(
         http::request<Body,

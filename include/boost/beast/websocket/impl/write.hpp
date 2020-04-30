@@ -700,7 +700,7 @@ write_some(bool fin,
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class ConstBufferSequence, class WriteHandler>
+template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 stream<NextLayer, deflateSupported>::
 async_write_some(bool fin,
@@ -756,7 +756,7 @@ write(ConstBufferSequence const& buffers, error_code& ec)
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class ConstBufferSequence, class WriteHandler>
+template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 stream<NextLayer, deflateSupported>::
 async_write(

@@ -585,7 +585,7 @@ public:
     //--------------------------------------------------------------------------
 
     // Asynchronously read into a buffer until the buffer is full, or an error occurs
-    template<class AsyncReadStream, class ReadHandler>
+    template<class AsyncReadStream, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
     typename net::async_result<ReadHandler, void(error_code, std::size_t)>::return_type
     async_read(AsyncReadStream& stream, net::mutable_buffer buffer, ReadHandler&& handler)
     {

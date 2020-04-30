@@ -304,7 +304,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read_some(
     AsyncReadStream& stream,
@@ -373,7 +373,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read_header(
     AsyncReadStream& stream,
@@ -443,7 +443,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest,
-    class ReadHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,
@@ -531,7 +531,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     bool isRequest, class Body, class Allocator,
-    class ReadHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(
     AsyncReadStream& stream,

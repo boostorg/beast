@@ -268,7 +268,7 @@ do_handshake(
 //------------------------------------------------------------------------------
 
 template<class NextLayer, bool deflateSupported>
-template<class HandshakeHandler>
+template<BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler>
 BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
 stream<NextLayer, deflateSupported>::
 async_handshake(
@@ -293,7 +293,7 @@ async_handshake(
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class HandshakeHandler>
+template<BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler>
 BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
 stream<NextLayer, deflateSupported>::
 async_handshake(

@@ -144,7 +144,7 @@ read_some(MutableBufferSequence const& buffers, error_code& ec)
 template<class NextLayer>
 template<
     class MutableBufferSequence,
-    class ReadHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 flat_stream<NextLayer>::
 async_read_some(
@@ -225,7 +225,7 @@ write_some(ConstBufferSequence const& buffers, error_code& ec)
 template<class NextLayer>
 template<
     class ConstBufferSequence,
-    class WriteHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 flat_stream<NextLayer>::
 async_write_some(

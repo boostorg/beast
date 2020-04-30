@@ -214,7 +214,7 @@ template<
     class AsyncReadStream,
     class DynamicBuffer,
     class CompletionCondition,
-    class ReadHandler,
+    BOOST_BEAST_ASYNC_TPARAM2 ReadHandler,
     class>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 async_read(

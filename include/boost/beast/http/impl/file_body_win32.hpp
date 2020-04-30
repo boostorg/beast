@@ -597,7 +597,7 @@ write_some(
 template<
     class Protocol, class Executor,
     bool isRequest, class Fields,
-    class WriteHandler>
+    BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
 BOOST_BEAST_ASYNC_RESULT2(WriteHandler)
 async_write_some(
     net::basic_stream_socket<

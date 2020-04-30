@@ -804,7 +804,7 @@ read(DynamicBuffer& buffer, error_code& ec)
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class DynamicBuffer, class ReadHandler>
+template<class DynamicBuffer, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 stream<NextLayer, deflateSupported>::
 async_read(DynamicBuffer& buffer, ReadHandler&& handler)
@@ -878,7 +878,7 @@ read_some(
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class DynamicBuffer, class ReadHandler>
+template<class DynamicBuffer, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 stream<NextLayer, deflateSupported>::
 async_read_some(
@@ -1263,7 +1263,7 @@ loop:
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class MutableBufferSequence, class ReadHandler>
+template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
 BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
 stream<NextLayer, deflateSupported>::
 async_read_some(
