@@ -1,3 +1,7 @@
+* Fix standalone compilation error with std::string_view 
+
+--------------------------------------------------------------------------------
+
 Version 291:
 
 * Test websocket with use_awaitable

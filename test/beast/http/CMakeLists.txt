@@ -26,6 +26,7 @@ add_executable (tests-beast-http
     empty_body.cpp
     error.cpp
     field.cpp
+    field_compiles.cpp
     fields.cpp
     file_body.cpp
     message.cpp
