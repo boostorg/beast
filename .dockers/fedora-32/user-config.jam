@@ -1,0 +1,14 @@
+using clang :   : clang++ : <stdlib>"libc++" <cxxflags>"-Wno-c99-extensions" ;
+using clang : a : clang++ : <define>"BOOST_ASIO_NO_DEPRECATED" <stdlib>"libc++" <cxxflags>"-Wno-c99-extensions" ;
+using clang : b : clang++ : <define>"BOOST_ASIO_NO_TS_EXECUTORS" <stdlib>"libc++" <cxxflags>"-Wno-c99-extensions" ;
+using clang : c : clang++ : <define>"BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT" <stdlib>"libc++" <cxxflags>"-Wno-c99-extensions" ;
+using clang : ab : clang++ : <define>"BOOST_ASIO_NO_DEPRECATED" <define>"BOOST_ASIO_NO_TS_EXECUTORS" <stdlib>"libc++" <cxxflags>"-Wno-c99-extensions" ;
+using clang : ac : clang++ : <define>"BOOST_ASIO_NO_DEPRECATED" <define>"BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT" <stdlib>"libc++" <cxxflags>"-Wno-c99-extensions" ;
+
+using gcc :   : g++ : <cxxflags>"-Wno-c99-extensions" ;
+using gcc : a : g++ : <define>"BOOST_ASIO_NO_DEPRECATED" <cxxflags>"-Wno-c99-extensions" ;
+using gcc : b : g++ : <define>"BOOST_ASIO_NO_TS_EXECUTORS" <cxxflags>"-Wno-c99-extensions" ;
+using gcc : c : g++ : <define>"BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT" <cxxflags>"-Wno-c99-extensions" ;
+using gcc : ab : g++ : <define>"BOOST_ASIO_NO_DEPRECATED" <define>"BOOST_ASIO_NO_TS_EXECUTORS" <cxxflags>"-Wno-c99-extensions" ;
+using gcc : ac : g++ : <define>"BOOST_ASIO_NO_DEPRECATED" <define>"BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT" <cxxflags>"-Wno-c99-extensions" ;
+
