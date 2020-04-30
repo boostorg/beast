@@ -1,3 +1,5 @@
+Version 292:
+
 * Fix compile errors on Visual Studio with /std:c++latest
 * Fix standalone compilation error with std::string_view 
 * OpenSSL 1.0.2 or later is required
