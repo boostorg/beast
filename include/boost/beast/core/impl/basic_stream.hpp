@@ -681,7 +681,12 @@ basic_stream(basic_stream&& other)
     : impl_(boost::make_shared<impl_type>(
         std::move(*other.impl_)))
 {
-    // VFALCO I'm not sure this implementation is correct...
+    // Explainer: Asio's sockets provide the guarantee that a moved-from socket
+    // will be in a state as-if newly created. i.e.:
+    // * having the same (valid) executor
+    // * the socket shall not be open
+    // We provide the same guarantee by moving the impl rather than the pointer
+    // controlling its lifetime.
 }
 
 //------------------------------------------------------------------------------
