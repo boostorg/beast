@@ -1,3 +1,7 @@
+* Fix assert in websocket
+
+--------------------------------------------------------------------------------
+
 Version 292:
 
 * Fix compile errors on Visual Studio with /std:c++latest

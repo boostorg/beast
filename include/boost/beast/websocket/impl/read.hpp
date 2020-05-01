@@ -108,8 +108,7 @@ public:
                 net::post(std::move(*this));
                 BOOST_ASSERT(impl.rd_block.is_locked(this));
 
-                // VFALCO Is this check correct here?
-                BOOST_ASSERT(! ec && impl.check_stop_now(ec));
+                BOOST_ASSERT(!ec);
                 if(impl.check_stop_now(ec))
                 {
                     BOOST_ASSERT(ec == net::error::operation_aborted);
