@@ -588,9 +588,6 @@ build_request(
     this->build_request_pmd(req);
     decorator_opt(req);
     decorator(req);
-    if(! req.count(http::field::user_agent))
-        req.set(http::field::user_agent,
-            BOOST_BEAST_VERSION_STRING);
     return req;
 }
 

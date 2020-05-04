@@ -1,3 +1,7 @@
+* No automatic User-Agent in WebSocket
+
+--------------------------------------------------------------------------------
+
 Version 292:
 
 * Fix compile errors on Visual Studio with /std:c++latest
