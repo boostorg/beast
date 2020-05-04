@@ -1347,8 +1347,59 @@ public:
                 resolve_results.end(),
                 comparison_function,
                 net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<net::ip::tcp::endpoint>, decltype(
+            stream.async_connect(
+                resolve_results,
+                comparison_function,
+                net::use_awaitable))>);
     }
 #endif
+
+    void
+    testConnectionConditionArgs(
+        basic_stream<net::ip::tcp> &stream,
+        net::ip::tcp::resolver::results_type const &results)
+    {
+        struct condition
+        {
+            bool
+            operator()(const error_code &,
+                net::ip::tcp::endpoint const &) const;
+        };
+
+        {
+            struct handler
+            {
+                void
+                operator()(error_code const &,
+                    net::ip::tcp::endpoint const &) const;
+            };
+
+            static_assert(std::is_void<decltype(
+            stream.async_connect(
+                results.begin(),
+                results.end(),
+                condition(),
+                handler()))>::value, "");
+        }
+
+        {
+            struct handler
+            {
+                void
+                operator()(error_code const &,
+                    net::ip::tcp::resolver::results_type::const_iterator);
+            };
+
+            static_assert(std::is_void<decltype(
+            stream.async_connect(
+                results,
+                condition(),
+                handler()))>::value, "");
+        };
+    }
 
     void
     run()
@@ -1365,6 +1416,7 @@ public:
         // test for compilation success only
         boost::ignore_unused(&basic_stream_test::testAwaitableCompilation);
 #endif
+        boost::ignore_unused(&basic_stream_test::testConnectionConditionArgs);
     }
 };
 

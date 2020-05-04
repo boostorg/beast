@@ -1,3 +1,4 @@
+* Fix async_connect documentation
 * Fix assert in websocket
 
 --------------------------------------------------------------------------------
