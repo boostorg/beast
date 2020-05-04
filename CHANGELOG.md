@@ -1,3 +1,5 @@
+Version 293:
+
 * Fix async_connect documentation
 * Fix assert in websocket
 * No automatic User-Agent in WebSocket
