@@ -74,7 +74,7 @@ private:
         Executor ex;
         info info_;
 
-        state(Executor const& ex_)
+        state(Executor const &ex_)
             : ex(ex_)
         {
         }
@@ -83,11 +83,13 @@ private:
     std::shared_ptr<state> sp_;
 
 public:
-    test_executor(test_executor const&) = default;
-    test_executor& operator=(test_executor const&) = default;
+    test_executor(test_executor const &) = default;
+
+    test_executor &
+    operator=(test_executor const &) = default;
 
     explicit
-    test_executor(Executor const& ex)
+    test_executor(Executor const &ex)
         : sp_(std::make_shared<state>(ex))
     {
     }
@@ -98,13 +100,13 @@ public:
         return sp_->ex.context();
     }
 
-    info&
+    info &
     operator*() noexcept
     {
         return sp_->info_;
     }
 
-    info*
+    info *
     operator->() noexcept
     {
         return &sp_->info_;
@@ -123,7 +125,9 @@ public:
 
     template<class F, class A>
     void
-    dispatch(F&& f, A const& a)
+    dispatch(
+        F &&f,
+        A const &a)
     {
         ++sp_->info_.dispatch;
         ++sp_->info_.total;
@@ -133,7 +137,9 @@ public:
 
     template<class F, class A>
     void
-    post(F&& f, A const& a)
+    post(
+        F &&f,
+        A const &a)
     {
         ++sp_->info_.post;
         ++sp_->info_.total;
@@ -143,7 +149,9 @@ public:
 
     template<class F, class A>
     void
-    defer(F&& f, A const& a)
+    defer(
+        F &&f,
+        A const &a)
     {
         ++sp_->info_.defer;
         ++sp_->info_.total;
@@ -169,8 +177,9 @@ struct test_acceptor
         a.listen(net::socket_base::max_listen_connections);
         ep = a.local_endpoint();
         a.async_accept(
-            [](error_code, net::ip::tcp::socket)
-            {
+            [](
+                error_code,
+                net::ip::tcp::socket) {
             });
     }
 };
@@ -178,16 +187,18 @@ struct test_acceptor
 class test_server
 {
     string_view s_;
-    std::ostream& log_;
+    std::ostream &log_;
     net::io_context ioc_;
     net::ip::tcp::acceptor acceptor_;
     net::ip::tcp::socket socket_;
     std::thread t_;
 
     void
-    fail(error_code const& ec, string_view what)
+    fail(
+        error_code const &ec,
+        string_view what)
     {
-        if(ec != net::error::operation_aborted)
+        if (ec != net::error::operation_aborted)
             log_ << what << ": " << ec.message() << "\n";
     }
 
@@ -195,7 +206,7 @@ public:
     test_server(
         string_view s,
         net::ip::tcp::endpoint ep,
-        std::ostream& log)
+        std::ostream &log)
         : s_(s)
         , log_(log)
         , ioc_(1)
@@ -205,7 +216,7 @@ public:
         boost::system::error_code ec;
 
         acceptor_.open(ep.protocol(), ec);
-        if(ec)
+        if (ec)
         {
             fail(ec, "open");
             return;
@@ -213,14 +224,14 @@ public:
 
         acceptor_.set_option(
             net::socket_base::reuse_address(true), ec);
-        if(ec)
+        if (ec)
         {
             fail(ec, "set_option");
             return;
         }
 
         acceptor_.bind(ep, ec);
-        if(ec)
+        if (ec)
         {
             fail(ec, "bind");
             return;
@@ -228,21 +239,19 @@ public:
 
         acceptor_.listen(
             net::socket_base::max_listen_connections, ec);
-        if(ec)
+        if (ec)
         {
             fail(ec, "listen");
             return;
         }
 
         acceptor_.async_accept(socket_,
-            [this](error_code ec)
-            {
-                this->on_accept(ec);
-            });
+                               [this](error_code ec) {
+                                   this->on_accept(ec);
+                               });
 
         t_ = std::thread(
-            [this]
-            {
+            [this] {
                 ioc_.run();
             });
     }
@@ -270,7 +279,7 @@ private:
         session(
             string_view s,
             net::ip::tcp::socket sock,
-            std::ostream&)
+            std::ostream &)
             : s_(s)
             , socket_(std::move(sock))
         {
@@ -279,7 +288,7 @@ private:
         void
         run()
         {
-            if(s_.empty())
+            if (s_.empty())
                 socket_.async_wait(
                     net::socket_base::wait_read,
                     bind_front_handler(
@@ -296,31 +305,32 @@ private:
 
     protected:
         void
-        on_read(error_code const&)
+        on_read(error_code const &)
         {
         }
 
         void
-        on_write(error_code const&, std::size_t)
+        on_write(
+            error_code const &,
+            std::size_t)
         {
         }
     };
 
     void
-    on_accept(error_code const& ec)
+    on_accept(error_code const &ec)
     {
-        if(! acceptor_.is_open())
+        if (!acceptor_.is_open())
             return;
-        if(ec)
+        if (ec)
             fail(ec, "accept");
         else
             std::make_shared<session>(
                 s_, std::move(socket_), log_)->run();
         acceptor_.async_accept(socket_,
-            [this](error_code ec)
-            {
-                this->on_accept(ec);
-            });
+                               [this](error_code ec) {
+                                   this->on_accept(ec);
+                               });
     }
 };
 
@@ -356,9 +366,9 @@ public:
             BEAST_EXPECT(s3.get_executor() == ex);
             BEAST_EXPECT(s4.get_executor() == ex);
 
-            BEAST_EXPECT((! static_cast<
-                basic_stream<tcp, executor> const&>(
-                    s2).socket().is_open()));
+            BEAST_EXPECT((!static_cast<
+                basic_stream<tcp, executor> const &>(
+                s2).socket().is_open()));
 
             test_sync_stream<
                 basic_stream<
@@ -376,10 +386,10 @@ public:
             basic_stream<tcp, strand> s1(ex);
             basic_stream<tcp, strand> s2(ex, tcp::v4());
             basic_stream<tcp, strand> s3(std::move(s1));
-        #if 0
+#if 0
             s2.socket() = net::basic_stream_socket<
                 tcp, strand>(ioc);
-        #endif
+#endif
             BEAST_EXPECT(s1.get_executor() == ex);
             BEAST_EXPECT(s2.get_executor() == ex);
             BEAST_EXPECT(s3.get_executor() == ex);
@@ -420,11 +430,11 @@ public:
             tcp_stream s(ioc);
             s.socket().open(tcp::v4());
             s.socket().get_option(opt);
-            BEAST_EXPECT(! opt.value());
+            BEAST_EXPECT(!opt.value());
             opt = true;
             s.socket().set_option(opt);
             opt = false;
-            BEAST_EXPECT(! opt.value());
+            BEAST_EXPECT(!opt.value());
         }
 
         // rate policies
@@ -439,7 +449,7 @@ public:
             basic_stream<tcp,
                 net::io_context::executor_type,
                 simple_rate_policy> s(
-                    simple_rate_policy{}, ioc);
+                simple_rate_policy{}, ioc);
         }
 
         {
@@ -452,7 +462,7 @@ public:
             basic_stream<tcp,
                 net::io_context::executor_type,
                 unlimited_rate_policy> s(
-                    unlimited_rate_policy{}, ioc);
+                unlimited_rate_policy{}, ioc);
         }
     }
 
@@ -462,16 +472,18 @@ public:
         std::size_t n_;
 
     public:
-        handler(error_code ec, std::size_t n)
+        handler(
+            error_code ec,
+            std::size_t n)
             : ec_(ec)
             , n_(n)
         {
         }
 
-        handler(handler&& other)
+        handler(handler &&other)
             : ec_(other.ec_)
             , n_(boost::exchange(other.n_,
-                (std::numeric_limits<std::size_t>::max)()))
+                                 (std::numeric_limits<std::size_t>::max)()))
         {
         }
 
@@ -482,7 +494,9 @@ public:
         }
 
         void
-        operator()(error_code const& ec, std::size_t n)
+        operator()(
+            error_code const &ec,
+            std::size_t n)
         {
             BEAST_EXPECTS(ec == ec_, ec.message());
             BEAST_EXPECT(n == n_);
@@ -510,7 +524,7 @@ public:
             stream_type s(ioc, tcp::v4());
             BEAST_EXPECT(s.read_some(net::mutable_buffer{}) == 0);
             BEAST_EXPECT(s.read_some(net::mutable_buffer{}, ec) == 0);
-            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(!ec, ec.message());
         }
 
         // async_read_some
@@ -556,7 +570,7 @@ public:
             s.socket().connect(srv.local_endpoint());
             s.expires_after(std::chrono::seconds(0));
             s.async_read_some(net::mutable_buffer{},
-                handler(error::timeout, 0));
+                              handler(error::timeout, 0));
             ioc.run();
             ioc.restart();
         }
@@ -591,9 +605,10 @@ public:
                 s.socket().connect(srv.local_endpoint());
                 s.expires_after(std::chrono::seconds(0));
                 s.async_read_some(mb,
-                    [](error_code, std::size_t)
-                    {
-                    });
+                                  [](
+                                      error_code,
+                                      std::size_t) {
+                                  });
             }
             ioc.run();
             ioc.restart();
@@ -605,9 +620,10 @@ public:
             stream_type s(ioc);
             s.expires_after(std::chrono::milliseconds(50));
             s.async_read_some(mb,
-                [](error_code, std::size_t)
-                {
-                });
+                              [](
+                                  error_code,
+                                  std::size_t) {
+                              });
             std::this_thread::sleep_for(
                 std::chrono::milliseconds(100));
             ioc.run();
@@ -618,10 +634,11 @@ public:
         {
             stream_type s(ioc);
             s.async_read_some(net::mutable_buffer{},
-                [](error_code, std::size_t)
-                {
-                    BEAST_FAIL();
-                });
+                              [](
+                                  error_code,
+                                  std::size_t) {
+                                  BEAST_FAIL();
+                              });
         }
     }
 
@@ -645,7 +662,7 @@ public:
             stream_type s(ioc, tcp::v4());
             BEAST_EXPECT(s.write_some(net::const_buffer{}) == 0);
             BEAST_EXPECT(s.write_some(net::const_buffer{}, ec) == 0);
-            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(!ec, ec.message());
         }
 
         // async_write_some
@@ -691,7 +708,7 @@ public:
             s.socket().connect(srv.local_endpoint());
             s.expires_after(std::chrono::seconds(0));
             s.async_write_some(net::const_buffer{},
-                handler(error::timeout, 0));
+                               handler(error::timeout, 0));
             ioc.run();
             ioc.restart();
         }
@@ -700,10 +717,11 @@ public:
         {
             stream_type s(ioc);
             s.async_write_some(cb,
-                [](error_code, std::size_t)
-                {
-                    BEAST_FAIL();
-                });
+                               [](
+                                   error_code,
+                                   std::size_t) {
+                                   BEAST_FAIL();
+                               });
         }
     }
 
@@ -718,20 +736,22 @@ public:
             tcp::endpoint ep;
 
             using iterator =
-                tcp::endpoint const*;
+            tcp::endpoint const *;
 
             // VFALCO This is here because asio mistakenly requires it
             using const_iterator =
-                tcp::endpoint const*;
+            tcp::endpoint const *;
 
-            iterator begin() const noexcept
+            iterator
+            begin() const noexcept
             {
                 return &ep;
             }
 
             // VFALCO need to use const_iterator to silence
             //        warning about unused types
-            const_iterator end() const noexcept
+            const_iterator
+            end() const noexcept
             {
                 return begin() + 1;
             }
@@ -764,16 +784,17 @@ public:
             {
             }
 
-            connect_handler(connect_handler&& other)
+            connect_handler(connect_handler &&other)
                 : pass_(boost::exchange(other.pass_, true))
                 , expected_(other.expected_)
             {
             }
 
-            void operator()(error_code ec)
+            void
+            operator()(error_code ec)
             {
                 pass_ = true;
-                if(expected_)
+                if (expected_)
                     BEAST_EXPECTS(
                         ec == expected_, ec.message());
             }
@@ -785,7 +806,7 @@ public:
 
             range_handler() = default;
 
-            range_handler(range_handler&& other)
+            range_handler(range_handler &&other)
                 : pass(boost::exchange(other.pass, true))
             {
             }
@@ -795,10 +816,13 @@ public:
                 BEAST_EXPECT(pass);
             }
 
-            void operator()(error_code ec, tcp::endpoint)
+            void
+            operator()(
+                error_code ec,
+                tcp::endpoint)
             {
                 pass = true;
-                BEAST_EXPECTS(! ec, ec.message());
+                BEAST_EXPECTS(!ec, ec.message());
             }
         };
 
@@ -808,7 +832,7 @@ public:
 
             iterator_handler() = default;
 
-            iterator_handler(iterator_handler&& other)
+            iterator_handler(iterator_handler &&other)
                 : pass(boost::exchange(other.pass, true))
             {
             }
@@ -818,16 +842,22 @@ public:
                 BEAST_EXPECT(pass);
             }
 
-            void operator()(error_code ec, tcp::endpoint const*)
+            void
+            operator()(
+                error_code ec,
+                tcp::endpoint const *)
             {
                 pass = true;
-                BEAST_EXPECTS(! ec, ec.message());
+                BEAST_EXPECTS(!ec, ec.message());
             }
         };
 
         struct connect_condition
         {
-            bool operator()(error_code, tcp::endpoint) const
+            bool
+            operator()(
+                error_code,
+                tcp::endpoint) const
             {
                 return true;
             };
@@ -846,7 +876,7 @@ public:
             s.connect(a.ep);
             s.socket().close();
             s.connect(a.ep, ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(!ec, ec.message());
         }
 
         // connect
@@ -859,7 +889,7 @@ public:
             s.connect(r);
             s.socket().close();
             s.connect(r, ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(!ec, ec.message());
         }
 
         {
@@ -870,7 +900,7 @@ public:
             s.connect(r, cond);
             s.socket().close();
             s.connect(r, cond, ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(!ec, ec.message());
         }
 
         {
@@ -881,7 +911,7 @@ public:
             s.connect(r.begin(), r.end());
             s.socket().close();
             s.connect(r.begin(), r.end(), ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(!ec, ec.message());
         }
 
         {
@@ -892,7 +922,7 @@ public:
             s.connect(r.begin(), r.end(), cond);
             s.socket().close();
             s.connect(r.begin(), r.end(), cond, ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            BEAST_EXPECTS(!ec, ec.message());
         }
 
         // async_connect (member)
@@ -949,13 +979,13 @@ public:
             r.ep = a.ep;
             s.expires_never();
             s.async_connect(r.begin(), r.end(),
-                iterator_handler{});
+                            iterator_handler{});
             ioc.run();
             ioc.restart();
             s.socket().close();
             s.expires_after(std::chrono::seconds(30));
             s.async_connect(r.begin(), r.end(),
-                iterator_handler{});
+                            iterator_handler{});
             ioc.run();
             ioc.restart();
         }
@@ -966,13 +996,13 @@ public:
             r.ep = a.ep;
             s.expires_never();
             s.async_connect(r.begin(), r.end(), cond,
-                iterator_handler{});
+                            iterator_handler{});
             ioc.run();
             ioc.restart();
             s.socket().close();
             s.expires_after(std::chrono::seconds(30));
             s.async_connect(r.begin(), r.end(), cond,
-                iterator_handler{});
+                            iterator_handler{});
             ioc.run();
             ioc.restart();
         }
@@ -1047,13 +1077,13 @@ public:
             // Requires timeout happen before ECONNREFUSED 
             stream_type s(ioc);
             auto const ep = net::ip::tcp::endpoint(
-            #if 1
+#if 1
                 // This address _should_ be unconnectible
                 net::ip::make_address("72.5.65.111"), 1);
-            #else
-                // On Travis ECONNREFUSED happens before the timeout
-                net::ip::make_address("127.0.0.1"), 1);
-            #endif
+#else
+            // On Travis ECONNREFUSED happens before the timeout
+            net::ip::make_address("127.0.0.1"), 1);
+#endif
             s.expires_after(std::chrono::seconds(0));
             s.async_connect(ep, connect_handler{error::timeout});
             ioc.run_for(std::chrono::seconds(1));
@@ -1091,10 +1121,9 @@ public:
             net::ip::tcp::endpoint ep(
                 net::ip::make_address_v4("127.0.0.1"), 1);
             s.async_connect(ep,
-                [](error_code)
-                {
-                    BEAST_FAIL();
-                });
+                            [](error_code) {
+                                BEAST_FAIL();
+                            });
         }
     }
 
@@ -1131,16 +1160,19 @@ public:
             {
             }
 
-            handler(handler&& other)
+            handler(handler &&other)
                 : pass_(boost::exchange(other.pass_, true))
                 , expected_(other.expected_)
             {
             }
 
-            void operator()(error_code ec, std::size_t)
+            void
+            operator()(
+                error_code ec,
+                std::size_t)
             {
                 pass_ = true;
-                if(expected_)
+                if (expected_)
                     BEAST_EXPECTS(
                         ec == expected_, ec.message());
             }
@@ -1176,7 +1208,7 @@ public:
             s.connect(srv.local_endpoint());
             s.expires_never();
             s.socket().async_read_some(mb,
-                handler(boost::none));
+                                       handler(boost::none));
             s.close();
             ioc.run();
             ioc.restart();
@@ -1191,7 +1223,7 @@ public:
                 s.connect(srv.local_endpoint());
                 s.expires_never();
                 s.socket().async_read_some(mb,
-                    handler(boost::none));
+                                           handler(boost::none));
             }
             ioc.run();
             ioc.restart();
@@ -1213,9 +1245,8 @@ public:
         {
             stream_type s(ioc);
             async_teardown(role_type::server, s,
-                [](error_code)
-                {
-                });
+                           [](error_code) {
+                           });
         }
     }
 
@@ -1226,7 +1257,11 @@ public:
     {
         return {};
     }
-    void process_http_1 (tcp_stream& stream, net::yield_context yield)
+
+    void
+    process_http_1(
+        tcp_stream &stream,
+        net::yield_context yield)
     {
         flat_buffer buffer;
         http::request<http::empty_body> req;
@@ -1239,11 +1274,14 @@ public:
         http::response<http::string_body> res = make_response(req);
 
         // Send the response, with a 30 second timeout.
-        stream.expires_after (std::chrono::seconds(30));
-        http::async_write (stream, res, yield);
+        stream.expires_after(std::chrono::seconds(30));
+        http::async_write(stream, res, yield);
     }
 
-    void process_http_2 (tcp_stream& stream, net::yield_context yield)
+    void
+    process_http_2(
+        tcp_stream &stream,
+        net::yield_context yield)
     {
         flat_buffer buffer;
         http::request<http::empty_body> req;
@@ -1254,7 +1292,7 @@ public:
         http::async_read(stream, buffer, req, yield);
 
         http::response<http::string_body> res = make_response(req);
-        http::async_write (stream, res, yield);
+        http::async_write(stream, res, yield);
     }
 
     void
@@ -1281,7 +1319,7 @@ public:
             net::ip::tcp,
             net::strand<
                 net::io_context::executor_type>>{
-                    net::make_strand(ioc)};
+            net::make_strand(ioc)};
 
         // address the problem in the issue
         {
@@ -1289,7 +1327,7 @@ public:
                 net::ip::tcp,
                 net::strand<
                     net::io_context::executor_type>
-                        > sock(net::make_strand(ioc));
+            > sock(net::make_strand(ioc));
             basic_stream<
                 net::ip::tcp,
                 net::strand<
@@ -1298,7 +1336,7 @@ public:
             BOOST_STATIC_ASSERT(
                 std::is_convertible<
                     decltype(sock)::executor_type,
-                    decltype(stream)::executor_type>::value);
+                decltype(stream)::executor_type > ::value);
         }
     }
 
@@ -1347,8 +1385,51 @@ public:
                 resolve_results.end(),
                 comparison_function,
                 net::use_awaitable))>);
+
+        static_assert(std::is_same_v<
+            net::awaitable<net::ip::tcp::endpoint>, decltype(
+            stream.async_connect(
+                resolve_results,
+                comparison_function,
+                net::use_awaitable))>);
+
     }
 #endif
+
+    void
+    testConnectionConditionArgs(
+        basic_stream<net::ip::tcp> &stream,
+        net::ip::tcp::resolver::results_type const &results)
+    {
+        struct some_condition
+        {
+            bool operator()(const error_code& ec, net::ip::tcp::endpoint const& ep) const;
+        };
+
+        struct some_handler
+        {
+            void operator()(error_code const& ec, net::ip::tcp::endpoint const& ep) const;
+            void operator()(error_code const& ec, net::ip::tcp::resolver::results_type::const_iterator const& ep) const;
+        };
+
+        //
+        // confirm that both forms of conditional async_connect use a condition funcion with
+        // signature compatible with bool(const error_code& ec, net::ip::tcp::endpoint const& ep)
+        //
+
+        static_assert(std::is_void<decltype(
+            stream.async_connect(
+                results.begin(),
+                results.end(),
+                some_condition(),
+                some_handler()))>::value, "");
+
+        static_assert(std::is_void<decltype(
+            stream.async_connect(
+                results,
+                some_condition(),
+                some_handler()))>::value, "");
+    };
 
     void
     run()
@@ -1365,10 +1446,11 @@ public:
         // test for compilation success only
         boost::ignore_unused(&basic_stream_test::testAwaitableCompilation);
 #endif
+        boost::ignore_unused(&basic_stream_test::testConnectionConditionArgs);
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,basic_stream);
+BEAST_DEFINE_TESTSUITE(beast, core, basic_stream);
 
 } // beast
 } // boost

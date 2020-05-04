@@ -1,3 +1,7 @@
+* Fix async_connect documentation
+
+--------------------------------------------------------------------------------
+
 Version 292:
 
 * Fix compile errors on Visual Studio with /std:c++latest

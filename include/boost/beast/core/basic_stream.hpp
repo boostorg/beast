@@ -1165,7 +1165,7 @@ public:
         @code
         bool connect_condition(
             error_code const& ec,
-            Iterator next);
+            typename Protocol::endpoint const& next);
         @endcode
 
         @param handler The completion handler to invoke when the operation
