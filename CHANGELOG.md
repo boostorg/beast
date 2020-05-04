@@ -1,5 +1,14 @@
 * Fix async_connect documentation
 * Fix assert in websocket
+* No automatic User-Agent in WebSocket
+
+Behaviour Changes:
+
+* No automatic User-Agent in WebSocket
+  Beast websocket streams will no longer automatically set the
+  User-Agent HTTP header during client handshake. This header is not required
+  by the WebSocket standard. If this field is required, user code may set it
+  in the decorator
 
 --------------------------------------------------------------------------------
 

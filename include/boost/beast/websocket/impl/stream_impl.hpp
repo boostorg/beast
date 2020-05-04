@@ -30,7 +30,6 @@
 #include <boost/beast/core/static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
-#include <boost/beast/version.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -588,9 +587,6 @@ build_request(
     this->build_request_pmd(req);
     decorator_opt(req);
     decorator(req);
-    if(! req.count(http::field::user_agent))
-        req.set(http::field::user_agent,
-            BOOST_BEAST_VERSION_STRING);
     return req;
 }
 
