@@ -1,3 +1,26 @@
+* Fix http read bytes_transferred (API Change)
+
+API Changes:
+
+The following functions did not previously report the number of bytes consumed
+by the HTTP parser:
+
+- http::read
+- http::read_header
+- http::read_some
+- http::async_read
+- http::async_read_header
+- http::async_read_some
+
+As of now, the `bytes_transferred` return value will indicate the number of bytes 
+consumed by the parser when parsing an http message.
+
+Actions Required:
+
+- Modify calling code which depends on the value returned from these functions.
+
+--------------------------------------------------------------------------------
+
 Version 293:
 
 * Fix async_connect documentation

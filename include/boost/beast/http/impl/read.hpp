@@ -1,5 +1,6 @@
 //
 // Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2020 Richard Hodges (hodges.r@gmail.com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,8 +17,11 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/read.hpp>
 #include <boost/asio/error.hpp>
+#include <boost/asio/compose.hpp>
+#include <boost/asio/coroutine.hpp>
 
 namespace boost {
 namespace beast {
@@ -25,133 +29,23 @@ namespace http {
 
 namespace detail {
 
-// The default maximum number of bytes to transfer in a single operation.
-std::size_t constexpr default_max_transfer_size = 65536;
-
-template<
-    class DynamicBuffer,
-    bool isRequest,
-    class Condition>
-std::size_t
-parse_until(
-    DynamicBuffer& buffer,
-    basic_parser<isRequest>& parser,
-    error_code& ec,
-    Condition cond)
+struct parser_is_done
 {
-    if(ec == net::error::eof)
+    template<bool isRequest>
+    bool
+    operator()(basic_parser<isRequest> const& p) const
     {
-        if(parser.got_some())
-        {
-            // Caller sees EOF on next read
-            ec = {};
-            parser.put_eof(ec);
-            BOOST_ASSERT(ec || parser.is_done());
-        }
-        else
-        {
-            ec = error::end_of_stream;
-        }
-        return 0;
-    }
-    if(ec)
-    {
-        // Upgrade the error if we have a partial message.
-        // This causes SSL short reads (and every other error)
-        // to be converted into something else, allowing the
-        // caller to distinguish an SSL short read which
-        // represents a safe connection closure, versus
-        // a closure with data loss.
-        if( ec != net::error::operation_aborted &&
-            parser.got_some() && ! parser.is_done())
-        {
-            ec = error::partial_message;
-        }
-
-        return 0;
-    }
-    if(parser.is_done())
-        return 0;
-    if(buffer.size() > 0)
-    {
-        auto const bytes_used =
-            parser.put(buffer.data(), ec);
-        // total = total + bytes_used; // VFALCO Can't do this in a condition
-        buffer.consume(bytes_used);
-        if(ec == http::error::need_more)
-        {
-            if(buffer.size() >= buffer.max_size())
-            {
-                ec = http::error::buffer_overflow;
-                return 0;
-            }
-            ec = {};
-        }
-        else if(ec || cond())
-        {
-            return 0;
-        }
-    }
-    return default_max_transfer_size;
-}
-
-// predicate is true on any forward parser progress
-template<bool isRequest>
-struct read_some_condition
-{
-    basic_parser<isRequest>& parser;
-
-    template<class DynamicBuffer>
-    std::size_t
-    operator()(error_code& ec, std::size_t,
-        DynamicBuffer& buffer)
-    {
-        return detail::parse_until(
-            buffer, parser, ec,
-            []
-            {
-                return true;
-            });
+        return p.is_done();
     }
 };
 
-// predicate is true when parser header is complete
-template<bool isRequest>
-struct read_header_condition
+struct parser_is_header_done
 {
-    basic_parser<isRequest>& parser;
-
-    template<class DynamicBuffer>
-    std::size_t
-    operator()(error_code& ec, std::size_t,
-        DynamicBuffer& buffer)
+    template<bool isRequest>
+    bool
+    operator()(basic_parser<isRequest> const& p) const
     {
-        return detail::parse_until(
-            buffer, parser, ec,
-            [this]
-            {
-                return parser.is_header_done();
-            });
-    }
-};
-
-// predicate is true when parser message is complete
-template<bool isRequest>
-struct read_all_condition
-{
-    basic_parser<isRequest>& parser;
-
-    template<class DynamicBuffer>
-    std::size_t
-    operator()(error_code& ec, std::size_t,
-        DynamicBuffer& buffer)
-    {
-        return detail::parse_until(
-            buffer, parser, ec,
-            [this]
-            {
-                return parser.is_done();
-            });
+        return p.is_header_done();
     }
 };
 
@@ -250,6 +144,225 @@ struct run_read_msg_op
     }
 };
 
+template<class AsyncReadStream, class DynamicBuffer, bool isRequest>
+class read_some_op : asio::coroutine
+{
+    AsyncReadStream& s_;
+    DynamicBuffer& b_;
+    basic_parser<isRequest>& p_;
+    std::size_t bytes_transferred_;
+    bool cont_;
+
+public:
+    read_some_op(
+        AsyncReadStream& s,
+        DynamicBuffer& b,
+        basic_parser<isRequest>& p)
+        : s_(s)
+        , b_(b)
+        , p_(p)
+        , bytes_transferred_(0)
+        , cont_(false)
+    {
+    }
+
+    template<class Self>
+    void operator()(
+        Self& self,
+        error_code ec = {},
+        std::size_t bytes_transferred = 0)
+    {
+        BOOST_ASIO_CORO_REENTER(*this)
+        {
+            if(b_.size() == 0)
+                goto do_read;
+            for(;;)
+            {
+                // parse
+                {
+                    auto const used = p_.put(b_.data(), ec);
+                    bytes_transferred_ += used;
+                    b_.consume(used);
+                }
+                if(ec != http::error::need_more)
+                    break;
+
+            do_read:
+                BOOST_ASIO_CORO_YIELD
+                {
+                    cont_ = true;
+                    // VFALCO This was read_size_or_throw
+                    auto const size = read_size(b_, 65536);
+                    if(size == 0)
+                    {
+                        ec = error::buffer_overflow;
+                        goto upcall;
+                    }
+                    auto const mb =
+                        beast::detail::dynamic_buffer_prepare(
+                            b_, size, ec, error::buffer_overflow);
+                    if(ec)
+                        goto upcall;
+                    s_.async_read_some(*mb, std::move(self));
+                }
+                b_.commit(bytes_transferred);
+                if(ec == net::error::eof)
+                {
+                    BOOST_ASSERT(bytes_transferred == 0);
+                    if(p_.got_some())
+                    {
+                        // caller sees EOF on next read
+                        ec.assign(0, ec.category());
+                        p_.put_eof(ec);
+                        if(ec)
+                            goto upcall;
+                        BOOST_ASSERT(p_.is_done());
+                        goto upcall;
+                    }
+                    ec = error::end_of_stream;
+                    break;
+                }
+                if(ec)
+                    break;
+            }
+
+        upcall:
+            if(! cont_)
+            {
+                BOOST_ASIO_CORO_YIELD
+                    net::post(
+                        beast::bind_front_handler(std::move(self), ec));
+            }
+            self.complete(ec, bytes_transferred_);
+        }
+    }
+};
+
+template<class Stream, class DynamicBuffer, bool isRequest, class Condition>
+class read_op
+    : asio::coroutine
+{
+    Stream& s_;
+    DynamicBuffer& b_;
+    basic_parser<isRequest>& p_;
+    std::size_t bytes_transferred_;
+
+public:
+    read_op(Stream& s, DynamicBuffer& b, basic_parser<isRequest>& p)
+    : s_(s)
+    , b_(b)
+    , p_(p)
+    , bytes_transferred_(0)
+    {
+    }
+
+    template<class Self>
+    void operator()(Self& self, error_code ec = {}, std::size_t bytes_transferred = 0)
+    {
+        BOOST_ASIO_CORO_REENTER(*this)
+        {
+            if (Condition{}(p_))
+            {
+                BOOST_ASIO_CORO_YIELD
+                    net::post(std::move(self));
+            }
+            else
+            {
+                do
+                {
+                    BOOST_ASIO_CORO_YIELD
+                        async_read_some(
+                            s_, b_, p_, std::move(self));
+                    bytes_transferred_ += bytes_transferred;
+                } while (!ec &&
+                         !Condition{}(p_));
+            }
+            self.complete(ec, bytes_transferred_);
+        }
+    }
+};
+
+
+template<
+    class SyncReadStream,
+    class DynamicBuffer,
+    bool isRequest>
+std::size_t
+read_some(SyncReadStream& s, DynamicBuffer& b, basic_parser<isRequest>& p, error_code& ec)
+{
+    std::size_t total = 0;
+    ec.clear();
+    if(b.size() == 0)
+        goto do_read;
+    for(;;)
+    {
+        // parse
+        {
+            auto const used = p.put(b.data(), ec);
+            total += used;
+            b.consume(used);
+        }
+        if(ec != http::error::need_more)
+            break;
+
+    do_read:
+        // VFALCO This was read_size_or_throw
+        auto const size = read_size(b, 65536);
+        if(size == 0)
+        {
+            ec = error::buffer_overflow;
+            return total;
+        }
+        auto const mb =
+            beast::detail::dynamic_buffer_prepare(
+                b, size, ec, error::buffer_overflow);
+        if(ec)
+            return total;
+        std::size_t
+            bytes_transferred =
+                s.read_some(*mb, ec);
+        b.commit(bytes_transferred);
+        if(ec == net::error::eof)
+        {
+            BOOST_ASSERT(bytes_transferred == 0);
+            if(p.got_some())
+            {
+                // caller sees EOF on next read
+                ec.assign(0, ec.category());
+                p.put_eof(ec);
+                if(ec)
+                    return total;
+                BOOST_ASSERT(p.is_done());
+                return total;
+            }
+            ec = error::end_of_stream;
+            break;
+        }
+        if(ec)
+            break;
+    }
+
+    return total;
+}
+
+template<class Condition, class Stream, class DynamicBuffer, bool isRequest>
+std::size_t sync_read_op(Stream& s, DynamicBuffer& b, basic_parser<isRequest>& p, error_code& ec)
+{
+    std::size_t total = 0;
+    ec.clear();
+
+    if (!Condition{}(p))
+    {
+        do
+        {
+            total +=
+                detail::read_some(s, b, p, ec);
+        } while (!ec &&
+                 !Condition{}(p));
+    }
+    return total;
+}
+
 } // detail
 
 //------------------------------------------------------------------------------
@@ -295,9 +408,7 @@ read_some(
     static_assert(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
-    return beast::detail::read(stream, buffer,
-        detail::read_some_condition<
-            isRequest>{parser}, ec);
+    return detail::read_some(stream, buffer, parser, ec);
 }
 
 template<
@@ -312,12 +423,15 @@ async_read_some(
     basic_parser<isRequest>& parser,
     ReadHandler&& handler)
 {
-    return beast::detail::async_read(
-        stream,
-        buffer,
-        detail::read_some_condition<
-            isRequest>{parser},
-        std::forward<ReadHandler>(handler));
+    return net::async_compose<ReadHandler,
+        void(beast::error_code, std::size_t)>(
+            detail::read_some_op<AsyncReadStream, DynamicBuffer, isRequest> {
+                stream,
+                buffer,
+                parser
+            },
+            handler,
+            stream);
 }
 
 //------------------------------------------------------------------------------
@@ -364,9 +478,9 @@ read_header(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
     parser.eager(false);
-    return beast::detail::read(stream, buffer,
-        detail::read_header_condition<
-            isRequest>{parser}, ec);
+    return detail::sync_read_op<
+        detail::parser_is_header_done>(
+            stream, buffer, parser, ec);
 }
 
 template<
@@ -382,12 +496,16 @@ async_read_header(
     ReadHandler&& handler)
 {
     parser.eager(false);
-    return beast::detail::async_read(
-        stream,
-        buffer,
-        detail::read_header_condition<
-            isRequest>{parser},
-        std::forward<ReadHandler>(handler));
+    return net::async_compose<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+        detail::read_op<
+            AsyncReadStream,
+            DynamicBuffer,
+            isRequest,
+            detail::parser_is_header_done>(
+                stream, buffer, parser),
+            handler, stream);
 }
 
 //------------------------------------------------------------------------------
@@ -434,9 +552,9 @@ read(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
     parser.eager(true);
-    return beast::detail::read(stream, buffer,
-        detail::read_all_condition<
-            isRequest>{parser}, ec);
+    return detail::sync_read_op<
+        detail::parser_is_done>(
+            stream, buffer, parser, ec);
 }
 
 template<
@@ -458,12 +576,16 @@ async_read(
         net::is_dynamic_buffer<DynamicBuffer>::value,
         "DynamicBuffer type requirements not met");
     parser.eager(true);
-    return beast::detail::async_read(
-        stream,
-        buffer,
-        detail::read_all_condition<
-            isRequest>{parser},
-        std::forward<ReadHandler>(handler));
+    return net::async_compose<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            detail::read_op<
+                AsyncReadStream,
+                DynamicBuffer,
+                isRequest,
+                detail::parser_is_done>(
+                    stream, buffer, parser),
+            handler, stream);
 }
 
 //------------------------------------------------------------------------------

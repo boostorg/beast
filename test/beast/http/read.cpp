@@ -22,9 +22,11 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/strand.hpp>
+#include <boost/asio/write.hpp>
 #include <atomic>
+
 #if BOOST_ASIO_HAS_CO_AWAIT
 #include <boost/asio/use_awaitable.hpp>
 #endif
@@ -575,6 +577,140 @@ public:
     }
 #endif
 
+    void testReadSomeHeader(net::yield_context yield)
+    {
+        std::string hdr =
+            "GET /foo HTTP/1.1" "\r\n"
+            "Connection: Keep-Alive" "\r\n"
+            "Content-Length: 6"
+            "\r\n"
+            "\r\n";
+        std::string body =
+            "Hello!";
+
+        {
+            // bytes_transferred returns length of header
+            request_parser<string_body> p;
+            test::stream s(ioc_);
+
+            s.append(string_view(hdr));
+            s.append(string_view(body));
+            flat_buffer fb;
+            error_code ec;
+            auto bt = async_read_header(s, fb, p, yield[ec]);
+            BEAST_EXPECTS(!ec, ec.message());
+            BEAST_EXPECT(bt == hdr.size());
+
+            // next read should be zero-size, success
+            bt = async_read_header(s, fb, p, yield[ec]);
+            BEAST_EXPECTS(!ec, ec.message());
+            BEAST_EXPECTS(bt == 0, std::to_string(0));
+        }
+
+        {
+            // incomplete header consumes all parsable header bytes
+            request_parser<string_body> p;
+            test::stream s(ioc_);
+
+            s.append(hdr.substr(0, hdr.size() - 1));
+            s.close();
+            flat_buffer fb;
+            error_code ec;
+            auto bt = async_read_header(s, fb, p, yield[ec]);
+            BEAST_EXPECTS(ec == error::partial_message, ec.message());
+            BEAST_EXPECTS(bt + fb.size() == hdr.size() - 1,
+                std::to_string(bt + fb.size()) +
+                " expected " +
+                std::to_string(hdr.size() - 1));
+        }
+
+        {
+            // read consumes and reports correct number of bytes
+            request_parser<string_body> p;
+            test::stream s(ioc_);
+
+            s.append(hdr);
+            s.append(body);
+            s.append(hdr);
+            s.append(body);
+            s.append(hdr);
+            s.append(body);
+
+            flat_buffer fb;
+            error_code ec;
+            auto bt = async_read_header(s, fb, p, yield[ec]);
+            BEAST_EXPECTS("ec", ec.message());
+            BEAST_EXPECT(bt == hdr.size());
+            auto bt2 = async_read_some(s, fb, p, yield[ec]);
+            BEAST_EXPECTS(!ec, ec.message());
+            BEAST_EXPECT(bt2  == body.size());
+            BEAST_EXPECTS(fb.size() / 2 == hdr.size() + body.size(),
+                std::to_string(fb.size() / 2) + " != " + std::to_string(hdr.size() + body.size()));
+
+            request_parser<string_body> p2;
+            bt = async_read(s, fb, p2, yield[ec]);
+            BEAST_EXPECTS(!ec, ec.message());
+            BEAST_EXPECTS(bt  == hdr.size() + body.size(),
+                std::to_string(bt) +
+                " expected " +
+                std::to_string(hdr.size() + body.size()));
+            BEAST_EXPECTS(fb.size() == hdr.size() + body.size(),
+                std::to_string(fb.size()) + " != " + std::to_string(hdr.size() + body.size()));
+
+
+        }
+    }
+
+    void testReadSomeHeader()
+    {
+        net::io_context ioc;
+
+        std::string hdr =
+            "GET /foo HTTP/1.1" "\r\n"
+            "Connection: Keep-Alive" "\r\n"
+            "Content-Length: 6"
+            "\r\n"
+            "\r\n";
+        std::string body =
+            "Hello!";
+
+        {
+            // bytes_transferred returns length of header
+            request_parser<string_body> p;
+            test::stream s(ioc);
+            s.append(string_view(hdr));
+            s.append(string_view(body));
+            flat_buffer fb;
+            error_code ec;
+            auto bt = read_header(s, fb, p, ec);
+            BEAST_EXPECTS(!ec, ec.message());
+            BEAST_EXPECT(bt == hdr.size());
+
+            // next read should be zero-size, success
+            bt = read_header(s, fb, p, ec);
+            BEAST_EXPECTS(!ec, ec.message());
+            BEAST_EXPECTS(bt == 0, std::to_string(0));
+        }
+
+        {
+            // incomplete header consumes all parsable header bytes
+            request_parser<string_body> p;
+            test::stream s(ioc);
+
+            s.append(hdr.substr(0, hdr.size() - 1));
+            s.close();
+            flat_buffer fb;
+            error_code ec;
+            auto bt = read_header(s, fb, p, ec);
+            BEAST_EXPECTS(ec == error::partial_message, ec.message());
+            BEAST_EXPECTS(bt + fb.size() == hdr.size() - 1,
+                          std::to_string(bt + fb.size()) +
+                          " expected " +
+                          std::to_string(hdr.size() - 1));
+        }
+    }
+
+
     void
     run() override
     {
@@ -601,7 +737,14 @@ public:
 #if BOOST_ASIO_HAS_CO_AWAIT
         boost::ignore_unused(&read_test::testAwaitableCompiles);
 #endif
+        yield_to([&](yield_context yield)
+                 {
+                     testReadSomeHeader(yield);
+                 });
+        testReadSomeHeader();
     }
+
+
 };
 
 BEAST_DEFINE_TESTSUITE(beast,http,read);
