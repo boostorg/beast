@@ -1,3 +1,7 @@
+* Fix http read bytes_transferred
+
+--------------------------------------------------------------------------------
+
 Version 293:
 
 * Fix async_connect documentation
