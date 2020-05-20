@@ -1,3 +1,5 @@
+Version 294:
+
 * Fix FILE namespace qualification
 * Fix http read bytes_transferred (API Change)
 
