@@ -1,4 +1,14 @@
+* Fix basic_stream expires_after (API Change)
 * Fix FILE namespace qualification
+
+API Changes:
+
+basic_stream::expires_after used to take a nanosecond duration type argument. This
+required users on systems where the steady_clock::duration_type was less accurate
+to explicity duration_cast when calling this function, making code non-portable.
+The duration type is now that of the embedded steady_clock.
+
+--------------------------------------------------------------------------------
 
 Version 294:
 
