@@ -456,7 +456,7 @@ public:
     */
     void
     expires_after(
-        std::chrono::nanoseconds expiry_time);
+        net::steady_timer::duration expiry_time);
 
     /** Set the timeout for the next logical operation.
 

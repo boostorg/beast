@@ -704,7 +704,7 @@ release_socket() ->
 template<class Protocol, class Executor, class RatePolicy>
 void
 basic_stream<Protocol, Executor, RatePolicy>::
-expires_after(std::chrono::nanoseconds expiry_time)
+expires_after(net::steady_timer::duration expiry_time)
 {
     // If assert goes off, it means that there are
     // already read or write (or connect) operations
