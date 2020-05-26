@@ -1,3 +1,5 @@
+* Fix FILE namespace qualification
+
 Version 294:
 
 * Fix FILE namespace qualification
