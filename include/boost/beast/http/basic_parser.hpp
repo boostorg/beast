@@ -69,8 +69,9 @@ template<bool isRequest>
 class basic_parser
     : private detail::basic_parser_base
 {
-    std::uint64_t body_limit_ =
-        default_body_limit(is_request{});   // max payload body
+    boost::optional<std::uint64_t>
+        body_limit_ =
+            default_body_limit(is_request{});   // max payload body
     std::uint64_t len_ = 0;                 // size of chunk or body
     std::uint64_t len0_ = 0;                // content length if known
     std::unique_ptr<char[]> buf_;           // temp storage
@@ -289,10 +290,13 @@ public:
 
         The default limit is 1MB for requests and 8MB for responses.
 
+        @li Supplying a value for v equal to boost::none
+        indicates the user's intent that there is no body limit.
+
         @param v The payload body limit to set
     */
     void
-    body_limit(std::uint64_t v)
+    body_limit(boost::optional<std::uint64_t> v)
     {
         body_limit_ = v;
     }

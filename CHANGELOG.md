@@ -1,3 +1,14 @@
+* Parser body_limit is optional (API Change)
+
+API Changes:
+
+The signature of basic_parser<>::body_limit(n) has changed. It now accepts an
+optional std::uint64_t. The caller may indicate that no body limit is required
+by calling body_limit(boost::none). The default limits remain in place in order
+to maintain 'safe by default' behaviour.
+
+--------------------------------------------------------------------------------
+
 Version 294:
 
 * Fix FILE namespace qualification

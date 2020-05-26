@@ -416,6 +416,55 @@ public:
             "\r\n");
     }
 
+    void testChunkedBodySize()
+    {
+        string_view resp =
+            "HTTP/1.1 200 OK\r\n"
+            "Server: test\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+
+            // chunk 1
+            "4\r\n"
+            "Wiki\r\n"
+
+            // chunk 2
+            "5\r\n"
+            "pedia\r\n"
+
+            // chunk 3
+            "E\r\n"
+            " in\r\n"
+            "\r\n"
+            "chunks.\r\n"
+
+            // end
+            "0\r\n"
+            "\r\n";
+
+        {  // body limit not exceeded
+            response_parser<string_body> p;
+            p.eager(true);
+            p.body_limit(23);
+            error_code ec;
+            p.put(net::buffer(resp.data(), resp.size()), ec);
+            BEAST_EXPECTS(ec.message() == "Success", ec.message());
+            p.put_eof(ec);
+            BEAST_EXPECTS(ec.message() == "Success", ec.message());
+        }
+
+        {  // body limit exceeded
+            response_parser<string_body> p;
+            p.eager(true);
+            p.body_limit(22);
+            error_code ec;
+            p.put(net::buffer(resp.data(), resp.size()), ec);
+            BEAST_EXPECTS(ec.message() == "body limit exceeded", ec.message());
+            p.put_eof(ec);
+            BEAST_EXPECTS(ec.message() == "partial message", ec.message());
+        }
+    }
+
     void
     run() override
     {
@@ -426,6 +475,7 @@ public:
         testIssue818();
         testIssue1187();
         testIssue1880();
+        testChunkedBodySize();
     }
 };
 
