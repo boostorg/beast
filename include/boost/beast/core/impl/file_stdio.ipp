@@ -47,7 +47,7 @@ operator=(file_stdio&& other)
 
 void
 file_stdio::
-native_handle(FILE* f)
+native_handle(std::FILE* f)
 {
     if(f_)
         fclose(f_);
@@ -119,7 +119,7 @@ open(char const* path, file_mode mode, error_code& ec)
     case file_mode::write_new:
     {
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-        FILE* f0;
+        std::FILE* f0;
         auto const ev = ::_wfopen_s(&f0, unicode_path.c_str(), L"rb");
         if(! ev)
         {
@@ -161,7 +161,7 @@ open(char const* path, file_mode mode, error_code& ec)
     case file_mode::append_existing:
     {
 #ifdef BOOST_MSVC
-        FILE* f0;
+        std::FILE* f0;
         auto const ev =
             ::_wfopen_s(&f0, unicode_path.c_str(), L"rb+");
         if(ev)
