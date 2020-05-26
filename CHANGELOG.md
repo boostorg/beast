@@ -1,9 +1,15 @@
+* Parser body_limit is optional (API Change)
 * Fix basic_stream expires_after (API Change)
 * Fix FILE namespace qualification
 
 API Changes:
 
-basic_stream::expires_after used to take a nanosecond duration type argument. This
+* The signature of basic_parser<>::body_limit(n) has changed. It now accepts an
+optional std::uint64_t. The caller may indicate that no body limit is required
+by calling body_limit(boost::none). The default limits remain in place in order
+to maintain 'safe by default' behaviour.
+
+* basic_stream::expires_after used to take a nanosecond duration type argument. This
 required users on systems where the steady_clock::duration_type was less accurate
 to explicity duration_cast when calling this function, making code non-portable.
 The duration type is now that of the embedded steady_clock.

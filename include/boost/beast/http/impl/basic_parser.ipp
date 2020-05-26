@@ -573,12 +573,15 @@ basic_parser<isRequest>::
 parse_body_to_eof(char const*& p,
     std::size_t n, error_code& ec)
 {
-    if(n > body_limit_)
+    if(body_limit_.has_value())
     {
-        ec = error::body_limit;
-        return;
+        if (n > *body_limit_)
+        {
+            ec = error::body_limit;
+            return;
+        }
+        *body_limit_ -= n;
     }
-    body_limit_ = body_limit_ - n;
     ec = {};
     n = this->on_body_impl(string_view{p, n}, ec);
     p += n;
@@ -648,12 +651,15 @@ parse_chunk_header(char const*& p0,
         }
         if(size != 0)
         {
-            if(size > body_limit_)
+            if (body_limit_.has_value())
             {
-                ec = error::body_limit;
-                return;
+                if (size > *body_limit_)
+                {
+                    ec = error::body_limit;
+                    return;
+                }
+                *body_limit_ -= size;
             }
-            body_limit_ -= size;
             auto const start = p;
             parse_chunk_extensions(p, pend, ec);
             if(ec)
