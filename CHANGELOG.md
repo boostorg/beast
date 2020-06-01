@@ -1,3 +1,13 @@
+* Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
+
+API Changes:
+
+* The macro BOOST_BEAST_NO_DEPRECATED will no longer be noticed by Beast. The only way to
+enable deprecated functionality is now the macro BOOST_BEAST_ALLOW_DEPRECATED which is 
+undefined by default. That is, all deprecated behaviour is disabled by default.
+
+--------------------------------------------------------------------------------
+
 Version 295:
 
 * Parser body_limit is optional (API Change)
