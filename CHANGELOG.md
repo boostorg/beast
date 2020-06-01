@@ -1,6 +1,16 @@
+* Remove accept_ex and handshake_ex variants (API Change)
 * Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
 
 API Changes:
+
+* The following deprecated functions have been removed:
+  - websocket::async_accept_ex
+  - websocket::async_handshake_ex
+  - websocket::accept_ex
+  - websocket::handshake_ex
+
+Programs still using these names should be refactored to use the `decorator` feature and
+the remaining handshake and accept functions.
 
 * The macro BOOST_BEAST_NO_DEPRECATED will no longer be noticed by Beast. The only way to
 enable deprecated functionality is now the macro BOOST_BEAST_ALLOW_DEPRECATED which is 
