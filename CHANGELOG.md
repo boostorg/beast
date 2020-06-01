@@ -1,7 +1,10 @@
+* Remove websocket::role_type (API Change)
 * Remove accept_ex and handshake_ex variants (API Change)
 * Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
 
 API Changes:
+
+* websocket::role_type has been removed. Users should use beast::role_type instead.
 
 * The following deprecated functions have been removed:
   - websocket::async_accept_ex
