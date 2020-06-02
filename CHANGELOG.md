@@ -1,3 +1,4 @@
+* Remove `core/type_traits.hpp` (API Change)
 * Remove `reset` function from `flat_static_buffer` (API Change)
 * Remove `mutable_data_type` from Dyanmic Buffers (API Change)
 * Remove deprecated lowest_layer from test::stream
@@ -7,6 +8,10 @@
 * Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
 
 API Changes:
+
+* The `core/type_traits.hpp` public header has been removed and along with it
+  the type trait `is_completion_handler`. Beast uses the CompletionHandler correctness
+  checks provided by Asio. In a c++20 environment, these convert to concept checks.
 
 * The `reset` function has been removed from `flat_static_buffer`. Use the 
   `clear` function instead.
