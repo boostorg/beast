@@ -1,8 +1,12 @@
+* Remove handler_pointer (API Change)
 * Remove websocket::role_type (API Change)
 * Remove accept_ex and handshake_ex variants (API Change)
 * Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
 
 API Changes:
+
+* handler_ptr has been removed. Users should use net::bind_handler and/or 
+bind_front_handler instead.
 
 * websocket::role_type has been removed. Users should use beast::role_type instead.
 
