@@ -1,3 +1,4 @@
+* Remove deprecated lowest_layer from test::stream
 * Remove handler_pointer (API Change)
 * Remove websocket::role_type (API Change)
 * Remove accept_ex and handshake_ex variants (API Change)

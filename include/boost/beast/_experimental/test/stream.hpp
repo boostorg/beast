@@ -186,27 +186,6 @@ class stream
         std::unique_ptr<read_op_base>&& op,
         std::size_t buf_size);
 
-#if ! BOOST_BEAST_DOXYGEN
-    // boost::asio::ssl::stream needs these
-    // DEPRECATED
-    template<class>
-    friend class boost::asio::ssl::stream;
-    // DEPRECATED
-    using lowest_layer_type = stream;
-    // DEPRECATED
-    lowest_layer_type&
-    lowest_layer() noexcept
-    {
-        return *this;
-    }
-    // DEPRECATED
-    lowest_layer_type const&
-    lowest_layer() const noexcept
-    {
-        return *this;
-    }
-#endif
-
 public:
     using buffer_type = flat_buffer;
 
