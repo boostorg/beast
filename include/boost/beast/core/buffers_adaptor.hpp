@@ -112,10 +112,6 @@ public:
 #else
     using const_buffers_type = subrange<false>;
 
-#ifdef BOOST_BEAST_ALLOW_DEPRECATED
-    using mutable_data_type = subrange<true>;
-#endif
-
     using mutable_buffers_type = subrange<true>;
 #endif
 

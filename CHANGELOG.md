@@ -1,3 +1,4 @@
+* Remove `mutable_data_type` from Dyanmic Buffers (API Change)
 * Remove deprecated lowest_layer from test::stream
 * Remove handler_pointer (API Change)
 * Remove websocket::role_type (API Change)
@@ -5,6 +6,14 @@
 * Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
 
 API Changes:
+
+* Code that depends on `mutable_data_type` should be refactored to use
+  `mutable_buffers_type`. Classes affected are:
+  - `buffers_adaptor`
+  - `flat_buffer`
+  - `flat_static_buffer`
+  - `multi_buffer`
+  - `static_buffer`
 
 * handler_ptr has been removed. Users should use net::bind_handler and/or 
 bind_front_handler instead.

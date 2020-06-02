@@ -114,10 +114,6 @@ public:
     /// The ConstBufferSequence used to represent the readable bytes.
     using const_buffers_type = net::const_buffer;
 
-#ifdef BOOST_BEAST_ALLOW_DEPRECATED
-    using mutable_data_type = net::mutable_buffer;
-#endif
-
     /// The MutableBufferSequence used to represent the writable bytes.
     using mutable_buffers_type = net::mutable_buffer;
 

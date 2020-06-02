@@ -166,11 +166,6 @@ public:
     using const_buffers_type = subrange<false>;
 
     using mutable_buffers_type = subrange<true>;
-
-#ifdef BOOST_BEAST_ALLOW_DEPRECATED
-    using mutable_data_type = subrange<true>;
-#endif
-
 #endif
 
     /// The type of allocator used.

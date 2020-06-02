@@ -99,10 +99,6 @@ public:
 #else
     using const_buffers_type   = detail::buffers_pair<false>;
 
-#ifdef BOOST_BEAST_ALLOW_DEPRECATED
-    using mutable_data_type    = detail::buffers_pair<true>;
-#endif
-
     using mutable_buffers_type = detail::buffers_pair<true>;
 #endif
 
