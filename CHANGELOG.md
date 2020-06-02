@@ -1,3 +1,4 @@
+* Remove zlib error `invalid_code_lenths`(sic) (API Change)
 * Remove `core/type_traits.hpp` (API Change)
 * Remove `reset` function from `flat_static_buffer` (API Change)
 * Remove `mutable_data_type` from Dyanmic Buffers (API Change)
@@ -8,6 +9,9 @@
 * Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
 
 API Changes:
+
+* The error code enum `invalid_code_lenths` was a synonym of `invalid_code_lengths`.
+  Affected programs should be modified to use `invalid_code_lengths`.
 
 * The `core/type_traits.hpp` public header has been removed and along with it
   the type trait `is_completion_handler`. Beast uses the CompletionHandler correctness
