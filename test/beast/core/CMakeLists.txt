@@ -33,7 +33,6 @@ add_executable (tests-beast-core
     bind_handler.cpp
     buffer_traits.cpp
     buffered_read_stream.cpp
-    buffers_adapter.cpp
     buffers_adaptor.cpp
     buffers_cat.cpp
     buffers_prefix.cpp

@@ -1,3 +1,4 @@
+* Remove buffers_adapter.hpp (API Change)
 * Remove zlib error `invalid_code_lenths`(sic) (API Change)
 * Remove `core/type_traits.hpp` (API Change)
 * Remove `reset` function from `flat_static_buffer` (API Change)
@@ -9,6 +10,10 @@
 * Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
 
 API Changes:
+
+* The file `core/buffers_adapter.hpp` has been removed along with the deprecated
+  alias typename `buffers_adapter`. Affected programs should use 
+  `core/buffers_adapator.hpp` and the type `buffers_adaptor`.
 
 * The error code enum `invalid_code_lenths` was a synonym of `invalid_code_lengths`.
   Affected programs should be modified to use `invalid_code_lengths`.
