@@ -1,3 +1,4 @@
+* Remove `reset` function from `flat_static_buffer` (API Change)
 * Remove `mutable_data_type` from Dyanmic Buffers (API Change)
 * Remove deprecated lowest_layer from test::stream
 * Remove handler_pointer (API Change)
@@ -6,6 +7,9 @@
 * Rename to BOOST_BEAST_ALLOW_DEPRECATED (API Change)
 
 API Changes:
+
+* The `reset` function has been removed from `flat_static_buffer`. Use the 
+  `clear` function instead.
 
 * Code that depends on `mutable_data_type` should be refactored to use
   `mutable_buffers_type`. Classes affected are:

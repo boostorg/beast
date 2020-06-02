@@ -92,23 +92,6 @@ public:
     void
     clear() noexcept;
 
-#ifdef BOOST_BEAST_ALLOW_DEPRECATED
-    /// Change the number of readable and writable bytes to zero.
-    void
-    reset() noexcept
-    {
-        clear();
-    }
-#elif ! BOOST_BEAST_DOXYGEN
-    template<std::size_t I = 0>
-    void
-    reset() noexcept
-    {
-        static_assert(I != 0,
-            BOOST_BEAST_DEPRECATION_STRING);
-    }
-#endif
-
     //--------------------------------------------------------------------------
 
     /// The ConstBufferSequence used to represent the readable bytes.
