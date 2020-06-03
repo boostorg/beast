@@ -1,3 +1,5 @@
+Version 296:
+
 * Remove buffers_adapter.hpp (API Change)
 * Remove zlib error `invalid_code_lenths`(sic) (API Change)
 * Remove `core/type_traits.hpp` (API Change)
