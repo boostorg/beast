@@ -14,7 +14,9 @@
 #include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/buffers_ref.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
+#include <boost/beast/core/detail/static_string.hpp>
 #include <boost/beast/core/detail/temporary_buffer.hpp>
+#include <boost/beast/core/static_string.hpp>
 #include <boost/beast/http/verb.hpp>
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/http/status.hpp>
@@ -541,7 +543,7 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-insert(field name, string_param const& value)
+insert(field name, string_view const& value)
 {
     BOOST_ASSERT(name != field::unknown);
     insert(name, to_string(name), value);
@@ -550,7 +552,7 @@ insert(field name, string_param const& value)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-insert(string_view sname, string_param const& value)
+insert(string_view sname, string_view const& value)
 {
     auto const name =
         string_to_field(sname);
@@ -561,7 +563,7 @@ template<class Allocator>
 void
 basic_fields<Allocator>::
 insert(field name,
-    string_view sname, string_param const& value)
+    string_view sname, string_view const& value)
 {
     auto& e = new_element(name, sname,
         static_cast<string_view>(value));
@@ -591,7 +593,7 @@ insert(field name,
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set(field name, string_param const& value)
+set(field name, string_view const& value)
 {
     BOOST_ASSERT(name != field::unknown);
     set_element(new_element(name, to_string(name),
@@ -601,11 +603,10 @@ set(field name, string_param const& value)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set(string_view sname, string_param const& value)
+set(string_view sname, string_view const& value)
 {
     set_element(new_element(
-        string_to_field(sname), sname,
-            static_cast<string_view>(value)));
+        string_to_field(sname), sname, value));
 }
 
 template<class Allocator>
@@ -931,7 +932,10 @@ set_content_length_impl(
     if(! value)
         erase(field::content_length);
     else
-        set(field::content_length, *value);
+    {
+        set(field::content_length,
+            to_static_string(*value));
+    }
 }
 
 template<class Allocator>

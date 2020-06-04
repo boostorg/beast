@@ -14,6 +14,7 @@
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/file_stdio.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/static_string.hpp>
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/serializer.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
@@ -174,7 +175,7 @@ public:
             header.version(11);
             header.result(status::accepted);
             header.set(field::server, "test");
-            header.set(field::content_length, 4097);
+            header.set(field::content_length, to_static_string(4097));
 
             typename file_body_type::writer w(header, value);
             auto maybe_range = w.get(ec);

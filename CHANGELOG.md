@@ -1,4 +1,18 @@
 * Fix `max` compile error
+* Deprecate `string_param` (API Change)
+
+API Changes:
+
+* `string_param`, which was previously the argument type when setting field values 
+   has been replaced by `string_view`. Because of this, it is no longer possible to 
+   set message field values directly as integrals. 
+
+   Users are required to convert numeric arguments to a string type prior to calling 
+   `fields::set` et. al.
+   
+   Beast provides the non-allocating `to_static_string()` function for this purpose.
+   
+   To set Content-Length field manually, call `message::content_length`.
 
 --------------------------------------------------------------------------------
 

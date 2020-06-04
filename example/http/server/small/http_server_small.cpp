@@ -173,7 +173,7 @@ private:
     {
         auto self = shared_from_this();
 
-        response_.set(http::field::content_length, response_.body().size());
+        response_.content_length(response_.body().size());
 
         http::async_write(
             socket_,

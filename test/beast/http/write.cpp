@@ -18,6 +18,7 @@
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/core/static_string.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
@@ -642,7 +643,7 @@ public:
             m.method(verb::get);
             m.version(11);
             m.target("/");
-            m.set("Content-Length", 5);
+            m.set("Content-Length", to_static_string(5));
             m.body() = "*****";
             async_write(ts, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
@@ -665,7 +666,7 @@ public:
                 m.method(verb::get);
                 m.version(11);
                 m.target("/");
-                m.set("Content-Length", 5);
+                m.set("Content-Length", to_static_string(5));
                 m.body() = "*****";
                 async_write(ts, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);

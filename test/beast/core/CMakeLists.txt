@@ -61,7 +61,6 @@ add_executable (tests-beast-core
     static_string.cpp
     stream_traits.cpp
     string.cpp
-    string_param.cpp
     tcp_stream.cpp
 )
 
