@@ -316,7 +316,7 @@ void do_server_head(
         // set of headers that would be sent for a GET request,
         // including the Content-Length, except for the body.
         res.result(status::ok);
-        res.set(field::content_length, payload.size());
+        res.content_length(payload.size());
 
         // For GET requests, we include the body
         if(req.method() == verb::get)

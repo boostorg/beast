@@ -44,7 +44,6 @@
           <member><link linkend="beast.ref.boost__beast__span">span</link></member>
           <member><link linkend="beast.ref.boost__beast__static_string">static_string</link></member>
           <member><link linkend="beast.ref.boost__beast__stable_async_base">stable_async_base</link></member>
-          <member><link linkend="beast.ref.boost__beast__string_param">string_param</link></member>
           <member><link linkend="beast.ref.boost__beast__string_view">string_view</link></member>
           <member><link linkend="beast.ref.boost__beast__tcp_stream">tcp_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__unlimited_rate_policy">unlimited_rate_policy</link></member>

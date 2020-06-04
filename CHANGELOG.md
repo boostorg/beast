@@ -1,3 +1,20 @@
+* Deprecate `string_param` (API Change)
+
+API Changes:
+
+* `string_param`, which was previously the argument type when setting field values 
+   has been replaced by `string_view`. Because of this, it is no longer possible to 
+   set message field values directly as integrals. 
+
+   Users are requied to convert numeric arguments to a string type prior to calling 
+   `fields::set` et. al.
+   
+   Beast provides the non-allocating `to_static_string()` function for this purpose.
+   
+   To set Content-Length field manually, call `message::content_length`.
+
+--------------------------------------------------------------------------------
+
 Version 296:
 
 * Remove buffers_adapter.hpp (API Change)
