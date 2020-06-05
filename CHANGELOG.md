@@ -1,3 +1,4 @@
+* iless and iequal take part in Heterogeneous Lookup
 * Fix `max` compile error
 * Deprecate `string_param` (API Change)
 

@@ -33,6 +33,10 @@ iequals(
 /** A case-insensitive less predicate for strings.
 
     The case-comparison operation is defined only for low-ASCII characters.
+
+    As of C++14, containers using this class as the `Compare` type will take part
+    in heterogeneous lookup if the search term is implicitly convertible to
+    @ref string_view.
 */
 struct iless
 {
@@ -41,11 +45,17 @@ struct iless
     operator()(
         string_view lhs,
         string_view rhs) const;
+
+    using is_transparent = void;
 };
 
 /** A case-insensitive equality predicate for strings.
 
     The case-comparison operation is defined only for low-ASCII characters.
+
+    As of C++14, containers using this class as the `Compare` type will take part
+    in heterogeneous lookup if the search term is implicitly convertible to
+    @ref string_view.
 */
 struct iequal
 {
@@ -56,6 +66,8 @@ struct iequal
     {
         return iequals(lhs, rhs);
     }
+
+    using is_transparent = void;
 };
 
 } // beast
