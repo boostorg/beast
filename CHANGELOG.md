@@ -1,3 +1,7 @@
+* iless and iequal take part in Heterogeneous Lookup
+
+--------------------------------------------------------------------------------
+
 Version 296:
 
 * Remove buffers_adapter.hpp (API Change)
