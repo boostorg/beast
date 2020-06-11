@@ -1,3 +1,7 @@
+* Fix `max` compile error
+
+--------------------------------------------------------------------------------
+
 Version 296:
 
 * Remove buffers_adapter.hpp (API Change)
