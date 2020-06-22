@@ -53,7 +53,7 @@ class session : public std::enable_shared_from_this<session>
 public:
     explicit
     session(
-        net::executor ex,
+        net::any_io_executor ex,
         ssl::context& ctx)
     : resolver_(ex)
     , stream_(ex, ctx)

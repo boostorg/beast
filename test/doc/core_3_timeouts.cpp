@@ -205,7 +205,7 @@ core_3_timeouts_snippets()
         // if the choice of RatePolicy is not DefaultConstructible,
         // an instance of the type may be passed to the constructor.
 
-        basic_stream<net::ip::tcp, net::executor, simple_rate_policy> stream(ioc);
+        basic_stream<net::ip::tcp, net::any_io_executor, simple_rate_policy> stream(ioc);
 
         // The policy object, which is default constructed, or
         // decay-copied upon construction, is attached to the stream
@@ -586,7 +586,7 @@ core_3_timeouts_snippets2()
     //[code_core_3_timeouts_9
 
         // This stream will use our new rate_gauge policy
-        basic_stream<net::ip::tcp, net::executor, rate_gauge> stream(ioc);
+        basic_stream<net::ip::tcp, net::any_io_executor, rate_gauge> stream(ioc);
 
         //...
 
@@ -600,7 +600,7 @@ core_3_timeouts_snippets2()
 
 } // (anon)
 
-template class basic_stream<net::ip::tcp, net::executor, rate_gauge>;
+template class basic_stream<net::ip::tcp, net::any_io_executor, rate_gauge>;
 
 struct core_3_timeouts_test
     : public beast::unit_test::suite

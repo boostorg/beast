@@ -28,7 +28,7 @@ public:
         net::make_strand(ioc.get_executor());
         net::make_strand(net::make_strand(ioc));
 
-        net::executor ex(ioc.get_executor());
+        net::any_io_executor ex(ioc.get_executor());
         net::make_strand(ex);
 
         // this *should-not* compile
