@@ -182,7 +182,7 @@ namespace beast {
 
     @tparam Executor A type meeting the requirements of <em>Executor</em> to
     be used for submitting all completion handlers which do not already have an
-    associated executor. If this type is omitted, the default of `net::executor`
+    associated executor. If this type is omitted, the default of `net::any_io_executor`
     will be used.
 
     @par Thread Safety
@@ -197,7 +197,7 @@ namespace beast {
 */
 template<
     class Protocol,
-    class Executor = net::executor,
+    class Executor = net::any_io_executor,
     class RatePolicy = unlimited_rate_policy
 >
 class basic_stream
@@ -233,7 +233,8 @@ public:
     using endpoint_type = typename Protocol::endpoint;
 
 private:
-    static_assert(net::is_executor<Executor>::value,
+    static_assert(
+        net::is_executor<Executor>::value || net::execution::is_executor<Executor>::value,
         "Executor type requirements not met");
 
     struct impl_type
