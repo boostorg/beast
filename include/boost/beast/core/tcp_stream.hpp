@@ -25,7 +25,7 @@ namespace beast {
 */
 using tcp_stream = basic_stream<
     net::ip::tcp,
-    net::executor,
+    net::any_io_executor,
     unlimited_rate_policy>;
 
 } // beast

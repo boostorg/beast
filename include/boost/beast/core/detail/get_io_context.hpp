@@ -56,7 +56,7 @@ get_io_context(net::strand<Executor> const& ex)
 template<
     class T,
     class = typename std::enable_if<
-        std::is_same<T, net::executor>::value>::type>
+        std::is_same<T, net::executor>::value || std::is_same<T, net::any_io_executor>::value>::type>
 net::io_context*
 get_io_context(T const& ex)
 {
