@@ -182,7 +182,7 @@ class async_base
 #endif
 {
     static_assert(
-        net::is_executor<Executor1>::value,
+        net::is_executor<Executor1>::value || net::execution::is_executor<Executor1>::value,
         "Executor type requirements not met");
 
     Handler h_;

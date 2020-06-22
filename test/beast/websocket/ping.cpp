@@ -378,7 +378,7 @@ public:
             using socket_type =
                 net::basic_stream_socket<
                     net::ip::tcp,
-                    net::executor>;
+                    net::any_io_executor>;
             net::io_context ioc;
             stream<socket_type> ws1(ioc);
             stream<socket_type> ws2(ioc);

@@ -43,12 +43,12 @@ namespace beast {
 #if 0
 template class basic_stream<
     net::ip::tcp,
-    net::executor,
+    net::any_io_executor,
     unlimited_rate_policy>;
 
 template class basic_stream<
     net::ip::tcp,
-    net::executor,
+    net::any_io_executor,
     simple_rate_policy>;
 #endif
 
