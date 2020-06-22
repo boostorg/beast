@@ -67,6 +67,10 @@ public:
             h_, this->get());
     }
 
+    // The invocation hook is no longer defined because it customises behaviour
+    // without forwarding to a user's hook.
+
+#if 0
     template<class Function>
     void
     asio_handler_invoke(Function&& f,
@@ -74,23 +78,30 @@ public:
     {
         net::dispatch(p->get_executor(), std::move(f));
     }
+#endif
+
+    // The allocation hooks are still defined because they trivially forward to
+    // user hooks. Forward here ensures that the user will get a compile error
+    // if they build their code with BOOST_ASIO_NO_DEPRECATED.
 
     friend
-    void* asio_handler_allocate(
+    boost::asio::asio_handler_allocate_is_deprecated
+    asio_handler_allocate(
         std::size_t size, bind_default_executor_wrapper* p)
     {
-        using net::asio_handler_allocate;
+        using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
             size, std::addressof(p->h_));
     }
 
     friend
-    void asio_handler_deallocate(
+    boost::asio::asio_handler_deallocate_is_deprecated
+    asio_handler_deallocate(
         void* mem, std::size_t size,
             bind_default_executor_wrapper* p)
     {
-        using net::asio_handler_deallocate;
-        asio_handler_deallocate(mem, size,
+        using boost::asio::asio_handler_deallocate;
+        return asio_handler_deallocate(mem, size,
             std::addressof(p->h_));
     }
 
@@ -98,7 +109,7 @@ public:
     bool asio_handler_is_continuation(
         bind_default_executor_wrapper* p)
     {
-        using net::asio_handler_is_continuation;
+        using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(p->h_));
     }
