@@ -1,3 +1,7 @@
+* Handler invoke and allocation hooks are deprecated.
+
+--------------------------------------------------------------------------------
+
 Version 297:
 
 * iless and iequal take part in Heterogeneous Lookup
