@@ -82,7 +82,7 @@ class frame_test;
     To declare the @ref stream object with a @ref tcp_stream in a
     multi-threaded asynchronous program using a strand, you may write:
     @code
-    websocket::stream<tcp_stream> ws{net::io_context::strand(ioc)};
+    websocket::stream<tcp_stream> ws{net::make_strand(ioc)};
     @endcode
     Alternatively, for a single-threaded or synchronous application
     you may write:
