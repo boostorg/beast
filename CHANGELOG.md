@@ -1,4 +1,5 @@
 
+* Use dispatch/post free functions to be independent of executor concept.
 * New name for polymorphic executor. Trait for detecting new executors.
 * Handler invoke and allocation hooks are deprecated.
 
