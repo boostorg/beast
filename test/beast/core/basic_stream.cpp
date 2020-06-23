@@ -331,8 +331,8 @@ class basic_stream_test
 {
 public:
     using tcp = net::ip::tcp;
-    using strand = net::io_context::strand;
     using executor = net::io_context::executor_type;
+    using strand = net::strand<executor>;
 
     //--------------------------------------------------------------------------
 
@@ -372,7 +372,7 @@ public:
         // net::io_context::strand
 
         {
-            auto ex = strand{ioc};
+            auto ex = net::make_strand(ioc);
             basic_stream<tcp, strand> s1(ex);
             basic_stream<tcp, strand> s2(ex, tcp::v4());
             basic_stream<tcp, strand> s3(std::move(s1));
@@ -392,11 +392,11 @@ public:
 
             test_sync_stream<
                 basic_stream<
-                    tcp, net::io_context::strand>>();
+                    tcp, strand>>();
 
             test_async_stream<
                 basic_stream<
-                    tcp, net::io_context::strand>>();
+                    tcp, strand>>();
         }
 
         // construction from existing socket
