@@ -116,6 +116,7 @@ struct legacy_handler
     void
     test(F const& f)
     {
+#if !defined(BOOST_ASIO_NO_DEPRECATED)
         {
             bool hook_invoked = false;
             bool lambda_invoked = false;
@@ -150,6 +151,7 @@ struct legacy_handler
             asio_handler_is_continuation(&h);
             BEAST_EXPECT(hook_invoked);
         }
+#endif // !defined(BOOST_ASIO_NO_DEPRECATED)
     }
 };
 
