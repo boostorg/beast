@@ -14,6 +14,8 @@
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/service_base.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/post.hpp>
 #include <mutex>
 #include <stdexcept>
 #include <vector>
@@ -90,6 +92,13 @@ class stream::read_op : public stream::read_op_base
         {
         }
 
+        using allocator_type = net::associated_allocator_t<Handler>;
+
+        allocator_type get_allocator() const noexcept
+        {
+          return net::get_associated_allocator(h_);
+        }
+
         void
         operator()(error_code ec)
         {
@@ -115,10 +124,9 @@ class stream::read_op : public stream::read_op_base
                 }
             }
 
-            auto alloc = net::get_associated_allocator(h_);
-            wg2_.get_executor().dispatch(
+            net::dispatch(wg2_.get_executor(),
                 beast::bind_front_handler(std::move(h_),
-                    ec, bytes_transferred), alloc);
+                    ec, bytes_transferred));
             wg2_.reset();
         }
     };
@@ -140,10 +148,8 @@ public:
     void
     operator()(error_code ec) override
     {
-
-        auto alloc = net::get_associated_allocator(fn_.h_);
-        wg1_.get_executor().post(
-            beast::bind_front_handler(std::move(fn_), ec), alloc);
+        net::post(wg1_.get_executor(),
+            beast::bind_front_handler(std::move(fn_), ec));
         wg1_.reset();
     }
 };
