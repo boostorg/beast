@@ -80,7 +80,18 @@ public:
     class test_executor
     {
         bind_handler_test& s_;
-        net::io_context::executor_type ex_;
+        net::any_io_executor ex_;
+
+        // Storing the blocking property as a member is not strictly necessary,
+        // as we could simply forward the calls
+        //   require(ex_, blocking.possibly)
+        // and
+        //   require(ex_, blocking.never)
+        // to the underlying executor, and then
+        //   query(ex_, blocking)
+        // when required. This forwarding approach is used here for the
+        // outstanding_work property.
+        net::execution::blocking_t blocking_;
 
     public:
         test_executor(
@@ -91,6 +102,7 @@ public:
             net::io_context& ioc)
             : s_(s)
             , ex_(ioc.get_executor())
+            , blocking_(net::execution::blocking.possibly)
         {
         }
 
@@ -106,7 +118,67 @@ public:
             return ex_ != other.ex_;
         }
 
-        net::io_context&
+        net::execution_context& query(net::execution::context_t c) const noexcept
+        {
+            return net::query(ex_, c);
+        }
+
+        net::execution::blocking_t query(net::execution::blocking_t) const noexcept
+        {
+            return blocking_;
+        }
+
+        net::execution::outstanding_work_t query(net::execution::outstanding_work_t w) const noexcept
+        {
+            return net::query(ex_, w);
+        }
+
+        test_executor require(net::execution::blocking_t::possibly_t b) const
+        {
+            test_executor new_ex(*this);
+            new_ex.blocking_ = b;
+            return new_ex;
+        }
+
+        test_executor require(net::execution::blocking_t::never_t b) const
+        {
+            test_executor new_ex(*this);
+            new_ex.blocking_ = b;
+            return new_ex;
+        }
+
+        test_executor prefer(net::execution::outstanding_work_t::untracked_t w) const
+        {
+            test_executor new_ex(*this);
+            new_ex.ex_ = net::prefer(ex_, w);
+            return new_ex;
+        }
+
+        test_executor prefer(net::execution::outstanding_work_t::tracked_t w) const
+        {
+            test_executor new_ex(*this);
+            new_ex.ex_ = net::prefer(ex_, w);
+            return new_ex;
+        }
+
+        template<class F>
+        void execute(F&& f) const
+        {
+            if (blocking_ == net::execution::blocking.possibly)
+            {
+                s_.on_invoke();
+                net::execution::execute(ex_, std::forward<F>(f));
+            }
+            else
+            {
+                // shouldn't be called since the enclosing
+                // networking wrapper only uses dispatch
+                BEAST_FAIL();
+            }
+        }
+
+#if !defined(BOOST_ASIO_NO_TS_EXECUTORS)
+        net::execution_context&
         context() const noexcept
         {
             return ex_.context();
@@ -144,6 +216,7 @@ public:
             // networking wrapper only uses dispatch
             BEAST_FAIL();
         }
+#endif // !defined(BOOST_ASIO_NO_TS_EXECUTORS)
     };
 
     class test_cb

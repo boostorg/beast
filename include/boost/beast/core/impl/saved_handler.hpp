@@ -63,14 +63,26 @@ class saved_handler::impl final : public base
     };
 
     ebo_pair v_;
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+    std::decay_t<decltype(net::prefer(
+          std::declval<net::associated_executor_t<Handler>>(),
+          net::execution::outstanding_work.tracked))> wg2_;
+#else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
     net::executor_work_guard<
         net::associated_executor_t<Handler>> wg2_;
+#endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
 
 public:
     template<class Handler_>
     impl(alloc_type const& a, Handler_&& h)
         : v_(a, std::forward<Handler_>(h))
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+        , wg2_(net::prefer(
+            net::get_associated_executor(v_.h),
+            net::execution::outstanding_work.tracked))
+#else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
         , wg2_(net::get_associated_executor(v_.h))
+#endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
     {
     }
 
