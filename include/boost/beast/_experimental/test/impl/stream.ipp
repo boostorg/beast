@@ -359,7 +359,11 @@ teardown(
 stream
 connect(stream& to)
 {
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+    stream from{net::query(to.get_executor(), net::execution::context)};
+#else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
     stream from{to.get_executor().context()};
+#endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
     from.connect(to);
     return from;
 }
