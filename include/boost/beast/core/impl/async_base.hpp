@@ -60,7 +60,7 @@ asio_handler_invoke(
     Function&& f,
     async_base<Handler, Executor1, Allocator>* p)
 {
-    using net::asio_handler_invoke;
+    using boost::asio::asio_handler_invoke;
     return asio_handler_invoke(f,
         p->get_legacy_handler_pointer());
 }
@@ -74,7 +74,7 @@ asio_handler_allocate(
     std::size_t size,
     async_base<Handler, Executor1, Allocator>* p)
 {
-    using net::asio_handler_allocate;
+    using boost::asio::asio_handler_allocate;
     return asio_handler_allocate(size,
         p->get_legacy_handler_pointer());
 }
@@ -88,7 +88,7 @@ asio_handler_deallocate(
     void* mem, std::size_t size,
     async_base<Handler, Executor1, Allocator>* p)
 {
-    using net::asio_handler_deallocate;
+    using boost::asio::asio_handler_deallocate;
     return asio_handler_deallocate(mem, size,
         p->get_legacy_handler_pointer());
 }
@@ -101,7 +101,7 @@ bool
 asio_handler_is_continuation(
     async_base<Handler, Executor1, Allocator>* p)
 {
-    using net::asio_handler_is_continuation;
+    using boost::asio::asio_handler_is_continuation;
     return asio_handler_is_continuation(
         p->get_legacy_handler_pointer());
 }

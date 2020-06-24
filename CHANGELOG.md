@@ -1,3 +1,7 @@
+* Deprecate asio invocation hooks
+
+--------------------------------------------------------------------------------
+
 Version 297:
 
 * iless and iequal take part in Heterogeneous Lookup

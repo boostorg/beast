@@ -159,7 +159,7 @@ public:
     asio_handler_invoke(
         Function&& f, bind_wrapper* op)
     {
-        using net::asio_handler_invoke;
+        using boost::asio::asio_handler_invoke;
         return asio_handler_invoke(f, std::addressof(op->h_));
     }
 
@@ -167,7 +167,7 @@ public:
     bool asio_handler_is_continuation(
         bind_wrapper* op)
     {
-        using net::asio_handler_is_continuation;
+        using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
                 std::addressof(op->h_));
     }
@@ -177,7 +177,7 @@ public:
     asio_handler_allocate(
         std::size_t size, bind_wrapper* op)
     {
-        using net::asio_handler_allocate;
+        using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
             size, std::addressof(op->h_));
     }
@@ -187,7 +187,7 @@ public:
     asio_handler_deallocate(
         void* p, std::size_t size, bind_wrapper* op)
     {
-        using net::asio_handler_deallocate;
+        using boost::asio::asio_handler_deallocate;
         return asio_handler_deallocate(
             p, size, std::addressof(op->h_));
     }
@@ -272,7 +272,7 @@ public:
     asio_handler_invoke(
         Function&& f, bind_front_wrapper* op)
     {
-        using net::asio_handler_invoke;
+        using boost::asio::asio_handler_invoke;
         return asio_handler_invoke(f, std::addressof(op->h_));
     }
 
@@ -280,7 +280,7 @@ public:
     bool asio_handler_is_continuation(
         bind_front_wrapper* op)
     {
-        using net::asio_handler_is_continuation;
+        using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(op->h_));
     }
@@ -290,7 +290,7 @@ public:
     asio_handler_allocate(
         std::size_t size, bind_front_wrapper* op)
     {
-        using net::asio_handler_allocate;
+        using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
             size, std::addressof(op->h_));
     }
@@ -300,7 +300,7 @@ public:
     asio_handler_deallocate(
         void* p, std::size_t size, bind_front_wrapper* op)
     {
-        using net::asio_handler_deallocate;
+        using boost::asio::asio_handler_deallocate;
         return asio_handler_deallocate(
             p, size, std::addressof(op->h_));
     }

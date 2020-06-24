@@ -89,7 +89,7 @@ public:
     asio_handler_allocate(
         std::size_t size, bind_default_executor_wrapper* p)
     {
-        using net::asio_handler_allocate;
+        using boost::asio::asio_handler_allocate;
         return asio_handler_allocate(
             size, std::addressof(p->h_));
     }
@@ -100,7 +100,7 @@ public:
         void* mem, std::size_t size,
             bind_default_executor_wrapper* p)
     {
-        using net::asio_handler_deallocate;
+        using boost::asio::asio_handler_deallocate;
         return asio_handler_deallocate(mem, size,
             std::addressof(p->h_));
     }
@@ -109,7 +109,7 @@ public:
     bool asio_handler_is_continuation(
         bind_default_executor_wrapper* p)
     {
-        using net::asio_handler_is_continuation;
+        using boost::asio::asio_handler_is_continuation;
         return asio_handler_is_continuation(
             std::addressof(p->h_));
     }
