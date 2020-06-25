@@ -490,7 +490,9 @@ public:
                 net::io_context::executor_type> op(
                     test::any_handler(), ioc.get_executor());
             op.complete(false);
-            ioc.run();
+            // note: run won't complete with property-based executors
+            // because the async_base will contain an active work guard
+            ioc.poll();
         }
         {
             async_base<
@@ -567,8 +569,8 @@ public:
                     std::move(h),
                     ioc1.get_executor());
             op.complete(false);
-            BEAST_EXPECT(ioc1.run() == 0);
-            BEAST_EXPECT(ioc2.run() == 1);
+            BEAST_EXPECT(ioc1.poll() == 0);
+            BEAST_EXPECT(ioc2.poll() == 1);
         }
         {
             stable_async_base<

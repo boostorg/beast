@@ -11,6 +11,7 @@
 #define SNIPPETS_HPP
 
 // This file must be included before including snippets.ipp
+#include "test/beast/config.hpp"
 
 #include <boost/beast/core.hpp>
 #include <boost/asio.hpp>

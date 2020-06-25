@@ -167,10 +167,12 @@ public:
     {
         doTestClose(SyncClient{});
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             doTestClose(AsyncClient{yield});
         });
+#endif
     }
 
     void

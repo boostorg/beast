@@ -8,6 +8,7 @@
 //
 
 #include <boost/config.hpp>
+#include "test/beast/config.hpp"
 
 #ifdef BOOST_MSVC
 #pragma warning(push)
@@ -20,8 +21,9 @@
 #include <boost/beast/ssl.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#if BOOST_BEAST_ENABLE_STACKFUL
 #include <boost/asio/spawn.hpp>
-
+#endif
 namespace {
 
 #include "websocket_common.ipp"
@@ -68,6 +70,7 @@ snippets()
     }
 }
 
+#if BOOST_BEAST_ENABLE_STACKFUL
 // workaround for https://github.com/chriskohlhoff/asio/issues/112
 //#ifdef BOOST_MSVC
 //[code_websocket_8_1f
@@ -82,6 +85,7 @@ void echo(stream<tcp_stream>& ws,
 
 //]
 //#endif
+#endif
 
 struct websocket_8_test
     : public boost::beast::unit_test::suite
@@ -90,7 +94,9 @@ struct websocket_8_test
     run() override
     {
         BEAST_EXPECT(&snippets);
+#if BOOST_BEAST_ENABLE_STACKFUL
         BEAST_EXPECT(&echo);
+#endif
     }
 };
 

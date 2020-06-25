@@ -17,7 +17,13 @@ using tcp     = net::ip::tcp;
 
 error_code ec;
 net::io_context ioc;
+#ifdef BOOST_ASIO_NO_TS_EXECUTORS
+auto work = net::any_io_executor(
+    net::prefer(ioc.get_executor(),
+                net::execution::outstanding_work.tracked));
+#else
 auto work = net::make_work_guard(ioc);
+#endif
 std::thread t{[&](){ ioc.run(); }};
 
 tcp::socket sock(ioc);

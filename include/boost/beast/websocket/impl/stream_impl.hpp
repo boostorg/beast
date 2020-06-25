@@ -128,7 +128,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
             boost::empty_init_t{},
             std::forward<Args>(args)...)
         , detail::service::impl_type(
-            this->boost::empty_value<NextLayer>::get().get_executor().context())
+            net::query(this->boost::empty_value<NextLayer>::get().get_executor(),
+                net::execution::context))
         , timer(this->boost::empty_value<NextLayer>::get().get_executor())
     {
         timeout_opt.handshake_timeout = none();

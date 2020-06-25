@@ -95,10 +95,12 @@ public:
     {
         doTestPing(SyncClient{});
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             doTestPing(AsyncClient{yield});
         });
+#endif
     }
 
     void

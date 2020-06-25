@@ -258,12 +258,14 @@ public:
         doTestWrite<true>(SyncClient{});
         doTestWriteDeflate(SyncClient{});
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             doTestWrite<false>(AsyncClient{yield});
             doTestWrite<true>(AsyncClient{yield});
             doTestWriteDeflate(AsyncClient{yield});
         });
+#endif
     }
 
     void

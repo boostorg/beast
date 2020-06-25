@@ -37,9 +37,17 @@ namespace http {
 
 class read_test
     : public beast::unit_test::suite
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     , public test::enable_yield_to
+#endif
 {
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
+#else
+    net::io_context ioc_;
+#endif
+
 public:
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     template<bool isRequest>
     void
     failMatrix(char const* s, yield_context do_yield)
@@ -127,6 +135,7 @@ public:
         }
         BEAST_EXPECT(n < limit);
     }
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
     void testThrow()
     {
@@ -191,6 +200,7 @@ public:
         }
     }
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     void testFailures(yield_context do_yield)
     {
         char const* req[] = {
@@ -359,6 +369,7 @@ public:
             BEAST_EXPECT(ec == http::error::end_of_stream);
         }
     }
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
     // Ensure completion handlers are not leaked
     struct handler
@@ -577,6 +588,7 @@ public:
     }
 #endif
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     void testReadSomeHeader(net::yield_context yield)
     {
         std::string hdr =
@@ -660,6 +672,7 @@ public:
 
         }
     }
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
     void testReadSomeHeader()
     {
@@ -717,6 +730,7 @@ public:
         testThrow();
         testBufferOverflow();
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             testFailures(yield);
@@ -729,6 +743,7 @@ public:
         {
             testEof(yield);
         });
+#endif
 
         testIoService();
         testRegression430();
@@ -737,10 +752,12 @@ public:
 #if BOOST_ASIO_HAS_CO_AWAIT
         boost::ignore_unused(&read_test::testAwaitableCompiles);
 #endif
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
                  {
                      testReadSomeHeader(yield);
                  });
+#endif
         testReadSomeHeader();
     }
 

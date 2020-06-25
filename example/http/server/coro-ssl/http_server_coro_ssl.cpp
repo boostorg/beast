@@ -13,6 +13,9 @@
 //
 //------------------------------------------------------------------------------
 
+#include "test/beast/config.hpp"
+#if BOOST_BEAST_ENABLE_STACKLESS
+
 #include "example/common/server_certificate.hpp"
 
 #include <boost/beast/core.hpp>
@@ -430,3 +433,10 @@ int main(int argc, char* argv[])
 
     return EXIT_SUCCESS;
 }
+
+#else // BOOST_BEAST_ENABLE_STACKLESS
+int
+main()
+{
+}
+#endif

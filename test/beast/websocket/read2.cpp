@@ -615,33 +615,36 @@ public:
         doTestRead<false>(SyncClient{});
         doTestRead<true>(SyncClient{});
         doTestReadDeflate(SyncClient{});
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             doTestRead<false>(AsyncClient{yield});
             doTestRead<true>(AsyncClient{yield});
             doTestReadDeflate(AsyncClient{yield});
         });
-
+#endif
         permessage_deflate pmd;
         pmd.client_enable = false;
         pmd.server_enable = false;
         doTestRead(pmd, SyncClient{});
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             doTestRead(pmd, AsyncClient{yield});
         });
-
+#endif
         pmd.client_enable = true;
         pmd.server_enable = true;
         pmd.client_max_window_bits = 9;
         pmd.server_max_window_bits = 9;
         pmd.compLevel = 1;
         doTestRead(pmd, SyncClient{});
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             doTestRead(pmd, AsyncClient{yield});
         });
-
+#endif
         // Read close frames
         {
             auto const check =

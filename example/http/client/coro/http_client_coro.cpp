@@ -12,6 +12,8 @@
 // Example: HTTP client, coroutine
 //
 //------------------------------------------------------------------------------
+#include "test/beast/config.hpp"
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -142,3 +144,8 @@ int main(int argc, char** argv)
 
     return EXIT_SUCCESS;
 }
+#else
+int main()
+{
+}
+#endif

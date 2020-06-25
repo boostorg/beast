@@ -26,6 +26,7 @@
 #include <memory>
 #include <random>
 #include <string>
+#include <thread>
 
 namespace boost {
 namespace beast {
@@ -33,9 +34,17 @@ namespace websocket {
 
 class websocket_test_suite
     : public beast::unit_test::suite
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     , public test::enable_yield_to
+#endif
 {
 public:
+
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
+#else
+    net::io_context ioc_;
+#endif
+
     template<bool deflateSupported>
     using ws_type_t =
         websocket::stream<test::stream&, deflateSupported>;
@@ -72,8 +81,9 @@ public:
 
         std::ostream& log_;
         net::io_context ioc_;
-        net::executor_work_guard<
-            net::io_context::executor_type> work_;
+        beast::detail::select_work_guard_t<
+            net::io_context::executor_type>
+                work_;
         static_buffer<buf_size> buffer_;
         test::stream ts_;
         std::thread t_;
@@ -86,7 +96,7 @@ public:
             std::ostream& log,
             kind k = kind::sync)
             : log_(log)
-            , work_(ioc_.get_executor())
+            , work_(beast::detail::make_work_guard(ioc_.get_executor()))
             , ts_(ioc_)
             , ws_(ts_)
         {
@@ -665,6 +675,7 @@ public:
 
     //--------------------------------------------------------------------------
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     class AsyncClient
     {
         net::yield_context& yield_;
@@ -975,6 +986,7 @@ public:
             return bytes_transferred;
         }
     };
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 };
 
 struct test_sync_api
@@ -1249,8 +1261,8 @@ public:
     {
         error_code ec;
         ws.async_accept(handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1266,8 +1278,8 @@ public:
     {
         error_code ec;
         ws.async_accept(buffers, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1280,8 +1292,8 @@ public:
     {
         error_code ec;
         ws.async_accept(req, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1296,8 +1308,8 @@ public:
     {
         error_code ec;
         ws.async_accept_ex(d, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1314,8 +1326,8 @@ public:
     {
         error_code ec;
         ws.async_accept_ex(buffers, d, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1331,8 +1343,8 @@ public:
     {
         error_code ec;
         ws.async_accept_ex(req, d, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1350,8 +1362,8 @@ public:
         error_code ec;
         ws.async_accept_ex(
             req, buffers, d, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1367,8 +1379,8 @@ public:
         error_code ec;
         ws.async_handshake(
             uri, path, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1384,8 +1396,8 @@ public:
         error_code ec;
         ws.async_handshake(
             res, uri, path, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1403,8 +1415,8 @@ public:
         error_code ec;
         ws.async_handshake_ex(
             uri, path, d, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1423,8 +1435,8 @@ public:
         error_code ec;
         ws.async_handshake_ex(
             res, uri, path, d, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1437,8 +1449,8 @@ public:
     {
         error_code ec;
         ws.async_ping(payload, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1451,8 +1463,8 @@ public:
     {
         error_code ec;
         ws.async_pong(payload, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1465,8 +1477,8 @@ public:
     {
         error_code ec;
         ws.async_close(cr, handler(ec));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
     }
@@ -1482,8 +1494,8 @@ public:
         error_code ec;
         std::size_t n;
         ws.async_read(buffer, handler(ec, n));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
         return n;
@@ -1501,8 +1513,8 @@ public:
         error_code ec;
         std::size_t n;
         ws.async_read_some(buffer, limit, handler(ec, n));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
         return n;
@@ -1519,8 +1531,8 @@ public:
         error_code ec;
         std::size_t n;
         ws.async_read_some(buffers, handler(ec, n));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
         return n;
@@ -1537,8 +1549,8 @@ public:
         error_code ec;
         std::size_t n;
         ws.async_write(buffers, handler(ec, n));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
         return n;
@@ -1556,8 +1568,8 @@ public:
         error_code ec;
         std::size_t n;
         ws.async_write_some(fin, buffers, handler(ec, n));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
         return n;
@@ -1575,8 +1587,8 @@ public:
         std::size_t n;
         net::async_write(ws.next_layer(),
             buffers, handler(ec, n));
-        ws.get_executor().context().run();
-        ws.get_executor().context().restart();
+        net::query(ws.get_executor(), net::execution::context).run();
+        net::query(ws.get_executor(), net::execution::context).restart();
         if(ec)
             throw system_error{ec};
         return n;

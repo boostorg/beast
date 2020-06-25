@@ -32,6 +32,8 @@ namespace boost {
 namespace beast {
 namespace http {
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
+
 class examples_test
     : public beast::unit_test::suite
     , public beast::test::enable_yield_to
@@ -401,6 +403,8 @@ public:
 };
 
 BEAST_DEFINE_TESTSUITE(beast,http,examples);
+
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
 } // http
 } // beast

@@ -143,11 +143,12 @@ public:
     {
         doTestHandshake(SyncClient{});
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             doTestHandshake(AsyncClient{yield});
         });
-
+#endif
         auto const check =
         [&](error e, std::string const& s)
         {

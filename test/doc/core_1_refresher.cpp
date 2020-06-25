@@ -15,7 +15,9 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/buffers_iterator.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#if BOOST_BEAST_ENABLE_STACKFUL
 #include <boost/asio/spawn.hpp>
+#endif
 #include <boost/asio/use_future.hpp>
 #include <boost/asio/write.hpp>
 #include <algorithm>
@@ -71,6 +73,7 @@ snippets()
             net::const_buffer("Hello, world!", 13), net::use_future);
     //]
     }
+#if BOOST_BEAST_ENABLE_STACKFUL
     {
     //[code_core_1_refresher_5s
         asio::spawn(
@@ -82,6 +85,7 @@ snippets()
             });
     //]
     }
+#endif
 }
 
 //------------------------------------------------------------------------------

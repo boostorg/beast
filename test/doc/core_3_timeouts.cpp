@@ -21,7 +21,9 @@
 #include <boost/beast/ssl/ssl_stream.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/read.hpp>
+#if BOOST_BEAST_ENABLE_STACKFUL
 #include <boost/asio/spawn.hpp>
+#endif
 #include <cstdlib>
 #include <utility>
 #include <string>
@@ -122,7 +124,7 @@ core_3_timeouts_snippets()
         // connected to the peer. The socket will have its own executor,
         // which in the call below is a new strand for the I/O context.
 
-        net::ip::tcp::socket s = acceptor.accept(net::make_strand(ioc));
+        net::ip::tcp::socket s = acceptor.accept(net::make_strand(ioc.get_executor()));
 
         // Construct a new tcp_stream from the connected socket.
         // The stream will use the strand created when the connection
@@ -281,6 +283,7 @@ void do_async_echo (basic_stream<Protocol, Executor>& stream)
 
 //]
 
+#if BOOST_BEAST_ENABLE_STACKFUL
 //[code_core_3_timeouts_2f
 
 /** Request an HTTP resource from a TLS host and return it as a string, with a timeout.
@@ -408,6 +411,7 @@ https_get (std::string const& host, std::string const& target, error_code& ec)
 }
 
 //]
+#endif // BOOST_BEAST_ENABLE_STACKFUL
 
 //[code_core_3_timeouts_3f
 
@@ -645,7 +649,9 @@ struct core_3_timeouts_test
         BEAST_EXPECT(&core_3_timeouts_snippets);
         BEAST_EXPECT(&core_3_timeouts_snippets2);
         BEAST_EXPECT((&do_async_echo<net::ip::tcp, net::io_context::executor_type>));
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         BEAST_EXPECT(&https_get);
+#endif
     }
 };
 

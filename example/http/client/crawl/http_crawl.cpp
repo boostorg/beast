@@ -356,8 +356,13 @@ int main(int argc, char* argv[])
     net::io_context ioc;
 
     // The work keeps io_context::run from returning
+#if BOOST_ASIO_NO_TS_EXECUTORS
+    auto work = net::any_io_executor(
+        net::prefer(ioc.get_executor(),
+            net::execution::outstanding_work.tracked));
+#else
     auto work = net::make_work_guard(ioc);
-
+#endif
     // The report holds the aggregated statistics
     crawl_report report{ioc};
 
@@ -395,7 +400,13 @@ int main(int argc, char* argv[])
         // If this is the last thread, reset the
         // work object so that it can return from run.
         if(i == workers.size() - 1)
+        {
+#if BOOST_ASIO_NO_TS_EXECUTORS
+            work = {};
+#else
             work.reset();
+#endif
+        }
 
         // Wait for the thread to exit
         thread.join();

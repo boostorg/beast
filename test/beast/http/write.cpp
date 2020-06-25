@@ -10,6 +10,8 @@
 // Test that header file is self-contained.
 #include <boost/beast/http/write.hpp>
 
+#include "test/beast/config.hpp"
+
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/fields.hpp>
 #include <boost/beast/http/message.hpp>
@@ -37,8 +39,14 @@ namespace http {
 
 class write_test
     : public beast::unit_test::suite
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     , public test::enable_yield_to
+#endif
 {
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
+#else
+    net::io_context ioc_;
+#endif
 public:
     struct unsized_body
     {
@@ -301,6 +309,7 @@ public:
         return std::string(tr.str());
     }
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     void
     testAsyncWrite(yield_context do_yield)
     {
@@ -499,6 +508,7 @@ public:
         }
         BEAST_EXPECT(n < limit);
     }
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
     void
     testOutput()
@@ -695,6 +705,7 @@ public:
         }
     }
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     template<
         class Stream,
         bool isRequest, class Body, class Fields>
@@ -828,6 +839,7 @@ public:
             }
         }
     }
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
     void
     testIssue655()
@@ -1055,15 +1067,18 @@ public:
     run() override
     {
         testIssue655();
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to(
             [&](yield_context yield)
             {
                 testAsyncWrite(yield);
                 testFailures(yield);
             });
+#endif
         testOutput();
         test_std_ostream();
         testIoService();
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to(
             [&](yield_context yield)
             {
@@ -1072,6 +1087,7 @@ public:
                 testWriteStream<test_body< true, false>>(yield);
                 testWriteStream<test_body< true,  true>>(yield);
             });
+#endif
         testAsioHandlerInvoke();
         testBodyWriters();
 #if BOOST_ASIO_HAS_CO_AWAIT

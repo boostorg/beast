@@ -13,6 +13,9 @@
 //
 //------------------------------------------------------------------------------
 
+#include "test/beast/config.hpp"
+#if BOOST_BEAST_ENABLE_STACKLESS
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/spawn.hpp>
@@ -151,3 +154,10 @@ int main(int argc, char** argv)
 
     return EXIT_SUCCESS;
 }
+
+#else // BOOST_BEAST_ENABLE_STACKLESS
+int main()
+{
+
+}
+#endif
