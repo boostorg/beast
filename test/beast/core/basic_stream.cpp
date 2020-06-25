@@ -11,6 +11,7 @@
 #include <boost/beast/core/basic_stream.hpp>
 
 #include "stream_tests.hpp"
+#include "test/beast/config.hpp"
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -23,7 +24,9 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
 #include <boost/asio/spawn.hpp>
+#endif
 #include <boost/asio/strand.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/optional.hpp>
@@ -1226,6 +1229,8 @@ public:
     {
         return {};
     }
+
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     void process_http_1 (tcp_stream& stream, net::yield_context yield)
     {
         flat_buffer buffer;
@@ -1263,6 +1268,7 @@ public:
         BEAST_EXPECT(&basic_stream_test::process_http_1);
         BEAST_EXPECT(&basic_stream_test::process_http_2);
     }
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
     //--------------------------------------------------------------------------
 
@@ -1409,7 +1415,9 @@ public:
         testWrite();
         testConnect();
         testMembers();
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         testJavadocs();
+#endif
         testIssue1589();
 
 #if BOOST_ASIO_HAS_CO_AWAIT

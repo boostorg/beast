@@ -18,7 +18,6 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/read.hpp>
-#include <boost/asio/spawn.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/optional.hpp>
 #if BOOST_ASIO_HAS_CO_AWAIT
@@ -30,8 +29,14 @@ namespace beast {
 
 class buffered_read_stream_test
     : public unit_test::suite
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     , public test::enable_yield_to
+#endif
 {
+#if !BOOST_BEAST_ENABLE_STACKFUL_TESTS
+    net::io_context ioc_;
+    #endif
+
     using self = buffered_read_stream_test;
 
 public:
@@ -42,9 +47,10 @@ public:
             buffered_read_stream<test::stream, multi_buffer> srs(ioc);
             buffered_read_stream<test::stream, multi_buffer> srs2(std::move(srs));
             srs = std::move(srs2);
-            BEAST_EXPECT(&srs.get_executor().context() == &ioc);
+            BEAST_EXPECT(&net::query(srs.get_executor(), net::execution::context) == &ioc);
             BEAST_EXPECT(
-                &srs.get_executor().context() == &srs2.get_executor().context());
+                &net::query(srs.get_executor(), net::execution::context) ==
+                &net::query(srs2.get_executor(), net::execution::context));
         }
         {
             test::stream ts{ioc};
@@ -121,6 +127,7 @@ public:
         std::make_shared<loop>(*this, ioc_, 3)->run();
     }
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
     void testRead(yield_context do_yield)
     {
         static std::size_t constexpr limit = 100;
@@ -204,6 +211,7 @@ public:
         }
         BEAST_EXPECT(n < limit);
     }
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
     struct copyable_handler
     {
@@ -234,11 +242,12 @@ public:
     {
         testSpecialMembers();
 
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
         yield_to([&](yield_context yield)
         {
             testRead(yield);
         });
-
+#endif
         testAsyncLoop();
 
 #if BOOST_ASIO_HAS_CO_AWAIT

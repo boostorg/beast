@@ -24,6 +24,7 @@
 #include <boost/asio/write.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <stdexcept>
+#include <boost/asio/execution/context_as.hpp>
 
 //------------------------------------------------------------------------------
 
@@ -32,6 +33,57 @@ namespace beast {
 
 namespace {
 
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+struct ex1_type
+{
+
+    net::execution_context &
+    query(net::execution::context_t c) const noexcept
+    { return *reinterpret_cast<net::execution_context *>(0); }
+
+    net::execution::blocking_t
+    query(net::execution::blocking_t) const noexcept
+    { return net::execution::blocking; };
+
+    net::execution::outstanding_work_t
+    query(net::execution::outstanding_work_t w) const noexcept
+    { return net::execution::outstanding_work; }
+
+    ex1_type
+    require(net::execution::blocking_t::possibly_t b) const
+    { return *this; }
+
+    ex1_type
+    require(net::execution::blocking_t::never_t b) const
+    { return *this; };
+
+    ex1_type
+    prefer(net::execution::outstanding_work_t::untracked_t w) const
+    { return *this; };
+
+    ex1_type
+    prefer(net::execution::outstanding_work_t::tracked_t w) const
+    { return *this; };
+
+    template<class F>
+    void
+    execute(F &&) const
+    {}
+
+    bool
+    operator==(ex1_type const &) const noexcept
+    { return true; }
+    bool
+    operator!=(ex1_type const &) const noexcept
+    { return false; }
+};
+static_assert(net::execution::can_execute<ex1_type, net::execution::invocable_archetype>::value, "");
+static_assert(std::is_nothrow_copy_constructible<ex1_type>::value, "");
+static_assert(std::is_nothrow_destructible<ex1_type>::value, "");
+static_assert(net::traits::equality_comparable<ex1_type>::is_valid, "");
+static_assert(net::traits::equality_comparable<ex1_type>::is_noexcept, "");
+static_assert(net::execution::is_executor<ex1_type>::value, "");
+#else
 struct ex1_type
 {
     void* context() { return nullptr; }
@@ -41,6 +93,9 @@ struct ex1_type
     template<class F> void post(F&&) {}
     template<class F> void defer(F&&) {}
 };
+static_assert(net::is_executor<ex1_type>::value, "");
+#endif
+
 
 struct no_alloc
 {
@@ -678,7 +733,9 @@ public:
                 : base_type(std::move(handler), stream.get_executor())
                 , stream_(stream)
                 , repeats_(repeats)
-                , data_(allocate_stable<temporary_data>(*this, std::move(message), stream.get_executor().context()))
+                , data_(allocate_stable<temporary_data>(*this,
+                    std::move(message),
+                    net::query(stream.get_executor(), net::execution::context)))
             {
                 (*this)(); // start the operation
             }

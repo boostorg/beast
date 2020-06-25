@@ -64,9 +64,10 @@ class saved_handler::impl final : public base
 
     ebo_pair v_;
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
-    std::decay_t<decltype(net::prefer(
-          std::declval<net::associated_executor_t<Handler>>(),
-          net::execution::outstanding_work.tracked))> wg2_;
+    typename std::decay<decltype(net::prefer(std::declval<
+        net::associated_executor_t<Handler>>(),
+        net::execution::outstanding_work.tracked))>::type
+          wg2_;
 #else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
     net::executor_work_guard<
         net::associated_executor_t<Handler>> wg2_;
