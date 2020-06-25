@@ -14,7 +14,6 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/buffer.hpp>
-#include <boost/asio/spawn.hpp>
 #include <boost/asio/use_future.hpp>
 
 namespace boost {

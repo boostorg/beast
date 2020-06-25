@@ -57,7 +57,7 @@ class simple_executor
     std::size_t id_;
 
 public:
-    simple_executor()
+    simple_executor() noexcept
         : id_([]
         {
             static std::size_t n = 0;
@@ -66,12 +66,19 @@ public:
     {
     }
 
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+    void* query(net::execution::context_t) const { return nullptr; }
+    template<class F>
+    void execute(F&&) const {}
+    simple_executor prefer(net::execution::outstanding_work_t::tracked_t) const { return *this; }
+#else
     void* context() { return nullptr; }
     void on_work_started() {}
     void on_work_finished() {}
     template<class F> void dispatch(F&&) {}
     template<class F> void post(F&&) {}
     template<class F> void defer(F&&) {}
+#endif
 
     friend
     bool operator==(
@@ -89,6 +96,15 @@ public:
         return lhs.id_ != rhs.id_;
     }
 };
+
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+static_assert(net::execution::can_execute<simple_executor, net::execution::invocable_archetype>::value, "");
+static_assert(std::is_nothrow_copy_constructible<simple_executor>::value, "");
+static_assert(std::is_nothrow_destructible<simple_executor>::value, "");
+static_assert(net::traits::equality_comparable<simple_executor>::is_valid, "");
+static_assert(net::traits::equality_comparable<simple_executor>::is_noexcept, "");
+static_assert(net::execution::is_executor<simple_executor>::value, "");
+#endif
 
 // A move-only handler
 struct move_only_handler

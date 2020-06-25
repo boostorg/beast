@@ -80,11 +80,9 @@ public:
     class test_executor
     {
         bind_handler_test& s_;
+
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
         net::any_io_executor ex_;
-#else
-        net::io_context::executor_type ex_;
-#endif
 
         // Storing the blocking property as a member is not strictly necessary,
         // as we could simply forward the calls
@@ -97,6 +95,9 @@ public:
         // outstanding_work property.
         net::execution::blocking_t blocking_;
 
+#else  // defined(BOOST_ASIO_NO_TS_EXECUTORS)
+        net::io_context::executor_type ex_;
+#endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
     public:
         test_executor(
             test_executor const&) = default;
@@ -106,7 +107,9 @@ public:
             net::io_context& ioc)
             : s_(s)
             , ex_(ioc.get_executor())
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
             , blocking_(net::execution::blocking.possibly)
+#endif
         {
         }
 
@@ -123,6 +126,7 @@ public:
         }
 
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+
         net::execution_context& query(net::execution::context_t c) const noexcept
         {
             return net::query(ex_, c);
@@ -182,7 +186,6 @@ public:
             }
         }
 #endif
-
 #if !defined(BOOST_ASIO_NO_TS_EXECUTORS)
         net::execution_context&
         context() const noexcept
@@ -247,7 +250,7 @@ public:
     BOOST_STATIC_ASSERT(std::is_nothrow_destructible<T>::value);
     BOOST_STATIC_ASSERT(boost::asio::traits::equality_comparable<T>::is_valid);
     BOOST_STATIC_ASSERT(boost::asio::traits::equality_comparable<T>::is_noexcept);
-    BOOST_STATIC_ASSERT(net::execution::is_executor_v<test_executor>);
+    BOOST_STATIC_ASSERT(net::execution::is_executor<test_executor>::value);
 #else
     BOOST_STATIC_ASSERT(net::is_executor<test_executor>::value);
 #endif

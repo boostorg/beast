@@ -11,6 +11,9 @@
 #define BOOST_BEAST_DETAIL_GET_IO_CONTEXT_HPP
 
 #include <boost/beast/core/stream_traits.hpp>
+#ifdef BOOST_ASIO_NO_TS_EXECUTORS
+#include <boost/asio/execution.hpp>
+#endif
 #include <boost/asio/executor.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
