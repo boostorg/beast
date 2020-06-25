@@ -18,7 +18,6 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/read.hpp>
-#include <boost/asio/spawn.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/optional.hpp>
 #if BOOST_ASIO_HAS_CO_AWAIT
@@ -42,9 +41,10 @@ public:
             buffered_read_stream<test::stream, multi_buffer> srs(ioc);
             buffered_read_stream<test::stream, multi_buffer> srs2(std::move(srs));
             srs = std::move(srs2);
-            BEAST_EXPECT(&srs.get_executor().context() == &ioc);
+            BEAST_EXPECT(&net::query(srs.get_executor(), net::execution::context) == &ioc);
             BEAST_EXPECT(
-                &srs.get_executor().context() == &srs2.get_executor().context());
+                &net::query(srs.get_executor(), net::execution::context) ==
+                &net::query(srs2.get_executor(), net::execution::context));
         }
         {
             test::stream ts{ioc};
@@ -238,7 +238,6 @@ public:
         {
             testRead(yield);
         });
-
         testAsyncLoop();
 
 #if BOOST_ASIO_HAS_CO_AWAIT

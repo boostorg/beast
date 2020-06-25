@@ -356,7 +356,10 @@ int main(int argc, char* argv[])
     net::io_context ioc;
 
     // The work keeps io_context::run from returning
-    auto work = net::make_work_guard(ioc);
+    auto work = net::any_io_executor(
+        net::prefer(
+            ioc.get_executor(),
+            net::execution::outstanding_work.tracked));
 
     // The report holds the aggregated statistics
     crawl_report report{ioc};
@@ -395,7 +398,7 @@ int main(int argc, char* argv[])
         // If this is the last thread, reset the
         // work object so that it can return from run.
         if(i == workers.size() - 1)
-            work.reset();
+            work = {};
 
         // Wait for the thread to exit
         thread.join();

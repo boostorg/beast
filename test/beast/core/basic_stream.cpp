@@ -1226,6 +1226,7 @@ public:
     {
         return {};
     }
+
     void process_http_1 (tcp_stream& stream, net::yield_context yield)
     {
         flat_buffer buffer;

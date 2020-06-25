@@ -38,7 +38,9 @@ namespace ssl = boost::asio::ssl;
 using tcp = net::ip::tcp;
 
 net::io_context ioc;
-auto work = net::make_work_guard(ioc);
+auto work = net::any_io_executor(
+    net::prefer(ioc.get_executor(),
+        net::execution::outstanding_work.tracked));
 std::thread t{[&](){ ioc.run(); }};
 
 error_code ec;

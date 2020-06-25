@@ -1,3 +1,4 @@
+* Support BOOST_ASIO_NO_TS_EXECUTORS.
 * Use strand<> rather than legacy executor io_context::strand.
 * Use dispatch/post free functions to be independent of executor concept.
 * New name for polymorphic executor. Trait for detecting new executors.

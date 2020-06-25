@@ -240,7 +240,7 @@ int main(int argc, char** argv)
     // The async operations will run on the system_executor.
     // Because the main thread has nothing to do in this example, we just wait
     // for the system_executor to run out of work.
-    net::system_executor().context().join();
+    net::query(net::system_executor(), net::execution::context).join();
 
     return EXIT_SUCCESS;
 }
