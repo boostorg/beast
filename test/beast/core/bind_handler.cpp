@@ -80,7 +80,11 @@ public:
     class test_executor
     {
         bind_handler_test& s_;
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
         net::any_io_executor ex_;
+#else
+        net::io_context::executor_type ex_;
+#endif
 
         // Storing the blocking property as a member is not strictly necessary,
         // as we could simply forward the calls
@@ -118,6 +122,7 @@ public:
             return ex_ != other.ex_;
         }
 
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
         net::execution_context& query(net::execution::context_t c) const noexcept
         {
             return net::query(ex_, c);
@@ -176,6 +181,7 @@ public:
                 BEAST_FAIL();
             }
         }
+#endif
 
 #if !defined(BOOST_ASIO_NO_TS_EXECUTORS)
         net::execution_context&
@@ -198,7 +204,13 @@ public:
         void dispatch(F&& f, Alloc const& a)
         {
             s_.on_invoke();
-            ex_.dispatch(std::forward<F>(f), a);
+            net::execution::execute(
+                net::prefer(ex_,
+                    net::execution::blocking.possibly,
+                    net::execution::allocator(a)),
+                std::forward<F>(f));
+            // previously equivalent to
+            // ex_.dispatch(std::forward<F>(f), a);
         }
 
         template<class F, class Alloc>
@@ -218,6 +230,27 @@ public:
         }
 #endif // !defined(BOOST_ASIO_NO_TS_EXECUTORS)
     };
+
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+    using F = net::execution::invocable_archetype;
+    using T = test_executor;
+
+    BOOST_STATIC_ASSERT(
+    conditional<true, true_type,
+        typename std::result_of<typename std::decay<F>::type&()>::type
+    >::type::value);
+
+    BOOST_STATIC_ASSERT(std::is_constructible<typename std::decay<F>::type, F>::value);
+    BOOST_STATIC_ASSERT(std::is_move_constructible<typename std::decay<F>::type>::value);
+    BOOST_STATIC_ASSERT(boost::asio::execution::can_execute<T, F>::value);
+    BOOST_STATIC_ASSERT(std::is_nothrow_copy_constructible<T>::value);
+    BOOST_STATIC_ASSERT(std::is_nothrow_destructible<T>::value);
+    BOOST_STATIC_ASSERT(boost::asio::traits::equality_comparable<T>::is_valid);
+    BOOST_STATIC_ASSERT(boost::asio::traits::equality_comparable<T>::is_noexcept);
+    BOOST_STATIC_ASSERT(net::execution::is_executor_v<test_executor>);
+#else
+    BOOST_STATIC_ASSERT(net::is_executor<test_executor>::value);
+#endif
 
     class test_cb
     {
