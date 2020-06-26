@@ -184,6 +184,7 @@ public:
             return ex_.context();
         }
 
+#if 0
         void on_work_started() const noexcept
         {
             ex_.on_work_started();
@@ -193,12 +194,18 @@ public:
         {
             ex_.on_work_finished();
         }
-
+#endif
         template<class F, class Alloc>
         void dispatch(F&& f, Alloc const& a)
         {
             s_.on_invoke();
-            ex_.dispatch(std::forward<F>(f), a);
+            net::execution::execute(
+                net::prefer(ex_,
+                    net::execution::blocking.possibly,
+                    net::execution::allocator(a)),
+                std::forward<F>(f));
+            // previously equivalent to
+            // ex_.dispatch(std::forward<F>(f), a);
         }
 
         template<class F, class Alloc>
