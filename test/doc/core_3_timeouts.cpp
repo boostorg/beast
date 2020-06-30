@@ -21,7 +21,7 @@
 #include <boost/beast/ssl/ssl_stream.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/read.hpp>
-#if BOOST_BEAST_ENABLE_STACKFUL
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
 #include <boost/asio/spawn.hpp>
 #endif
 #include <cstdlib>
@@ -283,7 +283,7 @@ void do_async_echo (basic_stream<Protocol, Executor>& stream)
 
 //]
 
-#if BOOST_BEAST_ENABLE_STACKFUL
+#if BOOST_BEAST_ENABLE_STACKFUL_TESTS
 //[code_core_3_timeouts_2f
 
 /** Request an HTTP resource from a TLS host and return it as a string, with a timeout.
@@ -411,7 +411,7 @@ https_get (std::string const& host, std::string const& target, error_code& ec)
 }
 
 //]
-#endif // BOOST_BEAST_ENABLE_STACKFUL
+#endif // BOOST_BEAST_ENABLE_STACKFUL_TESTS
 
 //[code_core_3_timeouts_3f
 

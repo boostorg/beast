@@ -192,7 +192,7 @@ public:
         {
             return ex_.context();
         }
-/*
+
         void on_work_started() const noexcept
         {
             ex_.on_work_started();
@@ -202,7 +202,7 @@ public:
         {
             ex_.on_work_finished();
         }
-*/
+
         template<class F, class Alloc>
         void dispatch(F&& f, Alloc const& a)
         {
