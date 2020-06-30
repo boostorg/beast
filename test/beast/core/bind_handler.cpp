@@ -183,7 +183,7 @@ public:
         {
             return ex_.context();
         }
-
+/*
         void on_work_started() const noexcept
         {
             ex_.on_work_started();
@@ -193,7 +193,7 @@ public:
         {
             ex_.on_work_finished();
         }
-
+*/
         template<class F, class Alloc>
         void dispatch(F&& f, Alloc const& a)
         {
@@ -229,19 +229,19 @@ public:
     using F = net::execution::invocable_archetype;
     using T = test_executor;
 
-    static_assert(
+    BOOST_STATIC_ASSERT(
     conditional<true, true_type,
         typename std::result_of<typename std::decay<F>::type&()>::type
     >::type::value);
 
-    static_assert(std::is_constructible<typename std::decay<F>::type, F>::value);
-    static_assert(std::is_move_constructible<typename std::decay<F>::type>::value);
-    static_assert(boost::asio::execution::can_execute<T, F>::value);
-    static_assert(std::is_nothrow_copy_constructible<T>::value);
-    static_assert(std::is_nothrow_destructible<T>::value);
-    static_assert(boost::asio::traits::equality_comparable<T>::is_valid);
-    static_assert(boost::asio::traits::equality_comparable<T>::is_noexcept);
-    static_assert(net::execution::is_executor_v<test_executor>);
+    BOOST_STATIC_ASSERT(std::is_constructible<typename std::decay<F>::type, F>::value);
+    BOOST_STATIC_ASSERT(std::is_move_constructible<typename std::decay<F>::type>::value);
+    BOOST_STATIC_ASSERT(boost::asio::execution::can_execute<T, F>::value);
+    BOOST_STATIC_ASSERT(std::is_nothrow_copy_constructible<T>::value);
+    BOOST_STATIC_ASSERT(std::is_nothrow_destructible<T>::value);
+    BOOST_STATIC_ASSERT(boost::asio::traits::equality_comparable<T>::is_valid);
+    BOOST_STATIC_ASSERT(boost::asio::traits::equality_comparable<T>::is_noexcept);
+    BOOST_STATIC_ASSERT(net::execution::is_executor_v<test_executor>);
 #endif
 
     class test_cb

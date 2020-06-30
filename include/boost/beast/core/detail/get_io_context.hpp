@@ -34,7 +34,8 @@ inline
 net::io_context*
 get_io_context(net::io_context::executor_type const& ex)
 {
-    return std::addressof(ex.context());
+    return std::addressof(net::query(ex, net::execution::context));
+//    return std::addressof(ex.context());
 }
 
 inline
@@ -42,8 +43,11 @@ net::io_context*
 get_io_context(net::strand<
     net::io_context::executor_type> const& ex)
 {
+    return get_io_context(ex.get_inner_executor());
+    /*
     return std::addressof(
         ex.get_inner_executor().context());
+        */
 }
 
 template<class Executor>
