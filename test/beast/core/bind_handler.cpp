@@ -184,7 +184,6 @@ public:
             return ex_.context();
         }
 
-#if 0
         void on_work_started() const noexcept
         {
             ex_.on_work_started();
@@ -194,7 +193,7 @@ public:
         {
             ex_.on_work_finished();
         }
-#endif
+
         template<class F, class Alloc>
         void dispatch(F&& f, Alloc const& a)
         {
@@ -225,6 +224,25 @@ public:
         }
 #endif // !defined(BOOST_ASIO_NO_TS_EXECUTORS)
     };
+
+#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
+    using F = net::execution::invocable_archetype;
+    using T = test_executor;
+
+    static_assert(
+    conditional<true, true_type,
+        typename std::result_of<typename std::decay<F>::type&()>::type
+    >::type::value);
+
+    static_assert(std::is_constructible<typename std::decay<F>::type, F>::value);
+    static_assert(std::is_move_constructible<typename std::decay<F>::type>::value);
+    static_assert(boost::asio::execution::can_execute<T, F>::value);
+    static_assert(std::is_nothrow_copy_constructible<T>::value);
+    static_assert(std::is_nothrow_destructible<T>::value);
+    static_assert(boost::asio::traits::equality_comparable<T>::is_valid);
+    static_assert(boost::asio::traits::equality_comparable<T>::is_noexcept);
+    static_assert(net::execution::is_executor_v<test_executor>);
+#endif
 
     class test_cb
     {
