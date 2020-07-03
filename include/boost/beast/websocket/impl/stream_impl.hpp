@@ -128,8 +128,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
             boost::empty_init_t{},
             std::forward<Args>(args)...)
         , detail::service::impl_type(
-            net::query(this->boost::empty_value<NextLayer>::get().get_executor(),
-                net::execution::context))
+            this->get_context(
+                this->boost::empty_value<NextLayer>::get().get_executor()))
         , timer(this->boost::empty_value<NextLayer>::get().get_executor())
     {
         timeout_opt.handshake_timeout = none();
@@ -477,6 +477,22 @@ struct stream<NextLayer, deflateSupported>::impl_type
     }
 
 private:
+    template<class Executor>
+    static net::execution_context&
+    get_context(Executor const& ex,
+        typename std::enable_if< net::execution::is_executor<Executor>::value >::type* = 0)
+    {
+        return net::query(ex, net::execution::context);
+    }
+
+    template<class Executor>
+    static net::execution_context&
+    get_context(Executor const& ex,
+        typename std::enable_if< !net::execution::is_executor<Executor>::value >::type* = 0)
+    {
+        return ex.context();
+    }
+
     bool
     is_timer_set() const
     {
