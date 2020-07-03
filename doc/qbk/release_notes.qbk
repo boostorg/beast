@@ -18,34 +18,31 @@
 * The API to Asio has changed significantly. Please refer to the Asio release notes for details.
 
 * Beast has been updated to track and respect developer choices in the use of Asio. In particular:
-
- - To respect the definition of `BOOST_ASIO_NO_DEPRECATED` in
+ * To respect the definition of `BOOST_ASIO_NO_DEPRECATED` in
    relation to the invocation and allocation hooks.
-
-  - To support the proposed C++23 standard executors implementation as
-    an additive feature.
-
-  - To respect the user's definition of `BOOST_ASIO_NO_TS_EXECUTORS`.
+ * To support the proposed C++23 standard executors implementation as
+   an additive feature.
+ * To respect the user's definition of `BOOST_ASIO_NO_TS_EXECUTORS`.
 
 [*Fixes]
 
-* [Issue 1913] Fix standalone compilation error with std::string_view
-* [Issue 1925] [Issue 1916] Fix compile errors on Visual Studio with /std:c++latest
-* [Issue 1924] Fix c++20 deprecation warning in span_body
-* [Issue 1920] Fix use buffered_read_stream with use_awaitable
-* [Issue 1918] Fix async_detect_ssl with use_awaitable
-* [Issue 1944] Fix FILE namespace qualification
-* [Issue 1942] Fix http read bytes_transferred
-* [Issue 1943] Fix basic_stream expires_after
-* [Issue 1897] Parser body_limit is optional (API Change)
-* [Issue 1934] Remove deprecated interfaces (API Change)
-* [Issue 1956] Deprecate string_param (API Change)
-* [Issue 1980] Fix `max` compile error
-* [Issue 1949] iless and iequal take part in Heterogeneous Lookup
+* [issue 1913] Fix standalone compilation error with std::string_view
+* [issue 1925] [issue 1916] Fix compile errors on Visual Studio with /std:c++latest
+* [issue 1924] Fix c++20 deprecation warning in span_body
+* [issue 1920] Fix use buffered_read_stream with use_awaitable
+* [issue 1918] Fix async_detect_ssl with use_awaitable
+* [issue 1944] Fix FILE namespace qualification
+* [issue 1942] Fix http read bytes_transferred
+* [issue 1943] Fix basic_stream expires_after
+* [issue 1897] Parser body_limit is optional (API Change)
+* [issue 1934] Remove deprecated interfaces (API Change)
+* [issue 1956] Deprecate string_param (API Change)
+* [issue 1980] Fix `max` compile error
+* [issue 1949] iless and iequal take part in Heterogeneous Lookup
 
 [*Miscellaneous]
 
-* [Issue 1907]  OpenSSL 1.0.2 or later is required when using SSL/TLS streams.
+* [issue 1907]  OpenSSL 1.0.2 or later is required when using SSL/TLS streams.
   This is a requirement inherited from Boost.Asio.
 
 * Additional tests have been added to ensure correct integration with C++20
