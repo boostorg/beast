@@ -67,19 +67,6 @@ public:
             h_, this->get());
     }
 
-    // The invocation hook is no longer defined because it customises behaviour
-    // without forwarding to a user's hook.
-
-#if 0
-    template<class Function>
-    void
-    asio_handler_invoke(Function&& f,
-        bind_default_executor_wrapper* p)
-    {
-        net::dispatch(p->get_executor(), std::move(f));
-    }
-#endif
-
     // The allocation hooks are still defined because they trivially forward to
     // user hooks. Forward here ensures that the user will get a compile error
     // if they build their code with BOOST_ASIO_NO_DEPRECATED.

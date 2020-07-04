@@ -288,7 +288,7 @@ struct associated_allocator<handler, Allocator>
 template<class Executor>
 struct associated_executor<handler, Executor>
 {
-    using type = boost::asio::any_io_executor;
+    using type = any_io_executor;
 
     static
     type

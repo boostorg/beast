@@ -33,13 +33,6 @@ public:
         BEAST_EXPECT(get_io_context(ioc.get_executor()) == &ioc);
         BEAST_EXPECT(get_io_context(net::make_strand(ioc)) == &ioc);
         BEAST_EXPECT(get_io_context(net::any_io_executor(ioc.get_executor())) == &ioc);
-#if 0
-        // VFALCO FIXME
-        BEAST_EXPECT(
-            get_io_context(
-                net::strand<net::any_io_executor>(
-                    net::any_io_executor(ioc.get_executor()))) == &ioc);
-#endif
     }
 
     void

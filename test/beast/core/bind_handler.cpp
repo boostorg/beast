@@ -127,29 +127,39 @@ public:
 
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
 
-        net::execution_context& query(net::execution::context_t c) const noexcept
+        net::execution_context&
+        query(
+            net::execution::context_t c) const noexcept
         {
             return net::query(ex_, c);
         }
 
-        net::execution::blocking_t query(net::execution::blocking_t) const noexcept
+        net::execution::blocking_t
+        query(
+            net::execution::blocking_t) const noexcept
         {
             return blocking_;
         }
 
-        net::execution::outstanding_work_t query(net::execution::outstanding_work_t w) const noexcept
+        net::execution::outstanding_work_t
+        query(
+            net::execution::outstanding_work_t w) const noexcept
         {
             return net::query(ex_, w);
         }
 
-        test_executor require(net::execution::blocking_t::possibly_t b) const
+        test_executor
+        require(
+            net::execution::blocking_t::possibly_t b) const
         {
             test_executor new_ex(*this);
             new_ex.blocking_ = b;
             return new_ex;
         }
 
-        test_executor require(net::execution::blocking_t::never_t b) const
+        test_executor
+        require(
+            net::execution::blocking_t::never_t b) const
         {
             test_executor new_ex(*this);
             new_ex.blocking_ = b;
@@ -193,18 +203,21 @@ public:
             return ex_.context();
         }
 
-        void on_work_started() const noexcept
+        void
+        on_work_started() const noexcept
         {
             ex_.on_work_started();
         }
 
-        void on_work_finished() const noexcept
+        void
+        on_work_finished() const noexcept
         {
             ex_.on_work_finished();
         }
 
         template<class F, class Alloc>
-        void dispatch(F&& f, Alloc const& a)
+        void
+        dispatch(F&& f, Alloc const& a)
         {
             s_.on_invoke();
             net::execution::execute(
@@ -217,7 +230,8 @@ public:
         }
 
         template<class F, class Alloc>
-        void post(F&& f, Alloc const& a)
+        void
+        post(F&& f, Alloc const& a)
         {
             // shouldn't be called since the enclosing
             // networking wrapper only uses dispatch
@@ -225,7 +239,8 @@ public:
         }
 
         template<class F, class Alloc>
-        void defer(F&& f, Alloc const& a)
+        void
+        defer(F&& f, Alloc const& a)
         {
             // shouldn't be called since the enclosing
             // networking wrapper only uses dispatch
@@ -235,21 +250,6 @@ public:
     };
 
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
-    using F = net::execution::invocable_archetype;
-    using T = test_executor;
-
-    BOOST_STATIC_ASSERT(
-    conditional<true, true_type,
-        typename std::result_of<typename std::decay<F>::type&()>::type
-    >::type::value);
-
-    BOOST_STATIC_ASSERT(std::is_constructible<typename std::decay<F>::type, F>::value);
-    BOOST_STATIC_ASSERT(std::is_move_constructible<typename std::decay<F>::type>::value);
-    BOOST_STATIC_ASSERT(boost::asio::execution::can_execute<T, F>::value);
-    BOOST_STATIC_ASSERT(std::is_nothrow_copy_constructible<T>::value);
-    BOOST_STATIC_ASSERT(std::is_nothrow_destructible<T>::value);
-    BOOST_STATIC_ASSERT(boost::asio::traits::equality_comparable<T>::is_valid);
-    BOOST_STATIC_ASSERT(boost::asio::traits::equality_comparable<T>::is_noexcept);
     BOOST_STATIC_ASSERT(net::execution::is_executor<test_executor>::value);
 #else
     BOOST_STATIC_ASSERT(net::is_executor<test_executor>::value);

@@ -355,11 +355,12 @@ int main(int argc, char* argv[])
     // The io_context is required for all I/O
     net::io_context ioc;
 
-    // The work keeps io_context::run from returning
-    auto work = net::any_io_executor(
+    // Building a tracked executor ensures that the underlying context's
+    // run() function will not return until the tracked executor is destroyed
+    net::any_io_executor work =
         net::prefer(
             ioc.get_executor(),
-            net::execution::outstanding_work.tracked));
+            net::execution::outstanding_work.tracked);
 
     // The report holds the aggregated statistics
     crawl_report report{ioc};

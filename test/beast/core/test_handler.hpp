@@ -98,12 +98,7 @@ public:
 };
 
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
-static_assert(net::execution::can_execute<simple_executor, net::execution::invocable_archetype>::value, "");
-static_assert(std::is_nothrow_copy_constructible<simple_executor>::value, "");
-static_assert(std::is_nothrow_destructible<simple_executor>::value, "");
-static_assert(net::traits::equality_comparable<simple_executor>::is_valid, "");
-static_assert(net::traits::equality_comparable<simple_executor>::is_noexcept, "");
-static_assert(net::execution::is_executor<simple_executor>::value, "");
+BOOST_STATIC_ASSERT(net::execution::is_executor<simple_executor>::value);
 #endif
 
 // A move-only handler

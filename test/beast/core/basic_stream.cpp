@@ -40,18 +40,6 @@
 namespace boost {
 namespace beast {
 
-#if 0
-template class basic_stream<
-    net::ip::tcp,
-    net::any_io_executor,
-    unlimited_rate_policy>;
-
-template class basic_stream<
-    net::ip::tcp,
-    net::any_io_executor,
-    simple_rate_policy>;
-#endif
-
 namespace {
 
 template<class Executor = net::io_context::executor_type>
@@ -376,19 +364,9 @@ public:
             basic_stream<tcp, strand> s1(ex);
             basic_stream<tcp, strand> s2(ex, tcp::v4());
             basic_stream<tcp, strand> s3(std::move(s1));
-        #if 0
-            s2.socket() = net::basic_stream_socket<
-                tcp, strand>(ioc);
-        #endif
             BEAST_EXPECT(s1.get_executor() == ex);
             BEAST_EXPECT(s2.get_executor() == ex);
             BEAST_EXPECT(s3.get_executor() == ex);
-
-#if 0
-            BEAST_EXPECT((! static_cast<
-                basic_stream<tcp, strand> const&>(
-                    s2).socket().is_open()));
-#endif
 
             test_sync_stream<
                 basic_stream<
@@ -398,20 +376,6 @@ public:
                 basic_stream<
                     tcp, strand>>();
         }
-
-        // construction from existing socket
-
-#if 0
-        {
-            tcp::socket sock(ioc);
-            basic_stream<tcp, executor> stream(std::move(sock));
-        }
-
-        {
-            tcp::socket sock(ioc);
-            basic_stream<tcp, strand> stream(std::move(sock));
-        }
-#endif
 
         // layers
 

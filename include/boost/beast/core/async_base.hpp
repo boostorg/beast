@@ -304,7 +304,8 @@ public:
     executor_type
     get_executor() const noexcept
     {
-        return net::get_associated_executor(h_, wg1_.get_executor());
+        return net::get_associated_executor(
+            h_, wg1_.get_executor());
     }
 
     /// Returns the handler associated with this object
