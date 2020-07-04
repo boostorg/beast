@@ -358,7 +358,7 @@ int main(int argc, char* argv[])
     // Building a tracked executor ensures that the underlying context's
     // run() function will not return until the tracked executor is destroyed
     net::any_io_executor work =
-        net::prefer(
+        net::require(
             ioc.get_executor(),
             net::execution::outstanding_work.tracked);
 

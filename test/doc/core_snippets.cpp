@@ -39,7 +39,7 @@ using tcp = net::ip::tcp;
 
 net::io_context ioc;
 net::any_io_executor work =
-    net::prefer(ioc.get_executor(),
+    net::require(ioc.get_executor(),
         net::execution::outstanding_work.tracked);
 std::thread t{[&](){ ioc.run(); }};
 

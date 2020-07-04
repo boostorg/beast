@@ -85,7 +85,8 @@ public:
             std::ostream& log,
             kind k = kind::sync)
             : log_(log)
-            , work_(net::prefer(ioc_.get_executor(), net::execution::outstanding_work.tracked))
+            , work_(net::require(ioc_.get_executor(),
+                net::execution::outstanding_work.tracked))
             , ts_(ioc_)
             , ws_(ts_)
         {
