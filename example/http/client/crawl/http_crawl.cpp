@@ -347,7 +347,7 @@ int main(int argc, char* argv[])
         std::cerr <<
             "Usage: http-crawl <threads>\n" <<
             "Example:\n" <<
-            "    http-crawl 100 1\n";
+            "    http-crawl 100\n";
         return EXIT_FAILURE;
     }
     auto const threads = std::max<int>(1, std::atoi(argv[1]));
