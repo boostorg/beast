@@ -46,7 +46,6 @@ using tcp = net::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
 // This structure aggregates statistics on all the sites
 class crawl_report
 {
-    net::io_context& ioc_;
     net::strand<
         net::io_context::executor_type> strand_;
     std::atomic<std::size_t> index_;
@@ -55,8 +54,7 @@ class crawl_report
 
 public:
     crawl_report(net::io_context& ioc)
-        : ioc_(ioc)
-        , strand_(ioc_.get_executor())
+        : strand_(ioc.get_executor())
         , index_(0)
         , hosts_(urls_large_data())
     {
