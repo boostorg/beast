@@ -379,7 +379,7 @@ int main(int argc, char* argv[])
                 // the asio resolver simulates asynchronous operation using
                 // a dedicated worker thread per io_context, and we want to
                 // do a lot of name resolutions in parallel.
-                net::io_context ioc{1};
+                net::io_context ioc;
                 std::make_shared<worker>(report, ioc)->run();
                 ioc.run();
             });
