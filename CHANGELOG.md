@@ -1,3 +1,7 @@
+* Fix race in http-crawl example.
+
+--------------------------------------------------------------------------------
+
 Version 298:
 
 * Support BOOST_ASIO_NO_TS_EXECUTORS.
