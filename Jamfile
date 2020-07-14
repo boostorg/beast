@@ -9,6 +9,7 @@
 
 import ac ;
 import os ;
+import path ;
 import feature ;
 import boost ;
 import modules ;
@@ -28,8 +29,49 @@ lib ssl ;
 lib crypto ;
 lib crypt32 ;
 
-lib ssl : : <target-os>windows <name>ssleay32 ;
-lib crypto : : <target-os>windows <name>libeay32 ;
+# Microsoft Windows section. Refer to FAQ "Windows and OpenSSL"
+if [ os.name ] = NT
+{
+  local OPENSSL_ROOT_DEFAULT = "C:/OpenSSL" ;
+  local OPENSSL_ROOT_ENV = [ os.environ OPENSSL_ROOT ] ;
+  local OPENSSL_ROOT = "" ;
+  if $(OPENSSL_ROOT_ENV)
+    {
+       OPENSSL_ROOT = $(OPENSSL_ROOT_ENV) ;
+    }
+  else 
+    {
+      OPENSSL_ROOT = $(OPENSSL_ROOT_DEFAULT) ;
+    }
+  project
+    : requirements
+      <include>$(OPENSSL_ROOT)/include
+      <variant>debug:<library-path>$(OPENSSL_ROOT)/lib
+      <target-os>windows<variant>debug:<library-path>$(OPENSSL_ROOT)/debug/lib
+      <variant>release:<library-path>$(OPENSSL_ROOT)/lib
+    ;
+
+  if [ path.exists $(OPENSSL_ROOT)/lib/libssl.lib ]
+    {
+      echo "OpenSSL > 1.1.0. Including libssl" ;
+      lib ssl : : <target-os>windows <name>libssl ;
+    }
+  if [ path.exists $(OPENSSL_ROOT)/lib/libcrypto.lib ]
+    {
+      echo "OpenSSL > 1.1.0. Including libcrypto" ;
+      lib crypto : : <target-os>windows <name>libcrypto ;
+    }
+  if [ path.exists $(OPENSSL_ROOT)/lib/ssleay32.lib ]
+    {
+      echo "OpenSSL < 1.1.0. Including ssleay32" ;
+      lib ssl : : <target-os>windows <name>ssleay32 ;
+    }
+  if [ path.exists $(OPENSSL_ROOT)/lib/libeay32.lib ]
+    {
+      echo "OpenSSL < 1.1.0. Including libeay32" ;
+      lib crypto : : <target-os>windows <name>libeay32 ;
+    }
+}
 
 feature.feature boost.beast.allow-deprecated : on off : propagated composite ;
 feature.compose <boost.beast.allow-deprecated>on : <define>BOOST_BEAST_ALLOW_DEPRECATED ;

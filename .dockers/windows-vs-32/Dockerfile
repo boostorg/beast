@@ -27,8 +27,6 @@ RUN choco install -y python --version 3.8.3
 # chocolaty install of openssl 1.1.1
 # RUN choco install -y openssl --x86 --version 1.1.1.700
 # RUN mklink /D "OpenSSL" "Program Files (x86)\\OpenSSL-Win32"
-# RUN copy "C:\\OpenSSL\\lib\\libcrypto.lib" "C:\\OpenSSL\\lib\\libeay32.lib"
-# RUN copy "C:\\OpenSSL\\lib\\libssl.lib" "C:\\OpenSSL\\lib\\ssleay32.lib"
 
 # scoop install of openssl 1.0.2u
 # RUN powershell -Command scoop install openssl@1.0.2u -a 32bit -g
@@ -37,8 +35,6 @@ RUN choco install -y python --version 3.8.3
 # scoop install of openssl 1.1.1g
 RUN powershell -Command scoop install openssl@1.1.1g -a 32bit -g
 RUN mklink /D "OpenSSL" "ProgramData\\scoop\\apps\\openssl\\current"
-RUN copy "C:\\OpenSSL\\lib\\libcrypto.lib" "C:\\OpenSSL\\lib\\libeay32.lib"
-RUN copy "C:\\OpenSSL\\lib\\libssl.lib" "C:\\OpenSSL\\lib\\ssleay32.lib"
 
 RUN mkdir C:\devel
 
