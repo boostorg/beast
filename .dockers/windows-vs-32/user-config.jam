@@ -10,14 +10,12 @@ feature.compose <asio.mode>nodep-ts : <define>"BOOST_ASIO_NO_DEPRECATED" <define
 #using clang :   : clang++ : <stdlib>"libc++" <cxxflags>"-Wno-c99-extensions" ;
 #using gcc :   : g++ : <cxxflags>"-Wno-c99-extensions" ;
 
-import os ;
-
-local OPENSSL_ROOT = [ os.environ OPENSSL_ROOT ] ;
-
-project
-  : requirements
-    <include>$(OPENSSL_ROOT)/include
-    <variant>debug:<library-path>$(OPENSSL_ROOT)/lib
-    <target-os>windows<variant>debug:<library-path>$(OPENSSL_ROOT)/debug/lib
-    <variant>release:<library-path>$(OPENSSL_ROOT)/lib
-  ;
+#import os ;
+#local OPENSSL_ROOT = [ os.environ OPENSSL_ROOT ] ;
+#project
+#  : requirements
+#    <include>$(OPENSSL_ROOT)/include
+#    <variant>debug:<library-path>$(OPENSSL_ROOT)/lib
+#    <target-os>windows<variant>debug:<library-path>$(OPENSSL_ROOT)/debug/lib
+#    <variant>release:<library-path>$(OPENSSL_ROOT)/lib
+#  ;
