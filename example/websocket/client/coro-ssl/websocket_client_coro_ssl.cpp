@@ -71,7 +71,17 @@ do_session(
     if(ec)
         return fail(ec, "connect");
 
-    // Update the host_ string. This will provide the value of the
+    // Set SNI Hostname (many hosts need this to handshake successfully)
+    if(! SSL_set_tlsext_host_name(
+        ws.next_layer().native_handle(),
+        host.c_str()))
+    {
+        ec = beast::error_code(static_cast<int>(::ERR_get_error()),
+            net::error::get_ssl_category());
+        return fail(ec, "connect");
+    }
+
+    // Update the host string. This will provide the value of the
     // Host HTTP header during the WebSocket handshake.
     // See https://tools.ietf.org/html/rfc7230#section-5.4
     host += ':' + std::to_string(ep.port());
