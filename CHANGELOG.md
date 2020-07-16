@@ -1,3 +1,7 @@
+* Update WebSocket examples to set TLS SNI.
+
+--------------------------------------------------------------------------------
+
 Version 299:
 
 * Fix race in http-crawl example.
