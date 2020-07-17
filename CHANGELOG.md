@@ -1,3 +1,5 @@
+Version 300:
+
 * Fix compile errors under Clang 3.4
 * Fix portability bug in websocket server sync example.
 
