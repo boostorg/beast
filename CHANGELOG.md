@@ -1,3 +1,5 @@
+Version 300:
+
 * Fix compile errors under Clang 3.4
 * Websocket SSL `teardown` also tears down underlying TCP.
 * Update WebSocket examples to set TLS SNI.
