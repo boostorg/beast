@@ -1,3 +1,16 @@
+* Websocket SSL `teardown` also tears down underlying TCP.
+
+API Changes:
+
+* Previously, `teardown` and `async_teardown` of a websocket connection over SSL
+  would only shut down the SSL layer, leaving the TCP layer connected. Now the 
+  SSL teardown will tear down both the SSL and TCP layers, cleanly shutting down 
+  the TCP connection and closing the socket.
+  In the highly unlikely scenario where the client expects the TCP socket to remain 
+  connected, users may need to re-engineer their code.
+
+--------------------------------------------------------------------------------
+
 Version 299:
 
 * Fix race in http-crawl example.
