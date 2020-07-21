@@ -1,5 +1,6 @@
 Version XXX:
 
+* Fix file open with append_existing flag on posix.
 * Websocket SSL `teardown` also tears down underlying TCP.
 * Update WebSocket examples to set TLS SNI.
 * Add handler tracking locations to websocket.
