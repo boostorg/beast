@@ -1,3 +1,7 @@
+*  Fix file open with append_existing flag on posix.
+
+--------------------------------------------------------------------------------
+
 Version 299:
 
 * Fix race in http-crawl example.
