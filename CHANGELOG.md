@@ -1,3 +1,7 @@
+* Fix compile errors under Clang 3.4
+
+--------------------------------------------------------------------------------
+
 Version 299:
 
 * Fix race in http-crawl example.

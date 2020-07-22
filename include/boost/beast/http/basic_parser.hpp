@@ -71,7 +71,8 @@ class basic_parser
 {
     boost::optional<std::uint64_t>
         body_limit_ =
-            default_body_limit(is_request{});   // max payload body
+            boost::optional<std::uint64_t>(
+                default_body_limit(is_request{}));   // max payload body
     std::uint64_t len_ = 0;                 // size of chunk or body
     std::uint64_t len0_ = 0;                // content length if known
     std::unique_ptr<char[]> buf_;           // temp storage
