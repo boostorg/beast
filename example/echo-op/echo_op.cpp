@@ -355,8 +355,8 @@ int main(int argc, char** argv)
     }
 
     namespace net = boost::asio;
-    auto const address{net::ip::make_address(argv[1])};
-    auto const port{static_cast<unsigned short>(std::atoi(argv[2]))};
+    auto const address = net::ip::make_address(argv[1]);
+    auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
 
     using endpoint_type = net::ip::tcp::endpoint;
 
@@ -364,7 +364,7 @@ int main(int argc, char** argv)
     // the echo, and then shut everything down and exit.
     net::io_context ioc;
     net::ip::tcp::acceptor acceptor{ioc};
-    endpoint_type ep{address, port};
+    endpoint_type ep(address, port);
     acceptor.open(ep.protocol());
     acceptor.set_option(net::socket_base::reuse_address(true));
     acceptor.bind(ep);
