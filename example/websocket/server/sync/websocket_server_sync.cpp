@@ -32,7 +32,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 // Echoes back all received WebSocket messages
 void
-do_session(tcp::socket& socket)
+do_session(tcp::socket socket)
 {
     try
     {
@@ -108,9 +108,9 @@ int main(int argc, char* argv[])
             acceptor.accept(socket);
 
             // Launch the session, transferring ownership of the socket
-            std::thread{std::bind(
+            std::thread(
                 &do_session,
-                std::move(socket))}.detach();
+                std::move(socket)).detach();
         }
     }
     catch (const std::exception& e)

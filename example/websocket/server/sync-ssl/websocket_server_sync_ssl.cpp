@@ -38,7 +38,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 // Echoes back all received WebSocket messages
 void
-do_session(tcp::socket& socket, ssl::context& ctx)
+do_session(tcp::socket socket, ssl::context& ctx)
 {
     try
     {
@@ -123,10 +123,10 @@ int main(int argc, char* argv[])
             acceptor.accept(socket);
 
             // Launch the session, transferring ownership of the socket
-            std::thread{std::bind(
+            std::thread(
                 &do_session,
                 std::move(socket),
-                std::ref(ctx))}.detach();
+                std::ref(ctx)).detach();
         }
     }
     catch (const std::exception& e)
