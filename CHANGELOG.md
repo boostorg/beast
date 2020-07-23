@@ -1,3 +1,7 @@
+* Fix portability bug in websocket server sync example.
+
+--------------------------------------------------------------------------------
+
 Version 299:
 
 * Fix race in http-crawl example.
