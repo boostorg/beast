@@ -1,3 +1,7 @@
+* Fix unreachable code warning with MSVC.
+
+--------------------------------------------------------------------------------
+
 Version 299:
 
 * Fix race in http-crawl example.
