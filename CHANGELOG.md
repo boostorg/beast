@@ -1,5 +1,6 @@
 Version XXX:
 
+* Fix unreachable code warning with MSVC.
 * Fix logic error in advance_server_flex.
 * Fix file open with append_existing flag on posix.
 * Websocket SSL `teardown` also tears down underlying TCP.
