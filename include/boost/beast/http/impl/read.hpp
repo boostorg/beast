@@ -97,6 +97,10 @@ public:
         , d_(beast::allocate_stable<data>(
             *this, s, m))
     {
+        BOOST_ASIO_HANDLER_LOCATION((
+            __FILE__, __LINE__,
+            "http::async_read(msg)"));
+
         http::async_read(d_.s, b, d_.p, std::move(*this));
     }
 
@@ -203,6 +207,11 @@ public:
                             b_, size, ec, error::buffer_overflow);
                     if(ec)
                         goto upcall;
+
+                    BOOST_ASIO_HANDLER_LOCATION((
+                        __FILE__, __LINE__,
+                        "http::async_read_some"));
+
                     s_.async_read_some(*mb, std::move(self));
                 }
                 b_.commit(bytes_transferred);
@@ -230,8 +239,14 @@ public:
             if(! cont_)
             {
                 BOOST_ASIO_CORO_YIELD
+                {
+                    BOOST_ASIO_HANDLER_LOCATION((
+                        __FILE__, __LINE__,
+                        "http::async_read_some"));
+
                     net::post(
                         beast::bind_front_handler(std::move(self), ec));
+                }
             }
             self.complete(ec, bytes_transferred_);
         }
@@ -264,15 +279,27 @@ public:
             if (Condition{}(p_))
             {
                 BOOST_ASIO_CORO_YIELD
+                {
+                    BOOST_ASIO_HANDLER_LOCATION((
+                        __FILE__, __LINE__,
+                        "http::async_read"));
+
                     net::post(std::move(self));
+                }
             }
             else
             {
                 do
                 {
                     BOOST_ASIO_CORO_YIELD
+                    {
+                        BOOST_ASIO_HANDLER_LOCATION((
+                            __FILE__, __LINE__,
+                            "http::async_read"));
+
                         async_read_some(
                             s_, b_, p_, std::move(self));
+                    }
                     bytes_transferred_ += bytes_transferred;
                 } while (!ec &&
                          !Condition{}(p_));

@@ -1,6 +1,7 @@
 Version XXX:
 
 * Add handler tracking locations to basic_stream.
+* Add handler tracking locations to http operations.
 
 --------------------------------------------------------------------------------
 
