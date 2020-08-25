@@ -45,6 +45,7 @@ project (Beast VERSION 300)
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
 option (Beast_BUILD_TESTS "Build tests" ON)
+option (Beast_ENABLE_HANDLER_TRACKING "Define BOOST_ASIO_ENABLE_HANDLER_TRACKING when building libraries" OFF)
 
 if (MSVC)
     set (CMAKE_VERBOSE_MAKEFILE FALSE)
@@ -196,6 +197,10 @@ add_library (
     lib-asio STATIC
     test/lib_asio.cpp
 )
+if(Beast_ENABLE_HANDLER_TRACKING)
+    target_compile_definitions(lib-asio
+        PUBLIC BOOST_ASIO_ENABLE_HANDLER_TRACKING=1)
+endif()
 
 set_property(TARGET lib-asio PROPERTY FOLDER "static-libs")
 
