@@ -591,8 +591,19 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
             // by the move, are first moved to the stack before calling the
             // initiating function.
 
-            yield stream_.async_read_some(buffer_.prepare(
-                read_size(buffer_, 1536)), std::move(*this));
+            yield
+            {
+                // This macro facilitates asynchrnous handler tracking and
+                // debugging when the preprocessor macro
+                // BOOST_ASIO_CUSTOM_HANDLER_TRACKING is defined.
+
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "async_detect_ssl"));
+
+                stream_.async_read_some(buffer_.prepare(
+                    read_size(buffer_, 1536)), std::move(*this));
+            }
 
             // Commit what we read into the buffer's input area.
             buffer_.commit(bytes_transferred);
@@ -626,7 +637,14 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
             // used in the call to async_read_some above, to avoid
             // instantiating another version of the function template.
 
-            yield stream_.async_read_some(buffer_.prepare(0), std::move(*this));
+            yield
+            {
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "async_detect_ssl"));
+
+                stream_.async_read_some(buffer_.prepare(0), std::move(*this));
+            }
 
             // Restore the saved error code
             ec = ec_;
