@@ -51,6 +51,11 @@ public:
             s.buffer_.commit(net::buffer_copy(
                 s.buffer_.prepare(result.size),
                 b, result.size));
+
+            BOOST_ASIO_HANDLER_LOCATION((
+                __FILE__, __LINE__,
+                "flat_stream::async_write_some"));
+
             s.stream_.async_write_some(
                 s.buffer_.data(), std::move(*this));
         }
@@ -58,6 +63,11 @@ public:
         {
             s.buffer_.clear();
             s.buffer_.shrink_to_fit();
+
+            BOOST_ASIO_HANDLER_LOCATION((
+                __FILE__, __LINE__,
+                "flat_stream::async_write_some"));
+
             s.stream_.async_write_some(
                 beast::buffers_prefix(
                     result.size, b), std::move(*this));
