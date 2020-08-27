@@ -105,16 +105,28 @@ public:
             // write HTTP request
             impl.do_pmd_config(d_.req);
             BOOST_ASIO_CORO_YIELD
-            http::async_write(impl.stream(),
-                d_.req, std::move(*this));
+            {
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "websocket::async_handshake"));
+
+                http::async_write(impl.stream(),
+                    d_.req, std::move(*this));
+            }
             if(impl.check_stop_now(ec))
                 goto upcall;
 
             // read HTTP response
             BOOST_ASIO_CORO_YIELD
-            http::async_read(impl.stream(),
-                impl.rd_buf, d_.p,
-                    std::move(*this));
+            {
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "websocket::async_handshake"));
+
+                http::async_read(impl.stream(),
+                    impl.rd_buf, d_.p,
+                        std::move(*this));
+            }
             if(ec == http::error::buffer_overflow)
             {
                 // If the response overflows the internal
@@ -127,8 +139,14 @@ public:
                 impl.rd_buf.clear();
 
                 BOOST_ASIO_CORO_YIELD
-                http::async_read(impl.stream(),
-                    d_.fb, d_.p, std::move(*this));
+                {
+                    BOOST_ASIO_HANDLER_LOCATION((
+                        __FILE__, __LINE__,
+                        "websocket::async_handshake"));
+
+                    http::async_read(impl.stream(),
+                        d_.fb, d_.p, std::move(*this));
+                }
 
                 if(! ec)
                 {

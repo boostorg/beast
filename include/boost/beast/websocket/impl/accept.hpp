@@ -215,8 +215,14 @@ public:
 
             // Send response
             BOOST_ASIO_CORO_YIELD
-            http::async_write(
-                impl.stream(), res_, std::move(*this));
+            {
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "websocket::async_accept"));
+
+                http::async_write(
+                    impl.stream(), res_, std::move(*this));
+            }
             if(impl.check_stop_now(ec))
                 goto upcall;
             if(! ec)
@@ -298,8 +304,14 @@ public:
                 goto upcall;
 
             BOOST_ASIO_CORO_YIELD
-            http::async_read(impl.stream(),
-                impl.rd_buf, p_, std::move(*this));
+            {
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "websocket::async_accept"));
+
+                http::async_read(impl.stream(),
+                    impl.rd_buf, p_, std::move(*this));
+            }
             if(ec == http::error::end_of_stream)
                 ec = error::closed;
             if(impl.check_stop_now(ec))

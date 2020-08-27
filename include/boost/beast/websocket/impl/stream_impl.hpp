@@ -420,6 +420,12 @@ struct stream<NextLayer, deflateSupported>::impl_type
             {
                 timer.expires_after(
                     timeout_opt.handshake_timeout);
+
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "websocket::check_stop_now"
+                    ));
+
                 timer.async_wait(
                     timeout_handler<Executor>(
                         ex, this->weak_from_this()));
@@ -436,6 +442,12 @@ struct stream<NextLayer, deflateSupported>::impl_type
                 else
                     timer.expires_after(
                         timeout_opt.idle_timeout);
+
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "websocket::check_stop_now"
+                    ));
+
                 timer.async_wait(
                     timeout_handler<Executor>(
                         ex, this->weak_from_this()));
@@ -453,6 +465,12 @@ struct stream<NextLayer, deflateSupported>::impl_type
                 idle_counter = 0;
                 timer.expires_after(
                     timeout_opt.handshake_timeout);
+
+                BOOST_ASIO_HANDLER_LOCATION((
+                    __FILE__, __LINE__,
+                    "websocket::check_stop_now"
+                    ));
+
                 timer.async_wait(
                     timeout_handler<Executor>(
                         ex, this->weak_from_this()));
@@ -551,12 +569,26 @@ private:
                 if( impl.timeout_opt.keep_alive_pings &&
                     impl.idle_counter < 1)
                 {
-                    idle_ping_op<Executor>(sp, get_executor());
+                    {
+                        BOOST_ASIO_HANDLER_LOCATION((
+                            __FILE__, __LINE__,
+                            "websocket::timeout_handler"
+                            ));
 
+                        idle_ping_op<Executor>(sp, get_executor());
+                    }
                     ++impl.idle_counter;
                     impl.timer.expires_after(
                         impl.timeout_opt.idle_timeout / 2);
-                    impl.timer.async_wait(std::move(*this));
+
+                    {
+                        BOOST_ASIO_HANDLER_LOCATION((
+                            __FILE__, __LINE__,
+                            "websocket::timeout_handler"
+                            ));
+
+                        impl.timer.async_wait(std::move(*this));
+                    }
                     return;
                 }
 
