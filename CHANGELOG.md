@@ -1,5 +1,6 @@
 Version XXX:
 
+* Add handler tracking locations to websocket.
 * Add handler tracking locations to tcp teardown.
 * Eliminate spurious uninitialised variable warning in detect_ssl.
 * Add handler tracking locations to flat_stream.
