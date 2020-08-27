@@ -1,5 +1,6 @@
 Version XXX:
 
+* Eliminate spurious uninitialised variable warning in detect_ssl.
 * Add handler tracking locations to flat_stream.
 * Add handler tracking locations to detect_ssl.
 * Add handler tracking locations to icy_stream.
