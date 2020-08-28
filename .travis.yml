@@ -104,19 +104,19 @@ matrix:
             - libc++-dev
             - libc++abi-dev
 
-    # GCC 5.0, Valgrind
+    # GCC Valgrind
     - os: linux
-      dist: bionic
-      compiler: g++-5
+      dist: focal
+      compiler: g++
       env:
         - VARIANT=beast_valgrind
         - TOOLSET=gcc
-        - COMPILER=g++-5
+        - COMPILER=g++
         - CXXSTD=11
       addons:
         apt:
           packages:
-            - g++-5
+            - g++-7
             - libssl-dev
             - valgrind
             - *base_packages

@@ -1,5 +1,6 @@
 Version 301:
 
+* Fix Travis CI bug.
 * Fix erroneous error when HTTP `body_limit` is `none`.
 * Fix unreachable code warning with MSVC.
 * Fix logic error in advance_server_flex.
