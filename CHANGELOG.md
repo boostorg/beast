@@ -1,3 +1,5 @@
+* Fix erroneous error when HTTP `body_limit` is `none`.
+
 Version 300:
 
 * Fix compile errors under Clang 3.4
