@@ -1,5 +1,6 @@
-Version XXX:
+Version 301:
 
+* Fix erroneous error when HTTP `body_limit` is `none`.
 * Fix unreachable code warning with MSVC.
 * Fix logic error in advance_server_flex.
 * Fix file open with append_existing flag on posix.

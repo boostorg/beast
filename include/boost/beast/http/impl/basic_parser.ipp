@@ -447,7 +447,8 @@ finish_header(error_code& ec, std::true_type)
     }
     else if(f_ & flagContentLength)
     {
-        if(len_ > body_limit_)
+        if(body_limit_.has_value() &&
+           len_ > body_limit_)
         {
             ec = error::body_limit;
             return;
@@ -511,7 +512,8 @@ finish_header(error_code& ec, std::false_type)
             f_ |= flagHasBody;
             state_ = state::body0;
 
-            if(len_ > body_limit_)
+            if(body_limit_.has_value() &&
+               len_ > body_limit_)
             {
                 ec = error::body_limit;
                 return;
