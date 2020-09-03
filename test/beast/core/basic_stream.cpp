@@ -1367,6 +1367,34 @@ public:
     }
 
     void
+    testIssue2065()
+    {
+        using stream_type = basic_stream<tcp,
+            net::io_context::executor_type>;
+
+        char buf[4];
+        net::io_context ioc;
+        std::memset(buf, 0, sizeof(buf));
+        net::mutable_buffer mb(buf, sizeof(buf));
+        auto const ep = net::ip::tcp::endpoint(
+            net::ip::make_address("127.0.0.1"), 0);
+
+            // async_read_some
+
+        {
+            // success
+            test_server srv("*", ep, log);
+            stream_type s(ioc);
+            s.socket().connect(srv.local_endpoint());
+            s.expires_never();
+            s.async_read_some(mb, handler({}, 1));
+            s.async_read_some(net::buffer(buf, 0), handler({}, 0));
+            ioc.run();
+            ioc.restart();
+        }
+    }
+
+    void
     run()
     {
         testSpecialMembers();
@@ -1382,6 +1410,7 @@ public:
         boost::ignore_unused(&basic_stream_test::testAwaitableCompilation);
 #endif
         boost::ignore_unused(&basic_stream_test::testConnectionConditionArgs);
+        testIssue2065();
     }
 };
 

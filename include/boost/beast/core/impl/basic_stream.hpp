@@ -269,6 +269,8 @@ class transfer_op
                 std::move(*this));
     }
 
+    static bool never_pending_;
+
 public:
     template<class Handler_>
     transfer_op(
@@ -278,10 +280,25 @@ public:
         : async_base<Handler, Executor>(
             std::forward<Handler_>(h), s.get_executor())
         , impl_(s.impl_)
-        , pg_(state().pending)
+        , pg_()
         , b_(b)
     {
-        (*this)({});
+        if (buffer_bytes(b_) == 0 && state().pending)
+        {
+            // Workaround:
+            // Corner case discovered in https://github.com/boostorg/beast/issues/2065
+            // Enclosing SSL stream wishes to complete a 0-length write early by
+            // executing a 0-length read against the underlying stream.
+            // This can occur even if an existing async_read is in progress.
+            // In this specific case, we will complete the async op with no error
+            // in order to prevent assertions and/or internal corruption of the basic_stream
+            this->complete(false, error_code(), 0);
+        }
+        else
+        {
+            pg_.assign(state().pending);
+            (*this)({});
+        }
     }
 
     void
