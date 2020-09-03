@@ -1,3 +1,9 @@
+Version XXX:
+
+*  Fix assert when basic_stream used as underlying of ssl::stream with zero-length write.
+
+--------------------------------------------------------------------------------
+
 Version 301:
 
 * Fix Travis CI bug.
