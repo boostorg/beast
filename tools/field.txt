@@ -275,6 +275,10 @@ Safe
 Schedule-Reply
 Schedule-Tag
 Security-Scheme
+Sec-Fetch-Dest
+Sec-Fetch-Mode
+Sec-Fetch-Site
+Sec-Fetch-User
 Sec-WebSocket-Accept
 Sec-WebSocket-Extensions
 Sec-WebSocket-Key

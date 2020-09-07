@@ -1,6 +1,7 @@
 Version XXX:
 
-*  Fix assert when basic_stream used as underlying of ssl::stream with zero-length write.
+* Fix assert when basic_stream used as underlying of ssl::stream with zero-length write.
+* Add Sec-* HTTP headers.
 
 --------------------------------------------------------------------------------
 

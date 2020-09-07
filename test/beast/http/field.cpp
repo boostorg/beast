@@ -33,7 +33,6 @@ public:
         match(field::accept, "aCcept");
         match(field::accept, "ACCEPT");
 
-
         match(field::a_im, "A-IM");
         match(field::accept, "Accept");
         match(field::accept_additions, "Accept-Additions");
@@ -310,6 +309,10 @@ public:
         match(field::safe, "Safe");
         match(field::schedule_reply, "Schedule-Reply");
         match(field::schedule_tag, "Schedule-Tag");
+        match(field::sec_fetch_dest, "Sec-Fetch-Dest");
+        match(field::sec_fetch_mode, "Sec-Fetch-Mode");
+        match(field::sec_fetch_site, "Sec-Fetch-Site");
+        match(field::sec_fetch_user, "Sec-Fetch-User");
         match(field::sec_websocket_accept, "Sec-WebSocket-Accept");
         match(field::sec_websocket_extensions, "Sec-WebSocket-Extensions");
         match(field::sec_websocket_key, "Sec-WebSocket-Key");
