@@ -425,6 +425,11 @@ public:
     void
     insert(field name, string_view const& value);
 
+    /* Set a field from a null pointer (deleted).
+    */
+    void
+    insert(field, std::nullptr_t) = delete;
+
     /** Insert a field.
 
         If one or more fields with the same name already exist,
@@ -437,6 +442,11 @@ public:
     */
     void
     insert(string_view name, string_view const& value);
+
+    /* Insert a field from a null pointer (deleted).
+    */
+    void
+    insert(string_view, std::nullptr_t) = delete;
 
     /** Insert a field.
 
@@ -457,6 +467,9 @@ public:
     insert(field name, string_view name_string,
            string_view const& value);
 
+    void
+    insert(field, string_view, std::nullptr_t) = delete;
+
     /** Set a field value, removing any other instances of that field.
 
         First removes any values with matching field names, then
@@ -471,6 +484,9 @@ public:
     void
     set(field name, string_view const& value);
 
+    void
+    set(field, std::nullptr_t) = delete;
+
     /** Set a field value, removing any other instances of that field.
 
         First removes any values with matching field names, then
@@ -483,7 +499,10 @@ public:
     void
     set(string_view name, string_view const& value);
 
-    /** Remove a field.
+    void
+    set(string_view, std::nullptr_t) = delete;
+
+        /** Remove a field.
 
         References and iterators to the erased elements are
         invalidated. Other references and iterators are not

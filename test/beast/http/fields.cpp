@@ -1004,6 +1004,72 @@ public:
         BEAST_EXPECT(req.count("abc") == 3);
     }
 
+    template<class Arg1, class InArg>
+    struct set_test
+    {
+        static auto test(...) ->
+            std::false_type;
+
+        template<class U = InArg>
+        static auto test(U arg) ->
+            decltype(std::declval<fields>().
+                set(std::declval<Arg1>(),
+                    std::declval<U>()),
+                std::true_type());
+
+        static constexpr bool value =
+            decltype(test(std::declval<InArg>()))::value;
+    };
+
+    template<class Arg1, class InArg>
+    struct insert_test
+    {
+        static auto test(...) ->
+            std::false_type;
+
+        template<class U = InArg>
+        static auto test(U arg) ->
+            decltype(std::declval<fields>().
+                insert(std::declval<Arg1>(),
+                    std::declval<U>()),
+                std::true_type());
+
+        static constexpr bool value =
+            decltype(test(std::declval<InArg>()))::value;
+    };
+
+    void
+    testIssue2085()
+    {
+        BOOST_STATIC_ASSERT((! set_test<field, int>::value));
+        BOOST_STATIC_ASSERT((! set_test<field, std::nullptr_t>::value));
+        BOOST_STATIC_ASSERT((! set_test<field, double>::value));
+        BOOST_STATIC_ASSERT((! set_test<string_view, int>::value));
+        BOOST_STATIC_ASSERT((! set_test<string_view, std::nullptr_t>::value));
+        BOOST_STATIC_ASSERT((! set_test<string_view, double>::value));
+
+        BOOST_STATIC_ASSERT(( set_test<field, const char*>::value));
+        BOOST_STATIC_ASSERT(( set_test<field, string_view>::value));
+        BOOST_STATIC_ASSERT(( set_test<field, const char(&)[10]>::value));
+        BOOST_STATIC_ASSERT(( set_test<string_view, const char*>::value));
+        BOOST_STATIC_ASSERT(( set_test<string_view, string_view>::value));
+        BOOST_STATIC_ASSERT(( set_test<string_view, const char(&)[10]>::value));
+
+        BOOST_STATIC_ASSERT((! insert_test<field, int>::value));
+        BOOST_STATIC_ASSERT((! insert_test<field, std::nullptr_t>::value));
+        BOOST_STATIC_ASSERT((! insert_test<field, double>::value));
+        BOOST_STATIC_ASSERT((! insert_test<string_view, int>::value));
+        BOOST_STATIC_ASSERT((! insert_test<string_view, std::nullptr_t>::value));
+        BOOST_STATIC_ASSERT((! insert_test<string_view, double>::value));
+
+        BOOST_STATIC_ASSERT(( insert_test<field, const char*>::value));
+        BOOST_STATIC_ASSERT(( insert_test<field, string_view>::value));
+        BOOST_STATIC_ASSERT(( insert_test<field, const char(&)[10]>::value));
+        BOOST_STATIC_ASSERT(( insert_test<string_view, const char*>::value));
+        BOOST_STATIC_ASSERT(( insert_test<string_view, string_view>::value));
+        BOOST_STATIC_ASSERT(( insert_test<string_view, const char(&)[10]>::value));
+    }
+
     void
     run() override
     {
@@ -1020,6 +1086,7 @@ public:
         testChunked();
 
         testIssue1828();
+        boost::ignore_unused(&fields_test::testIssue2085);
     }
 };
 
