@@ -1,3 +1,6 @@
+* Add Bishop Fox Security Assessment.
+--------------------------------------------------------------------------------
+
 Version302:
 
 * Fix assert when basic_stream used as underlying of ssl::stream with zero-length write.

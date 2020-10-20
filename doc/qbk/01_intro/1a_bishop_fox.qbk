@@ -30,6 +30,14 @@ manual exploitation and review of these issues to validate the findings.
 
 [@https://vinniefalco.github.io/BeastAssets/Beast%20-%20Hybrid%20Application%20Assessment%202017%20-%20Assessment%20Report%20-%2020171114.pdf [*Beast - Hybrid Application Assessment 2017]]
 
+In 2020, as part of its commitment to producing the very finest C++ libraries
+that application developers can trust, the C++ Alliance one again comissioned
+Bishop Fox to retest the Beast library.
+
+The report is linked here:
+
+[@https://vinniefalco.github.io/BeastAssets/C%20Plus%20Plus%20Alliance%20-%20Hybrid%20Application%20Assessment%202020%20-%20Assessment%20Report%20-%2020200924%20.pdf [*Beast - Hybrid Application Assessment 2020]]
+
 [/ "Securing Boost.Beast: A Non-Traditional Source Code Review"]
 '''
 <mediaobject>
