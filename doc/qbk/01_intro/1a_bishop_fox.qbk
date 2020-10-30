@@ -37,7 +37,7 @@ addition, the team performs a review of the application architecture and
 business logic to locate any design-level issues. Finally, the team performs
 manual exploitation and review of these issues to validate the findings.
 
-[@https://github.com/madmongo1/beast-assets/raw/master/bishop-fox/Beast%20-%20Hybrid%20Application%20Assessment%202017%20-%20Assessment%20Report%20-%2020171114.pdf
+[@https://github.com/CPPAlliance/beast-assets/raw/master/bishop-fox/Beast%20-%20Hybrid%20Application%20Assessment%202017%20-%20Assessment%20Report%20-%2020171114.pdf
     [*Beast - Hybrid Application Assessment 2017]]
 
 [/ "Securing Boost.Beast: A Non-Traditional Source Code Review"]
