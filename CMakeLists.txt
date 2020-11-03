@@ -46,6 +46,7 @@ set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
 option (Beast_BUILD_TESTS "Build tests" ON)
 option (Beast_ENABLE_HANDLER_TRACKING "Define BOOST_ASIO_ENABLE_HANDLER_TRACKING when building libraries" OFF)
+option (Boost_USE_STATIC_LIBS "Use Static Boost libraries" ON)
 
 if (MSVC)
     set (CMAKE_VERBOSE_MAKEFILE FALSE)
@@ -66,7 +67,6 @@ if (MSVC)
         /MP           # Multi-processor compilation
         )
 
-    set (Boost_USE_STATIC_LIBS ON)
     set (Boost_USE_STATIC_RUNTIME ON)
 
     set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
