@@ -1339,7 +1339,7 @@ public:
             {
                 void
                 operator()(error_code const &,
-                    net::ip::tcp::endpoint const &) const;
+                           net::ip::tcp::resolver::results_type::const_iterator) const;
             };
 
             static_assert(std::is_void<decltype(
@@ -1355,7 +1355,7 @@ public:
             {
                 void
                 operator()(error_code const &,
-                    net::ip::tcp::resolver::results_type::const_iterator);
+                           net::ip::tcp::endpoint const &);
             };
 
             static_assert(std::is_void<decltype(
