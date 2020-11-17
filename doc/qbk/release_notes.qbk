@@ -11,6 +11,32 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.75]
+
+[*Fixes]
+
+* Eliminate spurious unused parameter warning in `detect_ssl`.
+* Update Websocket examples to set the SNI for TLS connections.
+* [issue 2023] websocket async_shutdown will now shutdown the underlying TLS transport.
+* [issue 2011] File open with append_existing flag now works correctly in posix environments.
+* [issue 2039] Windows builds now link to bcrypt as required by the filesystem library.
+* [issue 2063] Logic error fixed in `advanced_server_flex` example.
+* [issue 1582] Fix unreachable code error on MSVC.
+* [issue 2070] Fix http body behaviour when body_limit it none.
+* [issue 2065] Fix behaviour of `basic_stream` when a zero-length write is requested.
+* [issue 2080] Add enums representing Sec-* HTTP headers.
+* [issue 2085] Fix `nullptr` implicit cast on `fields::set()`.
+* [issue 2029] Fix C++20 tests for `basic_stream`.
+
+[*Miscellaneous]
+
+* Add handler tracking to asynchronous operations:
+  * Define the preprocessor macro `BOOST_ASIO_ENABLE_HANDLER_TRACKING` to enable Asio handler
+    tracking in Boost.Beast asynchronous operations. Please see
+    [@boost:/doc/html/boost_asio/overview/core/handler_tracking.html asio handler tracking]
+    for details.
+* Add Bishop-Fox 2020 Security Assessment.
+
 [heading Boost 1.74]
 
 [*API Changes]
