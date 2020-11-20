@@ -912,13 +912,12 @@ prepare(size_type n) ->
         destroy(reuse);
         if(n > 0)
         {
-            auto const growth_factor = 2.0f;
+            std::size_t const growth_factor = 2;
             auto const size =
                 (std::min<std::size_t>)(
                     max_ - total,
                     (std::max<std::size_t>)({
-                        static_cast<std::size_t>(
-                            in_size_ * growth_factor - in_size_),
+                        in_size_ * growth_factor - in_size_,
                         512,
                         n}));
             auto& e = alloc(size);
