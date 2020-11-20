@@ -1,3 +1,9 @@
+Version 305:
+
+* Fix documentation build.
+
+--------------------------------------------------------------------------------
+
 Version 304:
 
 * Fix C++20 coroutine tests.
