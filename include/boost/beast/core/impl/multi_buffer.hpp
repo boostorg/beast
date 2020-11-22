@@ -913,13 +913,16 @@ prepare(size_type n) ->
         if(n > 0)
         {
             std::size_t const growth_factor = 2;
+            std::size_t altn = in_size_ * growth_factor;
+	    // Overflow detection:
+            if(in_size_ > altn)
+                altn = std::numeric_limits<std::size_t>::max();
+            else
+                altn = (std::max<std::size_t>)(512, altn);
             auto const size =
                 (std::min<std::size_t>)(
                     max_ - total,
-                    (std::max<std::size_t>)({
-                        in_size_ * growth_factor - in_size_,
-                        512,
-                        n}));
+                    (std::max<std::size_t>)(n, altn));
             auto& e = alloc(size);
             list_.push_back(e);
             if(out_ == list_.end())
