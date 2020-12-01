@@ -13,6 +13,8 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/_experimental/test/handler.hpp>
 
+#include <boost/asio/ssl/stream.hpp>
+
 namespace boost {
 namespace beast {
 
@@ -142,11 +144,22 @@ public:
     }
 
     void
+    testAsioSSLCompat()
+    {
+        BOOST_STATIC_ASSERT(
+            std::is_same<
+                boost::asio::ssl::stream<test::stream>::
+                    lowest_layer_type,
+                test::stream>::value);
+    }
+
+    void
     run() override
     {
         testTestStream();
         testSharedAbandon();
         //testLifetimeViolation();
+        boost::ignore_unused(&stream_test::testAsioSSLCompat);
     }
 };
 

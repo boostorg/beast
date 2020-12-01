@@ -1,3 +1,7 @@
+* Revert removal of lowest_layer_type from test stream.
+
+--------------------------------------------------------------------------------
+
 Version 305:
 
 * Fix documentation build.
