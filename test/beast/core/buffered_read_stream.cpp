@@ -16,7 +16,9 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/test/yield_to.hpp>
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/execution.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/any_io_executor.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/optional.hpp>
@@ -41,10 +43,17 @@ public:
             buffered_read_stream<test::stream, multi_buffer> srs(ioc);
             buffered_read_stream<test::stream, multi_buffer> srs2(std::move(srs));
             srs = std::move(srs2);
+#if defined(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
+            BEAST_EXPECT(&srs.get_executor().context() == &ioc);
+            BEAST_EXPECT(
+                &srs.get_executor().context() ==
+                &srs2.get_executor().context());
+#else
             BEAST_EXPECT(&net::query(srs.get_executor(), net::execution::context) == &ioc);
             BEAST_EXPECT(
                 &net::query(srs.get_executor(), net::execution::context) ==
                 &net::query(srs2.get_executor(), net::execution::context));
+#endif
         }
         {
             test::stream ts{ioc};

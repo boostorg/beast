@@ -14,7 +14,11 @@
 #include <boost/beast/_experimental/test/handler.hpp>
 
 #include <boost/asio/ssl/stream.hpp>
+#if defined(BOOST_ASIO_HAS_CO_AWAIT)
+#include <boost/asio/use_awaitable.hpp>
+#endif
 
+#define DEF boost::asio::use_future_t
 namespace boost {
 namespace beast {
 
@@ -153,6 +157,18 @@ public:
                 test::stream>::value);
     }
 
+#if defined(BOOST_ASIO_HAS_CO_AWAIT)
+    net::awaitable<void>
+    testRebind(net::mutable_buffer& b)
+    {
+        auto ex = co_await net::this_coro::executor;
+        auto s1 = test::stream(ex);
+        auto s2 = net::use_awaitable.as_default_on(std::move(s1));
+        auto bt = co_await s2.async_read_some(b);
+        bt = co_await s2.async_write_some(b);
+    }
+#endif
+
     void
     run() override
     {
@@ -160,6 +176,9 @@ public:
         testSharedAbandon();
         //testLifetimeViolation();
         boost::ignore_unused(&stream_test::testAsioSSLCompat);
+#if defined(BOOST_ASIO_HAS_CO_AWAIT)
+    boost::ignore_unused(&stream_test::testRebind);
+#endif
     }
 };
 

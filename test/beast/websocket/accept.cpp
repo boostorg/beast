@@ -55,7 +55,9 @@ public:
     static
     void
     fail_loop(
-        std::function<void(stream<test::stream>&)> f,
+        std::function<void(
+            stream<test::basic_stream<net::io_context::executor_type>>&)>
+                f,
         std::chrono::steady_clock::duration amount =
             std::chrono::seconds(5))
     {
@@ -68,7 +70,8 @@ public:
             test::fail_count fc(n);
             try
             {
-                stream<test::stream> ws(ioc, fc);
+                stream<test::basic_stream<net::io_context::executor_type>> 
+                    ws(ioc, fc);
                 auto tr = connect(ws.next_layer());
                 f(ws);
                 break;
@@ -101,7 +104,7 @@ public:
         net::io_context ioc;
 
         // request in stream
-        fail_loop([&](stream<test::stream>& ws)
+        fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
         {
             ws.next_layer().append(
                 "GET / HTTP/1.1\r\n"
@@ -116,7 +119,7 @@ public:
         });
 
         // request in stream, decorator
-        fail_loop([&](stream<test::stream>& ws)
+        fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
         {
             ws.next_layer().append(
                 "GET / HTTP/1.1\r\n"
@@ -135,7 +138,7 @@ public:
         });
 
         // request in buffers
-        fail_loop([&](stream<test::stream>& ws)
+        fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
         {
             api.accept(ws, sbuf(
                 "GET / HTTP/1.1\r\n"
@@ -149,7 +152,7 @@ public:
         });
 
         // request in buffers, decorator
-        fail_loop([&](stream<test::stream>& ws)
+        fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
         {
             bool called = false;
             ws.set_option(stream_base::decorator(
@@ -166,7 +169,7 @@ public:
         });
 
         // request in buffers and stream
-        fail_loop([&](stream<test::stream>& ws)
+        fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
         {
             ws.next_layer().append(
                 "Connection: upgrade\r\n"
@@ -183,7 +186,7 @@ public:
         });
 
         // request in buffers and stream, decorator
-        fail_loop([&](stream<test::stream>& ws)
+        fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
         {
             ws.next_layer().append(
                 "Connection: upgrade\r\n"
@@ -213,7 +216,7 @@ public:
             req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
             req.insert(http::field::sec_websocket_version, "13");
 
-            fail_loop([&](stream<test::stream>& ws)
+            fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
             {
                 api.accept(ws, req);
             });
@@ -231,7 +234,7 @@ public:
             req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
             req.insert(http::field::sec_websocket_version, "13");
 
-            fail_loop([&](stream<test::stream>& ws)
+            fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
             {
                 bool called = false;
                 ws.set_option(stream_base::decorator(
@@ -253,7 +256,7 @@ public:
             req.insert(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
             req.insert(http::field::sec_websocket_version, "13");
 
-            fail_loop([&](stream<test::stream>& ws)
+            fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
             {
                 ws.next_layer().append("\x88\x82\xff\xff\xff\xff\xfc\x17");
                 api.accept(ws, req);
@@ -272,7 +275,7 @@ public:
         }
 
         // failed handshake (missing Sec-WebSocket-Key)
-        fail_loop([&](stream<test::stream>& ws)
+        fail_loop([&](stream<test::basic_stream<net::io_context::executor_type>>& ws)
         {
             ws.next_layer().append(
                 "GET / HTTP/1.1\r\n"
@@ -311,7 +314,7 @@ public:
 
         // request in stream
         {
-            stream<test::stream> ws{ioc,
+            stream<test::basic_stream<net::io_context::executor_type>> ws{ioc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -337,7 +340,7 @@ public:
 
         // request in stream, decorator
         {
-            stream<test::stream> ws{ioc,
+            stream<test::basic_stream<net::io_context::executor_type>> ws{ioc,
                 "GET / HTTP/1.1\r\n"
                 "Host: localhost\r\n"
                 "Upgrade: websocket\r\n"
@@ -366,7 +369,7 @@ public:
 
         // request in buffers
         {
-            stream<test::stream> ws{ioc};
+            stream<test::basic_stream<net::io_context::executor_type>> ws{ioc};
             auto tr = connect(ws.next_layer());
             try
             {
@@ -392,7 +395,7 @@ public:
 
         // request in buffers, decorator
         {
-            stream<test::stream> ws{ioc};
+            stream<test::basic_stream<net::io_context::executor_type>> ws{ioc};
             auto tr = connect(ws.next_layer());
             try
             {
@@ -420,7 +423,7 @@ public:
 
         // request in buffers and stream
         {
-            stream<test::stream> ws{ioc,
+            stream<test::basic_stream<net::io_context::executor_type>> ws{ioc,
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
@@ -446,7 +449,7 @@ public:
 
         // request in buffers and stream, decorator
         {
-            stream<test::stream> ws{ioc,
+            stream<test::basic_stream<net::io_context::executor_type>> ws{ioc,
                 "Connection: upgrade\r\n"
                 "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
                 "Sec-WebSocket-Version: 13\r\n"
@@ -497,7 +500,7 @@ public:
                     n = s.size() - 1;
                     break;
                 }
-                stream<test::stream> ws(ioc);
+                stream<test::basic_stream<net::io_context::executor_type>> ws(ioc);
                 auto tr = connect(ws.next_layer());
                 ws.next_layer().append(
                     s.substr(n, s.size() - n));
@@ -658,7 +661,7 @@ public:
     {
         net::io_context ioc;
         {
-            stream<test::stream> ws(ioc);
+            stream<test::basic_stream<net::io_context::executor_type>> ws(ioc);
             auto tr = connect(ws.next_layer());
             tr.close();
             try
@@ -675,7 +678,8 @@ public:
             }
         }
         {
-            stream<test::stream> ws(ioc);
+            stream<test::basic_stream<net::io_context::executor_type>>
+                ws(ioc.get_executor());
             auto tr = connect(ws.next_layer());
             tr.close();
             try
@@ -713,8 +717,8 @@ public:
         }
 
         {
-            stream<test::stream> ws1(ioc);
-            stream<test::stream> ws2(ioc);
+            stream<test::basic_stream<net::io_context::executor_type>> ws1(ioc);
+            stream<test::basic_stream<net::io_context::executor_type>> ws2(ioc);
             test::connect(ws1.next_layer(), ws2.next_layer());
 
             ws1.async_handshake("test", "/", test::success_handler());
@@ -739,8 +743,8 @@ public:
         }
 
         {
-            stream<test::stream> ws1(ioc);
-            stream<test::stream> ws2(ioc);
+            stream<test::basic_stream<net::io_context::executor_type>> ws1(ioc);
+            stream<test::basic_stream<net::io_context::executor_type>> ws2(ioc);
             test::connect(ws1.next_layer(), ws2.next_layer());
 
             ws1.set_option(stream_base::timeout{
@@ -768,8 +772,8 @@ public:
         }
 
         {
-            stream<test::stream> ws1(ioc);
-            stream<test::stream> ws2(ioc);
+            stream<test::basic_stream<net::io_context::executor_type>> ws1(ioc);
+            stream<test::basic_stream<net::io_context::executor_type>> ws2(ioc);
             test::connect(ws1.next_layer(), ws2.next_layer());
 
             ws1.set_option(stream_base::timeout{
