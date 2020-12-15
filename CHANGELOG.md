@@ -1,3 +1,7 @@
+* Add `cxxstd` to json field.
+
+--------------------------------------------------------------------------------
+
 Version 306:
 
 * Revert removal of lowest_layer_type from test stream.
