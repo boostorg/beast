@@ -1,3 +1,5 @@
+Version 307:
+
 * Add executor rebind to test::stream.
 * Remove floating point arithmetic requirement.
 * Add `cxxstd` to json field.
