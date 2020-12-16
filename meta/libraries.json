@@ -9,8 +9,8 @@
         "Concurrent",
         "IO"
     ],
-    "cxxstd": "11",
     "maintainers": [
         "Vinnie Falco <vinnie.falco@gmail.com>"
-    ]
+    ],
+    "cxxstd": "11"
 }
