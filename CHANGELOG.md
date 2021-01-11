@@ -1,3 +1,7 @@
+* CML permits finding Boost outside the boost build tree.
+
+--------------------------------------------------------------------------------
+
 Version 307:
 
 * Add executor rebind to test::stream.

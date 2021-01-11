@@ -144,10 +144,21 @@ if (MSVC)
     include_directories (${BOOST_ROOT})
     link_libraries( bcrypt.lib )
 else()
-    set(BOOST_INCLUDEDIR ${BOOST_ROOT})
-    set(BOOST_LIBRARYDIR ${BOOST_ROOT}/stage/lib)
-    find_package(Boost COMPONENTS coroutine filesystem system REQUIRED)
-    link_libraries(Boost::coroutine Boost::filesystem Boost::system)
+    option(BEAST_ALTERNATE_PATH "" ON)
+    if (BEAST_ALTERNATE_PATH)
+        include_directories(SYSTEM ${BOOST_ROOT})
+        link_libraries(
+                ${BOOST_ROOT}/stage/lib/libboost_coroutine.a
+                ${BOOST_ROOT}/stage/lib/libboost_context.a
+                ${BOOST_ROOT}/stage/lib/libboost_filesystem.a
+                ${BOOST_ROOT}/stage/lib/libboost_system.a
+                ${BOOST_ROOT}/stage/lib/libboost_thread.a)
+    else()
+        set(BOOST_INCLUDEDIR ${BOOST_ROOT})
+        set(BOOST_LIBRARYDIR ${BOOST_ROOT}/stage/lib)
+        find_package(Boost COMPONENTS coroutine filesystem system REQUIRED)
+        link_libraries(Boost::coroutine Boost::filesystem Boost::system)
+    endif()
 endif()
 
 link_directories(${BOOST_ROOT}/stage/lib)
