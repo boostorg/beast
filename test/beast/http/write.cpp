@@ -306,26 +306,6 @@ public:
     {
         {
             response<string_body> m;
-            m.version(10);
-            m.result(status::ok);
-            m.set(field::server, "test");
-            m.set(field::content_length, "5");
-            m.body() = "*****";
-            error_code ec;
-            test::stream ts{ioc_}, tr{ioc_};
-            ts.connect(tr);
-            async_write(ts, m, do_yield[ec]);
-            BEAST_EXPECT(! m.keep_alive());
-            if(BEAST_EXPECTS(! ec, ec.message()))
-                BEAST_EXPECT(tr.str() ==
-                    "HTTP/1.0 200 OK\r\n"
-                    "Server: test\r\n"
-                    "Content-Length: 5\r\n"
-                    "\r\n"
-                    "*****");
-        }
-        {
-            response<string_body> m;
             m.version(11);
             m.result(status::ok);
             m.set(field::server, "test");
@@ -344,6 +324,26 @@ public:
                     "5\r\n"
                     "*****\r\n"
                     "0\r\n\r\n");
+        }
+        {
+            response<string_body> m;
+            m.version(10);
+            m.result(status::ok);
+            m.set(field::server, "test");
+            m.set(field::content_length, "5");
+            m.body() = "*****";
+            error_code ec;
+            test::stream ts{ioc_}, tr{ioc_};
+            ts.connect(tr);
+            async_write(ts, m, do_yield[ec]);
+            BEAST_EXPECT(! m.keep_alive());
+            if(BEAST_EXPECTS(! ec, ec.message()))
+                BEAST_EXPECT(tr.str() ==
+                    "HTTP/1.0 200 OK\r\n"
+                    "Server: test\r\n"
+                    "Content-Length: 5\r\n"
+                    "\r\n"
+                    "*****");
         }
     }
 
@@ -1054,13 +1054,13 @@ public:
     void
     run() override
     {
-        testIssue655();
         yield_to(
             [&](yield_context yield)
             {
-                testAsyncWrite(yield);
                 testFailures(yield);
+                testAsyncWrite(yield);
             });
+        testIssue655();
         testOutput();
         test_std_ostream();
         testIoService();

@@ -17,6 +17,7 @@
 #include <boost/beast/core/make_printable.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/write.hpp>
@@ -455,10 +456,9 @@ public:
     {
     }
 
-    template<class ConstBufferSequence>
     void
     operator()(error_code& ec,
-        ConstBufferSequence const& buffers)
+        beast::detail::polymorphic_const_buffer_sequence const& buffers)
     {
         invoked = true;
         bytes_transferred = net::write(
@@ -903,16 +903,15 @@ public:
     {
     }
 
-    template<class ConstBufferSequence>
     void
     operator()(error_code& ec,
-        ConstBufferSequence const& buffers) const
+        beast::detail::polymorphic_const_buffer_sequence const& buffers) const
     {
         ec = {};
         if(os_.fail())
             return;
         std::size_t bytes_transferred = 0;
-        for(auto b : beast::buffers_range_ref(buffers))
+        for(auto b : buffers)
         {
             os_.write(static_cast<char const*>(
                 b.data()), b.size());

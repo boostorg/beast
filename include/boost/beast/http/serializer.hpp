@@ -20,6 +20,7 @@
 #include <boost/beast/http/chunk_encode.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 
 namespace boost {
 namespace beast {
@@ -107,80 +108,15 @@ private:
     void fwrinit(std::true_type);
     void fwrinit(std::false_type);
 
-    template<std::size_t, class Visit>
-    void
-    do_visit(error_code& ec, Visit& visit);
-
     using writer = typename Body::writer;
-
-    using cb1_t = buffers_suffix<typename
-        Fields::writer::const_buffers_type>;        // header
-    using pcb1_t  = buffers_prefix_view<cb1_t const&>;
-
-    using cb2_t = buffers_suffix<buffers_cat_view<
-        typename Fields::writer::const_buffers_type,// header
-        typename writer::const_buffers_type>>;      // body
-    using pcb2_t = buffers_prefix_view<cb2_t const&>;
-
-    using cb3_t = buffers_suffix<
-        typename writer::const_buffers_type>;       // body
-    using pcb3_t = buffers_prefix_view<cb3_t const&>;
-
-    using cb4_t = buffers_suffix<buffers_cat_view<
-        typename Fields::writer::const_buffers_type,// header
-        detail::chunk_size,                         // chunk-size
-        net::const_buffer,                          // chunk-ext
-        chunk_crlf,                                 // crlf
-        typename writer::const_buffers_type,        // body
-        chunk_crlf>>;                               // crlf
-    using pcb4_t = buffers_prefix_view<cb4_t const&>;
-
-    using cb5_t = buffers_suffix<buffers_cat_view<
-        detail::chunk_size,                         // chunk-header
-        net::const_buffer,                          // chunk-ext
-        chunk_crlf,                                 // crlf
-        typename writer::const_buffers_type,        // body
-        chunk_crlf>>;                               // crlf
-    using pcb5_t = buffers_prefix_view<cb5_t const&>;
-
-    using cb6_t = buffers_suffix<buffers_cat_view<
-        detail::chunk_size,                         // chunk-header
-        net::const_buffer,                          // chunk-size
-        chunk_crlf,                                 // crlf
-        typename writer::const_buffers_type,        // body
-        chunk_crlf,                                 // crlf
-        net::const_buffer,                          // chunk-final
-        net::const_buffer,                          // trailers 
-        chunk_crlf>>;                               // crlf
-    using pcb6_t = buffers_prefix_view<cb6_t const&>;
-
-    using cb7_t = buffers_suffix<buffers_cat_view<
-        typename Fields::writer::const_buffers_type,// header
-        detail::chunk_size,                         // chunk-size
-        net::const_buffer,                          // chunk-ext
-        chunk_crlf,                                 // crlf
-        typename writer::const_buffers_type,        // body
-        chunk_crlf,                                 // crlf
-        net::const_buffer,                          // chunk-final
-        net::const_buffer,                          // trailers 
-        chunk_crlf>>;                               // crlf
-    using pcb7_t = buffers_prefix_view<cb7_t const&>;
-
-    using cb8_t = buffers_suffix<buffers_cat_view<
-        net::const_buffer,                          // chunk-final
-        net::const_buffer,                          // trailers 
-        chunk_crlf>>;                               // crlf
-    using pcb8_t = buffers_prefix_view<cb8_t const&>;
 
     value_type& m_;
     writer wr_;
     boost::optional<typename Fields::writer> fwr_;
-    beast::detail::variant<
-        cb1_t, cb2_t, cb3_t, cb4_t,
-        cb5_t ,cb6_t, cb7_t, cb8_t> v_;
-    beast::detail::variant<
-        pcb1_t, pcb2_t, pcb3_t, pcb4_t,
-        pcb5_t ,pcb6_t, pcb7_t, pcb8_t> pv_;
+
+    beast::detail::polymorphic_const_buffer_sequence cbs_;
+    detail::chunk_size cs_;
+
     std::size_t limit_ =
         (std::numeric_limits<std::size_t>::max)();
     int s_ = do_construct;

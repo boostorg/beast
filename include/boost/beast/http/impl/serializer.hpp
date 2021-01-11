@@ -22,6 +22,19 @@ namespace boost {
 namespace beast {
 namespace http {
 
+namespace detail {
+template<class Visitor>
+void
+do_visit2(
+    Visitor& v,
+    beast::detail::polymorphic_const_buffer_sequence const& buffers,
+    std::size_t limit,
+    error_code& ec)
+{
+    v(ec, buffers.prefix_copy(limit));
+}
+}
+
 template<
     bool isRequest, class Body, class Fields>
 void
@@ -38,19 +51,6 @@ serializer<isRequest, Body, Fields>::
 fwrinit(std::false_type)
 {
     fwr_.emplace(m_, m_.version(), m_.result_int());
-}
-
-template<
-    bool isRequest, class Body, class Fields>
-template<std::size_t I, class Visit>
-inline
-void
-serializer<isRequest, Body, Fields>::
-do_visit(error_code& ec, Visit& visit)
-{
-    pv_.template emplace<I>(limit_, v_.template get<I>());
-    visit(ec, beast::detail::make_buffers_ref(
-        pv_.template get<I>()));
 }
 
 //------------------------------------------------------------------------------
@@ -98,24 +98,24 @@ next(error_code& ec, Visit&& visit)
         if(! result)
             goto go_header_only;
         more_ = result->second;
-        v_.template emplace<2>(
-            boost::in_place_init,
-            fwr_->get(),
-            result->first);
+        cbs_
+        .clear()
+        .append(fwr_->get())
+        .append(result->first);
         s_ = do_header;
         BOOST_FALLTHROUGH;
     }
 
     case do_header:
-        do_visit<2>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     go_header_only:
-        v_.template emplace<1>(fwr_->get());
+        cbs_.clear().append(fwr_->get());
         s_ = do_header_only;
         BOOST_FALLTHROUGH;
     case do_header_only:
-        do_visit<1>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     case do_body:
@@ -130,13 +130,13 @@ next(error_code& ec, Visit&& visit)
         if(! result)
             goto go_complete;
         more_ = result->second;
-        v_.template emplace<3>(result->first);
+        cbs_.clear().append(result->first);
         s_ = do_body + 2;
         BOOST_FALLTHROUGH;
     }
 
     case do_body + 2:
-        do_visit<3>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     //----------------------------------------------------------------------
@@ -162,42 +162,37 @@ next(error_code& ec, Visit&& visit)
         if(! more_)
         {
             // do it all in one buffer
-            v_.template emplace<7>(
-                boost::in_place_init,
-                fwr_->get(),
-                buffer_bytes(result->first),
-                net::const_buffer{nullptr, 0},
-                chunk_crlf{},
-                result->first,
-                chunk_crlf{},
-                detail::chunk_last(),
-                net::const_buffer{nullptr, 0},
-                chunk_crlf{});
+            cbs_.clear()
+            .append(fwr_->get())
+            .append(cs_ = detail::chunk_size(buffer_bytes(result->first)))
+            .append(chunk_crlf())
+            .append(result->first)
+            .append(chunk_crlf())
+            .append(detail::chunk_last())
+            .append(chunk_crlf());
             goto go_all_c;
         }
-        v_.template emplace<4>(
-            boost::in_place_init,
-            fwr_->get(),
-            buffer_bytes(result->first),
-            net::const_buffer{nullptr, 0},
-            chunk_crlf{},
-            result->first,
-            chunk_crlf{});
+        cbs_.clear()
+        .append(fwr_->get())
+        .append(cs_ = detail::chunk_size(buffer_bytes(result->first)))
+        .append(chunk_crlf())
+        .append(result->first)
+        .append(chunk_crlf());
         s_ = do_header_c;
         BOOST_FALLTHROUGH;
     }
 
     case do_header_c:
-        do_visit<4>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     go_header_only_c:
-        v_.template emplace<1>(fwr_->get());
+        cbs_.clear().append(fwr_->get());
         s_ = do_header_only_c;
         BOOST_FALLTHROUGH;
 
     case do_header_only_c:
-        do_visit<1>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     case do_body_c:
@@ -215,59 +210,52 @@ next(error_code& ec, Visit&& visit)
         if(! more_)
         {
             // do it all in one buffer
-            v_.template emplace<6>(
-                boost::in_place_init,
-                buffer_bytes(result->first),
-                net::const_buffer{nullptr, 0},
-                chunk_crlf{},
-                result->first,
-                chunk_crlf{},
-                detail::chunk_last(),
-                net::const_buffer{nullptr, 0},
-                chunk_crlf{});
+            cbs_.clear()
+            .append(cs_ = detail::chunk_size(buffer_bytes(result->first)))
+            .append(chunk_crlf())
+            .append(result->first)
+            .append(chunk_crlf())
+            .append(detail::chunk_last())
+            .append(chunk_crlf());
             goto go_body_final_c;
         }
-        v_.template emplace<5>(
-            boost::in_place_init,
-            buffer_bytes(result->first),
-            net::const_buffer{nullptr, 0},
-            chunk_crlf{},
-            result->first,
-            chunk_crlf{});
+        cbs_.clear()
+        .append(cs_ = detail::chunk_size(buffer_bytes(result->first)))
+        .append(chunk_crlf())
+        .append(result->first)
+        .append(chunk_crlf());
         s_ = do_body_c + 2;
         BOOST_FALLTHROUGH;
     }
 
     case do_body_c + 2:
-        do_visit<5>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     go_body_final_c:
         s_ = do_body_final_c;
         BOOST_FALLTHROUGH;
     case do_body_final_c:
-        do_visit<6>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     go_all_c:
         s_ = do_all_c;
         BOOST_FALLTHROUGH;
     case do_all_c:
-        do_visit<7>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     go_final_c:
     case do_final_c:
-        v_.template emplace<8>(
-            boost::in_place_init,
-            detail::chunk_last(),
-            net::const_buffer{nullptr, 0},
-            chunk_crlf{});
+        cbs_.clear()
+        .append(detail::chunk_last())
+        .append(chunk_crlf{});
         s_ = do_final_c + 1;
         BOOST_FALLTHROUGH;
 
     case do_final_c + 1:
-        do_visit<8>(ec, visit);
+        detail::do_visit2(visit, cbs_, limit_, ec);
         break;
 
     //----------------------------------------------------------------------
@@ -293,12 +281,12 @@ consume(std::size_t n)
     {
     case do_header:
         BOOST_ASSERT(
-            n <= buffer_bytes(v_.template get<2>()));
-        v_.template get<2>().consume(n);
-        if(buffer_bytes(v_.template get<2>()) > 0)
+            n <= buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
         header_done_ = true;
-        v_.reset();
+        cbs_.clear();
         if(! more_)
             goto go_complete;
         s_ = do_body + 1;
@@ -306,9 +294,9 @@ consume(std::size_t n)
 
     case do_header_only:
         BOOST_ASSERT(
-            n <= buffer_bytes(v_.template get<1>()));
-        v_.template get<1>().consume(n);
-        if(buffer_bytes(v_.template get<1>()) > 0)
+            n <= buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
         fwr_ = boost::none;
         header_done_ = true;
@@ -320,11 +308,11 @@ consume(std::size_t n)
     case do_body + 2:
     {
         BOOST_ASSERT(
-            n <= buffer_bytes(v_.template get<3>()));
-        v_.template get<3>().consume(n);
-        if(buffer_bytes(v_.template get<3>()) > 0)
+            n <= buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
-        v_.reset();
+        cbs_.clear();
         if(! more_)
             goto go_complete;
         s_ = do_body + 1;
@@ -335,12 +323,13 @@ consume(std::size_t n)
 
     case do_header_c:
         BOOST_ASSERT(
-            n <= buffer_bytes(v_.template get<4>()));
-        v_.template get<4>().consume(n);
-        if(buffer_bytes(v_.template get<4>()) > 0)
+            n <= buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
         header_done_ = true;
-        v_.reset();
+        cbs_.clear();
+
         if(more_)
             s_ = do_body_c + 1;
         else
@@ -350,9 +339,9 @@ consume(std::size_t n)
     case do_header_only_c:
     {
         BOOST_ASSERT(
-            n <= buffer_bytes(v_.template get<1>()));
-        v_.template get<1>().consume(n);
-        if(buffer_bytes(v_.template get<1>()) > 0)
+            n <= buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
         fwr_ = boost::none;
         header_done_ = true;
@@ -367,11 +356,11 @@ consume(std::size_t n)
 
     case do_body_c + 2:
         BOOST_ASSERT(
-            n <= buffer_bytes(v_.template get<5>()));
-        v_.template get<5>().consume(n);
-        if(buffer_bytes(v_.template get<5>()) > 0)
+            n <= buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
-        v_.reset();
+        cbs_.clear();
         if(more_)
             s_ = do_body_c + 1;
         else
@@ -381,11 +370,11 @@ consume(std::size_t n)
     case do_body_final_c:
     {
         BOOST_ASSERT(
-            n <= buffer_bytes(v_.template get<6>()));
-        v_.template get<6>().consume(n);
-        if(buffer_bytes(v_.template get<6>()) > 0)
+            n <= buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
-        v_.reset();
+        cbs_.clear();
         s_ = do_complete;
         break;
     }
@@ -393,22 +382,22 @@ consume(std::size_t n)
     case do_all_c:
     {
         BOOST_ASSERT(
-            n <= buffer_bytes(v_.template get<7>()));
-        v_.template get<7>().consume(n);
-        if(buffer_bytes(v_.template get<7>()) > 0)
+            n <= buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
         header_done_ = true;
-        v_.reset();
+        cbs_.clear();
         s_ = do_complete;
         break;
     }
 
     case do_final_c + 1:
-        BOOST_ASSERT(buffer_bytes(v_.template get<8>()));
-        v_.template get<8>().consume(n);
-        if(buffer_bytes(v_.template get<8>()) > 0)
+        BOOST_ASSERT(buffer_bytes(cbs_));
+        cbs_.consume(n);
+        if(buffer_bytes(cbs_) > 0)
             break;
-        v_.reset();
+        cbs_.clear();
         goto go_complete;
 
     //----------------------------------------------------------------------

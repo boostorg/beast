@@ -118,6 +118,13 @@ public:
     {
     }
 
+    /** Construct an uninitialised chunk header
+
+    */
+    chunk_size()
+        : sp_()
+    {}
+
     const_iterator
     begin() const
     {
