@@ -14,15 +14,13 @@
 #include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/buffers_cat.hpp>
-#include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_range.hpp>
-#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/websocket/impl/stream_impl.hpp>
 #include <boost/asio/coroutine.hpp>
@@ -37,7 +35,7 @@ namespace beast {
 namespace websocket {
 
 template<class NextLayer, bool deflateSupported>
-template<class Handler, class Buffers>
+template<class Handler>
 class stream<NextLayer, deflateSupported>::write_some_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
@@ -53,7 +51,7 @@ class stream<NextLayer, deflateSupported>::write_some_op
     };
 
     boost::weak_ptr<impl_type> wp_;
-    buffers_suffix<Buffers> cb_;
+    beast::detail::polymorphic_const_buffer_sequence cb_;
     detail::frame_header fh_;
     detail::prepared_key key_;
     std::size_t bytes_transferred_ = 0;
@@ -72,13 +70,13 @@ public:
         Handler_&& h,
         boost::shared_ptr<impl_type> const& sp,
         bool fin,
-        Buffers const& bs)
+        beast::detail::polymorphic_const_buffer_sequence bs)
         : beast::async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream().get_executor())
         , wp_(sp)
-        , cb_(bs)
+        , cb_(std::move(bs))
         , fin_(fin)
     {
         auto& impl = *sp;
@@ -147,10 +145,10 @@ public:
 };
 
 template<class NextLayer, bool deflateSupported>
-template<class Buffers, class Handler>
+template<class Handler>
 void
 stream<NextLayer, deflateSupported>::
-write_some_op<Buffers, Handler>::
+write_some_op<Handler>::
 operator()(
     error_code ec,
     std::size_t bytes_transferred,
@@ -222,7 +220,7 @@ operator()(
                     ));
 
                 net::async_write(impl.stream(),
-                    buffers_cat(impl.wr_fb.data(), cb_),
+                     cb_.push_front_copy(impl.wr_fb.data()),
                         beast::detail::bind_continuation(std::move(*this)));
             }
             bytes_transferred_ += clamp(fh_.len);
@@ -256,10 +254,11 @@ operator()(
                             "websocket::async_write_some"
                         ));
 
-                    net::async_write(impl.stream(), buffers_cat(
-                        impl.wr_fb.data(),
-                        buffers_prefix(clamp(fh_.len), cb_)),
-                            beast::detail::bind_continuation(std::move(*this)));
+                    net::async_write(impl.stream(),
+                                     beast::detail::polymorphic_const_buffer_sequence(cb_)
+                                         .prefix_copy(clamp(fh_.len))
+                                         .push_front_copy(impl.wr_fb.data()),
+                        beast::detail::bind_continuation(std::move(*this)));
                 }
                 n = clamp(fh_.len); // restore `n` on yield
                 bytes_transferred_ += n;
@@ -316,10 +315,10 @@ operator()(
                         "websocket::async_write_some"
                     ));
 
-                net::async_write(impl.stream(), buffers_cat(
-                    impl.wr_fb.data(),
-                    net::buffer(impl.wr_buf.get(), n)),
-                        beast::detail::bind_continuation(std::move(*this)));
+                net::async_write(impl.stream(),
+                    beast::detail::polymorphic_const_buffer_sequence(impl.wr_fb.data()) +
+                        net::buffer(impl.wr_buf.get(), n),
+                    beast::detail::bind_continuation(std::move(*this)));
             }
             // VFALCO What about consuming the buffer on error?
             bytes_transferred_ +=
@@ -387,9 +386,10 @@ operator()(
                             "websocket::async_write_some"
                         ));
 
-                    net::async_write(impl.stream(), buffers_cat(
-                        impl.wr_fb.data(),
-                        net::buffer(impl.wr_buf.get(), n)),
+                    net::async_write(impl.stream(),
+                        beast::detail::polymorphic_const_buffer_sequence(
+                            impl.wr_fb.data(),
+                            net::buffer(impl.wr_buf.get(), n)),
                             beast::detail::bind_continuation(std::move(*this)));
                 }
                 n = bytes_transferred - impl.wr_fb.size();
@@ -460,9 +460,11 @@ operator()(
                             "websocket::async_write_some"
                         ));
 
-                    net::async_write(impl.stream(), buffers_cat(
-                        impl.wr_fb.data(), b),
-                            beast::detail::bind_continuation(std::move(*this)));
+                    net::async_write(impl.stream(),
+                        beast::detail::polymorphic_const_buffer_sequence(
+                            impl.wr_fb.data(),
+                            b),
+                        beast::detail::bind_continuation(std::move(*this)));
                 }
                 bytes_transferred_ += in_;
                 if(impl.check_stop_now(ec))
@@ -510,14 +512,13 @@ struct stream<NextLayer, deflateSupported>::
     run_write_some_op
 {
     template<
-        class WriteHandler,
-        class ConstBufferSequence>
+        class WriteHandler>
     void
     operator()(
         WriteHandler&& h,
         boost::shared_ptr<impl_type> const& sp,
         bool fin,
-        ConstBufferSequence const& b)
+        beast::detail::polymorphic_const_buffer_sequence b)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
@@ -529,12 +530,11 @@ struct stream<NextLayer, deflateSupported>::
             "WriteHandler type requirements not met");
 
         write_some_op<
-            typename std::decay<WriteHandler>::type,
-            ConstBufferSequence>(
+            typename std::decay<WriteHandler>::type>(
                 std::forward<WriteHandler>(h),
                 sp,
                 fin,
-                b);
+                std::move(b));
     }
 };
 
@@ -553,7 +553,7 @@ write_some(bool fin, ConstBufferSequence const& buffers)
             "ConstBufferSequence type requirements not met");
     error_code ec;
     auto const bytes_transferred =
-        write_some(fin, buffers, ec);
+        do_write_some(fin, buffers, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -571,6 +571,15 @@ write_some(bool fin,
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence type requirements not met");
+    return do_write_some(fin, buffers, ec);
+}
+
+template<class NextLayer, bool deflateSupported>
+std::size_t
+stream<NextLayer, deflateSupported>::
+do_write_some(bool fin,
+    beast::detail::polymorphic_const_buffer_sequence buffers, error_code& ec)
+{
     using beast::detail::clamp;
     auto& impl = *impl_;
     std::size_t bytes_transferred = 0;
@@ -595,9 +604,9 @@ write_some(bool fin,
     auto remain = buffer_bytes(buffers);
     if(impl.wr_compress)
     {
+        beast::detail::polymorphic_const_buffer_sequence
+            cb = buffers;
 
-        buffers_suffix<
-            ConstBufferSequence> cb(buffers);
         for(;;)
         {
             auto b = net::buffer(
@@ -631,7 +640,9 @@ write_some(bool fin,
                 flat_static_buffer_base>(fh_buf, fh);
             impl.wr_cont = ! fin;
             net::write(impl.stream(),
-                buffers_cat(fh_buf.data(), b), ec);
+                beast::detail::polymorphic_const_buffer_sequence(
+                    fh_buf.data(), b),
+                ec);
             if(impl.check_stop_now(ec))
                 return bytes_transferred;
             if(! more)
@@ -654,7 +665,8 @@ write_some(bool fin,
                 flat_static_buffer_base>(fh_buf, fh);
             impl.wr_cont = ! fin;
             net::write(impl.stream(),
-                buffers_cat(fh_buf.data(), buffers), ec);
+                buffers.push_front_copy(fh_buf.data()),
+                ec);
             if(impl.check_stop_now(ec))
                 return bytes_transferred;
             bytes_transferred += remain;
@@ -663,8 +675,8 @@ write_some(bool fin,
         {
             // no mask, autofrag
             BOOST_ASSERT(impl.wr_buf_size != 0);
-            buffers_suffix<
-                ConstBufferSequence> cb{buffers};
+            beast::detail::polymorphic_const_buffer_sequence
+                cb(buffers);
             for(;;)
             {
                 auto const n = clamp(remain, impl.wr_buf_size);
@@ -676,8 +688,9 @@ write_some(bool fin,
                     flat_static_buffer_base>(fh_buf, fh);
                 impl.wr_cont = ! fin;
                 net::write(impl.stream(),
-                    beast::buffers_cat(fh_buf.data(),
-                        beast::buffers_prefix(n, cb)), ec);
+                    cb.prefix_copy(n)
+                        .push_front_copy(fh_buf.data()),
+                    ec);
                 bytes_transferred += n;
                 if(impl.check_stop_now(ec))
                     return bytes_transferred;
@@ -699,8 +712,8 @@ write_some(bool fin,
         detail::fh_buffer fh_buf;
         detail::write<
             flat_static_buffer_base>(fh_buf, fh);
-        buffers_suffix<
-            ConstBufferSequence> cb{buffers};
+        beast::detail::polymorphic_const_buffer_sequence
+            cb(buffers);
         {
             auto const n =
                 clamp(remain, impl.wr_buf_size);
@@ -712,7 +725,9 @@ write_some(bool fin,
             detail::mask_inplace(b, key);
             impl.wr_cont = ! fin;
             net::write(impl.stream(),
-                buffers_cat(fh_buf.data(), b), ec);
+                beast::detail::polymorphic_const_buffer_sequence(
+                    fh_buf.data(), b),
+                ec);
             bytes_transferred += n;
             if(impl.check_stop_now(ec))
                 return bytes_transferred;
@@ -737,8 +752,8 @@ write_some(bool fin,
     {
         // mask, autofrag
         BOOST_ASSERT(impl.wr_buf_size != 0);
-        buffers_suffix<
-            ConstBufferSequence> cb(buffers);
+        beast::detail::polymorphic_const_buffer_sequence
+            cb(buffers);
         for(;;)
         {
             fh.key = this->impl_->create_mask();
@@ -758,7 +773,9 @@ write_some(bool fin,
             detail::write<
                 flat_static_buffer_base>(fh_buf, fh);
             net::write(impl.stream(),
-                buffers_cat(fh_buf.data(), b), ec);
+                beast::detail::polymorphic_const_buffer_sequence(
+                    fh_buf.data(), b),
+                ec);
             bytes_transferred += n;
             if(impl.check_stop_now(ec))
                 return bytes_transferred;
@@ -770,6 +787,7 @@ write_some(bool fin,
     }
     return bytes_transferred;
 }
+
 
 template<class NextLayer, bool deflateSupported>
 template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
@@ -807,7 +825,7 @@ write(ConstBufferSequence const& buffers)
         ConstBufferSequence>::value,
             "ConstBufferSequence type requirements not met");
     error_code ec;
-    auto const bytes_transferred = write(buffers, ec);
+    auto const bytes_transferred = do_write_some(true, buffers, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_transferred;
@@ -824,7 +842,7 @@ write(ConstBufferSequence const& buffers, error_code& ec)
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence type requirements not met");
-    return write_some(true, buffers, ec);
+    return do_write_some(true, buffers, ec);
 }
 
 template<class NextLayer, bool deflateSupported>

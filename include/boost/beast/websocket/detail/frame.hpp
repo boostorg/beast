@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_FRAME_HPP
 
 #include <boost/beast/core/buffer_traits.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 #include <boost/beast/websocket/error.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/detail/utf8_checker.hpp>
@@ -178,9 +179,11 @@ write(DynamicBuffer& db, frame_header const& fh)
 // Read data from buffers
 // This is for ping and pong payloads
 //
-template<class Buffers>
+
+inline
 void
-read_ping(ping_data& data, Buffers const& bs)
+read_ping(ping_data& data,
+      beast::detail::polymorphic_const_buffer_sequence const& bs)
 {
     BOOST_ASSERT(buffer_bytes(bs) <= data.max_size());
     data.resize(buffer_bytes(bs));
@@ -191,11 +194,11 @@ read_ping(ping_data& data, Buffers const& bs)
 // Read close_reason, return true on success
 // This is for the close payload
 //
-template<class Buffers>
+inline
 void
 read_close(
     close_reason& cr,
-    Buffers const& bs,
+    beast::detail::polymorphic_const_buffer_sequence const& bs,
     error_code& ec)
 {
     auto const n = buffer_bytes(bs);

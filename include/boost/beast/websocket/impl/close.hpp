@@ -121,7 +121,8 @@ public:
                     __FILE__, __LINE__,
                     "websocket::async_close"));
 
-                net::async_write(impl.stream(), fb_.data(),
+                net::async_write(impl.stream(),
+                    beast::detail::polymorphic_const_buffer_sequence(fb_.data()),
                     beast::detail::bind_continuation(std::move(*this)));
             }
             if(impl.check_stop_now(ec))
@@ -180,8 +181,9 @@ public:
                             "websocket::async_close"));
 
                         impl.stream().async_read_some(
-                            impl.rd_buf.prepare(read_size(
-                                impl.rd_buf, impl.rd_buf.max_size())),
+                            beast::detail::polymorphic_mutable_buffer_sequence(
+                                impl.rd_buf.prepare(read_size(
+                                    impl.rd_buf, impl.rd_buf.max_size()))),
                             beast::detail::bind_continuation(std::move(*this)));
                     }
                     impl.rd_buf.commit(bytes_transferred);
@@ -201,9 +203,11 @@ public:
                     // TODO Should we invoke the control callback?
                     BOOST_ASSERT(! impl.rd_close);
                     impl.rd_close = true;
-                    auto const mb = buffers_prefix(
-                        clamp(impl.rd_fh.len),
-                        impl.rd_buf.data());
+                    auto const mb =
+                        beast::detail::polymorphic_mutable_buffer_sequence(
+                            impl.rd_buf.data())
+                                .prefix_copy(
+                                    clamp(impl.rd_fh.len));
                     if(impl.rd_fh.len > 0 && impl.rd_fh.mask)
                         detail::mask_inplace(mb, impl.rd_key);
                     detail::read_close(impl.cr, mb, ev_);
@@ -226,8 +230,9 @@ public:
                             "websocket::async_close"));
 
                         impl.stream().async_read_some(
-                            impl.rd_buf.prepare(read_size(
-                                impl.rd_buf, impl.rd_buf.max_size())),
+                            beast::detail::polymorphic_mutable_buffer_sequence(
+                                impl.rd_buf.prepare(read_size(
+                                    impl.rd_buf, impl.rd_buf.max_size()))),
                             beast::detail::bind_continuation(std::move(*this)));
                     }
                     impl.rd_buf.commit(bytes_transferred);
@@ -368,8 +373,9 @@ close(close_reason const& cr, error_code& ec)
                 return do_fail(close_code::none, ev, ec);
             }
             impl.rd_buf.commit(impl.stream().read_some(
-                impl.rd_buf.prepare(read_size(
-                    impl.rd_buf, impl.rd_buf.max_size())), ec));
+                beast::detail::polymorphic_mutable_buffer_sequence(
+                    impl.rd_buf.prepare(read_size(
+                        impl.rd_buf, impl.rd_buf.max_size()))), ec));
             if(impl.check_stop_now(ec))
                 return;
         }
@@ -410,10 +416,11 @@ close(close_reason const& cr, error_code& ec)
             impl.rd_buf.consume(impl.rd_buf.size());
             impl.rd_buf.commit(
                 impl.stream().read_some(
-                    impl.rd_buf.prepare(
-                        read_size(
-                            impl.rd_buf,
-                            impl.rd_buf.max_size())),
+                    beast::detail::polymorphic_mutable_buffer_sequence(
+                        impl.rd_buf.prepare(
+                            read_size(
+                                impl.rd_buf,
+                                impl.rd_buf.max_size()))),
                     ec));
             if(impl.check_stop_now(ec))
                 return;

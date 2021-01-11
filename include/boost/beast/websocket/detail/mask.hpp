@@ -11,7 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_MASK_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/buffers_range.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 #include <boost/asio/buffer.hpp>
 #include <array>
 #include <climits>
@@ -38,16 +38,11 @@ mask_inplace(net::mutable_buffer const& b, prepared_key& key);
 
 // Apply mask in place
 //
-template<class MutableBufferSequence>
+BOOST_BEAST_DECL
 void
 mask_inplace(
-    MutableBufferSequence const& buffers,
-    prepared_key& key)
-{
-    for(net::mutable_buffer b :
-            beast::buffers_range_ref(buffers))
-        detail::mask_inplace(b, key);
-}
+    beast::detail::polymorphic_mutable_buffer_sequence const& buffers,
+    prepared_key& key);
 
 } // detail
 } // websocket

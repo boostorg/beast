@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_STREAM_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 #include <boost/beast/websocket/error.hpp>
 #include <boost/beast/websocket/option.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
@@ -2543,10 +2544,10 @@ private:
     template<class>         class handshake_op;
     template<class>         class ping_op;
     template<class>         class idle_ping_op;
-    template<class, class>  class read_some_op;
+    template<class>         class read_some_op;
     template<class, class>  class read_op;
     template<class>         class response_op;
-    template<class, class>  class write_some_op;
+    template<class>         class write_some_op;
     template<class, class>  class write_op;
 
     struct run_accept_op;
@@ -2567,10 +2568,10 @@ private:
     // accept / handshake
     //
 
-    template<class Buffers, class Decorator>
+    template<class Decorator>
     void
     do_accept(
-        Buffers const& buffers,
+        beast::detail::polymorphic_const_buffer_sequence const& buffers,
         Decorator const& decorator,
         error_code& ec);
 
@@ -2599,6 +2600,21 @@ private:
     do_fail(
         std::uint16_t code,
         error_code ev,
+        error_code& ec);
+
+    //
+    // write
+    //
+    std::size_t
+    do_write_some(bool fin,
+        beast::detail::polymorphic_const_buffer_sequence buffers,
+            error_code& ec);
+
+    //
+    // read
+    //
+    std::size_t
+    do_read_some(beast::detail::polymorphic_mutable_buffer_sequence buffers,
         error_code& ec);
 };
 

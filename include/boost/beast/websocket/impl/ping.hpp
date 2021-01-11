@@ -110,8 +110,9 @@ public:
                     __FILE__, __LINE__,
                     "websocket::async_ping"));
 
-                net::async_write(impl.stream(), fb_.data(),
-                    beast::detail::bind_continuation(std::move(*this)));
+                net::async_write(impl.stream(),
+                    beast::detail::polymorphic_const_buffer_sequence (fb_.data()),
+                        beast::detail::bind_continuation(std::move(*this)));
             }
             if(impl.check_stop_now(ec))
                 goto upcall;
@@ -220,8 +221,9 @@ public:
                     __FILE__, __LINE__,
                     "websocket::async_ping"));
 
-                net::async_write(impl.stream(), fb_->data(),
-                    std::move(*this));
+                net::async_write(impl.stream(),
+                    beast::detail::polymorphic_mutable_buffer_sequence(fb_->data()),
+                        std::move(*this));
             }
             if(impl.check_stop_now(ec))
                 goto upcall;
@@ -291,7 +293,10 @@ ping(ping_data const& payload, error_code& ec)
     detail::frame_buffer fb;
     impl_->template write_ping<flat_static_buffer_base>(
         fb, detail::opcode::ping, payload);
-    net::write(impl_->stream(), fb.data(), ec);
+    net::write(impl_->stream(),
+        beast::detail::polymorphic_const_buffer_sequence(
+            fb.data()),
+        ec);
     if(impl_->check_stop_now(ec))
         return;
 }
@@ -317,7 +322,9 @@ pong(ping_data const& payload, error_code& ec)
     detail::frame_buffer fb;
     impl_->template write_ping<flat_static_buffer_base>(
         fb, detail::opcode::pong, payload);
-    net::write(impl_->stream(), fb.data(), ec);
+    net::write(impl_->stream(),
+        beast::detail::polymorphic_const_buffer_sequence(fb.data()),
+        ec);
     if(impl_->check_stop_now(ec))
         return;
 }

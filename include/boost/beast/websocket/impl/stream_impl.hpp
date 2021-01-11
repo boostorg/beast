@@ -22,9 +22,6 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/http/rfc7230.hpp>
-#include <boost/beast/core/buffers_cat.hpp>
-#include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/saved_handler.hpp>
 #include <boost/beast/core/static_buffer.hpp>
@@ -706,9 +703,8 @@ parse_fh(
         ec = {};
         return false;
     }
-    buffers_suffix<typename
-        DynamicBuffer::const_buffers_type> cb{
-            b.data()};
+    beast::detail::polymorphic_const_buffer_sequence
+        cb(b.data());
     std::size_t need;
     {
         std::uint8_t tmp[2];

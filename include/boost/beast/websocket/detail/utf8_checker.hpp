@@ -10,7 +10,7 @@
 #ifndef BOOST_BEAST_WEBSOCKET_DETAIL_UTF8_CHECKER_HPP
 #define BOOST_BEAST_WEBSOCKET_DETAIL_UTF8_CHECKER_HPP
 
-#include <boost/beast/core/buffers_range.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 #include <boost/asio/buffer.hpp>
 
 #include <cstdint>
@@ -57,21 +57,17 @@ public:
 
         @return `true` if the text is valid utf8 or false otherwise.
     */
-    template<class ConstBufferSequence>
+    inline
     bool
-    write(ConstBufferSequence const& bs);
+    write(beast::detail::polymorphic_const_buffer_sequence const& bs);
 };
 
 
-template<class ConstBufferSequence>
 bool
 utf8_checker::
-write(ConstBufferSequence const& buffers)
+write(beast::detail::polymorphic_const_buffer_sequence const& buffers)
 {
-    static_assert(
-        net::is_const_buffer_sequence<ConstBufferSequence>::value,
-        "ConstBufferSequence type requirements not met");
-    for(auto b : beast::buffers_range_ref(buffers))
+    for(auto b : buffers)
         if(! write(static_cast<
             std::uint8_t const*>(b.data()),
                 b.size()))

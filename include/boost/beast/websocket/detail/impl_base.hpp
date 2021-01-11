@@ -15,6 +15,7 @@
 #include <boost/beast/websocket/detail/pmd_extension.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/role.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
@@ -78,11 +79,11 @@ struct impl_base<true>
     // Compress a buffer sequence
     // Returns: `true` if more calls are needed
     //
-    template<class ConstBufferSequence>
+    inline
     bool
     deflate(
         net::mutable_buffer& out,
-        buffers_suffix<ConstBufferSequence>& cb,
+        beast::detail::polymorphic_const_buffer_sequence& cb,
         bool fin,
         std::size_t& total_in,
         error_code& ec)
@@ -358,11 +359,11 @@ struct impl_base<false>
         return ! rsv1;
     }
 
-    template<class ConstBufferSequence>
+    inline
     bool
     deflate(
         net::mutable_buffer&,
-        buffers_suffix<ConstBufferSequence>&,
+        beast::detail::polymorphic_const_buffer_sequence&,
         bool,
         std::size_t&,
         error_code&)

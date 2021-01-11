@@ -58,6 +58,16 @@ mask_inplace(net::mutable_buffer const& b, prepared_key& key)
     }
 }
 
+void
+mask_inplace(
+    beast::detail::polymorphic_mutable_buffer_sequence const& buffers,
+    prepared_key& key)
+{
+    for(net::mutable_buffer b : buffers)
+        detail::mask_inplace(b, key);
+}
+
+
 } // detail
 } // websocket
 } // beast

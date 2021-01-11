@@ -17,7 +17,6 @@
 #include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
-#include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/stream_traits.hpp>
@@ -44,15 +43,15 @@ namespace websocket {
     Also reads and handles control frames.
 */
 template<class NextLayer, bool deflateSupported>
-template<class Handler, class MutableBufferSequence>
+template<class Handler>
 class stream<NextLayer, deflateSupported>::read_some_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
 {
     boost::weak_ptr<impl_type> wp_;
-    MutableBufferSequence bs_;
-    buffers_suffix<MutableBufferSequence> cb_;
+    beast::detail::polymorphic_mutable_buffer_sequence bs_;
+    beast::detail::polymorphic_mutable_buffer_sequence cb_;
     std::size_t bytes_written_ = 0;
     error_code result_;
     close_code code_;
@@ -65,14 +64,15 @@ public:
     read_some_op(
         Handler_&& h,
         boost::shared_ptr<impl_type> const& sp,
-        MutableBufferSequence const& bs)
+        beast::detail::polymorphic_mutable_buffer_sequence bs)
         : async_base<
             Handler, beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
                     sp->stream().get_executor())
         , wp_(sp)
         , bs_(bs)
-        , cb_(bs)
+        // dependency: order : ownership transferred
+        , cb_(std::move(bs))
         , code_(close_code::none)
     {
         (*this)({}, 0, false);
@@ -180,8 +180,9 @@ public:
                             "websocket::async_read_some"));
 
                         impl.stream().async_read_some(
-                            impl.rd_buf.prepare(read_size(
-                                impl.rd_buf, impl.rd_buf.max_size())),
+                            beast::detail::polymorphic_mutable_buffer_sequence(
+                                impl.rd_buf.prepare(read_size(
+                                    impl.rd_buf, impl.rd_buf.max_size()))),
                                     std::move(*this));
                     }
                     BOOST_ASSERT(impl.rd_block.is_locked(this));
@@ -205,10 +206,11 @@ public:
                 // Immediately apply the mask to the portion
                 // of the buffer holding payload data.
                 if(impl.rd_fh.len > 0 && impl.rd_fh.mask)
-                    detail::mask_inplace(buffers_prefix(
-                        clamp(impl.rd_fh.len),
-                            impl.rd_buf.data()),
-                                impl.rd_key);
+                    detail::mask_inplace(
+                        beast::detail::polymorphic_mutable_buffer_sequence(
+                            impl.rd_buf.data())
+                                .prefix_copy(clamp(impl.rd_fh.len)),
+                            impl.rd_key);
                 if(detail::is_control(impl.rd_fh.op))
                 {
                     // Clear this otherwise the next
@@ -235,9 +237,11 @@ public:
                             }
                         }
                         {
-                            auto const b = buffers_prefix(
-                                clamp(impl.rd_fh.len),
-                                    impl.rd_buf.data());
+                            auto const b =
+                                beast::detail::polymorphic_mutable_buffer_sequence(
+                                        impl.rd_buf.data())
+                                            .prefix_copy(
+                                                clamp(impl.rd_fh.len));
                             auto const len = buffer_bytes(b);
                             BOOST_ASSERT(len == impl.rd_fh.len);
                             ping_data payload;
@@ -327,8 +331,9 @@ public:
                                 BOOST_ASSERT(cont);
                             }
                         }
-                        auto const cb = buffers_prefix(clamp(
-                            impl.rd_fh.len), impl.rd_buf.data());
+                        auto cb = beast::detail::polymorphic_const_buffer_sequence(
+                            impl.rd_buf.data())
+                                .prefix_copy(clamp(impl.rd_fh.len));
                         auto const len = buffer_bytes(cb);
                         BOOST_ASSERT(len == impl.rd_fh.len);
                         ping_data payload;
@@ -358,8 +363,10 @@ public:
                                 BOOST_ASSERT(cont);
                             }
                         }
-                        auto const cb = buffers_prefix(clamp(
-                            impl.rd_fh.len), impl.rd_buf.data());
+                        auto cb =
+                            beast::detail::polymorphic_const_buffer_sequence(
+                                impl.rd_buf.data())
+                                    .prefix(clamp(impl.rd_fh.len));
                         auto const len = buffer_bytes(cb);
                         BOOST_ASSERT(len == impl.rd_fh.len);
                         BOOST_ASSERT(! impl.rd_close);
@@ -418,18 +425,23 @@ public:
                                 "websocket::async_read_some"));
 
                             impl.stream().async_read_some(
-                                impl.rd_buf.prepare(read_size(
-                                    impl.rd_buf, impl.rd_buf.max_size())),
-                                        std::move(*this));
+                                beast::detail::polymorphic_mutable_buffer_sequence(
+                                    impl.rd_buf.prepare(read_size(
+                                        impl.rd_buf, impl.rd_buf.max_size()))),
+                                            std::move(*this));
                         }
                         impl.rd_buf.commit(bytes_transferred);
                         if(impl.check_stop_now(ec))
                             goto upcall;
                         impl.reset_idle();
                         if(impl.rd_fh.mask)
-                            detail::mask_inplace(buffers_prefix(clamp(
-                                impl.rd_remain), impl.rd_buf.data()),
-                                    impl.rd_key);
+                        {
+                            beast::detail::polymorphic_mutable_buffer_sequence
+                                mbs(impl.rd_buf.data());
+                            mbs.prefix(clamp(
+                                impl.rd_remain));
+                            detail::mask_inplace(mbs, impl.rd_key);
+                        }
                     }
                     if(impl.rd_buf.size() > 0)
                     {
@@ -437,8 +449,7 @@ public:
                         // The mask was already applied.
                         bytes_transferred = net::buffer_copy(cb_,
                             impl.rd_buf.data(), clamp(impl.rd_remain));
-                        auto const mb = buffers_prefix(
-                            bytes_transferred, cb_);
+                        auto const mb = cb_.prefix_copy(bytes_transferred);
                         impl.rd_remain -= bytes_transferred;
                         if(impl.rd_op == detail::opcode::text)
                         {
@@ -461,23 +472,23 @@ public:
                         // Read into caller's buffer
                         BOOST_ASSERT(impl.rd_remain > 0);
                         BOOST_ASSERT(buffer_bytes(cb_) > 0);
-                        BOOST_ASSERT(buffer_bytes(buffers_prefix(
-                            clamp(impl.rd_remain), cb_)) > 0);
+                        BOOST_ASSERT(buffer_bytes(
+                            cb_.prefix_copy(clamp(impl.rd_remain))) > 0);
                         BOOST_ASIO_CORO_YIELD
                         {
                             BOOST_ASIO_HANDLER_LOCATION((
                                 __FILE__, __LINE__,
                                 "websocket::async_read_some"));
 
-                            impl.stream().async_read_some(buffers_prefix(
-                                clamp(impl.rd_remain), cb_), std::move(*this));
+                            impl.stream().async_read_some(
+                                cb_.prefix_copy(clamp(impl.rd_remain)),
+                                std::move(*this));
                         }
                         if(impl.check_stop_now(ec))
                             goto upcall;
                         impl.reset_idle();
                         BOOST_ASSERT(bytes_transferred > 0);
-                        auto const mb = buffers_prefix(
-                            bytes_transferred, cb_);
+                        auto const mb = cb_.prefix_copy(bytes_transferred);
                         impl.rd_remain -= bytes_transferred;
                         if(impl.rd_fh.mask)
                             detail::mask_inplace(mb, impl.rd_key);
@@ -520,9 +531,10 @@ public:
                                 "websocket::async_read_some"));
 
                             impl.stream().async_read_some(
-                                impl.rd_buf.prepare(read_size(
-                                    impl.rd_buf, impl.rd_buf.max_size())),
-                                        std::move(*this));
+                                beast::detail::polymorphic_mutable_buffer_sequence(
+                                    impl.rd_buf.prepare(read_size(
+                                        impl.rd_buf, impl.rd_buf.max_size()))),
+                                            std::move(*this));
                         }
                         if(impl.check_stop_now(ec))
                             goto upcall;
@@ -530,14 +542,16 @@ public:
                         BOOST_ASSERT(bytes_transferred > 0);
                         impl.rd_buf.commit(bytes_transferred);
                         if(impl.rd_fh.mask)
-                            detail::mask_inplace(
-                                buffers_prefix(clamp(impl.rd_remain),
-                                    impl.rd_buf.data()), impl.rd_key);
+                        {
+                            auto mbs = beast::detail::polymorphic_mutable_buffer_sequence (impl.rd_buf.data());
+                            mbs.prefix(clamp(impl.rd_remain));
+                            detail::mask_inplace(mbs, impl.rd_key);
+                        }
                         did_read_ = true;
                     }
                     zlib::z_params zs;
                     {
-                        auto const out = buffers_front(cb_);
+                        auto const out = cb_.front();
                         zs.next_out = out.data();
                         zs.avail_out = out.size();
                         BOOST_ASSERT(zs.avail_out > 0);
@@ -603,7 +617,7 @@ public:
                 {
                     // check utf8
                     if(! impl.rd_utf8.write(
-                        buffers_prefix(bytes_written_, bs_)) || (
+                        bs_.prefix_copy(bytes_written_)) || (
                             impl.rd_done && ! impl.rd_utf8.finish()))
                     {
                         // _Fail the WebSocket Connection_
@@ -759,8 +773,6 @@ public:
             return this->complete(cont, ec, bytes_written_);
         }
         auto& impl = *sp;
-        using mutable_buffers_type = typename
-            DynamicBuffer::mutable_buffers_type;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             do
@@ -778,7 +790,7 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_read"));
 
-                    read_some_op<read_op, mutable_buffers_type>(
+                    read_some_op<read_op>(
                         std::move(*this), sp, *mb);
                 }
 
@@ -800,13 +812,12 @@ struct stream<NextLayer, deflateSupported>::
     run_read_some_op
 {
     template<
-        class ReadHandler,
-        class MutableBufferSequence>
+        class ReadHandler>
     void
     operator()(
         ReadHandler&& h,
         boost::shared_ptr<impl_type> const& sp,
-        MutableBufferSequence const& b)
+        beast::detail::polymorphic_mutable_buffer_sequence b)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
@@ -818,11 +829,10 @@ struct stream<NextLayer, deflateSupported>::
             "ReadHandler type requirements not met");
 
         read_some_op<
-            typename std::decay<ReadHandler>::type,
-            MutableBufferSequence>(
+            typename std::decay<ReadHandler>::type>(
                 std::forward<ReadHandler>(h),
                 sp,
-                b);
+                std::move(b));
     }
 };
 
@@ -972,7 +982,7 @@ read_some(
         buffer, size, ec, error::buffer_overflow);
     if(impl_->check_stop_now(ec))
         return 0;
-    auto const bytes_written = read_some(*mb, ec);
+    auto const bytes_written = do_read_some(*mb, ec);
     buffer.commit(bytes_written);
     return bytes_written;
 }
@@ -1017,7 +1027,7 @@ read_some(
             MutableBufferSequence>::value,
         "MutableBufferSequence type requirements not met");
     error_code ec;
-    auto const bytes_written = read_some(buffers, ec);
+    auto const bytes_written = do_read_some(buffers, ec);
     if(ec)
         BOOST_THROW_EXCEPTION(system_error{ec});
     return bytes_written;
@@ -1036,6 +1046,39 @@ read_some(
     static_assert(net::is_mutable_buffer_sequence<
             MutableBufferSequence>::value,
         "MutableBufferSequence type requirements not met");
+
+    return do_read_some(buffers, ec);
+}
+
+template<class NextLayer, bool deflateSupported>
+template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
+BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
+stream<NextLayer, deflateSupported>::
+async_read_some(
+    MutableBufferSequence const& buffers,
+    ReadHandler&& handler)
+{
+    static_assert(is_async_stream<next_layer_type>::value,
+        "AsyncStream type requirements not met");
+    static_assert(net::is_mutable_buffer_sequence<
+            MutableBufferSequence>::value,
+        "MutableBufferSequence type requirements not met");
+    return net::async_initiate<
+        ReadHandler,
+        void(error_code, std::size_t)>(
+            run_read_some_op{},
+            handler,
+            impl_,
+            buffers);
+}
+
+template<class NextLayer, bool deflateSupported>
+std::size_t
+stream<NextLayer, deflateSupported>::
+do_read_some(
+    beast::detail::polymorphic_mutable_buffer_sequence buffers,
+    error_code& ec)
+{
     using beast::detail::clamp;
     auto& impl = *impl_;
     close_code code{};
@@ -1068,8 +1111,9 @@ loop:
             }
             auto const bytes_transferred =
                 impl.stream().read_some(
-                    impl.rd_buf.prepare(read_size(
-                        impl.rd_buf, impl.rd_buf.max_size())),
+                    beast::detail::polymorphic_mutable_buffer_sequence(
+                        impl.rd_buf.prepare(read_size(
+                            impl.rd_buf, impl.rd_buf.max_size()))),
                     ec);
             impl.rd_buf.commit(bytes_transferred);
             if(impl.check_stop_now(ec))
@@ -1078,14 +1122,19 @@ loop:
         // Immediately apply the mask to the portion
         // of the buffer holding payload data.
         if(impl.rd_fh.len > 0 && impl.rd_fh.mask)
-            detail::mask_inplace(buffers_prefix(
-                clamp(impl.rd_fh.len), impl.rd_buf.data()),
-                    impl.rd_key);
+            detail::mask_inplace(
+                beast::detail::polymorphic_mutable_buffer_sequence(
+                    impl.rd_buf.data())
+                        .prefix_copy(clamp(impl.rd_fh.len)),
+                impl.rd_key);
         if(detail::is_control(impl.rd_fh.op))
         {
             // Get control frame payload
-            auto const b = buffers_prefix(
-                clamp(impl.rd_fh.len), impl.rd_buf.data());
+            auto const b =
+                beast::detail::polymorphic_mutable_buffer_sequence(
+                    impl.rd_buf.data())
+                        .prefix_copy(
+                            clamp(impl.rd_fh.len));
             auto const len = buffer_bytes(b);
             BOOST_ASSERT(len == impl.rd_fh.len);
 
@@ -1174,14 +1223,17 @@ loop:
                 // Fill the read buffer first, otherwise we
                 // get fewer bytes at the cost of one I/O.
                 impl.rd_buf.commit(impl.stream().read_some(
-                    impl.rd_buf.prepare(read_size(impl.rd_buf,
-                        impl.rd_buf.max_size())), ec));
+                    beast::detail::polymorphic_mutable_buffer_sequence(
+                        impl.rd_buf.prepare(read_size(impl.rd_buf,
+                            impl.rd_buf.max_size()))), ec));
                 if(impl.check_stop_now(ec))
                     return bytes_written;
                 if(impl.rd_fh.mask)
                     detail::mask_inplace(
-                        buffers_prefix(clamp(impl.rd_remain),
-                            impl.rd_buf.data()), impl.rd_key);
+                        beast::detail::polymorphic_mutable_buffer_sequence(
+                            impl.rd_buf.data())
+                                .prefix_copy(clamp(impl.rd_remain)),
+                        impl.rd_key);
             }
             if(impl.rd_buf.size() > 0)
             {
@@ -1190,8 +1242,7 @@ loop:
                 auto const bytes_transferred = net::buffer_copy(
                     buffers, impl.rd_buf.data(),
                         clamp(impl.rd_remain));
-                auto const mb = buffers_prefix(
-                    bytes_transferred, buffers);
+                auto const mb = buffers.prefix_copy(bytes_transferred);
                 impl.rd_remain -= bytes_transferred;
                 if(impl.rd_op == detail::opcode::text)
                 {
@@ -1214,17 +1265,18 @@ loop:
                 // Read into caller's buffer
                 BOOST_ASSERT(impl.rd_remain > 0);
                 BOOST_ASSERT(buffer_bytes(buffers) > 0);
-                BOOST_ASSERT(buffer_bytes(buffers_prefix(
-                    clamp(impl.rd_remain), buffers)) > 0);
+                BOOST_ASSERT(buffer_bytes(buffers.prefix_copy(
+                    clamp(impl.rd_remain))) > 0);
                 auto const bytes_transferred =
-                    impl.stream().read_some(buffers_prefix(
-                        clamp(impl.rd_remain), buffers), ec);
+                    impl.stream().read_some(
+                        buffers.prefix_copy(
+                            clamp(impl.rd_remain)),
+                        ec);
                 // VFALCO What if some bytes were written?
                 if(impl.check_stop_now(ec))
                     return bytes_written;
                 BOOST_ASSERT(bytes_transferred > 0);
-                auto const mb = buffers_prefix(
-                    bytes_transferred, buffers);
+                auto const mb =buffers.prefix_copy(bytes_transferred);
                 impl.rd_remain -= bytes_transferred;
                 if(impl.rd_fh.mask)
                     detail::mask_inplace(mb, impl.rd_key);
@@ -1255,12 +1307,12 @@ loop:
         // never emit the end-of-stream deflate block.
         //
         bool did_read = false;
-        buffers_suffix<MutableBufferSequence> cb(buffers);
+        auto cb = buffers;
         while(buffer_bytes(cb) > 0)
         {
             zlib::z_params zs;
             {
-                auto const out = beast::buffers_front(cb);
+                auto const out = cb.front();
                 zs.next_out = out.data();
                 zs.avail_out = out.size();
                 BOOST_ASSERT(zs.avail_out > 0);
@@ -1281,8 +1333,9 @@ loop:
                     // read new
                     auto const bytes_transferred =
                         impl.stream().read_some(
-                            impl.rd_buf.prepare(read_size(
-                                impl.rd_buf, impl.rd_buf.max_size())),
+                            beast::detail::polymorphic_mutable_buffer_sequence(
+                                impl.rd_buf.prepare(read_size(
+                                    impl.rd_buf, impl.rd_buf.max_size()))),
                             ec);
                     if(impl.check_stop_now(ec))
                         return bytes_written;
@@ -1290,8 +1343,10 @@ loop:
                     impl.rd_buf.commit(bytes_transferred);
                     if(impl.rd_fh.mask)
                         detail::mask_inplace(
-                            buffers_prefix(clamp(impl.rd_remain),
-                                impl.rd_buf.data()), impl.rd_key);
+                            beast::detail::polymorphic_mutable_buffer_sequence(
+                                impl.rd_buf.data()).prefix_copy(
+                                    clamp(impl.rd_remain)),
+                            impl.rd_key);
                     auto const in = buffers_prefix(
                         clamp(impl.rd_remain), buffers_front(
                             impl.rd_buf.data()));
@@ -1348,8 +1403,8 @@ loop:
         if(impl.rd_op == detail::opcode::text)
         {
             // check utf8
-            if(! impl.rd_utf8.write(beast::buffers_prefix(
-                bytes_written, buffers)) || (
+            if(! impl.rd_utf8.write(
+                buffers.prefix_copy(bytes_written)) || (
                     impl.rd_done && ! impl.rd_utf8.finish()))
             {
                 // _Fail the WebSocket Connection_
@@ -1360,28 +1415,6 @@ loop:
         }
     }
     return bytes_written;
-}
-
-template<class NextLayer, bool deflateSupported>
-template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
-BOOST_BEAST_ASYNC_RESULT2(ReadHandler)
-stream<NextLayer, deflateSupported>::
-async_read_some(
-    MutableBufferSequence const& buffers,
-    ReadHandler&& handler)
-{
-    static_assert(is_async_stream<next_layer_type>::value,
-        "AsyncStream type requirements not met");
-    static_assert(net::is_mutable_buffer_sequence<
-            MutableBufferSequence>::value,
-        "MutableBufferSequence type requirements not met");
-    return net::async_initiate<
-        ReadHandler,
-        void(error_code, std::size_t)>(
-            run_read_some_op{},
-            handler,
-            impl_,
-            buffers);
 }
 
 } // websocket

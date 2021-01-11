@@ -254,12 +254,12 @@ class stream<NextLayer, deflateSupported>::accept_op
     Decorator d_;
 
 public:
-    template<class Handler_, class Buffers>
+    template<class Handler_>
     accept_op(
         Handler_&& h,
         boost::shared_ptr<impl_type> const& sp,
         Decorator const& decorator,
-        Buffers const& buffers)
+        beast::detail::polymorphic_const_buffer_sequence const& buffers)
         : stable_async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
@@ -372,14 +372,13 @@ struct stream<NextLayer, deflateSupported>::
 {
     template<
         class AcceptHandler,
-        class Decorator,
-        class Buffers>
+        class Decorator>
     void
     operator()(
         AcceptHandler&& h,
         boost::shared_ptr<impl_type> const& sp,
         Decorator const& d,
-        Buffers const& b)
+        beast::detail::polymorphic_const_buffer_sequence const& b)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
@@ -432,11 +431,11 @@ do_accept(
 }
 
 template<class NextLayer, bool deflateSupported>
-template<class Buffers, class Decorator>
+template<class Decorator>
 void
 stream<NextLayer, deflateSupported>::
 do_accept(
-    Buffers const& buffers,
+    beast::detail::polymorphic_const_buffer_sequence const& buffers,
     Decorator const& decorator,
     error_code& ec)
 {
