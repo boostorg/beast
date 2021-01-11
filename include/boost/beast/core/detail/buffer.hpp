@@ -11,6 +11,7 @@
 #define BOOST_BEAST_CORE_DETAIL_BUFFER_HPP
 
 #include <boost/beast/core/error.hpp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <stdexcept>
@@ -28,8 +29,8 @@ dynamic_buffer_prepare_noexcept(
     std::size_t size,
     error_code& ec,
     ErrorValue ev) ->
-        boost::optional<typename
-        DynamicBuffer::mutable_buffers_type>
+        boost::optional<
+            beast::detail::polymorphic_mutable_buffer_sequence>
 {
     if(buffer.max_size() - buffer.size() < size)
     {
@@ -37,8 +38,9 @@ dynamic_buffer_prepare_noexcept(
         ec = ev;
         return boost::none;
     }
-    boost::optional<typename
-        DynamicBuffer::mutable_buffers_type> result;
+    boost::optional<
+        beast::detail::polymorphic_mutable_buffer_sequence>
+            result;
     result.emplace(buffer.prepare(size));
     ec = {};
     return result;
@@ -53,14 +55,16 @@ dynamic_buffer_prepare(
     std::size_t size,
     error_code& ec,
     ErrorValue ev) ->
-        boost::optional<typename
-        DynamicBuffer::mutable_buffers_type>
+        boost::optional<
+            beast::detail::polymorphic_mutable_buffer_sequence>
 {
 #ifndef BOOST_NO_EXCEPTIONS
     try
     {
-        boost::optional<typename
-            DynamicBuffer::mutable_buffers_type> result;
+        boost::optional<
+            beast::detail::polymorphic_mutable_buffer_sequence>
+                result;
+
         result.emplace(buffer.prepare(size));
         ec = {};
         return result;

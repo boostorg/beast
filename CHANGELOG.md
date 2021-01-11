@@ -1,3 +1,4 @@
+* HTTP Read uses polymorphic buffers.
 * HTTP Write uses polymorphic buffers.
 * WebSocket uses polymorphic buffers.
 * Add polymorphic buffer sequence types.
