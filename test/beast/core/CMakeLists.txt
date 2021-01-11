@@ -23,6 +23,7 @@ add_executable (tests-beast-core
     _detail_clamp.cpp
     _detail_get_io_context.cpp
     _detail_is_invocable.cpp
+    _detail_polymorphic_buffer_sequence.cpp
     _detail_read.cpp
     _detail_sha1.cpp
     _detail_tuple.cpp

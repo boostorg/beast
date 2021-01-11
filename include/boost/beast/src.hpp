@@ -31,6 +31,7 @@ the program, with the macro BOOST_BEAST_SEPARATE_COMPILATION defined.
 #include <boost/beast/_experimental/test/detail/stream_state.ipp>
 
 #include <boost/beast/core/detail/base64.ipp>
+#include <boost/beast/core/detail/polymorphic_buffer_sequence.ipp>
 #include <boost/beast/core/detail/sha1.ipp>
 #include <boost/beast/core/detail/impl/temporary_buffer.ipp>
 #include <boost/beast/core/impl/error.ipp>

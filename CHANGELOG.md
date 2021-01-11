@@ -1,5 +1,6 @@
+* Add polymorphic buffer sequence types.
 * CML permits finding Boost outside the boost build tree.
-s
+
 --------------------------------------------------------------------------------
 
 Version 307:
