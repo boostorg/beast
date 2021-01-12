@@ -32,6 +32,7 @@ the program, with the macro BOOST_BEAST_SEPARATE_COMPILATION defined.
 
 #include <boost/beast/core/detail/base64.ipp>
 #include <boost/beast/core/detail/sha1.ipp>
+#include <boost/beast/core/detail/impl/any_buffers.ipp>
 #include <boost/beast/core/detail/impl/temporary_buffer.ipp>
 #include <boost/beast/core/impl/error.ipp>
 #include <boost/beast/core/impl/file_posix.ipp>

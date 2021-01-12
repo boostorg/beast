@@ -1,3 +1,4 @@
+* Add any_buffers type.
 * CML permits finding Boost outside the boost build tree.
 
 --------------------------------------------------------------------------------
