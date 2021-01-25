@@ -28,6 +28,7 @@ add_executable (tests-beast-core
     _detail_tuple.cpp
     _detail_variant.cpp
     _detail_varint.cpp
+    _detail_any_dynamic_buffer_v0_ref.cpp
     async_base.cpp
     basic_stream.cpp
     bind_handler.cpp

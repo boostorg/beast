@@ -9,8 +9,9 @@
 
 // Test that header file is self-contained.
 #include <boost/beast/core/flat_buffer.hpp>
-
-#include "test_buffer.hpp"
+#include <boost/beast/core/detail/any_dynamic_buffer_v0_ref.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
+//#include "test_buffer.hpp"
 
 #include <boost/beast/core/ostream.hpp>
 #include <boost/beast/core/read_size.hpp>
@@ -23,27 +24,28 @@
 namespace boost {
 namespace beast {
 
-class flat_buffer_test : public beast::unit_test::suite
+class _detail_any_dynamic_buffer_v0_ref_test : public beast::unit_test::suite
 {
 public:
-    BOOST_STATIC_ASSERT(
-        is_mutable_dynamic_buffer<flat_buffer>::value);
+//    BOOST_STATIC_ASSERT(
+//        is_mutable_dynamic_buffer<detail::any_dynamic_buffer_v0_ref>::value);
 
+/*
     void
     testDynamicBuffer()
     {
-        flat_buffer b(30);
+        flat_buffer b0(30);
+        detail::any_dynamic_buffer_v0_ref b(b0);
         BEAST_EXPECT(b.max_size() == 30);
         test_dynamic_buffer(b);
     }
+    */
 
     void
     testSpecialMembers()
     {
         using namespace test;
 
-        using a_t = test::test_allocator<char,
-            true, true, true, true, true>;
 
         // Equal == false
         using a_neq_t = test::test_allocator<char,
@@ -52,24 +54,30 @@ public:
         // construction
         {
             {
-                flat_buffer b;
+                flat_buffer b0;
+                detail::any_dynamic_buffer_v0_ref b(b0);
                 BEAST_EXPECT(b.capacity() == 0);
             }
             {
-                flat_buffer b{500};
+                flat_buffer b0{500};
+                detail::any_dynamic_buffer_v0_ref b(b0);
                 BEAST_EXPECT(b.capacity() == 0);
                 BEAST_EXPECT(b.max_size() == 500);
             }
+            /*
             {
                 a_neq_t a1;
-                basic_flat_buffer<a_neq_t> b{a1};
+                basic_flat_buffer<a_neq_t> b0{a1};
+                any_dynamic_buffer_v0_ref b(b0);
                 BEAST_EXPECT(b.get_allocator() == a1);
                 a_neq_t a2;
                 BEAST_EXPECT(b.get_allocator() != a2);
             }
+             */
             {
                 a_neq_t a;
-                basic_flat_buffer<a_neq_t> b{500, a};
+                basic_flat_buffer<a_neq_t> b0{500, a};
+                detail::any_dynamic_buffer_v0_ref b(b0);
                 BEAST_EXPECT(b.capacity() == 0);
                 BEAST_EXPECT(b.max_size() == 500);
             }
@@ -77,75 +85,49 @@ public:
 
         // move construction
         {
+            /*
             {
-                basic_flat_buffer<a_t> b1{30};
+                basic_flat_buffer<a_t> b0{30};
+                detail::any_dynamic_buffer_v0_ref b1(b0);
                 BEAST_EXPECT(b1.get_allocator()->nmove == 0);
                 ostream(b1) << "Hello";
-                basic_flat_buffer<a_t> b2{std::move(b1)};
+                any_dynamic_buffer_v0_ref b2{std::move(b1)};
                 BEAST_EXPECT(b2.get_allocator()->nmove == 1);
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
                 BEAST_EXPECT(b1.max_size() == b2.max_size());
             }
+
             {
-                basic_flat_buffer<a_t> b1{30};
+                basic_flat_buffer<a_t> b0{30};
+                detail::any_dynamic_buffer_v0_ref b1(b0);
                 ostream(b1) << "Hello";
                 a_t a;
-                basic_flat_buffer<a_t> b2{std::move(b1), a};
+                any_dynamic_buffer_v0_ref b2{std::move(b1), a};
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.capacity() == 0);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
                 BEAST_EXPECT(b1.max_size() == b2.max_size());
             }
             {
-                basic_flat_buffer<a_neq_t> b1{30};
+                basic_flat_buffer<a_neq_t> b0{30};
+                detail::any_dynamic_buffer_v0_ref b1(b0);
                 ostream(b1) << "Hello";
                 a_neq_t a;
-                basic_flat_buffer<a_neq_t> b2{std::move(b1), a};
+                any_dynamic_buffer_v0_ref b2{std::move(b1), a};
                 BEAST_EXPECT(b1.size() != 0);
                 BEAST_EXPECT(b1.capacity() != 0);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
                 BEAST_EXPECT(b1.max_size() == b2.max_size());
             }
+             */
         }
 
-        // copy construction
+        /*
         {
-            basic_flat_buffer<a_t> b1;
-            ostream(b1) << "Hello";
-            basic_flat_buffer<a_t> b2(b1);
-            BEAST_EXPECT(b1.get_allocator() == b2.get_allocator());
-            BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
-            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-        }
-        {
-            basic_flat_buffer<a_neq_t> b1;
-            ostream(b1) << "Hello";
-            a_neq_t a;
-            basic_flat_buffer<a_neq_t> b2(b1, a);
-            BEAST_EXPECT(b1.get_allocator() != b2.get_allocator());
-            BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
-            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-        }
-        {
-            basic_flat_buffer<a_t> b1;
-            ostream(b1) << "Hello";
-            basic_flat_buffer<a_neq_t> b2(b1);
-            BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
-            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-        }
-        {
-            basic_flat_buffer<a_neq_t> b1;
-            ostream(b1) << "Hello";
-            a_t a;
-            basic_flat_buffer<a_t> b2(b1, a);
-            BEAST_EXPECT(b2.get_allocator() == a);
-            BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
-            BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-        }
-        {
-            flat_buffer b1;
+            flat_buffer b0;
+            detail::any_dynamic_buffer_v0_ref b1(b0);
             ostream(b1) << "Hello";
             basic_flat_buffer<a_t> b2;
             b2.reserve(1);
@@ -154,116 +136,31 @@ public:
             BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             BEAST_EXPECT(b2.capacity() == b2.size());
         }
-
-        // move assignment
-        {
-            {
-                flat_buffer b1;
-                ostream(b1) << "Hello";
-                flat_buffer b2;
-                b2 = std::move(b1);
-                BEAST_EXPECT(b1.size() == 0);
-                BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-            }
-            {
-                using na_t = test::test_allocator<char,
-                    true, true, false, true, true>;
-                basic_flat_buffer<na_t> b1;
-                ostream(b1) << "Hello";
-                basic_flat_buffer<na_t> b2;
-                b2 = std::move(b1);
-                BEAST_EXPECT(b1.get_allocator() == b2.get_allocator());
-                BEAST_EXPECT(b1.size() == 0);
-                BEAST_EXPECT(b1.capacity() == 0);
-                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-            }
-            {
-                using na_t = test::test_allocator<char,
-                    false, true, false, true, true>;
-                basic_flat_buffer<na_t> b1;
-                ostream(b1) << "Hello";
-                basic_flat_buffer<na_t> b2;
-                b2 = std::move(b1);
-                BEAST_EXPECT(b1.get_allocator() != b2.get_allocator());
-                BEAST_EXPECT(b1.size() != 0);
-                BEAST_EXPECT(b1.capacity() != 0);
-                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-            }
-            {
-                // propagate_on_container_move_assignment : true
-                using pocma_t = test::test_allocator<char,
-                    true, true, true, true, true>;
-                basic_flat_buffer<pocma_t> b1;
-                ostream(b1) << "Hello";
-                basic_flat_buffer<pocma_t> b2;
-                b2 = std::move(b1);
-                BEAST_EXPECT(b1.size() == 0);
-                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-            }
-            {
-                // propagate_on_container_move_assignment : false
-                using pocma_t = test::test_allocator<char,
-                    true, true, false, true, true>;
-                basic_flat_buffer<pocma_t> b1;
-                ostream(b1) << "Hello";
-                basic_flat_buffer<pocma_t> b2;
-                b2 = std::move(b1);
-                BEAST_EXPECT(b1.size() == 0);
-                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-            }
-        }
-
-        // copy assignment
-        {
-            {
-                flat_buffer b1;
-                ostream(b1) << "Hello";
-                flat_buffer b2;
-                b2 = b1;
-                BEAST_EXPECT(buffers_to_string(b1.data()) == "Hello");
-                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-                basic_flat_buffer<a_t> b3;
-                b3 = b2;
-                BEAST_EXPECT(buffers_to_string(b3.data()) == "Hello");
-            }
-            {
-                // propagate_on_container_copy_assignment : true
-                using pocca_t = test::test_allocator<char,
-                    true, true, true, true, true>;
-                basic_flat_buffer<pocca_t> b1;
-                ostream(b1) << "Hello";
-                basic_flat_buffer<pocca_t> b2;
-                b2 = b1;
-                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-            }
-            {
-                // propagate_on_container_copy_assignment : false
-                using pocca_t = test::test_allocator<char,
-                    true, false, true, true, true>;
-                basic_flat_buffer<pocca_t> b1;
-                ostream(b1) << "Hello";
-                basic_flat_buffer<pocca_t> b2;
-                b2 = b1;
-                BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
-            }
-        }
+         */
 
         // operations
         {
             string_view const s = "Hello, world!";
-            flat_buffer b1{64};
+            flat_buffer b0{64};
+            detail::any_dynamic_buffer_v0_ref b1(b0);
             BEAST_EXPECT(b1.size() == 0);
             BEAST_EXPECT(b1.max_size() == 64);
             BEAST_EXPECT(b1.capacity() == 0);
             ostream(b1) << s;
             BEAST_EXPECT(buffers_to_string(b1.data()) == s);
             {
+                /*
                 flat_buffer b2{b1};
                 BEAST_EXPECT(buffers_to_string(b2.data()) == s);
                 b2.consume(7);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == s.substr(7));
+                 */
+                BEAST_EXPECT(buffers_to_string(b1.data()) == s);
+                b1.consume(7);
+                BEAST_EXPECT(buffers_to_string(b1.data()) == s.substr(7));
+
             }
+            /*
             {
                 flat_buffer b2{32};
                 BEAST_EXPECT(b2.max_size() == 32);
@@ -273,11 +170,13 @@ public:
                 b2.consume(7);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == s.substr(7));
             }
+             */
         }
 
         // cause memmove
         {
-            flat_buffer b{20};
+            flat_buffer b0{20};
+            detail::any_dynamic_buffer_v0_ref b(b0);
             ostream(b) << "12345";
             b.consume(3);
             ostream(b) << "67890123";
@@ -286,13 +185,13 @@ public:
 
         // max_size
         {
-            flat_buffer b{10};
+            flat_buffer b0{10};
+            detail::any_dynamic_buffer_v0_ref b(b0);
             BEAST_EXPECT(b.max_size() == 10);
-            b.max_size(32);
-            BEAST_EXPECT(b.max_size() == 32);
         }
 
         // allocator max_size
+        /*
         {
             basic_flat_buffer<a_t> b;
             auto a = b.get_allocator();
@@ -309,10 +208,12 @@ public:
                 pass();
             }
         }
+         */
 
         // read_size
         {
-            flat_buffer b{10};
+            flat_buffer b0{10};
+            detail::any_dynamic_buffer_v0_ref b(b0);
             BEAST_EXPECT(read_size(b, 512) == 10);
             b.prepare(4);
             b.commit(4);
@@ -325,6 +226,7 @@ public:
         }
 
         // swap
+        /*
         {
             {
                 basic_flat_buffer<a_neq_t> b1;
@@ -354,10 +256,12 @@ public:
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
         }
+         */
 
         // prepare
         {
-            flat_buffer b{100};
+            flat_buffer b0{100};
+            detail::any_dynamic_buffer_v0_ref b(b0);
             b.prepare(10);
             b.commit(10);
             b.prepare(5);
@@ -373,66 +277,17 @@ public:
             }
         }
 
-        // reserve
-        {
-            flat_buffer b;
-            BEAST_EXPECT(b.capacity() == 0);
-            b.reserve(50);
-            BEAST_EXPECT(b.capacity() == 50);
-            b.prepare(20);
-            b.commit(20);
-            b.reserve(50);
-            BEAST_EXPECT(b.capacity() == 50);
-
-            b.max_size(b.capacity());
-            b.reserve(b.max_size() + 20);
-            BEAST_EXPECT(b.capacity() == 70);
-            BEAST_EXPECT(b.max_size() == 70);
-        }
-
-        // shrink to fit
-        {
-            flat_buffer b;
-            BEAST_EXPECT(b.capacity() == 0);
-            b.prepare(50);
-            BEAST_EXPECT(b.capacity() == 50);
-            b.commit(50);
-            BEAST_EXPECT(b.capacity() == 50);
-            b.prepare(75);
-            BEAST_EXPECT(b.capacity() >= 125);
-            b.shrink_to_fit();
-            BEAST_EXPECT(b.capacity() == b.size());
-            b.shrink_to_fit();
-            BEAST_EXPECT(b.capacity() == b.size());
-            b.consume(b.size());
-            BEAST_EXPECT(b.size() == 0);
-            b.shrink_to_fit();
-            BEAST_EXPECT(b.capacity() == 0);
-        }
-
-        // clear
-        {
-            flat_buffer b;
-            BEAST_EXPECT(b.capacity() == 0);
-            b.prepare(50);
-            b.commit(50);
-            BEAST_EXPECT(b.size() == 50);
-            BEAST_EXPECT(b.capacity() == 50);
-            b.clear();
-            BEAST_EXPECT(b.size() == 0);
-            BEAST_EXPECT(b.capacity() == 50);
-        }
     }
 
     void
     run() override
     {
-        testDynamicBuffer();
+//        testDynamicBuffer();
         testSpecialMembers();
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,core,flat_buffer);
+BEAST_DEFINE_TESTSUITE(beast,core,_detail_any_dynamic_buffer_v0_ref);
 
 } // beast
 } // boost
