@@ -88,7 +88,7 @@ private:
             {
                 try
                 {
-                    new (dest) value_type (*first);
+                    new (dest++) value_type (*first);
                 }
                 catch(...)
                 {
