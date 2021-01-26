@@ -2546,7 +2546,7 @@ private:
     template<class, class>  class read_some_op;
     template<class>         class read_op;
     template<class>         class response_op;
-    template<class, class>  class write_some_op;
+    template<class>         class write_some_op;
     template<class, class>  class write_op;
 
     struct run_accept_op;

@@ -20,6 +20,7 @@
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/detail/any_buffers.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
@@ -37,7 +38,7 @@ namespace beast {
 namespace websocket {
 
 template<class NextLayer, bool deflateSupported>
-template<class Handler, class Buffers>
+template<class Handler>
 class stream<NextLayer, deflateSupported>::write_some_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
@@ -53,7 +54,7 @@ class stream<NextLayer, deflateSupported>::write_some_op
     };
 
     boost::weak_ptr<impl_type> wp_;
-    buffers_suffix<Buffers> cb_;
+    buffers_suffix<beast::detail::any_const_buffers> cb_;
     detail::frame_header fh_;
     detail::prepared_key key_;
     std::size_t bytes_transferred_ = 0;
@@ -72,7 +73,7 @@ public:
         Handler_&& h,
         boost::shared_ptr<impl_type> const& sp,
         bool fin,
-        Buffers const& bs)
+        beast::detail::any_const_buffers const& bs)
         : beast::async_base<Handler,
             beast::executor_type<stream>>(
                 std::forward<Handler_>(h),
@@ -147,10 +148,10 @@ public:
 };
 
 template<class NextLayer, bool deflateSupported>
-template<class Buffers, class Handler>
+template<class Handler>
 void
 stream<NextLayer, deflateSupported>::
-write_some_op<Buffers, Handler>::
+write_some_op<Handler>::
 operator()(
     error_code ec,
     std::size_t bytes_transferred,
@@ -510,14 +511,13 @@ struct stream<NextLayer, deflateSupported>::
     run_write_some_op
 {
     template<
-        class WriteHandler,
-        class ConstBufferSequence>
+        class WriteHandler>
     void
     operator()(
         WriteHandler&& h,
         boost::shared_ptr<impl_type> const& sp,
         bool fin,
-        ConstBufferSequence const& b)
+        beast::detail::any_const_buffers const& b)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
@@ -529,8 +529,7 @@ struct stream<NextLayer, deflateSupported>::
             "WriteHandler type requirements not met");
 
         write_some_op<
-            typename std::decay<WriteHandler>::type,
-            ConstBufferSequence>(
+            typename std::decay<WriteHandler>::type>(
                 std::forward<WriteHandler>(h),
                 sp,
                 fin,
@@ -790,7 +789,7 @@ async_write_some(bool fin,
             handler,
             impl_,
             fin,
-            bs);
+            beast::detail::any_const_buffers(bs));
 }
 
 //------------------------------------------------------------------------------
@@ -846,7 +845,7 @@ async_write(
             handler,
             impl_,
             true,
-            bs);
+            beast::detail::any_const_buffers(bs));
 }
 
 } // websocket
