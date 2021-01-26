@@ -26,7 +26,6 @@ public:
     template<class DynBufferV0, typename std::enable_if<
         !std::is_base_of<any_dynamic_buffer_v0_ref, DynBufferV0>::value
     >::type * = nullptr>
-    explicit
     any_dynamic_buffer_v0_ref(DynBufferV0 &dynbuf);
     any_dynamic_buffer_v0_ref(any_dynamic_buffer_v0_ref const&) noexcept = default;
     any_dynamic_buffer_v0_ref& operator=(any_dynamic_buffer_v0_ref const&) noexcept = default;
@@ -35,27 +34,35 @@ public:
     using const_buffers_type = any_const_buffers;
     using mutable_buffers_type = any_mutable_buffers;
 
+    inline
     const_buffers_type
     data() const;
 
+    inline
     mutable_buffers_type
     data();
 
+    inline
     std::size_t
     max_size() const noexcept;
 
+    inline
     std::size_t
     size() const noexcept;
 
+    inline
     std::size_t
     capacity() const noexcept;
 
+    inline
     void
     consume(std::size_t n);
 
+    inline
     mutable_buffers_type
     prepare(std::size_t n);
 
+    inline
     void
     commit(std::size_t n);
 
