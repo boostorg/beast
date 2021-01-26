@@ -23,6 +23,7 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
+#include <boost/beast/core/detail/any_dynamic_buffer_v0_ref.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/asio/coroutine.hpp>
@@ -712,14 +713,14 @@ public:
 //------------------------------------------------------------------------------
 
 template<class NextLayer, bool deflateSupported>
-template<class Handler,  class DynamicBuffer>
+template<class Handler>
 class stream<NextLayer, deflateSupported>::read_op
     : public beast::async_base<
         Handler, beast::executor_type<stream>>
     , public asio::coroutine
 {
     boost::weak_ptr<impl_type> wp_;
-    DynamicBuffer& b_;
+    beast::detail::any_dynamic_buffer_v0_ref b_;
     std::size_t limit_;
     std::size_t bytes_written_ = 0;
     bool some_;
@@ -729,7 +730,7 @@ public:
     read_op(
         Handler_&& h,
         boost::shared_ptr<impl_type> const& sp,
-        DynamicBuffer& b,
+        beast::detail::any_dynamic_buffer_v0_ref b,
         std::size_t limit,
         bool some)
         : async_base<Handler,
@@ -760,7 +761,7 @@ public:
         }
         auto& impl = *sp;
         using mutable_buffers_type = typename
-            DynamicBuffer::mutable_buffers_type;
+            beast::detail::any_dynamic_buffer_v0_ref::mutable_buffers_type;
         BOOST_ASIO_CORO_REENTER(*this)
         {
             do
@@ -831,13 +832,12 @@ struct stream<NextLayer, deflateSupported>::
     run_read_op
 {
     template<
-        class ReadHandler,
-        class DynamicBuffer>
+        class ReadHandler>
     void
     operator()(
         ReadHandler&& h,
         boost::shared_ptr<impl_type> const& sp,
-        DynamicBuffer* b,
+        beast::detail::any_dynamic_buffer_v0_ref b,
         std::size_t limit,
         bool some)
     {
@@ -851,11 +851,10 @@ struct stream<NextLayer, deflateSupported>::
             "ReadHandler type requirements not met");
 
         read_op<
-            typename std::decay<ReadHandler>::type,
-            DynamicBuffer>(
+            typename std::decay<ReadHandler>::type>(
                 std::forward<ReadHandler>(h),
                 sp,
-                *b,
+                std::move(b),
                 limit,
                 some);
     }
@@ -920,7 +919,7 @@ async_read(DynamicBuffer& buffer, ReadHandler&& handler)
             run_read_op{},
             handler,
             impl_,
-            &buffer,
+            buffer,
             0,
             false);
 }
@@ -997,7 +996,7 @@ async_read_some(
             run_read_op{},
             handler,
             impl_,
-            &buffer,
+            buffer,
             limit,
             true);
 }
