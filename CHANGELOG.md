@@ -1,3 +1,7 @@
+* Add Drone CI status.
+
+--------------------------------------------------------------------------------
+
 Version 307:
 
 * Add executor rebind to test::stream.
