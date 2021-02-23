@@ -294,7 +294,7 @@ public:
                                 "websocket::async_read_some"));
 
                             net::async_write(
-                                impl.stream(), impl.rd_fb.data(),
+                                impl.stream(), net::const_buffer(impl.rd_fb.data()),
                                 beast::detail::bind_continuation(std::move(*this)));
                         }
                         BOOST_ASSERT(impl.wr_block.is_locked(this));
@@ -661,7 +661,7 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_read_some"));
 
-                    net::async_write(impl.stream(), impl.rd_fb.data(),
+                    net::async_write(impl.stream(), net::const_buffer(impl.rd_fb.data()),
                         beast::detail::bind_continuation(std::move(*this)));
                 }
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
