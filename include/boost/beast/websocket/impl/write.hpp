@@ -147,10 +147,10 @@ public:
 };
 
 template<class NextLayer, bool deflateSupported>
-template<class Buffers, class Handler>
+template<class Handler, class Buffers>
 void
 stream<NextLayer, deflateSupported>::
-write_some_op<Buffers, Handler>::
+write_some_op<Handler, Buffers>::
 operator()(
     error_code ec,
     std::size_t bytes_transferred,
@@ -222,7 +222,12 @@ operator()(
                     ));
 
                 net::async_write(impl.stream(),
-                    buffers_cat(impl.wr_fb.data(), cb_),
+                    buffers_cat(
+                        net::const_buffer(impl.wr_fb.data()),
+                        net::const_buffer(0, 0),
+                        cb_,
+                        buffers_prefix(0, cb_)
+                        ),
                         beast::detail::bind_continuation(std::move(*this)));
             }
             bytes_transferred_ += clamp(fh_.len);
@@ -256,9 +261,16 @@ operator()(
                             "websocket::async_write_some"
                         ));
 
-                    net::async_write(impl.stream(), buffers_cat(
-                        impl.wr_fb.data(),
-                        buffers_prefix(clamp(fh_.len), cb_)),
+                    buffers_suffix<Buffers> empty_cb(cb_);
+                    empty_cb.consume(~std::size_t(0));
+
+                    net::async_write(impl.stream(),
+                        buffers_cat(
+                            net::const_buffer(impl.wr_fb.data()),
+                            net::const_buffer(0, 0),
+                            empty_cb,
+                            buffers_prefix(clamp(fh_.len), cb_)
+                            ),
                             beast::detail::bind_continuation(std::move(*this)));
                 }
                 n = clamp(fh_.len); // restore `n` on yield
@@ -316,9 +328,16 @@ operator()(
                         "websocket::async_write_some"
                     ));
 
-                net::async_write(impl.stream(), buffers_cat(
-                    impl.wr_fb.data(),
-                    net::buffer(impl.wr_buf.get(), n)),
+                buffers_suffix<Buffers> empty_cb(cb_);
+                empty_cb.consume(~std::size_t(0));
+
+                net::async_write(impl.stream(),
+                    buffers_cat(
+                        net::const_buffer(impl.wr_fb.data()),
+                        net::const_buffer(net::buffer(impl.wr_buf.get(), n)),
+                        empty_cb,
+                        buffers_prefix(0, empty_cb)
+                        ),
                         beast::detail::bind_continuation(std::move(*this)));
             }
             // VFALCO What about consuming the buffer on error?
@@ -345,8 +364,16 @@ operator()(
                             "websocket::async_write_some"
                         ));
 
+                    buffers_suffix<Buffers> empty_cb(cb_);
+                    empty_cb.consume(~std::size_t(0));
+
                     net::async_write(impl.stream(),
-                        net::buffer(impl.wr_buf.get(), n),
+                        buffers_cat(
+                            net::const_buffer(0, 0),
+                            net::const_buffer(net::buffer(impl.wr_buf.get(), n)),
+                            empty_cb,
+                            buffers_prefix(0, empty_cb)
+                            ),
                             beast::detail::bind_continuation(std::move(*this)));
                 }
                 bytes_transferred_ += bytes_transferred;
@@ -387,9 +414,16 @@ operator()(
                             "websocket::async_write_some"
                         ));
 
-                    net::async_write(impl.stream(), buffers_cat(
-                        impl.wr_fb.data(),
-                        net::buffer(impl.wr_buf.get(), n)),
+                    buffers_suffix<Buffers> empty_cb(cb_);
+                    empty_cb.consume(~std::size_t(0));
+
+                    net::async_write(impl.stream(),
+                        buffers_cat(
+                            net::const_buffer(impl.wr_fb.data()),
+                            net::const_buffer(net::buffer(impl.wr_buf.get(), n)),
+                            empty_cb,
+                            buffers_prefix(0, empty_cb)
+                            ),
                             beast::detail::bind_continuation(std::move(*this)));
                 }
                 n = bytes_transferred - impl.wr_fb.size();
@@ -460,8 +494,16 @@ operator()(
                             "websocket::async_write_some"
                         ));
 
-                    net::async_write(impl.stream(), buffers_cat(
-                        impl.wr_fb.data(), b),
+                    buffers_suffix<Buffers> empty_cb(cb_);
+                    empty_cb.consume(~std::size_t(0));
+
+                    net::async_write(impl.stream(),
+                        buffers_cat(
+                            net::const_buffer(impl.wr_fb.data()),
+                            net::const_buffer(b),
+                            empty_cb,
+                            buffers_prefix(0, empty_cb)
+                            ),
                             beast::detail::bind_continuation(std::move(*this)));
                 }
                 bytes_transferred_ += in_;
