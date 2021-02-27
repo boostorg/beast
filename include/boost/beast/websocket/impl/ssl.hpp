@@ -62,7 +62,7 @@ struct ssl_shutdown_op
 
     template<class Self>
     void
-    operator()(Self& self, error_code ec = {}, std::size_t bytes_transferred = 0)
+    operator()(Self& self, error_code ec = {}, std::size_t = 0)
     {
         BOOST_ASIO_CORO_REENTER(*this)
         {
