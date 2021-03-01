@@ -171,7 +171,7 @@ Using [brew](https://github.com/Homebrew/brew):
 brew install openssl
 export OPENSSL_ROOT=$(brew --prefix openssl)
 # install bjam tool user specific configuration file to read OPENSSL_ROOT
-# see https://boostorg.github.io/build/manual/develop/index.html
+# see https://www.bfgroup.xyz/b2/manual/release/index.html
 cp ./libs/beast/tools/user-config.jam $HOME
 ```
 
