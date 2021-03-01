@@ -1,3 +1,4 @@
+* Repoint B2 refs to new non-boostorg home.
 * Limit async_write instantiations in websocket ops.
 * Add Drone CI status.
 
