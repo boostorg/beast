@@ -1,3 +1,7 @@
+* Move Windows CI to Drone.
+
+--------------------------------------------------------------------------------
+
 Version 308:
 
 * Fix compiler warning in WebSSocket async shutdown.

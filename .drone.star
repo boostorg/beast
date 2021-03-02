@@ -19,7 +19,10 @@ def main(ctx):
     linux_cxx("Default g++", "g++", packages=" ".join(addon_base["apt"]["packages"]), image="ubuntu:16.04", buildtype="boost", environment={ "VARIANT": "release", "TOOLSET": "gcc", "COMPILER": "g++", "CXXSTD": "11" }),
     linux_cxx("GCC 8, C++17, libstdc++, release", "g++-8", packages=" ".join(addon_base["apt"]["packages"]) + " g++-8", image="ubuntu:16.04", buildtype="boost", environment={  "VARIANT": "release", "TOOLSET": "gcc", "COMPILER": "g++-8", "CXXSTD" : "17" }),
     linux_cxx("Clang 3.8, UBasan", "clang++-3.8", packages=" ".join(addon_base["apt"]["packages"]) + " clang-3.8 libssl-dev", llvm_os="precise", llvm_ver="3.8", image="ubuntu:16.04", buildtype="boost", environment={"VARIANT": "beast_ubasan", "TOOLSET": "clang", "COMPILER": "clang++-3.8", "CXXSTD": "11", "UBSAN_OPTIONS": 'print_stacktrace=1', "DRONE_BEFORE_INSTALL": "UBasan" }),
-    linux_cxx("docs", "", packages="docbook docbook-xml docbook-xsl xsltproc libsaxonhe-java default-jre-headless flex libfl-dev bison unzip", image="ubuntu:16.04", buildtype="docs", environment={"COMMENT": "docs"})
+    linux_cxx("docs", "", packages="docbook docbook-xml docbook-xsl xsltproc libsaxonhe-java default-jre-headless flex libfl-dev bison unzip", image="ubuntu:16.04", buildtype="docs", environment={"COMMENT": "docs"}),
+    windows_cxx("msvc-14.1", "", image="cppalliance/dronevs2017", buildtype="boost", environment={ "VARIANT": "release", "TOOLSET": "msvc-14.1", "CXXSTD": "17", "DEFINE" : "BOOST_BEAST_USE_STD_STRING_VIEW", "ADDRESS_MODEL": "64"}),
+    windows_cxx("msvc-14.2", "", image="cppalliance/dronevs2019", buildtype="boost", environment={ "VARIANT": "release", "TOOLSET": "msvc-14.2", "CXXSTD": "17", "DEFINE" : "BOOST_BEAST_USE_STD_STRING_VIEW", "ADDRESS_MODEL": "64"}),
+
     ]
 
 # Generate pipeline for Linux platform compilers.
@@ -75,7 +78,7 @@ def linux_cxx(name, cxx, cxxflags="", packages="", llvm_os="", llvm_ver="", arch
     ]
   }
 
-def windows_cxx(name, cxx="g++", cxxflags="", packages="", llvm_os="", llvm_ver="", arch="amd64", image="ubuntu:16.04", buildtype="boost", environment={}, privileged=False):
+def windows_cxx(name, cxx="", cxxflags="", packages="", llvm_os="", llvm_ver="", arch="amd64", image="cppalliance/dronevs2019", buildtype="boost", environment={}, privileged=False):
   environment_global = {
       "CXX": cxx,
       "CXXFLAGS": cxxflags,
@@ -104,6 +107,7 @@ def windows_cxx(name, cxx="g++", cxxflags="", packages="", llvm_os="", llvm_ver=
     },
     # Create env vars per generation arguments.
     "environment": environment_current,
+    "clone": { "depth": 5 },
     "steps": [
       {
         "name": "Everything",
@@ -112,10 +116,10 @@ def windows_cxx(name, cxx="g++", cxxflags="", packages="", llvm_os="", llvm_ver=
         "commands": [
           "echo '==================================> SETUP'",
           "echo '==================================> PACKAGES'",
-          "bash.exe ./.drone/windows-msvc-install.sh",
+          '.drone/windows-msvc-install.bat',
 
           "echo '==================================> INSTALL AND COMPILE'",
-          "bash.exe ./.drone/%s-script.sh" % buildtype,
+          '.drone/%s-script.bat' % buildtype,
         ]
       }
     ]
