@@ -11,6 +11,28 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.76]
+
+[*Fixes]
+
+* [issue 2139] Add executor rebind to test::stream.
+* Fix unused variable compiler warning in WebSocket async shutdown.
+
+[*Improvements]
+
+* [issue 2124] Floating point support no longer required to use Beast.
+* Reduce size of websockety compiled code by using a common buffers type for all operations.
+* HTTP Parser has improved detection of incorrect use.
+
+
+[*Miscellaneous]
+
+* [issue 2140] Add cxxstd tag to library metadata.
+* Move to Drone CI.
+* Minor documentation formatting improvements.
+* CML now finds required Boost::thread library during in-tree build.
+
+
 [heading Boost 1.75]
 
 [*Fixes]
