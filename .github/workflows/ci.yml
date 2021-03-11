@@ -1,0 +1,351 @@
+name: GitHub Actions CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - develop
+      - githubactions*
+      - feature/**
+      - fix/**
+      - pr/**
+
+jobs:
+  posix:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "docs Job 0"
+            buildtype: "docs"
+            packages: "docbook docbook-xml docbook-xsl xsltproc libsaxonhe-java default-jre-headless"
+            packages_to_remove: ""
+            os: "ubuntu-16.04"
+            cxx: "g++"
+            sources: ""
+            llvm_os: ""
+            llvm_ver: ""
+            job_uuid: "b6589fc6ab"
+          - name: "VARIANT=beast_coverage TOOLSET=gcc COMPILER=g Job 1"
+            buildtype: "boost"
+            packages: "g++-6 libssl-dev software-properties-common libffi-dev libstdc++6 binutils-gold gdb"
+            packages_to_remove: ""
+            os: "ubuntu-16.04"
+            cxx: "g++-6"
+            sources: ""
+            llvm_os: ""
+            llvm_ver: ""
+            variant: "beast_coverage"
+            toolset: "gcc"
+            compiler: "g++-6"
+            cxxstd: "14"
+            job_uuid: "356a192b79"
+          - name: "VARIANT=debug TOOLSET=clang COMPILER=clang++- Job 2"
+            buildtype: "boost"
+            packages: "  libc++-9-dev libc++abi-9-dev"
+            packages_to_remove: "libc++-dev libc++abi-dev"
+            os: "ubuntu-16.04"
+            cxx: "clang++-libc++"
+            sources: ""
+            llvm_os: "xenial"
+            llvm_ver: "9"
+            variant: "debug"
+            toolset: "clang"
+            compiler: "clang++-libc++"
+            cxxstd: "11"
+            cxx_flags: "<cxxflags>-stdlib=libc++ <linkflags>-stdlib=libc++"
+            # cxx_flags: "\u003ccxxflags\u003e-stdlib=libc++ \u003clinkflags\u003e-stdlib=libc++"
+            job_uuid: "da4b9237ba"
+          - name: "VARIANT=beast_valgrind TOOLSET=gcc COMPILER=g Job 3"
+            buildtype: "boost"
+            packages: "g++-7 libssl-dev valgrind software-properties-common libffi-dev libstdc++6 binutils-gold gdb"
+            packages_to_remove: ""
+            os: "ubuntu-20.04"
+            cxx: "g++"
+            sources: ""
+            llvm_os: ""
+            llvm_ver: ""
+            variant: "beast_valgrind"
+            toolset: "gcc"
+            compiler: "g++"
+            cxxstd: "11"
+            job_uuid: "77de68daec"
+          - name: "VARIANT=release TOOLSET=gcc COMPILER=g++ Job 4"
+            buildtype: "boost"
+            packages: "software-properties-common libffi-dev libstdc++6 binutils-gold gdb"
+            packages_to_remove: ""
+            os: "ubuntu-16.04"
+            cxx: "g++"
+            sources: ""
+            llvm_os: ""
+            llvm_ver: ""
+            variant: "release"
+            toolset: "gcc"
+            compiler: "g++"
+            cxxstd: "11"
+            job_uuid: "1b64538924"
+          - name: "VARIANT=release TOOLSET=gcc COMPILER=g++-8 Job 5"
+            buildtype: "boost"
+            packages: "g++-8 software-properties-common libffi-dev libstdc++6 binutils-gold gdb"
+            packages_to_remove: ""
+            os: "ubuntu-16.04"
+            cxx: "g++-8"
+            sources: ""
+            llvm_os: ""
+            llvm_ver: ""
+            variant: "release"
+            toolset: "gcc"
+            compiler: "g++-8"
+            cxxstd: "17"
+            job_uuid: "ac3478d69a"
+          - name: "VARIANT=beast_ubasan TOOLSET=clang COMPILER=c Job 6"
+            buildtype: "boost"
+            packages: "clang-3.8 libssl-dev software-properties-common libffi-dev libstdc++6 binutils-gold gdb"
+            packages_to_remove: ""
+            os: "ubuntu-16.04"
+            cxx: "clang++-3.8"
+            sources: ""
+            llvm_os: "precise"
+            llvm_ver: "3.8"
+            variant: "beast_ubasan"
+            toolset: "clang"
+            compiler: "clang++-3.8"
+            cxxstd: "11"
+            ubsan_options: "print_stacktrace=1"
+            job_uuid: "c1dfd96eea"
+
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+
+    steps:
+      - name: Check if running in container
+        if: matrix.container != ''
+        run: echo "GHA_CONTAINER=${{ matrix.container }}" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v2
+
+      - name: linux
+        shell: bash
+        env:
+          CXX: ${{ matrix.cxx }}
+          SOURCES: ${{ matrix.sources }}
+          LLVM_OS: ${{ matrix.llvm_os }}
+          LLVM_VER: ${{ matrix.llvm_ver }}
+          PACKAGES: ${{ matrix.packages }}
+          PACKAGES_TO_REMOVE: ${{ matrix.packages_to_remove }}
+          JOB_BUILDTYPE: ${{ matrix.buildtype }}
+          VARIANT: ${{ matrix.variant }}
+          TOOLSET: ${{ matrix.toolset }}
+          COMPILER: ${{ matrix.compiler }}
+          CXXSTD: ${{ matrix.cxxstd }}
+          CXX_FLAGS: ${{ matrix.cxx_flags }}
+          UBSAN_OPTIONS: ${{ matrix.ubsan_options }}
+          TRAVIS_BRANCH: ${{ github.base_ref }}
+          TRAVIS_OS_NAME: "linux"
+          JOB_UUID: ${{ matrix.job_uuid }}
+        run: |
+          echo '==================================> SETUP'
+          echo '==================================> PACKAGES'
+          set -e
+          if [ -n "$PACKAGES_TO_REMOVE" ]; then sudo apt-get purge -y $PACKAGES_TO_REMOVE; fi
+          echo ">>>>> APT: REPO.."
+          for i in {1..3}; do sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test" && break || sleep 2; done
+          
+          if test -n "${LLVM_OS}" ; then
+              wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+              if test -n "${LLVM_VER}" ; then
+                  sudo -E apt-add-repository "deb http://apt.llvm.org/${LLVM_OS}/ llvm-toolchain-${LLVM_OS}-${LLVM_VER} main"
+              else
+                  # Snapshot (i.e. trunk) build of clang
+                  sudo -E apt-add-repository "deb http://apt.llvm.org/${LLVM_OS}/ llvm-toolchain-${LLVM_OS} main"
+              fi
+          fi
+          echo ">>>>> APT: UPDATE.."
+          sudo -E apt-get -o Acquire::Retries=3 update
+          if test -n "${SOURCES}" ; then
+              echo ">>>>> APT: INSTALL SOURCES.."
+              for SOURCE in $SOURCES; do
+                  sudo -E apt-add-repository ppa:$SOURCE
+              done
+          fi
+          echo ">>>>> APT: INSTALL ${PACKAGES}.."
+          sudo -E DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=3 -y --no-install-suggests --no-install-recommends install ${PACKAGES}
+
+          echo '==================================> INSTALL AND COMPILE'
+          set -e
+          export TRAVIS_BUILD_DIR=$(pwd)
+          export TRAVIS_BRANCH=${TRAVIS_BRANCH:-$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')}
+          export VCS_COMMIT_ID=$GITHUB_SHA
+          export GIT_COMMIT=$GITHUB_SHA
+          export REPO_NAME=$(basename $GITHUB_REPOSITORY)
+          export USER=$(whoami)
+          export CC=${CC:-gcc}
+          export PATH=~/.local/bin:/usr/local/bin:$PATH
+
+          if [ "$JOB_BUILDTYPE" == "docs" ]; then
+
+          echo '==================================> INSTALL'
+
+          cd ..
+          mkdir tmp && cd tmp
+          git clone -b 'Release_1_8_15' --depth 1 https://github.com/doxygen/doxygen.git
+          cd doxygen
+          cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release
+          cd build
+          sudo make install
+          cd ../..
+          wget -O saxonhe.zip https://sourceforge.net/projects/saxon/files/Saxon-HE/9.9/SaxonHE9-9-1-4J.zip/download
+          unzip saxonhe.zip
+          sudo rm /usr/share/java/Saxon-HE.jar
+          sudo cp saxon9he.jar /usr/share/java/Saxon-HE.jar
+          cd ..
+          BOOST_BRANCH=develop && [ "$TRAVIS_BRANCH" == "master" ] && BOOST_BRANCH=master || true
+          git clone -b $BOOST_BRANCH https://github.com/boostorg/boost.git boost-root
+          cd boost-root
+          git submodule update --init libs/context
+          git submodule update --init tools/boostbook
+          git submodule update --init tools/boostdep
+          git submodule update --init tools/docca
+          git submodule update --init tools/quickbook
+          cp -r $TRAVIS_BUILD_DIR/* libs/beast
+          python tools/boostdep/depinst/depinst.py ../tools/quickbook
+          ./bootstrap.sh
+          ./b2 headers
+
+          echo '==================================> SCRIPT'
+
+          echo "using doxygen ; using boostbook ; using saxonhe ;" > ~/user-config.jam
+          ./b2 -j3 libs/beast/doc//boostrelease
+
+          elif [ "$JOB_BUILDTYPE" == "boost" ]; then
+
+          echo '==================================> BEFORE_INSTALL'
+
+          if [ "$JOB_UUID" = "356a192b79" ] ; then
+              pip install --user https://github.com/codecov/codecov-python/archive/master.zip
+              wget http://downloads.sourceforge.net/ltp/lcov-1.14.tar.gz
+              tar -xvf lcov-1.14.tar.gz
+              cd lcov-1.14
+              sudo make install
+              cd ..
+          fi
+
+          if [ "$JOB_UUID" = "c1dfd96eea" ] ; then
+              export PATH="$PWD/llvm-$LLVM_VERSION/bin:$PATH"
+          fi
+
+          echo '==================================> INSTALL'
+
+          cd ..
+          $TRAVIS_BUILD_DIR/tools/get-boost.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
+          cd boost-root
+          export PATH=$PATH:"`pwd`"
+          export BOOST_ROOT=$(pwd)
+          ./bootstrap.sh
+          cp libs/beast/tools/user-config.jam ~/user-config.jam
+          echo "using $TOOLSET : : $COMPILER : $CXX_FLAGS ;" >> ~/user-config.jam
+
+          echo '==================================> SCRIPT'
+
+          cd ../boost-root
+          libs/beast/tools/retry.sh libs/beast/tools/build-and-test.sh
+
+          fi
+
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "msvc-14.1"
+            buildtype: "boost"
+            packages: ""
+            os: "windows-2016"
+            cxx: ""
+            sources: ""
+            llvm_os: ""
+            llvm_ver: ""
+            variant: "release"
+            toolset: "msvc-14.1"
+            cxxstd: "17"
+            define: "BOOST_BEAST_USE_STD_STRING_VIEW"
+            address_model: "64"
+          - name: "msvc-14.2"
+            buildtype: "boost"
+            packages: ""
+            os: "windows-2019"
+            cxx: ""
+            sources: ""
+            llvm_os: ""
+            llvm_ver: ""
+            variant: "release"
+            toolset: "msvc-14.2"
+            cxxstd: "17"
+            define: "BOOST_BEAST_USE_STD_STRING_VIEW"
+            address_model: "64"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: windows
+        shell: cmd
+        env:
+          CXX: ${{ matrix.cxx }}
+          SOURCES: ${{ matrix.sources }}
+          LLVM_OS: ${{ matrix.llvm_os }}
+          LLVM_VER: ${{ matrix.llvm_ver }}
+          PACKAGES: ${{ matrix.packages }}
+          JOB_BUILDTYPE: ${{ matrix.buildtype }}
+          VARIANT: ${{ matrix.variant }}
+          CXXSTD: ${{ matrix.cxxstd }}
+          TOOLSET: ${{ matrix.toolset }}
+          DEFINE: ${{ matrix.define }}
+          ADDRESS_MODEL: ${{ matrix.address_model }}
+          GHA_TARGET_BRANCH: ${{ github.base_ref }}
+          TRAVIS_BRANCH: ${{ github.base_ref }}
+          TRAVIS_OS_NAME: "windows"
+        run: |
+
+          @ECHO ON
+          setlocal enabledelayedexpansion
+
+          IF "!GHA_TARGET_BRANCH!" == "" (
+              for /F %%i in ("!GITHUB_REF!") do @set GHA_TARGET_BRANCH=%%~nxi
+              for /F %%i in ("!GITHUB_REF!") do @set TRAVIS_BRANCH=%%~nxi
+          )
+
+          if "!JOB_BUILDTYPE!" == "boost" (
+
+          echo "============> INSTALL"
+
+            REM choco install --no-progress -y openssl --x64 --version 1.1.1.1000
+            REM mklink /D "C:\OpenSSL" "C:\Program Files\OpenSSL-Win64"
+            REM SET OPENSSL_ROOT=C:\OpenSSL
+            vcpkg install openssl --triplet x64-windows
+            mklink /D "C:\OpenSSL" "C:\vcpkg\packages\openssl_x64-windows"
+            SET OPENSSL_ROOT=C:\OpenSSL
+            SET BOOST_BRANCH=develop
+            IF "!GHA_TARGET_BRANCH!" == "master" SET BOOST_BRANCH=master
+            cp tools\user-config.jam !USERPROFILE!\user-config.jam
+            cd ..
+            SET GET_BOOST=!GITHUB_WORKSPACE!\tools\get-boost.sh
+            bash -c "$GET_BOOST $GHA_TARGET_BRANCH $GITHUB_WORKSPACE"
+            cd boost-root
+            call bootstrap.bat
+            b2 headers
+            
+            echo "============> SCRIPT"
+            
+            echo "Running libs/beast/example"
+            b2 --debug-configuration variant=!VARIANT! cxxstd=!CXXSTD! define=!DEFINE! address-model=!ADDRESS_MODEL! toolset=!TOOLSET! libs/beast/example -j3
+            if %errorlevel% neq 0 exit /b %errorlevel%
+            echo "Running run-fat-tests"
+            b2 --debug-configuration variant=!VARIANT! cxxstd=!CXXSTD! define=!DEFINE! address-model=!ADDRESS_MODEL! toolset=!TOOLSET! --verbose-test libs/beast/test//run-fat-tests -j3
+            if %errorlevel% neq 0 exit /b %errorlevel%
+            
+            echo "============> COMPLETED"
+
+            )
