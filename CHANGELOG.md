@@ -1,3 +1,5 @@
+Version 311:
+
 * Fix warning in http-server-fast.
 * Parenthesise all uses of min() and max().
 * Extend Drone MSVC tests.
