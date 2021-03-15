@@ -566,16 +566,17 @@ public:
                         zs.next_in = empty_block;
                         zs.avail_in = sizeof(empty_block);
                         impl.inflate(zs, zlib::Flush::sync, ec);
-                        if(! ec)
-                        {
-                            // https://github.com/madler/zlib/issues/280
-                            if(zs.total_out > 0)
-                                ec = error::partial_deflate_block;
+                        if(!ec && zs.total_out > 0) {
+                            cb_.consume(zs.total_out);
+                            impl.rd_size += zs.total_out;
+                            bytes_written_ += zs.total_out;
                         }
                         if(impl.check_stop_now(ec))
                             goto upcall;
-                        impl.do_context_takeover_read(impl.role);
-                        impl.rd_done = true;
+                        if(zs.total_out == 0) {
+                            impl.do_context_takeover_read(impl.role);
+                            impl.rd_done = true;
+                        }
                         break;
                     }
                     else
@@ -1313,16 +1314,17 @@ loop:
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
                 impl.inflate(zs, zlib::Flush::sync, ec);
-                if(! ec)
-                {
-                    // https://github.com/madler/zlib/issues/280
-                    if(zs.total_out > 0)
-                        ec = error::partial_deflate_block;
+                if(!ec && zs.total_out > 0) {
+                    cb.consume(zs.total_out);
+                    impl.rd_size += zs.total_out;
+                    bytes_written += zs.total_out;
                 }
                 if(impl.check_stop_now(ec))
                     return bytes_written;
-                impl.do_context_takeover_read(impl.role);
-                impl.rd_done = true;
+                if(zs.total_out == 0) {
+                    impl.do_context_takeover_read(impl.role);
+                    impl.rd_done = true;
+                }
                 break;
             }
             else
