@@ -916,7 +916,7 @@ prepare(size_type n) ->
             std::size_t altn = in_size_ * growth_factor;
 	    // Overflow detection:
             if(in_size_ > altn)
-                altn = std::numeric_limits<std::size_t>::max();
+                altn = (std::numeric_limits<std::size_t>::max)();
             else
                 altn = (std::max<std::size_t>)(512, altn);
             auto const size =
