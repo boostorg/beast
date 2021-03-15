@@ -1321,7 +1321,7 @@ loop:
             impl.inflate(zs, zlib::Flush::sync, ec);
             if(impl.check_stop_now(ec))
                 return bytes_written;
-            if (fin && sz.total_out == 0) {
+            if (fin && zs.total_out == 0) {
                 impl.do_context_takeover_read(impl.role);
                 impl.rd_done = true;
                 break;
