@@ -542,6 +542,8 @@ public:
                         zs.avail_out = out.size();
                         BOOST_ASSERT(zs.avail_out > 0);
                     }
+                    // boolean to track the end of the message.
+                    bool fin = false;
                     if(impl.rd_remain > 0)
                     {
                         if(impl.rd_buf.size() > 0)
@@ -561,22 +563,11 @@ public:
                     else if(impl.rd_fh.fin)
                     {
                         // append the empty block codes
-                        std::uint8_t constexpr
+                        static std::uint8_t constexpr
                             empty_block[4] = { 0x00, 0x00, 0xff, 0xff };
                         zs.next_in = empty_block;
                         zs.avail_in = sizeof(empty_block);
-                        impl.inflate(zs, zlib::Flush::sync, ec);
-                        if(! ec)
-                        {
-                            // https://github.com/madler/zlib/issues/280
-                            if(zs.total_out > 0)
-                                ec = error::partial_deflate_block;
-                        }
-                        if(impl.check_stop_now(ec))
-                            goto upcall;
-                        impl.do_context_takeover_read(impl.role);
-                        impl.rd_done = true;
-                        break;
+                        fin = true;
                     }
                     else
                     {
@@ -585,6 +576,11 @@ public:
                     impl.inflate(zs, zlib::Flush::sync, ec);
                     if(impl.check_stop_now(ec))
                         goto upcall;
+                    if(fin && zs.total_out == 0) {
+                        impl.do_context_takeover_read(impl.role);
+                        impl.rd_done = true;
+                        break;
+                    }
                     if(impl.rd_msg_max && beast::detail::sum_exceeds(
                         impl.rd_size, zs.total_out, impl.rd_msg_max))
                     {
@@ -595,8 +591,10 @@ public:
                     }
                     cb_.consume(zs.total_out);
                     impl.rd_size += zs.total_out;
-                    impl.rd_remain -= zs.total_in;
-                    impl.rd_buf.consume(zs.total_in);
+                    if (! fin) {
+                        impl.rd_remain -= zs.total_in;
+                        impl.rd_buf.consume(zs.total_in);
+                    }
                     bytes_written_ += zs.total_out;
                 }
                 if(impl.rd_op == detail::opcode::text)
@@ -1265,6 +1263,8 @@ loop:
                 zs.avail_out = out.size();
                 BOOST_ASSERT(zs.avail_out > 0);
             }
+            // boolean to track the end of the message.
+            bool fin = false;
             if(impl.rd_remain > 0)
             {
                 if(impl.rd_buf.size() > 0)
@@ -1308,22 +1308,10 @@ loop:
             {
                 // append the empty block codes
                 static std::uint8_t constexpr
-                    empty_block[4] = {
-                        0x00, 0x00, 0xff, 0xff };
+                    empty_block[4] = { 0x00, 0x00, 0xff, 0xff };
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
-                impl.inflate(zs, zlib::Flush::sync, ec);
-                if(! ec)
-                {
-                    // https://github.com/madler/zlib/issues/280
-                    if(zs.total_out > 0)
-                        ec = error::partial_deflate_block;
-                }
-                if(impl.check_stop_now(ec))
-                    return bytes_written;
-                impl.do_context_takeover_read(impl.role);
-                impl.rd_done = true;
-                break;
+                fin = true;
             }
             else
             {
@@ -1332,6 +1320,11 @@ loop:
             impl.inflate(zs, zlib::Flush::sync, ec);
             if(impl.check_stop_now(ec))
                 return bytes_written;
+            if (fin && zs.total_out == 0) {
+                impl.do_context_takeover_read(impl.role);
+                impl.rd_done = true;
+                break;
+            }
             if(impl.rd_msg_max && beast::detail::sum_exceeds(
                 impl.rd_size, zs.total_out, impl.rd_msg_max))
             {
@@ -1341,8 +1334,10 @@ loop:
             }
             cb.consume(zs.total_out);
             impl.rd_size += zs.total_out;
-            impl.rd_remain -= zs.total_in;
-            impl.rd_buf.consume(zs.total_in);
+            if (! fin) {
+                impl.rd_remain -= zs.total_in;
+                impl.rd_buf.consume(zs.total_in);
+            }
             bytes_written += zs.total_out;
         }
         if(impl.rd_op == detail::opcode::text)

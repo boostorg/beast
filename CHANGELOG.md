@@ -1,3 +1,7 @@
+* Fix case where inflated content is larger than out buffer.
+
+--------------------------------------------------------------------------------
+
 Version 312:
 
 * Enable Github Actions CI.
