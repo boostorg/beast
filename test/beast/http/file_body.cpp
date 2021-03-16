@@ -154,7 +154,7 @@ public:
             std::size_t to_write = 4097;
             while (written < to_write)
             {
-                auto size = std::min(ten.size(), to_write - written);
+                auto size = (std::min)(ten.size(), to_write - written);
                 fstemp << ten.substr(0, size);
                 BEAST_EXPECT(fstemp.good());
                 written += size;

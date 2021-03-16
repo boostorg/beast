@@ -525,13 +525,13 @@ public:
 
         zs.next_in = &*in.begin();
         zs.next_out = &out[0];
-        zs.avail_in = std::min(in.size(), len);
+        zs.avail_in = (std::min)(in.size(), len);
         zs.avail_out = out.size();
 
         while (zs.avail_in > 0 && !ec)
         {
             is.write(zs, Flush::sync, ec);
-            auto n = std::min(zs.avail_in, len);
+            auto n = (std::min)(zs.avail_in, len);
             zs.next_in = static_cast<char const*>(zs.next_in) + n;
             zs.avail_in -= n;
         }

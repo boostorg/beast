@@ -1,3 +1,4 @@
+* Parenthesise all uses of min() and max().
 * Extend Drone MSVC tests.
 * Fix MSVC build error.
 
