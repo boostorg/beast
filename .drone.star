@@ -21,6 +21,9 @@ def main(ctx):
     linux_cxx("GCC 8, C++17, libstdc++, release", "g++-8", packages=" ".join(addon_base["apt"]["packages"]) + " g++-8", image="ubuntu:16.04", buildtype="boost", environment={  "VARIANT": "release", "TOOLSET": "gcc", "COMPILER": "g++-8", "CXXSTD" : "17" }),
     linux_cxx("Clang 3.8, UBasan", "clang++-3.8", packages=" ".join(addon_base["apt"]["packages"]) + " clang-3.8 libssl-dev", llvm_os="precise", llvm_ver="3.8", image="ubuntu:16.04", buildtype="boost", environment={"VARIANT": "beast_ubasan", "TOOLSET": "clang", "COMPILER": "clang++-3.8", "CXXSTD": "11", "UBSAN_OPTIONS": 'print_stacktrace=1', "DRONE_BEFORE_INSTALL": "UBasan" }),
     linux_cxx("docs", "", packages="docbook docbook-xml docbook-xsl xsltproc libsaxonhe-java default-jre-headless flex libfl-dev bison unzip", image="ubuntu:16.04", buildtype="docs", environment={"COMMENT": "docs"}),
+    windows_cxx("msvc-14.0 test", "", image="cppalliance/dronevs2015:1", buildtype="vs2015-test", environment={ "VARIANT": "release", "TOOLSET": "msvc-14.0", "CXXSTD": "11", "ADDRESS_MODEL": "64"}),
+    windows_cxx("msvc-14.0 run-fat-tests", "", image="cppalliance/dronevs2015:1", buildtype="vs2015-fat-tests", environment={ "VARIANT": "release", "TOOLSET": "msvc-14.0", "CXXSTD": "11", "ADDRESS_MODEL": "64"}),
+    windows_cxx("msvc-14.0 example", "", image="cppalliance/dronevs2015:1", buildtype="vs2015-example", environment={ "VARIANT": "release", "TOOLSET": "msvc-14.0", "CXXSTD": "11", "ADDRESS_MODEL": "64"}),
     windows_cxx("msvc-14.1", "", image="cppalliance/dronevs2017", buildtype="boost", environment={ "VARIANT": "release", "TOOLSET": "msvc-14.1", "CXXSTD": "17", "DEFINE" : "BOOST_BEAST_USE_STD_STRING_VIEW", "ADDRESS_MODEL": "64"}),
     windows_cxx("msvc-14.2", "", image="cppalliance/dronevs2019", buildtype="boost", environment={ "VARIANT": "release", "TOOLSET": "msvc-14.2", "CXXSTD": "17", "DEFINE" : "BOOST_BEAST_USE_STD_STRING_VIEW", "ADDRESS_MODEL": "64"}),
 
