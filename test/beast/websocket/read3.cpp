@@ -597,12 +597,9 @@ public:
         }
     }
 
-    /*  Bishop Fox Hybrid Assessment issue 2
-
-        Happens with permessage-deflate enabled,
-        and a deflate block with the BFINAL bit set
-        is encountered in a compressed payload.
-    */
+    /*
+     * Tests when a deflate block spans multiple multi_byte character arrays.
+     */
     void
     testIssue1630()
     {
