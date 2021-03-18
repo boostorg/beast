@@ -104,6 +104,8 @@ public:
         boost::optional<std::uint64_t> const& content_length_,
         error_code& ec)
     {
+        // The real implementation clears out the error code in basic_string_body::reader::init
+        ec = {};
         ++got_on_body;
         got_content_length =
             static_cast<bool>(content_length_);

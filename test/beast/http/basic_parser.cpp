@@ -1517,6 +1517,23 @@ public:
         BEAST_EXPECTS(!ec, ec.message());
     }
 
+    void
+    testIssue2201()
+    {
+        const char data[] =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 5\r\n"
+            "\r\n"
+            "*****";
+
+        test_parser<false> p;
+        p.eager(true);
+        p.body_limit(3);
+        error_code ec;
+        p.put(net::buffer(data, strlen(data)), ec);
+        BEAST_EXPECT(ec == error::body_limit);
+    }
+
     //--------------------------------------------------------------------------
 
     void
@@ -1546,6 +1563,7 @@ public:
         testChunkedOverflow();
         testChunkedBodySize();
         testUnlimitedBody();
+        testIssue2201();
     }
 };
 
