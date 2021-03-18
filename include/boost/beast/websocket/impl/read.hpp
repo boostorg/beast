@@ -563,7 +563,7 @@ public:
                     else if(impl.rd_fh.fin)
                     {
                         // append the empty block codes
-                        std::uint8_t constexpr
+                        static std::uint8_t constexpr
                             empty_block[4] = { 0x00, 0x00, 0xff, 0xff };
                         zs.next_in = empty_block;
                         zs.avail_in = sizeof(empty_block);
@@ -1308,8 +1308,7 @@ loop:
             {
                 // append the empty block codes
                 static std::uint8_t constexpr
-                    empty_block[4] = {
-                        0x00, 0x00, 0xff, 0xff };
+                    empty_block[4] = { 0x00, 0x00, 0xff, 0xff };
                 zs.next_in = empty_block;
                 zs.avail_in = sizeof(empty_block);
                 fin = true;

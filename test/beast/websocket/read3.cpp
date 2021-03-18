@@ -982,7 +982,7 @@ public:
             ),
         };
 
-        for (const auto & packet : packets) {
+        for (auto const packet : packets) {
             net::write(wss.next_layer(), packet);
             multi_buffer buffer;
             error_code ec;
