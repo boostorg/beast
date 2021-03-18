@@ -164,6 +164,8 @@ loop:
             goto done;
         }
         finish_header(ec, is_request{});
+        if(ec)
+            goto done;
         break;
 
     case state::body0:
