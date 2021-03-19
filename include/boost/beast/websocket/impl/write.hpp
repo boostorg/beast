@@ -85,14 +85,8 @@ public:
 
         // Set up the outgoing frame header
         if(! impl.wr_cont)
-        {
             impl.begin_msg();
-            fh_.rsv1 = impl.wr_compress;
-        }
-        else
-        {
-            fh_.rsv1 = false;
-        }
+        fh_.rsv1 = false;
         fh_.rsv2 = false;
         fh_.rsv3 = false;
         fh_.op = impl.wr_cont ?
@@ -621,14 +615,8 @@ write_some(bool fin,
         return bytes_transferred;
     detail::frame_header fh;
     if(! impl.wr_cont)
-    {
         impl.begin_msg();
-        fh.rsv1 = impl.wr_compress;
-    }
-    else
-    {
-        fh.rsv1 = false;
-    }
+    fh.rsv1 = false;
     fh.rsv2 = false;
     fh.rsv3 = false;
     fh.op = impl.wr_cont ?
