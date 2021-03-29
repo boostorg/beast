@@ -1,3 +1,5 @@
+Version 313:
+
 * Fix incorrect websocket test ordering.
 * Fix missing check for error code after header is parsed.
 * Fix case where inflated content is larger than the out buffer.
