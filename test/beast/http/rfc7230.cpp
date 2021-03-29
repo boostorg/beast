@@ -87,6 +87,7 @@ public:
         cs(" ;\t i =\t 1 \t", ";i=1");
         cq("\t; \t xyz=1 ; ijk=\"q\\\"t\"", ";xyz=1;ijk=q\"t");
         ce(";x;y");
+        ce(";x/y");
 
 		ce(";chunked;a=b;i=j;gzip;windowBits=12");
 		ce(";chunked;a=b;i=j;gzip;windowBits=12;permessage-deflate");
@@ -166,10 +167,12 @@ public:
         cs("\t a, b\t  ,  c\t", "a,b,c");
         ce("a;b");
         ce("a;b;c");
+        ce("a/b;c");
 
         cs("a; \t i\t=\t \t1\t ", "a;i=1");
         ce("a;i=1;j=2;k=3");
         ce("a;i=1;j=2;k=3,b;i=4;j=5;k=6");
+        ce("*/*;i=1;j=2;k=3,b/*;i=4;j=5;k=6,c/d;i=7");
 
         cq("ab;x=\" \"", "ab;x= ");
         cq("ab;x=\"\\\"\"", "ab;x=\"");
