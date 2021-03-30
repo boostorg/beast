@@ -1,3 +1,7 @@
+* WebSocket test is deterministic.
+
+--------------------------------------------------------------------------------
+
 Version 313:
 
 * Fix incorrect websocket test ordering.
