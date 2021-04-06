@@ -24,6 +24,7 @@ jobs:
           - toolset: gcc-5
             cxxstd: "11,14,1z"
             os: ubuntu-16.04
+            install: g++-5
             supported: true
           - toolset: gcc-6
             cxxstd: "11,14,1z"
@@ -33,18 +34,22 @@ jobs:
           - toolset: gcc-7
             cxxstd: "11,14,17"
             os: ubuntu-18.04
+            install: g++-7
             supported: true
           - toolset: gcc-8
             cxxstd: "11,14,17,2a"
             os: ubuntu-18.04
+            install: g++-8
             supported: true
           - toolset: gcc-9
             cxxstd: "11,14,17,2a"
             os: ubuntu-18.04
+            install: g++-9
             supported: true
           - toolset: gcc-10
             cxxstd: "11,14,17,2a"
             os: ubuntu-18.04
+            install: g++-10
             supported: true
 # clang 3.5 not supported
 # It can't compile the websocket stream code
@@ -85,27 +90,31 @@ jobs:
             install: clang-5.0
             supported: true
           - toolset: clang
+            install: clang-6.0
             compiler: clang++-6.0
             cxxstd: "11,14,17"
             os: ubuntu-18.04
             supported: true
           - toolset: clang
+            install: clang-7
             compiler: clang++-7
             cxxstd: "11,14"
             os: ubuntu-18.04
-            install: clang-7
             supported: true
           - toolset: clang
+            install: clang-8
             compiler: clang++-8
             cxxstd: "11,14,17"
             os: ubuntu-20.04
             supported: true
           - toolset: clang
+            install: clang-9
             compiler: clang++-9
             cxxstd: "11,14,17,2a"
             os: ubuntu-20.04
             supported: true
           - toolset: clang
+            install: clang-10
             compiler: clang++-10
             cxxstd: "11,14,17,2a"
             os: ubuntu-20.04
