@@ -1,4 +1,5 @@
 * WebSocket test is deterministic.
+* Add missing compilers to GHA script.
 
 --------------------------------------------------------------------------------
 
