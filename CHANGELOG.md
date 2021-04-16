@@ -1,3 +1,7 @@
+* Documentation uses docca jam module.
+
+--------------------------------------------------------------------------------
+
 Version 314:
 
 * WebSocket test is deterministic.
