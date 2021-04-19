@@ -1,3 +1,7 @@
+* Fix async_base documentation link.
+
+--------------------------------------------------------------------------------
+
 Version 326:
 
 * Remove GitHub stalebot.

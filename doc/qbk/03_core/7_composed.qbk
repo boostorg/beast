@@ -44,7 +44,7 @@ composed operations:
 [table Asynchronous Helpers
 [[Name][Description]]
 [[
-    [link beast.ref.boost__beast__async_base `async_op_base`]
+    [link beast.ref.boost__beast__async_base `async_base`]
     [link beast.ref.boost__beast__stable_async_base `stable_async_base`]
 ][
     This class is designed to be used as a base class when authoring
