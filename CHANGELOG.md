@@ -1,3 +1,7 @@
+* Remove use of POSIX-only constant.
+
+--------------------------------------------------------------------------------
+
 Version 315:
 
 * Documentation uses docca jam module.
