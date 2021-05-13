@@ -270,8 +270,12 @@ read(void* buffer, std::size_t n, error_code& ec) const
     std::size_t nread = 0;
     while(n > 0)
     {
-        auto const amount = static_cast<ssize_t>((std::min)(
-            n, static_cast<std::size_t>(SSIZE_MAX)));
+        // <limits> not required to define SSIZE_MAX so we avoid it
+        constexpr auto ssmax =
+            static_cast<std::size_t>((std::numeric_limits<
+                decltype(::read(fd_, buffer, n))>::max)());
+        auto const amount = (std::min)(
+            n, ssmax);
         auto const result = ::read(fd_, buffer, amount);
         if(result == -1)
         {
@@ -305,8 +309,12 @@ write(void const* buffer, std::size_t n, error_code& ec)
     std::size_t nwritten = 0;
     while(n > 0)
     {
-        auto const amount = static_cast<ssize_t>((std::min)(
-            n, static_cast<std::size_t>(SSIZE_MAX)));
+        // <limits> not required to define SSIZE_MAX so we avoid it
+        constexpr auto ssmax =
+            static_cast<std::size_t>((std::numeric_limits<
+                decltype(::write(fd_, buffer, n))>::max)());
+        auto const amount = (std::min)(
+            n, ssmax);
         auto const result = ::write(fd_, buffer, amount);
         if(result == -1)
         {

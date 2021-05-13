@@ -1,3 +1,7 @@
+* Remove use of POSIX-only constant.
+
+--------------------------------------------------------------------------------
+
 Version 317:
 
 * Remove travis CI.
