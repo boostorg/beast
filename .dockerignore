@@ -1,6 +1,7 @@
 # ignore cmake builds
 cmake-build-*/
-
+.dockers
+.dockerignore
 # ignore b2 builds
 bin.v2/
 */bin.v2/
