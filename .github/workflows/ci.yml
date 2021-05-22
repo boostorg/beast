@@ -112,7 +112,7 @@ jobs:
             compiler: clang++-9
             cxxstd: "11,14,17,2a"
             os: ubuntu-20.04
-            supported: true
+            supported: "Causes segfault on GHA CI, not on official image"
           - toolset: clang
             install: clang-10
             compiler: clang++-10

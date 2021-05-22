@@ -1,3 +1,4 @@
+* Disable GHA CI for clang-9.
 * Update example root certificates.
 
 --------------------------------------------------------------------------------
