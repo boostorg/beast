@@ -902,6 +902,41 @@ read_and_print_body(
 
 //]
 
+//------------------------------------------------------------------------------
+//
+// Example: Read large response body 
+//
+//------------------------------------------------------------------------------
+
+//[example_read_large_response_body
+
+/*  This function uses custom size limit of the resposne body.
+    The key method is 'body_limit' of the parser.
+    For the simplicity, this example has hard-coded size set to 50MB.
+*/
+template<
+    class SyncReadStream,
+    class DynamicBuffer,
+    bool isRequest, class Body, class Allocator>
+std::size_t
+read_large_response_body(
+    SyncReadStream& stream,
+    DynamicBuffer& buffer,
+    message<isRequest, Body, basic_fields<Allocator>>& msg,
+    error_code& ec)
+{
+    parser<isRequest, Body, Allocator> p(std::move(msg));
+    p.eager(true);
+    p.body_limit(50 * 1024 * 1024);
+    auto const bytes_transferred =
+        http::read(stream, buffer, p, ec);
+    if(ec)
+        return bytes_transferred;
+    msg = p.release();
+    return bytes_transferred;
+}
+
+//]
 
 //------------------------------------------------------------------------------
 //

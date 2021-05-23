@@ -138,4 +138,15 @@ using a small, fixed-size buffer:
 
 
 
+[section:read_large_response_body Reading large response body __example__]
+
+This example presents how to increase the default limit of the response body size,
+thus the content larger than the default 8MB can be read.
+
+[example_read_large_response_body]
+
+[endsect]
+
+
+
 [endsect]
