@@ -35,6 +35,6 @@ fi
 
 if [ "$MAJOR_VERSION" -gt "18" ]; then
     sudo -E apt-get -o Acquire::Retries=3 -y install python3 python3-pip
-    ln -s /usr/bin/python3 /usr/bin/python
-    ln -s /usr/bin/pip3 /usr/bin/pip
+    ln -s /usr/bin/python3 /usr/bin/python || true
+    ln -s /usr/bin/pip3 /usr/bin/pip || true
 fi
