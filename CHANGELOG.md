@@ -1,3 +1,4 @@
+* Add a Boost-friendly subproject case to CMakeLists.
 * Remove use of POSIX-only constant.
 
 --------------------------------------------------------------------------------
