@@ -198,11 +198,28 @@ open(char const* path, file_mode mode, error_code& ec)
         creation_disposition,
         flags_and_attributes,
         NULL);
-    if(h_ == boost::winapi::INVALID_HANDLE_VALUE_)
+    if (h_ == boost::winapi::INVALID_HANDLE_VALUE_)
+    {
         ec.assign(boost::winapi::GetLastError(),
             system_category());
-    else
-        ec = {};
+        return;
+    }
+    if (mode == file_mode::append ||
+        mode == file_mode::append_existing)
+    {
+        boost::winapi::LARGE_INTEGER_ in;
+        in.QuadPart = 0;
+        if (!detail::set_file_pointer_ex(h_, in, 0,
+            boost::winapi::FILE_END_))
+        {
+            ec.assign(boost::winapi::GetLastError(),
+                system_category());
+            boost::winapi::CloseHandle(h_);
+            h_ = boost::winapi::INVALID_HANDLE_VALUE_;
+            return;
+        }
+    }
+    ec = {};
 }
 
 std::uint64_t

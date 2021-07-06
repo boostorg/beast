@@ -1,3 +1,7 @@
+* Fix file open with append/append_existing flag on Windows.
+
+--------------------------------------------------------------------------------
+
 Version 323:
 
 * Fix clang-cl UTF8 path handling for `file_win32`.
