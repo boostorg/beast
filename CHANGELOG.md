@@ -1,3 +1,7 @@
+* Update release notes for Boost 1.77.
+
+--------------------------------------------------------------------------------
+
 Version 318:
 
 * Add a Boost-friendly subproject case to CMakeLists.

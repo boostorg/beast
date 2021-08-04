@@ -11,6 +11,23 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.77]
+
+[*Fixes]
+
+* [Issue 2233] Remove use of POSIX-only constant.
+
+[*Miscellaneous]
+
+* Fixes to tests.
+* Improvements and fixes in Github and Drone CI.
+* Accommodate Docca updates.
+* Update example root certificates.
+* Add example of reading large response body.
+* Remove Travis CI.
+* Update CMakeLists.txt
+
+
 [heading Boost 1.76]
 
 [*Fixes]
