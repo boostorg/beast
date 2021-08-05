@@ -13,6 +13,7 @@
 
 #include <boost/asio/any_io_executor.hpp>
 #include <boost/beast/core/detail/service_base.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 #include <boost/smart_ptr/weak_ptr.hpp>
 
 #include <condition_variable>
