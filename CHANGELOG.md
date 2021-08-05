@@ -1,3 +1,4 @@
+* Fix missing includes in `stream_state`.
 * Update GitHub Actions CI.
 
 --------------------------------------------------------------------------------

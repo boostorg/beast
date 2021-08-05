@@ -8,6 +8,7 @@
 #
 
 local SOURCES =
+    _test_detail_stream_state.cpp
     error.cpp
     icy_stream.cpp
     stream.cpp

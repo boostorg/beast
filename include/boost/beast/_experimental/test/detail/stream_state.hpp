@@ -12,7 +12,10 @@
 #define BOOST_BEAST_TEST_DETAIL_STREAM_STATE_HPP
 
 #include <boost/asio/any_io_executor.hpp>
+#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/_experimental/test/fail_count.hpp>
 #include <boost/beast/core/detail/service_base.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
 #include <boost/smart_ptr/weak_ptr.hpp>
 
 #include <condition_variable>
