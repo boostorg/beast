@@ -57,7 +57,11 @@ public:
                 os << '*';
                 fail("missing exception", __FILE__, __LINE__);
             }
-            catch(std::ios_base::failure const&)
+            // We used to catch std::ios_base::failure which is strictly correct
+            // however there is a rare historic ABI bug when stdlibc++ and the
+            // program are compiled with different ABIs.
+            // see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66145
+            catch(std::exception&)
             {
                 pass();
             }

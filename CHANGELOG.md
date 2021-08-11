@@ -1,3 +1,7 @@
+* Update GitHub Actions CI.
+
+--------------------------------------------------------------------------------
+
 Version 319:
 
 * Update release notes for Boost 1.77.
