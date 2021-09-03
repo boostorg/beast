@@ -1,3 +1,5 @@
+Version 320:
+
 * Fix missing includes in `stream_state`.
 * Update GitHub Actions CI.
 
