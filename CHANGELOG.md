@@ -1,5 +1,6 @@
 Version XXX:
 
+* Fix CVE-2016-9840 in zlib implementation.
 * Fix TLS SNI handling in websocket_client_async_ssl example.
 * Fix reuse of sliding window in WebSocket permessage_deflate.
 * Fix accept error handling in http_server_async example.
