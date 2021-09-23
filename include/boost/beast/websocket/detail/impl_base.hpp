@@ -137,7 +137,7 @@ struct impl_base<true>
                     return false;
                 if(zs.avail_out >= 6)
                 {
-                    zo.write(zs, zlib::Flush::full, ec);
+                    zo.write(zs, zlib::Flush::sync, ec);
                     BOOST_ASSERT(! ec);
                     // remove flush marker
                     zs.total_out -= 4;
