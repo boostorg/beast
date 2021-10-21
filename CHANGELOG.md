@@ -1,3 +1,10 @@
+Version XXX:
+
+* Move library-specific docca configuration to Beast.
+* Remove dependency on RTTI in `test::stream`.
+
+--------------------------------------------------------------------------------
+
 Version 320:
 
 * Fix missing includes in `stream_state`.
