@@ -291,10 +291,12 @@ template<class Allocator>
 basic_fields<Allocator>::
 value_type::
 value_type(field name,
-    string_view sname, string_view value)
+    string_view sname, string_view value,
+    bool never_index)
     : off_(static_cast<off_t>(sname.size() + 2))
     , len_(static_cast<off_t>(value.size()))
     , f_(name)
+    , never_index_(never_index)
 {
     //BOOST_ASSERT(name == field::unknown ||
     //    iequals(sname, to_string(name)));
@@ -337,11 +339,30 @@ value() const
 }
 
 template<class Allocator>
+void
+basic_fields<Allocator>::
+value_type::
+never_index(bool value)
+{
+    never_index_ = value;
+}
+
+template<class Allocator>
+bool
+basic_fields<Allocator>::
+value_type::
+never_index() const
+{
+    return never_index_;
+}
+
+template<class Allocator>
 basic_fields<Allocator>::
 element::
 element(field name,
-    string_view sname, string_view value)
-    : value_type(name, sname, value)
+    string_view sname, string_view value,
+    bool never_index)
+    : value_type(name, sname, value, never_index)
 {
 }
 
@@ -543,30 +564,31 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-insert(field name, string_view const& value)
+insert(field name, string_view const& value, bool never_index)
 {
     BOOST_ASSERT(name != field::unknown);
-    insert(name, to_string(name), value);
+    insert(name, to_string(name), value, never_index);
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-insert(string_view sname, string_view const& value)
+insert(string_view sname, string_view const& value, bool never_index)
 {
     auto const name =
         string_to_field(sname);
-    insert(name, sname, value);
+    insert(name, sname, value, never_index);
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
 insert(field name,
-    string_view sname, string_view const& value)
+    string_view sname, string_view const& value,
+    bool never_index)
 {
     auto& e = new_element(name, sname,
-        static_cast<string_view>(value));
+        static_cast<string_view>(value), never_index);
     auto const before =
         set_.upper_bound(sname, key_compare{});
     if(before == set_.begin())
@@ -593,20 +615,20 @@ insert(field name,
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set(field name, string_view const& value)
+set(field name, string_view const& value, bool never_index)
 {
     BOOST_ASSERT(name != field::unknown);
     set_element(new_element(name, to_string(name),
-        static_cast<string_view>(value)));
+        static_cast<string_view>(value), never_index));
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set(string_view sname, string_view const& value)
+set(string_view sname, string_view const& value, bool never_index)
 {
     set_element(new_element(
-        string_to_field(sname), sname, value));
+        string_to_field(sname), sname, value, never_index));
 }
 
 template<class Allocator>
@@ -960,7 +982,8 @@ template<class Allocator>
 auto
 basic_fields<Allocator>::
 new_element(field name,
-    string_view sname, string_view value) ->
+    string_view sname, string_view value,
+    bool never_index) ->
         element&
 {
     if(sname.size() + 2 >
@@ -980,7 +1003,7 @@ new_element(field name,
     auto const p = alloc_traits::allocate(a,
         (sizeof(element) + off + len + 2 + sizeof(align_type) - 1) /
             sizeof(align_type));
-    return *(::new(p) element(name, sname, value));
+    return *(::new(p) element(name, sname, value, never_index));
 }
 
 template<class Allocator>
@@ -1089,7 +1112,7 @@ basic_fields<Allocator>::
 copy_all(basic_fields<OtherAlloc> const& other)
 {
     for(auto const& e : other.list_)
-        insert(e.name(), e.name_string(), e.value());
+        insert(e.name(), e.name_string(), e.value(), e.never_index());
     realloc_string(method_, other.method_);
     realloc_string(target_or_reason_,
         other.target_or_reason_);

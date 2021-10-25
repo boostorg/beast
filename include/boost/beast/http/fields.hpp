@@ -77,6 +77,7 @@ public:
         off_t off_;
         off_t len_;
         field f_;
+        bool never_index_;
 
         char*
         data() const;
@@ -86,7 +87,8 @@ public:
 
     protected:
         value_type(field name,
-            string_view sname, string_view value);
+            string_view sname, string_view value,
+            bool never_index);
 
     public:
         /// Constructor (deleted)
@@ -106,6 +108,16 @@ public:
         /// Returns the value of the field
         string_view const
         value() const;
+
+        /// Enable or disable the caching of this field for header compression
+        /// in HTTP/2 or later
+        void
+        never_index(bool value);
+
+        /// Return whether or not this field can be cached for header compression
+        /// in HTTP/2 or later
+        bool
+        never_index() const;
     };
 
     /** A strictly less predicate for comparing keys, using a case-insensitive comparison.
@@ -176,7 +188,8 @@ private:
         , public value_type
     {
         element(field name,
-            string_view sname, string_view value);
+            string_view sname, string_view value,
+            bool never_index);
     };
 
     using list_t = typename boost::intrusive::make_list<
@@ -421,9 +434,13 @@ public:
         @param name The field name.
 
         @param value The value of the field, as a @ref string_view
+
+        @param never_index Optionally disables header compression for this
+        field. Only applies to HTTP/2 and later.
     */
     void
-    insert(field name, string_view const& value);
+    insert(field name, string_view const& value,
+           bool never_index = false);
 
     /* Set a field from a null pointer (deleted).
     */
@@ -439,9 +456,13 @@ public:
         @param name The field name.
 
         @param value The value of the field, as a @ref string_view
+
+        @param never_index Optionally disables header compression for this
+        field. Only applies to HTTP/2 and later.
     */
     void
-    insert(string_view name, string_view const& value);
+    insert(string_view name, string_view const& value,
+           bool never_index = false);
 
     /* Insert a field from a null pointer (deleted).
     */
@@ -462,10 +483,13 @@ public:
         comparison, otherwise the behavior is undefined.
 
         @param value The value of the field, as a @ref string_view
+
+        @param never_index Optionally disables header compression for this
+        field. Only applies to HTTP/2 and later.
     */
     void
     insert(field name, string_view name_string,
-           string_view const& value);
+           string_view const& value, bool never_index = false);
 
     void
     insert(field, string_view, std::nullptr_t) = delete;
@@ -480,9 +504,13 @@ public:
         @param value The value of the field, as a @ref string_view
 
         @return The field value.
+
+        @param never_index Optionally disables header compression for this
+        field. Only applies to HTTP/2 and later.
     */
     void
-    set(field name, string_view const& value);
+    set(field name, string_view const& value,
+        bool never_index = false);
 
     void
     set(field, std::nullptr_t) = delete;
@@ -495,9 +523,13 @@ public:
         @param name The field name.
 
         @param value The value of the field, as a @ref string_view
+
+        @param never_index Optionally disables header compression for this
+        field. Only applies to HTTP/2 and later.
     */
     void
-    set(string_view name, string_view const& value);
+    set(string_view name, string_view const& value,
+        bool never_index = false);
 
     void
     set(string_view, std::nullptr_t) = delete;
@@ -727,7 +759,8 @@ private:
 
     element&
     new_element(field name,
-        string_view sname, string_view value);
+        string_view sname, string_view value,
+        bool never_index);
 
     void
     delete_element(element& e);
