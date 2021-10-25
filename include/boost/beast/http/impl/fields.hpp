@@ -635,14 +635,14 @@ template<class Allocator>
 auto
 basic_fields<Allocator>::
 erase(const_iterator pos) ->
-    const_iterator
+    iterator
 {
     auto next = pos;
     auto& e = *next++;
     set_.erase(set_.iterator_to(e));
     list_.erase(pos);
     delete_element(const_cast<element&>(e));
-    return next;
+    return next.unconst();
 }
 
 template<class Allocator>
@@ -716,11 +716,35 @@ template<class Allocator>
 inline
 auto
 basic_fields<Allocator>::
+find(field name) ->
+    iterator
+{
+    BOOST_ASSERT(name != field::unknown);
+    return find(to_string(name));
+}
+
+template<class Allocator>
+inline
+auto
+basic_fields<Allocator>::
 find(field name) const ->
     const_iterator
 {
     BOOST_ASSERT(name != field::unknown);
     return find(to_string(name));
+}
+
+template<class Allocator>
+auto
+basic_fields<Allocator>::
+find(string_view name) ->
+    iterator
+{
+    auto const it = set_.find(
+        name, key_compare{});
+    if(it == set_.end())
+        return list_.end();
+    return list_.iterator_to(*it);
 }
 
 template<class Allocator>
@@ -740,11 +764,37 @@ template<class Allocator>
 inline
 auto
 basic_fields<Allocator>::
+equal_range(field name) ->
+    std::pair<iterator, iterator>
+{
+    BOOST_ASSERT(name != field::unknown);
+    return equal_range(to_string(name));
+}
+
+template<class Allocator>
+inline
+auto
+basic_fields<Allocator>::
 equal_range(field name) const ->
     std::pair<const_iterator, const_iterator>
 {
     BOOST_ASSERT(name != field::unknown);
     return equal_range(to_string(name));
+}
+
+template<class Allocator>
+auto
+basic_fields<Allocator>::
+equal_range(string_view name) ->
+    std::pair<iterator, iterator>
+{
+    auto result =
+        set_.equal_range(name, key_compare{});
+    if(result.first == result.second)
+        return {list_.end(), list_.end()};
+    return {
+        list_.iterator_to(*result.first),
+        ++list_.iterator_to(*(--result.second))};
 }
 
 template<class Allocator>

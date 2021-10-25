@@ -291,8 +291,12 @@ public:
     using const_iterator = typename list_t::const_iterator;
 #endif
 
-    /// A constant iterator to the field sequence.
-    using iterator = const_iterator;
+    /// A mutable iterator to the field sequence.
+#if BOOST_BEAST_DOXYGEN
+    using iterator = __implementation_defined__;
+#else
+    using iterator = typename list_t::iterator;
+#endif
 
     /// Return a copy of the allocator associated with the container.
     allocator_type
@@ -361,11 +365,25 @@ public:
     //
     //--------------------------------------------------------------------------
 
+    /// Return a mutable iterator to the beginning of the field sequence.
+    iterator
+    begin()
+    {
+        return list_.begin();
+    }
+
     /// Return a const iterator to the beginning of the field sequence.
     const_iterator
     begin() const
     {
         return list_.cbegin();
+    }
+
+    /// Return a mutable iterator to the end of the field sequence.
+    iterator
+    end()
+    {
+        return list_.end();
     }
 
     /// Return a const iterator to the end of the field sequence.
@@ -534,7 +552,7 @@ public:
     void
     set(string_view, std::nullptr_t) = delete;
 
-        /** Remove a field.
+    /** Remove a field.
 
         References and iterators to the erased elements are
         invalidated. Other references and iterators are not
@@ -546,7 +564,7 @@ public:
         If the iterator refers to the last element, the end()
         iterator is returned.
     */
-    const_iterator
+    iterator
     erase(const_iterator pos);
 
     /** Remove all fields with the specified name.
@@ -629,8 +647,34 @@ public:
         @return An iterator to the matching field, or `end()` if
         no match was found.
     */
+    iterator
+    find(field name);
+
+    /** Returns an iterator to the case-insensitive matching field.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
+        @param name The field name.
+
+        @return An iterator to the matching field, or `end()` if
+        no match was found.
+    */
     const_iterator
     find(field name) const;
+
+    /** Returns an iterator to the case-insensitive matching field name.
+
+        If more than one field with the specified name exists, the
+        first field defined by insertion order is returned.
+
+        @param name The field name.
+
+        @return An iterator to the matching field, or `end()` if
+        no match was found.
+    */
+    iterator
+    find(string_view name);
 
     /** Returns an iterator to the case-insensitive matching field name.
 
@@ -652,8 +696,28 @@ public:
         @return A range of iterators to fields with the same name,
         otherwise an empty range.
     */
+    std::pair<iterator, iterator>
+    equal_range(field name);
+
+    /** Returns a range of iterators to the fields with the specified name.
+
+        @param name The field name.
+
+        @return A range of iterators to fields with the same name,
+        otherwise an empty range.
+    */
     std::pair<const_iterator, const_iterator>
     equal_range(field name) const;
+
+    /** Returns a range of iterators to the fields with the specified name.
+
+        @param name The field name.
+
+        @return A range of iterators to fields with the same name,
+        otherwise an empty range.
+    */
+    std::pair<iterator, iterator>
+    equal_range(string_view name);
 
     /** Returns a range of iterators to the fields with the specified name.
 
