@@ -494,6 +494,49 @@ public:
         }
     }
 
+    void testNeverIndex()
+    {
+        {
+            // insert() with never_index
+            fields f;
+            f.insert("a", "x", false);
+            f.insert("b", "y", true);
+            f.insert("c", "z");
+            BEAST_EXPECT(size(f) == 3);
+            BEAST_EXPECT(std::next(f.begin(), 0)->never_index() == false);
+            BEAST_EXPECT(std::next(f.begin(), 1)->never_index() == true);
+            BEAST_EXPECT(std::next(f.begin(), 2)->never_index() == false);
+        }
+        {
+            // set() with never_index
+            fields f;
+            f.set("a", "x", false);
+            f.set("b", "y", true);
+            f.set("c", "z");
+            BEAST_EXPECT(size(f) == 3);
+            BEAST_EXPECT(std::next(f.begin(), 0)->never_index() == false);
+            BEAST_EXPECT(std::next(f.begin(), 1)->never_index() == true);
+            BEAST_EXPECT(std::next(f.begin(), 2)->never_index() == false);
+        }
+        {
+            // set() that overwrites never_index
+            fields f;
+            f.insert("a", "x", false);
+            f.set("a", "x", true);
+            BEAST_EXPECT(size(f) == 1);
+            BEAST_EXPECT(f.begin()->never_index() == true);
+        }
+        {
+            // modify existing never_index
+            fields f;
+            f.insert("a", "x");
+            BEAST_EXPECT(size(f) == 1);
+            BEAST_EXPECT(f.begin()->never_index() == false);
+            f.begin()->never_index(true);
+            BEAST_EXPECT(f.begin()->never_index() == true);
+        }
+    }
+
     struct sized_body
     {
         using value_type = std::uint64_t;
@@ -1079,6 +1122,7 @@ public:
         testErase();
         testIteratorErase();
         testContainer();
+        testNeverIndex();
         testPreparePayload();
 
         testKeepAlive();
