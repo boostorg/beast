@@ -15,4 +15,41 @@
   <xsl:template mode="convenience-header" match="@file[contains(., 'boost/beast/zlib')]"     >zlib.hpp</xsl:template>
   <xsl:template mode="convenience-header" match="@file"/>
 
+  <xsl:variable name="emphasized-template-parameter-types" select="
+    'Allocator',
+    'AsyncStream',
+    'AsyncReadStream',
+    'AsyncWriteStream',
+    'Body',
+    'BufferSequence',
+    'BufferSequence',  (: TODO: Was this intended to be 'BufferSequence_' ?? :)
+    'CompletionCondition',
+    'CompletionHandler',
+    'CompletionToken',
+    'ConnectCondition',
+    'ConnectHandler',
+    'ConstBufferSequence',
+    'DynamicBuffer',
+    'EndpointSequence',
+    'ExecutionContext',
+    'Executor',
+    'Executor_',
+    'Executor1',
+    'Executor2',
+    'Fields',
+    'Handler',
+    'Handler_',
+    'IteratorConnectHandler',
+    'MutableBufferSequence',
+    'Protocol',
+    'RangeConnectHandler',
+    'RatePolicy',
+    'ReadHandler',
+    'Stream',
+    'SyncStream',
+    'SyncReadStream',
+    'SyncWriteStream',
+    'WriteHandler'
+  "/>
+
 </xsl:stylesheet>
