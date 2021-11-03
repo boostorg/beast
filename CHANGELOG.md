@@ -1,4 +1,4 @@
-Version XXX:
+Version 321:
 
 * Remove test framework's dependency on RTTI.
 * Fix CVE-2016-9840 in zlib implementation.
