@@ -13,6 +13,8 @@
 #include <boost/beast/_experimental/unit_test/suite_info.hpp>
 #include <boost/beast/_experimental/unit_test/detail/const_container.hpp>
 #include <boost/assert.hpp>
+#include <boost/type_index.hpp>
+#include <boost/functional/hash.hpp>
 #include <typeindex>
 #include <set>
 #include <unordered_set>
@@ -28,7 +30,9 @@ class suite_list
 private:
 #ifndef NDEBUG
     std::unordered_set<std::string> names_;
-    std::unordered_set<std::type_index> classes_;
+
+    using type_index = boost::typeindex::type_index;
+    std::unordered_set<type_index, boost::hash<type_index>> classes_;
 #endif
 
 public:
@@ -65,7 +69,7 @@ suite_list::insert(
 
     {
         auto const result(classes_.insert(
-            std::type_index(typeid(Suite))));
+            boost::typeindex::type_id<Suite>()));
         BOOST_ASSERT(result.second); // Duplicate type
     }
 #endif
