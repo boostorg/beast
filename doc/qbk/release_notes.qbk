@@ -11,6 +11,24 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.78]
+
+[*Fixes]
+
+* Fix CVE-2016-9840 in zlib implementation.
+* Fix TLS SNI handling in websocket_client_async_ssl example.
+* [Issue 2313] Fix reuse of sliding window in WebSocket permessage_deflate.
+* Fix accept error handling in http_server_async example.
+
+[*Miscellaneous]
+
+* Remove test framework's dependency on RTTI.
+* Move library-specific docca configuration to Beast.
+* Remove dependency on RTTI in `test::stream`.
+* Fix missing includes in test headers.
+
+
+
 [heading Boost 1.77]
 
 [*Fixes]
