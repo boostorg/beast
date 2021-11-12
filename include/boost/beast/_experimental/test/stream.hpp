@@ -591,7 +591,7 @@ beast_close_socket(basic_stream<Executor>& s)
 */
 template<class Executor>
 template<class... Args>
-bascic_stream
+basic_stream
 connect(basic_stream& to, Args&&... args);
 
 #else
