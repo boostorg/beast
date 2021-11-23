@@ -24,3 +24,5 @@ target_link_libraries(tests-beast-ssl
     )
 
 set_property(TARGET tests-beast-ssl PROPERTY FOLDER "tests")
+
+build_individual_tests(tests-beast-ssl LIBS lib-asio lib-asio-ssl lib-beast lib-test)

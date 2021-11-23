@@ -162,6 +162,8 @@ struct legacy_handler
             asio_handler_is_continuation(&h);
             BEAST_EXPECT(hook_invoked);
         }
+#else  // !defined(BOOST_ASIO_NO_DEPRECATED)
+    boost::ignore_unused(f);
 #endif // !defined(BOOST_ASIO_NO_DEPRECATED)
     }
 };
