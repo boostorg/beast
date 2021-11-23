@@ -72,3 +72,10 @@ target_link_libraries(tests-beast-core
     )
 
 set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")
+
+#
+# Individual tests
+#
+build_individual_tests(tests-beast-core
+        EXCLUDE _detail_static_const close_socket zlib make_strand prepare_buffers
+        LIBS lib-asio lib-asio-ssl lib-beast lib-test)

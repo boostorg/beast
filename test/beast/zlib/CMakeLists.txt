@@ -32,3 +32,5 @@ target_link_libraries(tests-beast-zlib
     )
 
 set_property(TARGET tests-beast-zlib PROPERTY FOLDER "tests")
+
+build_individual_tests(tests-beast-zlib LIBS lib-asio lib-beast lib-test lib-zlib)
