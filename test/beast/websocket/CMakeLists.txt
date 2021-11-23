@@ -50,3 +50,5 @@ target_link_libraries(tests-beast-websocket
     )
 
 set_property(TARGET tests-beast-websocket PROPERTY FOLDER "tests")
+
+build_individual_tests(tests-beast-websocket EXCLUDE doc_snippets)

@@ -43,6 +43,12 @@ set (ZLIB_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/zutil.c
 )
 
+add_library (
+        lib-zlib
+        ${ZLIB_SOURCES}
+)
+target_include_directories(lib-zlib PUBLIC "${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11")
+
 set (TEST_MAIN ${PROJECT_SOURCE_DIR}/test/lib_beast.cpp)
 
 GroupSources (. "/")

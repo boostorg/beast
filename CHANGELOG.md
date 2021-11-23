@@ -1,3 +1,9 @@
+Version XXX:
+
+* Add individual tests to CMake workflow.
+
+--------------------------------------------------------------------------------
+
 Version 322:
 
 * Fix typo in `_experimental::test::basic_stream` documentation.
