@@ -54,6 +54,11 @@ jobs:
             os: ubuntu-18.04
             install: g++-10
             supported: true
+          - toolset: gcc-11
+            cxxstd: "11,14,17,20"
+            os: ubuntu-20.04
+            install: g++-11
+            supported: true
 # clang 3.5 not supported
 # It can't compile the websocket stream code
           - toolset: clang
@@ -126,6 +131,18 @@ jobs:
             install: clang-10
             compiler: clang++-10
             cxxstd: "11,14,17,2a"
+            os: ubuntu-20.04
+            supported: true
+          - toolset: clang
+            install: clang-11
+            compiler: clang++-11
+            cxxstd: "11,14,17,2a"
+            os: ubuntu-20.04
+            supported: true
+          - toolset: clang
+            install: clang-12
+            compiler: clang++-12
+            cxxstd: "11,14,17,20"
             os: ubuntu-20.04
             supported: true
 # macos
@@ -317,6 +334,48 @@ jobs:
             cxxstd: "latest"
             addrmd: 64
             os: windows-2019
+            cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
+            supported: true
+          # - description: msvc-14.3-cxx14-win32
+          #   toolset: msvc-14.3
+          #   cxxstd: "14"
+          #   addrmd: 32
+          #   os: windows-2022
+          #   cxxflags: ""
+          #   supported: true
+          # - description: msvc-14.3-cxx17-win32
+          #   toolset: msvc-14.3
+          #   cxxstd: "17"
+          #   addrmd: 32
+          #   os: windows-2022
+          #   cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
+          #   supported: true
+          - description: msvc-14.3-cxx20-win32
+            toolset: msvc-14.3
+            cxxstd: "20"
+            addrmd: 32
+            os: windows-2022
+            cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
+            supported: true
+          # - description: msvc-14.3-cxx14-win64
+          #   toolset: msvc-14.3
+          #   cxxstd: "14"
+          #   addrmd: 64
+          #   os: windows-2022
+          #   cxxflags: ""
+          #   supported: true
+          # - description: msvc-14.3-cxx17-win64
+          #   toolset: msvc-14.3
+          #   cxxstd: "17"
+          #   addrmd: 64
+          #   os: windows-2022
+          #   cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
+          #   supported: true
+          - description: msvc-14.3-cxx20-win64
+            toolset: msvc-14.3
+            cxxstd: "20"
+            addrmd: 64
+            os: windows-2022
             cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
             supported: true
           - toolset: gcc
