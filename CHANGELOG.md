@@ -2,6 +2,7 @@ Version XXX:
 
 * Add individual tests to CMake workflow.
 * Update CI to include gcc 11, clang 12, msvc 14.3. 
+* Update code coverage settings.
 
 --------------------------------------------------------------------------------
 
