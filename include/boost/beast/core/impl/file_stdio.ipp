@@ -81,7 +81,7 @@ open(char const* path, file_mode mode, error_code& ec)
         f_ = nullptr;
     }
     ec = {};
-#ifdef BOOST_MSVC
+#if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
     boost::winapi::WCHAR_ const* s;
     detail::win32_unicode_path unicode_path(path, ec);
     if (ec)
@@ -93,7 +93,7 @@ open(char const* path, file_mode mode, error_code& ec)
     {
     default:
     case file_mode::read:
-    #ifdef BOOST_MSVC
+    #if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
         s = L"rb";
     #else
         s = "rb";
@@ -101,7 +101,7 @@ open(char const* path, file_mode mode, error_code& ec)
         break;
 
     case file_mode::scan:
-    #ifdef BOOST_MSVC
+    #if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
         s = L"rbS";
     #else
         s = "rb";
@@ -109,7 +109,7 @@ open(char const* path, file_mode mode, error_code& ec)
         break;
 
     case file_mode::write:
-    #ifdef BOOST_MSVC
+    #if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
         s = L"wb+";
     #else
         s = "wb+";
@@ -118,7 +118,10 @@ open(char const* path, file_mode mode, error_code& ec)
 
     case file_mode::write_new:
     {
-#if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
+#if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
+# if (defined(BOOST_MSVC) && BOOST_MSVC >= 1910) || (defined(_MSVC_STL_VERSION) && _MSVC_STL_VERSION >= 141)
+        s = L"wbx";
+# else
         std::FILE* f0;
         auto const ev = ::_wfopen_s(&f0, unicode_path.c_str(), L"rb");
         if(! ev)
@@ -134,8 +137,7 @@ open(char const* path, file_mode mode, error_code& ec)
             return;
         }
         s = L"wb";
-#elif defined(BOOST_MSVC)
-        s = L"wbx";
+# endif
 #else
         s = "wbx";
 #endif
@@ -143,7 +145,7 @@ open(char const* path, file_mode mode, error_code& ec)
     }
 
     case file_mode::write_existing:
-    #ifdef BOOST_MSVC
+    #if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
         s = L"rb+";
     #else
         s = "rb+";
@@ -151,7 +153,7 @@ open(char const* path, file_mode mode, error_code& ec)
         break;
 
     case file_mode::append:
-    #ifdef BOOST_MSVC
+    #if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
         s = L"ab";
     #else
         s = "ab";
@@ -160,7 +162,7 @@ open(char const* path, file_mode mode, error_code& ec)
 
     case file_mode::append_existing:
     {
-#ifdef BOOST_MSVC
+#if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
         std::FILE* f0;
         auto const ev =
             ::_wfopen_s(&f0, unicode_path.c_str(), L"rb+");
@@ -179,7 +181,7 @@ open(char const* path, file_mode mode, error_code& ec)
         }
 #endif
         std::fclose(f0);
-    #ifdef BOOST_MSVC
+    #if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
         s = L"ab";
     #else
         s = "ab";
@@ -188,7 +190,7 @@ open(char const* path, file_mode mode, error_code& ec)
     }
     }
 
-#ifdef BOOST_MSVC
+#if defined(BOOST_MSVC) || defined(_MSVC_STL_VERSION)
     auto const ev = ::_wfopen_s(&f_, unicode_path.c_str(), s);
     if(ev)
     {
