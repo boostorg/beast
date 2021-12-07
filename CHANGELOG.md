@@ -1,5 +1,6 @@
 Version XXX:
 
+* Fix clang-cl UTF8 path handling for `file_win32`.
 * Fix clang-cl UTF8 path handling for `file_stdio`. 
 * Add individual tests to CMake workflow.
 * Update CI to include gcc 11, clang 12, msvc 14.3. 
