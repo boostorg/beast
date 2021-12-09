@@ -1,3 +1,4 @@
+* Add tests for file open in append mode.
 * Fix file open with append/append_existing flag on Windows.
 
 --------------------------------------------------------------------------------
