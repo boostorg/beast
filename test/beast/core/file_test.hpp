@@ -17,7 +17,9 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <cstdio>
+#include <fstream>
 #include <string>
+#include <iterator>
 #include <type_traits>
 
 namespace boost {
@@ -98,6 +100,20 @@ test_file()
         {
             fs::remove(path);
             BEAST_EXPECT(! fs::exists(path));
+        };
+
+    auto const consume_file =
+        [](fs::path const& path)
+        {
+            // no exceptions - failure will result in an empty string
+            std::ifstream in;
+            in.open(path.native());
+            noskipws(in);
+            auto s = std::string(
+                std::istream_iterator<char>(in),
+                std::istream_iterator<char>());
+            in.close();
+            return s;
         };
 
     temp_path path;
@@ -230,7 +246,14 @@ test_file()
             f.open(path, file_mode::append, ec);
             BEAST_EXPECT(! ec);
             BEAST_EXPECT(fs::exists(path));
+            static const std::string extra = "the";
+            f.write(extra.c_str(), extra.size(), ec);
+            BEAST_EXPECT(!ec);
+            f.close(ec);
+            auto s = consume_file(path);
+            BEAST_EXPECT(s == "the");
         }
+
         {
             File f;
             error_code ec;
@@ -238,6 +261,12 @@ test_file()
             f.open(path, file_mode::append, ec);
             BEAST_EXPECT(! ec);
             BEAST_EXPECT(fs::exists(path));
+            static const std::string extra = " cat";
+            f.write(extra.c_str(), extra.size(), ec);
+            BEAST_EXPECT(!ec);
+            f.close(ec);
+            auto s = consume_file(path);
+            BEAST_EXPECTS(s == "the cat", s);
         }
         remove(path);
     }
