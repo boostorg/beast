@@ -88,11 +88,13 @@ test_file()
     };
 
     auto const create =
-        [](fs::path const& path)
+        [](fs::path const& path, std::string const& data = "")
         {
             BEAST_EXPECT(! fs::exists(path));
             fs::ofstream out(path);
             BEAST_EXPECT(out.is_open());
+            if (data.size())
+                out.write(data.c_str(), data.size());
         };
 
     auto const remove =
@@ -285,10 +287,16 @@ test_file()
         {
             File f;
             error_code ec;
-            create(path);
-            BEAST_EXPECT(fs::exists(path));
+            create(path, "the cat");
             f.open(path, file_mode::append_existing, ec);
             BEAST_EXPECT(! ec);
+            static std::string const extra = " sat";
+            f.write(extra.c_str(), extra.size(), ec);
+            BEAST_EXPECT(!ec);
+            f.close(ec);
+            BEAST_EXPECT(!ec);
+            auto s = consume_file(path);
+            BEAST_EXPECTS(s == "the cat sat", s);
         }
         remove(path);
     }
