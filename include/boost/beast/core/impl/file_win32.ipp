@@ -175,7 +175,7 @@ open(char const* path, file_mode mode, error_code& ec)
         desired_access = boost::winapi::GENERIC_READ_ |
                          boost::winapi::GENERIC_WRITE_;
 
-        creation_disposition = boost::winapi::CREATE_ALWAYS_;
+        creation_disposition = boost::winapi::OPEN_ALWAYS_;
         flags_and_attributes = 0x08000000; // FILE_FLAG_SEQUENTIAL_SCAN
         break;
 
