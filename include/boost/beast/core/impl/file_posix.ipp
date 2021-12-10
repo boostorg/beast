@@ -165,7 +165,7 @@ open(char const* path, file_mode mode, error_code& ec)
         break;
 
     case file_mode::append:         
-        f = O_WRONLY | O_CREAT | O_TRUNC;
+        f = O_WRONLY | O_CREAT | O_APPEND;
     #if BOOST_BEAST_USE_POSIX_FADVISE
         advise = POSIX_FADV_SEQUENTIAL;
     #endif
