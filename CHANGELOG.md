@@ -1,3 +1,5 @@
+Version 324:
+
 * Fix open append mode for file_posix.
 * Fix open append mode for file_win32.
 * Add tests for file open in append mode.
