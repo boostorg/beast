@@ -675,7 +675,11 @@ public:
 
         @param res The HTTP Upgrade response returned by the remote
         endpoint. The caller may use the response to access any
-        additional information sent by the server.
+        additional information sent by the server. Note that the response object
+        referenced by this parameter will be updated as long as the stream has
+        received a valid HTTP response. If not (for example because of a communications
+        error), the response contents will be undefined except for the result() which
+        will bet set to 500, Internal Server Error.
 
         @param host The name of the remote host. This is required by
         the HTTP protocol to set the "Host" header field.

@@ -1,3 +1,7 @@
+* WebSocket handshake response is deterministic on failure.
+
+--------------------------------------------------------------------------------
+
 Version 324:
 
 * Fix open append mode for file_posix.
