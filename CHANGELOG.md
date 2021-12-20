@@ -1,3 +1,7 @@
+* Add test for websocket handshake failure HTTP response.
+
+--------------------------------------------------------------------------------
+
 Version 324:
 
 * Fix open append mode for file_posix.
