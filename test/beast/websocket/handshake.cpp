@@ -727,7 +727,7 @@ public:
     void
     testIssue2364()
     {
-        { // sync
+        { // sync unauthorized
             net::io_context ioc;
             stream<test::stream> ws{ioc};
             auto tr = connect(ws.next_layer());
@@ -745,13 +745,36 @@ public:
                 BEAST_EXPECTS(response.result() == http::status::unauthorized,
                                  std::to_string(response.result_int()));
             }
-            catch(system_error const& se)
+            catch(system_error const&)
             {
                 fail();
             }
         }
 
-        { // async
+        { // sync invalid response
+            net::io_context ioc;
+            stream<test::stream> ws{ioc};
+            auto tr = connect(ws.next_layer());
+            std::string const reply =
+                    "zzzzzzzzzzzzzzzzzzzzz";
+            ws.next_layer().append(reply);
+            tr.close();
+            try
+            {
+                websocket::response_type response;
+                error_code ec;
+                ws.handshake(response, "localhost:80", "/", ec);
+                BEAST_EXPECT(ec);
+                BEAST_EXPECTS(response.result() == http::status::internal_server_error,
+                              std::to_string(response.result_int()));
+            }
+            catch(system_error const&)
+            {
+                fail();
+            }
+        }
+
+        { // async unauthorized
             net::io_context ioc;
             stream<test::stream> ws{ioc};
             auto tr = connect(ws.next_layer());
@@ -766,6 +789,25 @@ public:
                 BEAST_EXPECT(ec);
                 BEAST_EXPECTS(response.result() == http::status::unauthorized,
                                   std::to_string(response.result_int()));
+            };
+            ws.async_handshake(response, "localhost:80", "/", handler);
+            ioc.run();
+        }
+
+        { // async invalid response
+            net::io_context ioc;
+            stream<test::stream> ws{ioc};
+            auto tr = connect(ws.next_layer());
+            std::string const reply =
+                    "zzzzzzzzzzzzzzzz";
+            ws.next_layer().append(reply);
+            tr.close();
+            websocket::response_type response;
+            auto handler = [&](error_code ec)
+            {
+                BEAST_EXPECT(ec);
+                BEAST_EXPECTS(response.result() == http::status::internal_server_error,
+                              std::to_string(response.result_int()));
             };
             ws.async_handshake(response, "localhost:80", "/", handler);
             ioc.run();

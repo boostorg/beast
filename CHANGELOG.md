@@ -1,3 +1,4 @@
+* WebSocket handshake response is deterministic on failure.
 * Add test for websocket handshake failure HTTP response.
 
 --------------------------------------------------------------------------------
