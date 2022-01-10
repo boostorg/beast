@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 
-Version 225:
+Version 325:
 
 * WebSocket handshake response is deterministic on failure.
 
