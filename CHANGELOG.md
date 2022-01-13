@@ -1,3 +1,7 @@
+* Add ARM64 builds to Drone CI.
+
+--------------------------------------------------------------------------------
+
 Version 327:
 
 * Fix async_base documentation link.
