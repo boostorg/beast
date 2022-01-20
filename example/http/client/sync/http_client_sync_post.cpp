@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2021-2022 Guilherme Schvarcz Franco (guilhermefrancosi at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -9,7 +9,7 @@
 
 //------------------------------------------------------------------------------
 //
-// Example: HTTP client, synchronous
+// Example: HTTP client, synchronous, POST method
 //
 //------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ namespace http = beast::http;       // from <boost/beast/http.hpp>
 namespace net = boost::asio;        // from <boost/asio.hpp>
 using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
 
-// Performs an HTTP GET and prints the response
+// Performs an HTTP POST and prints the response
 int main(int argc, char** argv)
 {
     try
@@ -38,10 +38,10 @@ int main(int argc, char** argv)
         if(argc != 4 && argc != 5)
         {
             std::cerr <<
-                "Usage: http-client-sync <host> <port> <target> [<HTTP version: 1.0 or 1.1(default)>]\n" <<
+                "Usage: http-client-sync-post <host> <port> <target> [<HTTP version: 1.0 or 1.1(default)>]\n" <<
                 "Example:\n" <<
-                "    http-client-sync www.example.com 80 /\n" <<
-                "    http-client-sync www.example.com 80 / 1.0\n";
+                "    http-client-sync-post www.example.com 80 /\n" <<
+                "    http-client-sync-post www.example.com 80 / 1.0\n";
             return EXIT_FAILURE;
         }
         auto const host = argv[1];
@@ -62,10 +62,15 @@ int main(int argc, char** argv)
         // Make the connection on the IP address we get from a lookup
         stream.connect(results);
 
-        // Set up an HTTP GET request message
-        http::request<http::string_body> req{http::verb::get, target, version};
+        // Set up an HTTP POST request message
+        http::request<http::string_body> req{http::verb::post, target, version};
         req.set(http::field::host, host);
         req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        std::string payload = "var1=1&var2=2";
+        req.set(http::field::content_type, "application/x-www-form-urlencoded");
+        req.set(http::field::content_length, payload.size());
+        req.body() = payload;
 
         // Send the HTTP request to the remote host
         http::write(stream, req);
