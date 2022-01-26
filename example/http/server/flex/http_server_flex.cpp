@@ -15,6 +15,8 @@
 
 #include "example/common/server_certificate.hpp"
 
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/ssl.hpp>
@@ -38,38 +40,42 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 // Return a reasonable mime type based on the extension of a file.
 beast::string_view
-mime_type(beast::string_view path)
+mime_type(const beast::string_view path)
 {
-    using beast::iequals;
-    auto const ext = [&path]
+    static const boost::unordered_map<beast::string_view, beast::string_view>
+            type_map
     {
-        auto const pos = path.rfind(".");
-        if(pos == beast::string_view::npos)
-            return beast::string_view{};
-        return path.substr(pos);
-    }();
-    if(iequals(ext, ".htm"))  return "text/html";
-    if(iequals(ext, ".html")) return "text/html";
-    if(iequals(ext, ".php"))  return "text/html";
-    if(iequals(ext, ".css"))  return "text/css";
-    if(iequals(ext, ".txt"))  return "text/plain";
-    if(iequals(ext, ".js"))   return "application/javascript";
-    if(iequals(ext, ".json")) return "application/json";
-    if(iequals(ext, ".xml"))  return "application/xml";
-    if(iequals(ext, ".swf"))  return "application/x-shockwave-flash";
-    if(iequals(ext, ".flv"))  return "video/x-flv";
-    if(iequals(ext, ".png"))  return "image/png";
-    if(iequals(ext, ".jpe"))  return "image/jpeg";
-    if(iequals(ext, ".jpeg")) return "image/jpeg";
-    if(iequals(ext, ".jpg"))  return "image/jpeg";
-    if(iequals(ext, ".gif"))  return "image/gif";
-    if(iequals(ext, ".bmp"))  return "image/bmp";
-    if(iequals(ext, ".ico"))  return "image/vnd.microsoft.icon";
-    if(iequals(ext, ".tiff")) return "image/tiff";
-    if(iequals(ext, ".tif"))  return "image/tiff";
-    if(iequals(ext, ".svg"))  return "image/svg+xml";
-    if(iequals(ext, ".svgz")) return "image/svg+xml";
-    return "application/text";
+        {".hml", "text/html"},
+        {".html", "text/html"},
+        {".php", "text/html"},
+        {".css", "text/css"},
+        {".txt", "text/plain"},
+        {".js", "application/javascript"},
+        {".json", "application/json"},
+        {".xml", "application/xml"},
+        {".swf", "application/x-shockwave-flash"},
+        {".flv", "video/x-flv"},
+        {".png", "mage/png"},
+        {".jpe", "image/jpeg"},
+        {".jpeg", "image/jpeg"},
+        {".jpg", "image/jpeg"},
+        {".gif", "image/gif"},
+        {".bmp", "image/bmp"},
+        {".ico", "image/vnd.microsoft.icon"},
+        {".tiff", "image/tiff"},
+        {".tif", "image/tiff"},
+        {".svg", "image/svg+xml"},
+        {".svgz", "image/svg+xml"}
+    };
+
+    auto const pos = path.rfind(".");
+    if(pos == beast::string_view::npos)
+        return "application/text";
+
+    auto const ext = boost::to_lower_copy(std::string(path.substr(pos)));
+    auto const it = type_map.find(ext);
+
+    return it == type_map.end() ? "application/text" : it->second;
 }
 
 // Append an HTTP rel-path to a local filesystem path.
