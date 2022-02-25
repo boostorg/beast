@@ -1,3 +1,7 @@
+* Add missing include in `file_body` test.
+
+--------------------------------------------------------------------------------
+
 Version 328:
 
 * Add ARM64 builds to Drone CI.

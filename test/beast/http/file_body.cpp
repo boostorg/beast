@@ -20,6 +20,7 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/asio/error.hpp>
+#include <fstream>
 
 namespace boost {
 namespace beast {
