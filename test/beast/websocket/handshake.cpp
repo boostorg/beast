@@ -707,6 +707,57 @@ public:
         }
     }
 
+    // https://github.com/boostorg/beast/issues/2394
+    void
+    testIssue2394()
+    {
+        net::io_context ioc;
+        stream<net::ip::tcp::socket> ws1(ioc);
+        stream<net::ip::tcp::socket> ws2(ioc);
+
+        test::connect(ws1.next_layer(), ws2.next_layer());
+
+        // Setup the timeout
+        ws1.set_option(stream_base::timeout{
+            std::chrono::milliseconds(50),
+            std::chrono::milliseconds(10),
+            true});
+
+        // Perform a successful handshake.
+        ws1.async_handshake("test", "/",
+            test::success_handler());
+        ws2.async_accept(test::success_handler());
+        test::run_for(ioc, std::chrono::seconds(1));
+
+        // Stall for 10 * idle timeout
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        // Try to read some data after that delay to witness timeout
+        char buffer;
+        ws1.async_read_some(net::buffer(&buffer, 1),
+            test::fail_handler(beast::error::timeout));
+        test::run_for(ioc, std::chrono::seconds(1));
+
+        // Close ws1 to restart fresh
+        ws1.async_close(beast::websocket::close_code::normal,
+            test::any_handler());
+        ws2.async_close(beast::websocket::close_code::normal,
+            test::any_handler());
+        test::run_for(ioc, std::chrono::seconds(1));
+        ws1.next_layer().close();
+        ws2.next_layer().close();
+
+        // Connect ws1 to a new peer
+        test::connect(ws1.next_layer(), ws2.next_layer());
+
+        // Ensure ws1 can be reused and a successful
+        // handshake can be performed.
+        ws1.async_handshake("test", "/",
+            test::success_handler());
+        ws2.async_accept(test::success_handler());
+        test::run_for(ioc, std::chrono::seconds(1));
+    }
+
 #if BOOST_ASIO_HAS_CO_AWAIT
     void testAwaitableCompiles(
         stream<test::stream>& s,
@@ -734,6 +785,7 @@ public:
         testMoveOnly();
         testAsync();
         testIssue1460();
+        testIssue2394();
 #if BOOST_ASIO_HAS_CO_AWAIT
         boost::ignore_unused(&handshake_test::testAwaitableCompiles);
 #endif
