@@ -175,6 +175,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
         wr_cont = false;
         wr_buf_size = 0;
 
+        this->reset_idle();
         this->open_pmd(role);
     }
 
@@ -208,6 +209,8 @@ struct stream<NextLayer, deflateSupported>::impl_type
 
         // VFALCO Is this needed?
         timer.cancel();
+
+        this->reset_idle();
     }
 
     void
