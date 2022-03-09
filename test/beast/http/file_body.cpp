@@ -10,6 +10,8 @@
 // Test that header file is self-contained.
 #include <boost/beast/http/file_body.hpp>
 
+#include <fstream>
+
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/file_stdio.hpp>
