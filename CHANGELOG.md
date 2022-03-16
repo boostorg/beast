@@ -1,3 +1,7 @@
+* Update release notes for Boost 1.79.
+
+--------------------------------------------------------------------------------
+
 Version 329:
 
 * Add missing include in `file_body` test.

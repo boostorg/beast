@@ -11,13 +11,33 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.79]
+
+[*Fixes]
+
+* [issue 2391] Add missing include for file_body test.
+* [issue 2364] Fix WebSocket handshake response on failure.
+* [issue 2280] (related) Fix open append mode for file_posix.
+* [issue 2280] Fix open append mode for file_win32.
+* [issue 2280] Fix file open with append/append_existing flag on Windows
+* [issue 2354] Fix clang-cl UTF8 path handling for `file_win32`.
+* [issue 2354] Fix clang-cl UTF8 path handling for `file_stdio`.
+
+[*Miscellaneous]
+
+* [issue 2375] Add ARM64 builds to drone CI
+* [issue 2217] Fix async_base documentation link
+* [issue 2280] Add tests for file open in append/append_existing mode
+* [issue 2351] Update CI to include gcc 11, clang 12, msvc 14.3
+* [issue 2350] Add individual tests to CMake workflow
+
 [heading Boost 1.78]
 
 [*Fixes]
 
 * Fix CVE-2016-9840 in zlib implementation.
 * Fix TLS SNI handling in websocket_client_async_ssl example.
-* [Issue 2313] Fix reuse of sliding window in WebSocket permessage_deflate.
+* [issue 2313] Fix reuse of sliding window in WebSocket permessage_deflate.
 * Fix accept error handling in http_server_async example.
 
 [*Miscellaneous]
@@ -33,7 +53,7 @@
 
 [*Fixes]
 
-* [Issue 2233] Remove use of POSIX-only constant.
+* [issue 2233] Remove use of POSIX-only constant.
 
 [*Miscellaneous]
 
