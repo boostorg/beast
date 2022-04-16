@@ -248,7 +248,7 @@ public:
                                 goto loop;
                             if(impl.ctrl_cb)
                                 impl.ctrl_cb(
-                                    frame_type::ping, payload);
+                                    frame_type::ping, to_string_view(payload));
                             impl.rd_fb.clear();
                             impl.template write_ping<
                                 flat_static_buffer_base>(impl.rd_fb,
@@ -336,7 +336,7 @@ public:
                         impl.rd_buf.consume(len);
                         // Ignore pong when closing
                         if(! impl.wr_close && impl.ctrl_cb)
-                            impl.ctrl_cb(frame_type::pong, payload);
+                            impl.ctrl_cb(frame_type::pong, to_string_view(payload));
                         goto loop;
                     }
 
@@ -376,7 +376,7 @@ public:
                         impl.rd_buf.consume(len);
                         if(impl.ctrl_cb)
                             impl.ctrl_cb(frame_type::close,
-                                impl.cr.reason);
+                                to_string_view(impl.cr.reason));
                         // See if we are already closing
                         if(impl.status_ == status::closing)
                         {
@@ -1103,7 +1103,7 @@ loop:
                     goto loop;
                 }
                 if(impl.ctrl_cb)
-                    impl.ctrl_cb(frame_type::ping, payload);
+                    impl.ctrl_cb(frame_type::ping, to_string_view(payload));
                 detail::frame_buffer fb;
                 impl.template write_ping<flat_static_buffer_base>(fb,
                     detail::opcode::pong, payload);
@@ -1119,7 +1119,7 @@ loop:
                 detail::read_ping(payload, b);
                 impl.rd_buf.consume(len);
                 if(impl.ctrl_cb)
-                    impl.ctrl_cb(frame_type::pong, payload);
+                    impl.ctrl_cb(frame_type::pong, to_string_view(payload));
                 goto loop;
             }
             // Handle close frame
@@ -1139,7 +1139,7 @@ loop:
                 impl.cr = cr;
                 impl.rd_buf.consume(len);
                 if(impl.ctrl_cb)
-                    impl.ctrl_cb(frame_type::close, impl.cr.reason);
+                    impl.ctrl_cb(frame_type::close, to_string_view(impl.cr.reason));
                 BOOST_ASSERT(! impl.wr_close);
                 // _Start the WebSocket Closing Handshake_
                 do_fail(

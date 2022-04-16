@@ -643,7 +643,7 @@ public:
             m.method(verb::get);
             m.version(11);
             m.target("/");
-            m.set("Content-Length", to_static_string(5));
+            m.set("Content-Length", "5");
             m.body() = "*****";
             async_write(ts, m, handler{});
             BEAST_EXPECT(handler::count() > 0);
@@ -666,7 +666,7 @@ public:
                 m.method(verb::get);
                 m.version(11);
                 m.target("/");
-                m.set("Content-Length", to_static_string(5));
+                m.set("Content-Length", "5");
                 m.body() = "*****";
                 async_write(ts, m, handler{});
                 BEAST_EXPECT(handler::count() > 0);

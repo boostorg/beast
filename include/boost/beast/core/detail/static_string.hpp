@@ -10,55 +10,14 @@
 #ifndef BOOST_BEAST_DETAIL_STATIC_STRING_HPP
 #define BOOST_BEAST_DETAIL_STATIC_STRING_HPP
 
-#include <boost/beast/core/string.hpp>
 #include <boost/assert.hpp>
-#include <iterator>
+#include <boost/core/ignore_unused.hpp>
+#include <string>
 #include <type_traits>
 
 namespace boost {
 namespace beast {
 namespace detail {
-
-// Because k-ballo said so
-template<class T>
-using is_input_iterator =
-    std::integral_constant<bool,
-        ! std::is_integral<T>::value>;
-
-template<class CharT, class Traits>
-int
-lexicographical_compare(
-    CharT const* s1, std::size_t n1,
-    CharT const* s2, std::size_t n2)
-{
-    if(n1 < n2)
-        return Traits::compare(
-            s1, s2, n1) <= 0 ? -1 : 1;
-    if(n1 > n2)
-        return Traits::compare(
-            s1, s2, n2) >= 0 ? 1 : -1;
-    return Traits::compare(s1, s2, n1);
-}
-
-template<class CharT, class Traits>
-int
-lexicographical_compare(
-    basic_string_view<CharT, Traits> s1,
-    CharT const* s2, std::size_t n2)
-{
-    return detail::lexicographical_compare<
-        CharT, Traits>(s1.data(), s1.size(), s2, n2);
-}
-
-template<class CharT, class Traits>
-int
-lexicographical_compare(
-    basic_string_view<CharT, Traits> s1,
-    basic_string_view<CharT, Traits> s2)
-{
-    return detail::lexicographical_compare<CharT, Traits>(
-        s1.data(), s1.size(), s2.data(), s2.size());
-}
 
 // Maximum number of characters in the decimal
 // representation of a binary number. This includes

@@ -36,6 +36,7 @@ git submodule update --init --depth 20 --jobs 4 \
     libs/optional \
     libs/smart_ptr \
     libs/static_assert \
+    libs/static_string \
     libs/system \
     libs/throw_exception \
     libs/type_traits \

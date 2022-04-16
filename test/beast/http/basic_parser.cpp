@@ -1136,7 +1136,7 @@ public:
         auto const grind =
         [&](string_view s)
         {
-            static_string<100> ss{s};
+            static_string<100> ss(s.data(), s.size());
             test::fuzz_rand r;
             test::fuzz(ss, 4, 5, r,
             [&](string_view s)
