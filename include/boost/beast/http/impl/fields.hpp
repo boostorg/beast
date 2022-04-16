@@ -933,8 +933,9 @@ set_content_length_impl(
         erase(field::content_length);
     else
     {
+        auto s = to_static_string(*value);
         set(field::content_length,
-            to_static_string(*value));
+            to_string_view(s));
     }
 }
 

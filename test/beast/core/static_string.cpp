@@ -941,10 +941,15 @@ public:
             s3.append(s1, 1, 1);
             BEAST_EXPECT(s3 == "12Y");
             BEAST_EXPECT(*s3.end() == 0);
-            try
             {
                 static_string<3> s4("12");
                 s4.append(s1, 3);
+                BEAST_EXPECT(s4 == "12");
+            }
+            try
+            {
+                static_string<3> s4("12");
+                s4.append(s1, 4);
                 fail("", __FILE__, __LINE__);
             }
             catch(std::out_of_range const&)

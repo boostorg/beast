@@ -29,6 +29,7 @@ target_link_libraries(boost_beast
     Boost::optional
     Boost::smart_ptr
     Boost::static_assert
+    Boost::static_string
     Boost::system
     Boost::throw_exception
     Boost::type_traits

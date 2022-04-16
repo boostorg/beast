@@ -176,7 +176,7 @@ public:
             header.version(11);
             header.result(status::accepted);
             header.set(field::server, "test");
-            header.set(field::content_length, to_static_string(4097));
+            header.set(field::content_length, "4097");
 
             typename file_body_type::writer w(header, value);
             auto maybe_range = w.get(ec);

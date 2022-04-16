@@ -120,7 +120,7 @@ build_response(
         if(it == req.end())
             return err(error::no_sec_key);
         key = it->value();
-        if(key.size() > detail::sec_ws_key_type::max_size_n)
+        if(key.size() > detail::sec_ws_key_type::static_capacity)
             return err(error::bad_sec_key);
     }
     {
@@ -149,7 +149,7 @@ build_response(
     {
         detail::sec_ws_accept_type acc;
         detail::make_sec_ws_accept(acc, key);
-        res.set(http::field::sec_websocket_accept, acc);
+        res.set(http::field::sec_websocket_accept, to_string_view(acc));
     }
     this->build_response_pmd(res, req);
     decorate(res);

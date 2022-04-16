@@ -39,6 +39,13 @@ using basic_string_view =
 
 #endif
 
+template<class S>
+inline string_view
+to_string_view(const S& s)
+{
+    return string_view(s.data(), s.size());
+}
+
 } // beast
 } // boost
 

@@ -631,7 +631,7 @@ build_request(
     req.set(http::field::upgrade, "websocket");
     req.set(http::field::connection, "upgrade");
     detail::make_sec_ws_key(key);
-    req.set(http::field::sec_websocket_key, key);
+    req.set(http::field::sec_websocket_key, to_string_view(key));
     req.set(http::field::sec_websocket_version, "13");
     this->build_request_pmd(req);
     decorator_opt(req);
@@ -677,8 +677,8 @@ on_response(
         if(it == res.end())
             return err(error::no_sec_accept);
         detail::sec_ws_accept_type acc;
-        detail::make_sec_ws_accept(acc, key);
-        if(acc.compare(it->value()) != 0)
+        detail::make_sec_ws_accept(acc, to_string_view(key));
+        if (to_string_view(acc).compare(it->value()) != 0)
             return err(error::bad_sec_accept);
     }
 

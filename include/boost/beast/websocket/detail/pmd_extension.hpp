@@ -82,7 +82,7 @@ pmd_write(http::basic_fields<Allocator>& fields,
     pmd_offer const& offer)
 {
     auto s = detail::pmd_write_impl(offer);
-    fields.set(http::field::sec_websocket_extensions, s);
+    fields.set(http::field::sec_websocket_extensions, to_string_view(s));
 }
 
 // Negotiate a permessage-deflate client offer
@@ -104,7 +104,7 @@ pmd_negotiate(
 
     auto s = detail::pmd_negotiate_impl(config, offer, o);
     if(config.accept)
-        fields.set(http::field::sec_websocket_extensions, s);
+        fields.set(http::field::sec_websocket_extensions, to_string_view(s));
 }
 
 // Normalize the server's response

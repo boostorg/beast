@@ -230,7 +230,7 @@ public:
         [&](string_view s)
         {
             error_code ec;
-            static_string<200> ss{s};
+            static_string<200> ss(s.data(), s.size());
             test::fuzz_rand r;
             for(auto i = 3; i--;)
             {
