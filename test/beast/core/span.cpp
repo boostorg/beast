@@ -21,25 +21,6 @@ namespace beast {
 class span_test : public beast::unit_test::suite
 {
 public:
-    BOOST_STATIC_ASSERT(
-        detail::is_contiguous_container<
-        string_view, char const>::value);
-
-    struct base {};
-    struct derived : base {};
-
-    BOOST_STATIC_ASSERT(detail::is_contiguous_container<
-        std::vector<char>, char>::value);
-    
-    BOOST_STATIC_ASSERT(detail::is_contiguous_container<
-        std::vector<char>, char const>::value);
-
-    BOOST_STATIC_ASSERT(! detail::is_contiguous_container<
-        std::vector<derived>, base>::value);
-
-    BOOST_STATIC_ASSERT(! detail::is_contiguous_container<
-        std::vector<derived>, base const>::value);
-
     void
     testSpan()
     {
