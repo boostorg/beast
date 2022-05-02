@@ -1,3 +1,9 @@
+Version 331: DRAFT
+
+* Using core::string_view instead of utility::string_view
+
+--------------------------------------------------------------------------------
+
 Version 330:
 
 * Update release notes for Boost 1.79.

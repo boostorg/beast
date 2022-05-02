@@ -11,6 +11,17 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.80]
+
+[*Miscellaneous]
+
+* [issue 2417] use boost::core::string_view. This improves inter-conversion between string_view implementations. Some observable differences for users:
+ * `core::string_view` no longer supports the `.to_string()` or `.clear()` extensions from Utility
+ * code that relied on `.max_size()` returning `.size(),` needs to be fixed to use `.size()` instead
+ * `remove_suffix()` and `remove_prefix()` were more lenient than the standard specs; be sure you don't rely on it clamping the argument to valid range
+ * `BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS` no longer suppresses conversions to `std::string`
+
+
 [heading Boost 1.79]
 
 [*Fixes]
@@ -142,10 +153,10 @@
     enable deprecated functionality is now the macro `BOOST_BEAST_ALLOW_DEPRECATED` which is
     undefined by default. That is, all deprecated behaviour is disabled by default.
   * The following deprecated functions have been removed:
-    - `websocket::async_accept_ex`
-    - `websocket::async_handshake_ex`
-    - `websocket::accept_ex`
-    - `websocket::handshake_ex`
+    * `websocket::async_accept_ex`
+    * `websocket::async_handshake_ex`
+    * `websocket::accept_ex`
+    * `websocket::handshake_ex`
     Programs still using these names should be refactored to use the `decorator` feature and
     the remaining handshake and accept functions.
   * `websocket::role_type` has been removed. Users should use `beast::role_type` instead.
@@ -153,11 +164,11 @@
     `bind_front_handler` instead.
   * Code that depends on `mutable_data_type` should be refactored to use
     `mutable_buffers_type`. Classes affected are:
-    - `buffers_adaptor`
-    - `flat_buffer`
-    - `flat_static_buffer`
-    - `multi_buffer`
-    - `static_buffer`
+    * `buffers_adaptor`
+    * `flat_buffer`
+    * `flat_static_buffer`
+    * `multi_buffer`
+    * `static_buffer`
   * The `reset` function has been removed from `flat_static_buffer`. Use the
     `clear` function instead.
   * The `core/type_traits.hpp` public header has been removed and along with it
@@ -205,11 +216,11 @@
 [*API Changes]
 
 * Nested `mutable_data_type` in Beast dynamic buffers is deprecated. Affected types:
-  - `buffers_adaptor`
-  - `flat_buffer`
-  - `flat_static_buffer`
-  - `multi_buffer`
-  - `static_buffer`
+  * `buffers_adaptor`
+  * `flat_buffer`
+  * `flat_static_buffer`
+  * `multi_buffer`
+  * `static_buffer`
 
 
 [*Changes Required]
@@ -593,7 +604,7 @@
 
 * `file_mode::append_new` is removed, as it makes no sense.
   ['Actions Required]:
-  - Replace `file_mode::append_new` with either
+  * Replace `file_mode::append_new` with either
     `file_mode::append` or
     `file_mode::append_existing`
     as needed.
@@ -603,7 +614,7 @@
 * `buffers_range_ref`
   is preferred to `std::reference_wrapper`.
   ['Actions Required]:
-  - Call
+  * Call
     `buffers_range_ref`
     with the buffer, instead of calling
     `buffers_range`
@@ -618,10 +629,10 @@
 * WebSocket decorator is a socket option:
   * Overloads of the following functions which accept a Decorator
     are deprecated:
-    - `accept`, `accept_ex`
-    - `handshake`, `handshake_ex`
-    - `async_accept`, `async_accept_ex`
-    - `async_handshake`, `async_handshake_ex`
+    * `accept`, `accept_ex`
+    * `handshake`, `handshake_ex`
+    * `async_accept`, `async_accept_ex`
+    * `async_handshake`, `async_handshake_ex`
 
 * ([issue 1375]) The value returned from `basic_parser::content_length`
   no longer changes as the body of the message is received.
