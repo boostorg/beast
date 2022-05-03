@@ -277,23 +277,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - description: msvc-14.1-cxx14-win32
-            toolset: msvc-14.1
-            cxxstd: "14"
-            addrmd: 32
-            os: windows-2016
-            cxxflags: ""
-            supported: true
-# msvc-141 ICEs when built with
-# optimisations on in c++17 configuration
-# both 32-bit and 64-bit arch
-          - description: msvc-14.1-cxx14-win64
-            toolset: msvc-14.1
-            cxxstd: "14"
-            addrmd: 64
-            os: windows-2016
-            cxxflags: ""
-            supported: true
           - description: msvc-14.2-cxx14-win32
             toolset: msvc-14.2
             cxxstd: "14"
