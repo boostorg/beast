@@ -165,6 +165,7 @@
         <bridgehead renderas="sect3">Concepts</bridgehead>
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.concepts.BufferSequence">BufferSequence</link></member>
+          <member><link linkend="beast.concepts.BuffersGenerator">BuffersGenerator</link></member>
           <member><link linkend="beast.concepts.DynamicBuffer">DynamicBuffer</link></member>
         </simplelist>
       </entry>

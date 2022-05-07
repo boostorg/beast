@@ -35,6 +35,7 @@ add_executable (tests-beast-core
     buffered_read_stream.cpp
     buffers_adaptor.cpp
     buffers_cat.cpp
+    buffers_generator.cpp
     buffers_prefix.cpp
     buffers_range.cpp
     buffers_suffix.cpp

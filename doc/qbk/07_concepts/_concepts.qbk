@@ -15,6 +15,7 @@ This section describes all of the concepts defined by the library.
 [include BodyReader.qbk]
 [include BodyWriter.qbk]
 [include BufferSequence.qbk]
+[include BuffersGenerator.qbk]
 [include DynamicBuffer.qbk]
 [include Fields.qbk]
 [include FieldsWriter.qbk]
