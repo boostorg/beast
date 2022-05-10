@@ -73,7 +73,7 @@ public:
     using Generator = test_detail::test_buffers_generator;
 
     void
-    check_minimal_generator()
+    testMinimalGenerator()
     {
         static_assert(is_buffers_generator<Generator>::value,
                       "buffers_generator not modeled");
@@ -100,7 +100,7 @@ public:
     }
 
     void
-    check_write()
+    testWrite()
     {
         net::io_context ioc;
         test::stream out(ioc), in(ioc);
@@ -125,7 +125,7 @@ public:
     }
 
     void
-    check_write_exception()
+    testWriteException()
     {
         net::io_context ioc;
         test::stream out(ioc), in(ioc);
@@ -149,7 +149,7 @@ public:
     }
 
     void
-    check_async_write()
+    testAsyncWrite()
     {
         net::io_context ioc;
         test::stream out(ioc), in(ioc);
@@ -177,7 +177,7 @@ public:
     }
 
     void
-    check_write_fail()
+    testWriteFail()
     {
         net::io_context ioc;
         test::fail_count fc { 3 };
@@ -201,7 +201,7 @@ public:
     }
 
     void
-    check_async_write_fail()
+    testAsyncWriteFail()
     {
         net::io_context ioc;
         test::fail_count fc { 3 };
@@ -229,13 +229,13 @@ public:
     void
     run() override
     {
-        check_minimal_generator();
-        check_write();
-        check_write_exception();
-        check_async_write();
+        testMinimalGenerator();
+        testWrite();
+        testWriteException();
+        testAsyncWrite();
 
-        check_write_fail();
-        check_async_write_fail();
+        testWriteFail();
+        testAsyncWriteFail();
     }
 };
 
