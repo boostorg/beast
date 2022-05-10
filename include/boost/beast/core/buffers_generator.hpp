@@ -125,13 +125,14 @@ template <
     ,
     typename std::enable_if<
         is_sync_write_stream<SyncWriteStream>::value &&
-        is_buffers_generator<BuffersGenerator>::value>::
-        type* = nullptr
+        is_buffers_generator<typename std::decay<
+            BuffersGenerator>::type>::value>::type* =
+        nullptr
 #endif
     >
 size_t
 write(SyncWriteStream& stream,
-      BuffersGenerator generator,
+      BuffersGenerator&& generator,
       beast::error_code& ec)
 {
     ec.clear();
@@ -164,15 +165,18 @@ template <
     ,
     typename std::enable_if<
         is_sync_write_stream<SyncWriteStream>::value &&
-        is_buffers_generator<BuffersGenerator>::value>::
-        type* = nullptr
+        is_buffers_generator<typename std::decay<
+            BuffersGenerator>::type>::value>::type* =
+        nullptr
 #endif
     >
 std::size_t
-write(SyncWriteStream& stream, BuffersGenerator generator)
+write(SyncWriteStream& stream, BuffersGenerator&& generator)
 {
     beast::error_code ec;
-    std::size_t n = write(stream, generator, ec);
+    std::size_t n = write(
+        stream, std::forward<BuffersGenerator>(generator),
+        ec);
     if (ec)
         BOOST_THROW_EXCEPTION(system_error{ ec });
     return n;

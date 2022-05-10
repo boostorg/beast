@@ -118,11 +118,11 @@ public:
 
             http_generator gen(make_get());
 
-            async_write(
-                out, gen, [&](error_code ec, size_t total) {
-                    BEAST_EXPECT(total == 61);
-                    BEAST_EXPECT(!ec.failed());
-                });
+            async_write(out, std::move(gen),
+                        [&](error_code ec, size_t total) {
+                            BEAST_EXPECT(total == 61);
+                            BEAST_EXPECT(!ec.failed());
+                        });
 
             ioc.run();
         }
@@ -135,11 +135,48 @@ public:
     }
 
     void
+    testWrite()
+    {
+        net::io_context ioc;
+        test::stream out(ioc), in(ioc);
+        test::connect(out, in);
+
+        {
+            http_generator gen(make_get());
+
+            error_code ec;
+            std::size_t total = write(out, gen, ec);
+
+            BEAST_EXPECT(total == 61);
+            BEAST_EXPECT(!ec.failed());
+
+            BEAST_EXPECT(1 == out.nwrite());
+            BEAST_EXPECT(61 == in.nwrite_bytes());
+            BEAST_EXPECT(in.str() ==
+                    "GET /path/query?1 HTTP/1.1\r\n\r\n"
+                    "Serializable but ignored on GET");
+        }
+
+        in.clear();
+
+        {
+            // rvalue accepted
+            std::size_t total =
+                write(out, http_generator{ make_get() });
+            BEAST_EXPECT(total == 61);
+            BEAST_EXPECT(in.str() ==
+                    "GET /path/query?1 HTTP/1.1\r\n\r\n"
+                    "Serializable but ignored on GET");
+        }
+    }
+
+    void
     run() override
     {
         testGenerate();
         testGenerateSlowConsumer();
         testAsyncWrite();
+        testWrite();
     }
 };
 

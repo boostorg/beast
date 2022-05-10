@@ -11,18 +11,31 @@
 #define BOOST_BEAST_HTTP_IMPL_HTTP_GENERATOR_HPP
 
 #include <boost/beast/http/http_generator.hpp>
+#include <boost/smart_ptr/make_unique.hpp>
+#include <boost/beast/core/buffers_generator.hpp>
 
 namespace boost {
 namespace beast {
 namespace http {
 
 template <bool isRequest, class Body, class Fields>
+http_generator::http_generator(
+    http::message<isRequest, Body, Fields>&& m)
+    : impl_(boost::make_unique<
+            generator_impl<isRequest, Body, Fields>>(
+          std::move(m)))
+{
+}
+
+template <bool isRequest, class Body, class Fields>
 struct http_generator::generator_impl
     : http_generator::impl_base
 {
+    using seq_t = std::array<net::const_buffer, 16>;
+
     http::message<isRequest, Body, Fields> m_;
     http::serializer<isRequest, Body, Fields> sr_;
-    std::array<net::const_buffer, 16> buf_;
+    seq_t bufs_;
 
     explicit generator_impl(
         http::message<isRequest, Body, Fields>&& m)
@@ -33,7 +46,7 @@ struct http_generator::generator_impl
 
     struct visit
     {
-        generator_impl* this_;
+        seq_t& bufs_;
         const_buffers_type& cb_;
 
         template <class ConstBufferSequence>
@@ -45,9 +58,9 @@ struct http_generator::generator_impl
             auto const end = net::buffer_sequence_end(buffers);
 
             std::size_t n = 0;
-            while (it != end && n < this_->buf_.size())
-                this_->buf_[n++] = *it++;
-            cb_ = { this_->buf_.data(), n };
+            while (it != end && n < bufs_.size())
+                bufs_[n++] = *it++;
+            cb_ = const_buffers_type(bufs_).first(n);
         }
     };
 
@@ -56,9 +69,9 @@ struct http_generator::generator_impl
     {
         if (sr_.is_done())
             return {};
-        const_buffers_type cb;
-        sr_.next(ec, visit{ this, cb });
-        return cb;
+        const_buffers_type result;
+        sr_.next(ec, visit{ bufs_, result });
+        return result;
     }
 
     void

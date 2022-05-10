@@ -104,24 +104,35 @@ public:
     {
         net::io_context ioc;
         test::stream out(ioc), in(ioc);
-        {
-            test::connect(out, in);
+        test::connect(out, in);
 
+        {
             test_detail::test_buffers_generator gen;
 
             beast::error_code ec;
             auto total = write(out, gen, ec);
             BEAST_EXPECT(total == 30);
             BEAST_EXPECT(ec == net::error::eof);
+
+            BEAST_EXPECT(5 == out.nwrite());
+            BEAST_EXPECT(0 == out.nwrite_bytes());
+            BEAST_EXPECT(0 == out.nread_bytes());
+            BEAST_EXPECT(0 == out.nread());
+
+            BEAST_EXPECT(30 == in.nwrite_bytes());
+            BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" ==
+                         in.str());
         }
 
-        BEAST_EXPECT(5 == out.nwrite());
-        BEAST_EXPECT(0 == out.nwrite_bytes());
-        BEAST_EXPECT(0 == out.nread_bytes());
-        BEAST_EXPECT(0 == out.nread());
+        in.clear();
 
-        BEAST_EXPECT(30 == in.nwrite_bytes());
-        BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" == in.str());
+        {
+            error_code ec;
+            auto total = write(out, test_detail::test_buffers_generator{}, ec);
+            BEAST_EXPECT(total == 30);
+            BEAST_EXPECT(ec == net::error::eof);
+            BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" == in.str());
+        }
     }
 
     void
