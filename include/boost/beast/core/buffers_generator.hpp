@@ -124,7 +124,6 @@ template <
 #if ! BOOST_BEAST_DOXYGEN
     ,
     typename std::enable_if<
-        is_sync_write_stream<SyncWriteStream>::value &&
         is_buffers_generator<typename std::decay<
             BuffersGenerator>::type>::value>::type* =
         nullptr
@@ -135,6 +134,10 @@ write(SyncWriteStream& stream,
       BuffersGenerator&& generator,
       beast::error_code& ec)
 {
+    static_assert(
+        is_sync_write_stream<SyncWriteStream>::value,
+        "SyncWriteStream type requirements not met");
+
     ec.clear();
     size_t total = 0;
     for (;;) {
@@ -164,7 +167,6 @@ template <
 #if ! BOOST_BEAST_DOXYGEN
     ,
     typename std::enable_if<
-        is_sync_write_stream<SyncWriteStream>::value &&
         is_buffers_generator<typename std::decay<
             BuffersGenerator>::type>::value>::type* =
         nullptr
@@ -173,6 +175,9 @@ template <
 std::size_t
 write(SyncWriteStream& stream, BuffersGenerator&& generator)
 {
+    static_assert(
+        is_sync_write_stream<SyncWriteStream>::value,
+        "SyncWriteStream type requirements not met");
     beast::error_code ec;
     std::size_t n = write(
         stream, std::forward<BuffersGenerator>(generator),
@@ -191,7 +196,6 @@ template <
 #if !BOOST_BEAST_DOXYGEN
     ,
     typename std::enable_if<
-        is_async_write_stream<AsyncWriteStream>::value &&
         is_buffers_generator<BuffersGenerator>::value //
         >::type* = nullptr
 #endif
@@ -205,7 +209,7 @@ async_write(AsyncWriteStream& stream,
         void(error_code, std::size_t)>::return_type
 {
     static_assert(
-        is_async_write_stream<AsyncWriteStream>::value,
+        beast::is_async_write_stream<AsyncWriteStream>::value,
         "AsyncWriteStream type requirements not met");
     return net::async_compose< //
         CompletionToken,
