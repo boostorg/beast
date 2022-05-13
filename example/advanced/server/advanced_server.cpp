@@ -103,9 +103,9 @@ path_cat(
 
 // This function produces an HTTP response for the given request.
 // The concrete type of the response message (which depends on the
-// request), is type-erased in the http_generator return value.
+// request), is type-erased in the message_generator return value.
 template <class Body, class Allocator>
-http::http_generator
+http::message_generator
 handle_request(
     beast::string_view doc_root,
     http::request<Body, http::basic_fields<Allocator>>&& req)
@@ -327,7 +327,7 @@ class http_session : public std::enable_shared_from_this<http_session>
     std::shared_ptr<std::string const> doc_root_;
 
     static constexpr std::size_t queue_limit = 8; // max responses
-    std::vector<http::http_generator> response_queue_;
+    std::vector<http::message_generator> response_queue_;
 
     // The parser is stored in an optional container so we can
     // construct it from scratch it at the beginning of each new message.
@@ -416,7 +416,7 @@ private:
     }
 
     void
-    enqueue(http::http_generator response)
+    enqueue(http::message_generator response)
     {
         // Allocate and store the work
         response_queue_.push_back(std::move(response));
@@ -438,7 +438,7 @@ private:
             response_queue_.size() == queue_limit;
 
         if (!response_queue_.empty()) {
-            http::http_generator gen =
+            http::message_generator gen =
                 std::move(response_queue_.front());
             response_queue_.erase(response_queue_.begin());
 

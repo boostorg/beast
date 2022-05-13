@@ -17,7 +17,7 @@ how much of the data has been consumed, and repeatedly query for buffers until
 no more data is available, or the generator indicates an error condition.
 
 In this way, serializers can be adapted as [*BuffersGenerator], for example
-__http_generator__ which provides a type-erased interface for a variety of
+__message_generator__ which provides a type-erased interface for a variety of
 concrete http message types.
 
 Overloads of `write` and `async_write` operations are provided as free
@@ -123,6 +123,6 @@ In this table:
 
 [heading Models]
 
-* [link beast.ref.boost__beast__http__http_generator `http_generator`]
+* [link beast.ref.boost__beast__http__message_generator `message_generator`]
 
 [endsect]

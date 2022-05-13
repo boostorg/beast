@@ -79,9 +79,9 @@ path_cat(
 
 // This function produces an HTTP response for the given request.
 // The concrete type of the response message (which depends on the
-// request), is type-erased in the http_generator return value.
+// request), is type-erased in the message_generator return value.
 template <class Body, class Allocator>
-http::http_generator
+http::message_generator
 handle_request(
     beast::string_view doc_root,
     http::request<Body, http::basic_fields<Allocator>>&& req)
@@ -261,7 +261,7 @@ on_read(beast::error_code ec, std::size_t)
     }
 
     // Handle request
-    http::http_generator msg =
+    http::message_generator msg =
         handle_request(state_->doc_root(), parser_->release());
 
     // Determine if we should close the connection

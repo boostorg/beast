@@ -29,7 +29,7 @@ add_executable (tests-beast-http
     field_compiles.cpp
     fields.cpp
     file_body.cpp
-    http_generator.cpp
+    message_generator.cpp
     message.cpp
     parser.cpp
     read.cpp

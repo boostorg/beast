@@ -7,10 +7,10 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#ifndef BOOST_BEAST_HTTP_IMPL_HTTP_GENERATOR_HPP
-#define BOOST_BEAST_HTTP_IMPL_HTTP_GENERATOR_HPP
+#ifndef BOOST_BEAST_HTTP_IMPL_MESSAGE_GENERATOR_HPP
+#define BOOST_BEAST_HTTP_IMPL_MESSAGE_GENERATOR_HPP
 
-#include <boost/beast/http/http_generator.hpp>
+#include <boost/beast/http/message_generator.hpp>
 #include <boost/smart_ptr/make_unique.hpp>
 #include <boost/beast/core/buffers_generator.hpp>
 
@@ -19,7 +19,7 @@ namespace beast {
 namespace http {
 
 template <bool isRequest, class Body, class Fields>
-http_generator::http_generator(
+message_generator::message_generator(
     http::message<isRequest, Body, Fields>&& m)
     : impl_(boost::make_unique<
             generator_impl<isRequest, Body, Fields>>(
@@ -28,8 +28,8 @@ http_generator::http_generator(
 }
 
 template <bool isRequest, class Body, class Fields>
-struct http_generator::generator_impl
-    : http_generator::impl_base
+struct message_generator::generator_impl
+    : message_generator::impl_base
 {
     using seq_t = std::array<net::const_buffer, 16>;
 
@@ -91,4 +91,4 @@ struct http_generator::generator_impl
 } // namespace beast
 } // namespace boost
 
-#endif // BOOST_BEAST_HTTP_IMPL_HTTP_GENERATOR_HPP
+#endif // BOOST_BEAST_HTTP_IMPL_MESSAGE_GENERATOR_HPP

@@ -8,7 +8,7 @@
 //
 
 // Test that header file is self-contained.
-#include <boost/beast/http/http_generator.hpp>
+#include <boost/beast/http/message_generator.hpp>
 
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
@@ -27,28 +27,28 @@ namespace boost {
 namespace beast {
 namespace http {
 
-class http_generator_test : public beast::unit_test::suite
+class message_generator_test : public beast::unit_test::suite
 {
     static_assert(
-        is_buffers_generator<http_generator>::value,
+        is_buffers_generator<message_generator>::value,
         "buffers_generator not modeled");
     BOOST_STATIC_ASSERT(
         std::is_constructible<
-            http_generator,
+            message_generator,
             message<true, string_body>&&>::value);
     BOOST_STATIC_ASSERT(
         std::is_constructible<
-            http_generator,
+            message_generator,
             message<false, string_body>&&>::value);
 
     // only rvalue refs
     BOOST_STATIC_ASSERT(
         not std::is_constructible<
-            http_generator,
+            message_generator,
             message<true, string_body>&>::value);
     BOOST_STATIC_ASSERT(
         not std::is_constructible<
-            http_generator,
+            message_generator,
             message<true, string_body> const&>::value);
 
     static request<string_body> make_get() {
@@ -62,11 +62,11 @@ public:
     void
     testGenerate()
     {
-        http_generator gen(make_get());
+        message_generator gen(make_get());
         error_code ec;
 
         std::vector<std::string> received;
-        http_generator::const_buffers_type b;
+        message_generator::const_buffers_type b;
 
         while (buffer_bytes(b = gen.prepare(ec))) {
             BEAST_EXPECT(!ec);
@@ -84,11 +84,11 @@ public:
     void
     testGenerateSlowConsumer()
     {
-        http_generator gen(make_get());
+        message_generator gen(make_get());
         error_code ec;
 
         std::vector<std::string> received;
-        http_generator::const_buffers_type b;
+        message_generator::const_buffers_type b;
 
         while (buffer_bytes(b = gen.prepare(ec))) {
             BEAST_EXPECT(!ec);
@@ -116,7 +116,7 @@ public:
         {
             test::connect(out, in);
 
-            http_generator gen(make_get());
+            message_generator gen(make_get());
 
             async_write(out, std::move(gen),
                         [&](error_code ec, size_t total) {
@@ -142,7 +142,7 @@ public:
         test::connect(out, in);
 
         {
-            http_generator gen(make_get());
+            message_generator gen(make_get());
 
             error_code ec;
             std::size_t total = write(out, gen, ec);
@@ -162,7 +162,7 @@ public:
         {
             // rvalue accepted
             std::size_t total =
-                write(out, http_generator{ make_get() });
+                write(out, message_generator{ make_get() });
             BEAST_EXPECT(total == 61);
             BEAST_EXPECT(in.str() ==
                     "GET /path/query?1 HTTP/1.1\r\n\r\n"
@@ -180,7 +180,7 @@ public:
     }
 };
 
-BEAST_DEFINE_TESTSUITE(beast,http,http_generator);
+BEAST_DEFINE_TESTSUITE(beast,http,message_generator);
 
 } // http
 } // beast

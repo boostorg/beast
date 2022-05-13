@@ -6,8 +6,8 @@
 //
 // Official repository: https://github.com/boostorg/beast
 //
-#ifndef BOOST_BEAST_HTTP_HTTP_GENERATOR_HPP
-#define BOOST_BEAST_HTTP_HTTP_GENERATOR_HPP
+#ifndef BOOST_BEAST_HTTP_MESSAGE_GENERATOR_HPP
+#define BOOST_BEAST_HTTP_MESSAGE_GENERATOR_HPP
 
 #include <boost/beast/core/span.hpp>
 #include <boost/beast/http/message.hpp>
@@ -18,13 +18,13 @@ namespace boost {
 namespace beast {
 namespace http {
 
-class http_generator
+class message_generator
 {
 public:
     using const_buffers_type = span<net::const_buffer>;
 
     template <bool isRequest, class Body, class Fields>
-    http_generator(http::message<isRequest, Body, Fields>&&);
+    message_generator(http::message<isRequest, Body, Fields>&&);
 
     const_buffers_type prepare(error_code& ec)   { return impl_->prepare(ec);      } 
     void consume(std::size_t n)                  { impl_->consume(n);              } 
@@ -49,6 +49,6 @@ private:
 } // namespace beast
 } // namespace boost
 
-#include <boost/beast/http/impl/http_generator.hpp>
+#include <boost/beast/http/impl/message_generator.hpp>
 
-#endif // BOOST_BEAST_HTTP_HTTP_GENERATOR_HPP
+#endif // BOOST_BEAST_HTTP_MESSAGE_GENERATOR_HPP
