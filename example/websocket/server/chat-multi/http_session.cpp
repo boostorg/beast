@@ -77,9 +77,10 @@ path_cat(
     return result;
 }
 
-// This function produces an HTTP response for the given request.
+// Return a response for the given request.
+//
 // The concrete type of the response message (which depends on the
-// request), is type-erased in the message_generator return value.
+// request), is type-erased in message_generator.
 template <class Body, class Allocator>
 http::message_generator
 handle_request(
@@ -265,28 +266,28 @@ on_read(beast::error_code ec, std::size_t)
         handle_request(state_->doc_root(), parser_->release());
 
     // Determine if we should close the connection
-    bool need_close = not msg.keep_alive();
+    bool keep_alive = msg.keep_alive();
 
     auto self = shared_from_this();
 
     // Send the response
     beast::async_write(
         stream_, std::move(msg),
-        [self, need_close](beast::error_code ec, std::size_t bytes)
+        [self, keep_alive](beast::error_code ec, std::size_t bytes)
         {
-            self->on_write(ec, bytes, need_close);
+            self->on_write(ec, bytes, keep_alive);
         });
 }
 
 void
 http_session::
-on_write(beast::error_code ec, std::size_t, bool close)
+on_write(beast::error_code ec, std::size_t, bool keep_alive)
 {
     // Handle the error, if any
     if(ec)
         return fail(ec, "write");
 
-    if(close)
+    if(! keep_alive)
     {
         // This means we should close the connection, usually because
         // the response indicated the "Connection: close" semantic.

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2022 Seth Heeren (sgheeren at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -24,7 +24,7 @@
 namespace boost {
 namespace beast {
 
-namespace test_detail {
+namespace detail {
 
 struct test_buffers_generator {
     using underlying_buffer_sequence = std::array<net::const_buffer, 2>;
@@ -65,12 +65,12 @@ struct test_buffers_generator {
     }
 };
 
-} // namespace test_detail
+} // namespace detail
 
 class buffers_generator_test : public unit_test::suite
 {
 public:
-    using Generator = test_detail::test_buffers_generator;
+    using Generator = detail::test_buffers_generator;
 
     void
     testMinimalGenerator()
@@ -107,7 +107,7 @@ public:
         test::connect(out, in);
 
         {
-            test_detail::test_buffers_generator gen;
+            detail::test_buffers_generator gen;
 
             beast::error_code ec;
             auto total = write(out, gen, ec);
@@ -128,7 +128,7 @@ public:
 
         {
             error_code ec;
-            auto total = write(out, test_detail::test_buffers_generator{}, ec);
+            auto total = write(out, detail::test_buffers_generator{}, ec);
             BEAST_EXPECT(total == 30);
             BEAST_EXPECT(ec == net::error::eof);
             BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" == in.str());
@@ -143,7 +143,7 @@ public:
         {
             test::connect(out, in);
 
-            test_detail::test_buffers_generator gen;
+            detail::test_buffers_generator gen;
 
             try {
                 auto total = write(out, gen);
@@ -167,7 +167,7 @@ public:
         {
             test::connect(out, in);
 
-            test_detail::test_buffers_generator gen;
+            detail::test_buffers_generator gen;
 
             async_write(
                 out, gen, [&](error_code ec, size_t total) {
@@ -196,7 +196,7 @@ public:
         {
             test::connect(out, in);
 
-            test_detail::test_buffers_generator gen;
+            detail::test_buffers_generator gen;
 
             try {
                 /*auto total =*/ write(out, gen);
@@ -220,7 +220,7 @@ public:
         {
             test::connect(out, in);
 
-            test_detail::test_buffers_generator gen;
+            detail::test_buffers_generator gen;
 
             async_write(
                 out, gen, [&](error_code ec, size_t total) {

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2022 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2022 Seth Heeren (sgheeren at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -26,9 +26,21 @@ public:
     template <bool isRequest, class Body, class Fields>
     message_generator(http::message<isRequest, Body, Fields>&&);
 
-    const_buffers_type prepare(error_code& ec)   { return impl_->prepare(ec);      } 
-    void consume(std::size_t n)                  { impl_->consume(n);              } 
-    bool keep_alive() const noexcept             { return impl_->keep_alive();     } 
+    const_buffers_type
+    prepare(error_code& ec)
+    {
+        return impl_->prepare(ec);
+    }
+    void
+    consume(std::size_t n)
+    {
+        impl_->consume(n);
+    }
+    bool
+    keep_alive() const noexcept
+    {
+        return impl_->keep_alive();
+    }
 
 private:
     struct impl_base
@@ -51,4 +63,4 @@ private:
 
 #include <boost/beast/http/impl/message_generator.hpp>
 
-#endif // BOOST_BEAST_HTTP_MESSAGE_GENERATOR_HPP
+#endif

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2022 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2022 Seth Heeren (sgheeren at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -31,12 +31,6 @@ template <bool isRequest, class Body, class Fields>
 struct message_generator::generator_impl
     : message_generator::impl_base
 {
-    using seq_t = std::array<net::const_buffer, 16>;
-
-    http::message<isRequest, Body, Fields> m_;
-    http::serializer<isRequest, Body, Fields> sr_;
-    seq_t bufs_;
-
     explicit generator_impl(
         http::message<isRequest, Body, Fields>&& m)
         : m_(std::move(m))
@@ -44,40 +38,20 @@ struct message_generator::generator_impl
     {
     }
 
-    struct visit
-    {
-        seq_t& bufs_;
-        const_buffers_type& cb_;
-
-        template <class ConstBufferSequence>
-        void
-        operator()(error_code&,
-                   ConstBufferSequence const& buffers)
-        {
-            auto it = net::buffer_sequence_begin(buffers);
-            auto const end = net::buffer_sequence_end(buffers);
-
-            std::size_t n = 0;
-            while (it != end && n < bufs_.size())
-                bufs_[n++] = *it++;
-            cb_ = const_buffers_type(bufs_).first(n);
-        }
-    };
-
     const_buffers_type
     prepare(error_code& ec) override
     {
         if (sr_.is_done())
-            return {};
-        const_buffers_type result;
-        sr_.next(ec, visit{ bufs_, result });
-        return result;
+            current_ = {};
+        else
+            sr_.next(ec, visit{ *this });
+        return current_;
     }
 
     void
     consume(std::size_t n) override
     {
-        sr_.consume(n);
+        sr_.consume((std::min)(n, beast::buffer_bytes(current_)));
     }
 
     bool
@@ -85,10 +59,43 @@ struct message_generator::generator_impl
     {
         return m_.keep_alive();
     }
+
+private:
+    static constexpr unsigned max_fixed_bufs = 12;
+
+    http::message<isRequest, Body, Fields> m_;
+    http::serializer<isRequest, Body, Fields> sr_;
+
+    std::array<net::const_buffer, max_fixed_bufs> bs_;
+    const_buffers_type current_ = bs_; // subspan
+
+    struct visit
+    {
+        generator_impl& self_;
+
+        template<class ConstBufferSequence>
+        void
+        operator()(error_code&, ConstBufferSequence const& buffers)
+        {
+            auto& s = self_.bs_;
+            auto& cur = self_.current_;
+
+            auto it = net::buffer_sequence_begin(buffers);
+
+            std::size_t n =
+                std::distance(it, net::buffer_sequence_end(buffers));
+
+            n = (std::min)(s.size(), n);
+
+            cur = { s.data(), n };
+            std::copy_n(it, n, cur.begin());
+        }
+    };
+
 };
 
 } // namespace http
 } // namespace beast
 } // namespace boost
 
-#endif // BOOST_BEAST_HTTP_IMPL_MESSAGE_GENERATOR_HPP
+#endif

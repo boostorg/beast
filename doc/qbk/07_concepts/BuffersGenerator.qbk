@@ -17,25 +17,22 @@ how much of the data has been consumed, and repeatedly query for buffers until
 no more data is available, or the generator indicates an error condition.
 
 In this way, serializers can be adapted as [*BuffersGenerator], for example
-__message_generator__ which provides a type-erased interface for a variety of
-concrete http message types.
+[link beast.ref.boost__beast__http__message_generator
+`http::message_generator`] which provides a type-erased interface for a variety
+of concrete http message types.
 
-Overloads of `write` and `async_write` operations are provided as free
-functions. These operations will consume the output of a [*BuffersGenerator]
-and process the data by writing them to a __SyncWriteStream__ or
-__AsyncWriteStream__ respectively.
+Overloads of [link beast.ref.boost__beast__write `write`] and [link
+beast.ref.boost__beast__async_write `async_write`] operations are provided as
+free functions. These operations will consume the output of a
+[*BuffersGenerator] and process the data by writing them to a
+__SyncWriteStream__ or __AsyncWriteStream__ respectively.
 
 [heading Associated Types]
 
-* [link beast.ref.boost__beast__core__is_buffers_generator `is_buffers_generator`]
+* [link beast.ref.boost__beast__is_buffers_generator `is_buffers_generator`]
 * __ConstBufferSequence__
 
 [heading Requirements]
-
-[warning
-    These requirements may undergo non-backward compatible
-    changes in subsequent versions.
-]
 
 In this table:
 
@@ -48,7 +45,7 @@ In this table:
 [[Expression] [Type] [Semantics, Pre/Post-conditions]]
 [
     [`G::const_buffers_type`]
-    [`implementation-defined`]
+    []
     [
         A type which meets the requirements of __ConstBufferSequence__.
         This is the type of buffer returned by `g.prepare(ec)`.
@@ -66,16 +63,20 @@ In this table:
         generator implementation.
 
         Whether additional buffers are generated when unconsumed data is
-        already available at the time of the call is defined by the implementation.
+        already available at the time of the call is defined by the
+        implementation.
 
         The returned value is the __ConstBufferSequence__ of type `b`
         representing unconsumed data.
 
-        If the total size of the buffers in the returned sequence is `0`, the
-        generator is considered to have completed.
+        If the length of the returned sequence is `0`, the generator is
+        considered to have completed.
 
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
+        The result of calling invoking members on `g` after it has completed is
+        unspecified.
+
+        The function will ensure that `ec.failed()` is `false` if there was no
+        error or set to the appropriate error code if there was one. 
 
         The result of invoking `prepare` again after completion or encountered
         error(s) is defined by the generator implementation. It can not be
@@ -93,7 +94,7 @@ In this table:
         the last call to `prepare`, in which case the call to `consume` shall
         behave as if `n` was equal to that number.
 
-        Any previously generated data that has not yet been `consume`d will
+        Any previously generated data that has not yet been consumed will
         be returned from subsequent calls to `prepare`.
     ]
 ][
@@ -111,7 +112,7 @@ In this table:
     // A buffer sequence generator
     struct BuffersGenerator
     {
-        using const_buffers_type = __implementation_defined__; /*<- no idea how to express this in a compiled snippet ->*/
+        using const_buffers_type = net::const_buffer;
 
         const_buffers_type prepare( error_code& ec );
         void consume( std::size_t n );
@@ -123,6 +124,11 @@ In this table:
 
 [heading Models]
 
-* [link beast.ref.boost__beast__http__message_generator `message_generator`]
+* [link beast.ref.boost__beast__http__message_generator `http::message_generator`]
+
+[heading See]
+
+* [link beast.ref.boost__beast__async_write `async_write`]
+* [link beast.ref.boost__beast__write `write`] 
 
 [endsect]

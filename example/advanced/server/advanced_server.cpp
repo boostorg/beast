@@ -101,9 +101,10 @@ path_cat(
     return result;
 }
 
-// This function produces an HTTP response for the given request.
+// Return a response for the given request.
+//
 // The concrete type of the response message (which depends on the
-// request), is type-erased in the message_generator return value.
+// request), is type-erased in message_generator.
 template <class Body, class Allocator>
 http::message_generator
 handle_request(
@@ -408,7 +409,7 @@ private:
         }
 
         // Send the response
-        enqueue(handle_request(*doc_root_, parser_->release()));
+        queue_write(handle_request(*doc_root_, parser_->release()));
 
         // If we aren't at the queue limit, try to pipeline another request
         if (response_queue_.size() < queue_limit)
@@ -416,7 +417,7 @@ private:
     }
 
     void
-    enqueue(http::message_generator response)
+    queue_write(http::message_generator response)
     {
         // Allocate and store the work
         response_queue_.push_back(std::move(response));
@@ -424,7 +425,7 @@ private:
         // If there was no previous work, start the write
         // loop
         if (response_queue_.size() == 1)
-            do_write_loop();
+            do_write();
     }
 
     // Called to start/continue the write-loop. Should not be called when
@@ -432,38 +433,43 @@ private:
     //
     // Returns `true` if the caller may initiate a new read
     bool
-    do_write_loop()
+    do_write()
     {
         bool const was_full =
             response_queue_.size() == queue_limit;
 
-        if (!response_queue_.empty()) {
-            http::message_generator gen =
+        if(! response_queue_.empty())
+        {
+            http::message_generator msg =
                 std::move(response_queue_.front());
             response_queue_.erase(response_queue_.begin());
 
-            bool keep_alive = gen.keep_alive();
+            bool keep_alive = msg.keep_alive();
 
-            beast::async_write(stream_,
-                               std::move(gen),
-                               beast::bind_front_handler(
-                                   &http_session::on_write,
-                                   shared_from_this(),
-                                   not keep_alive));
+            beast::async_write(
+                stream_,
+                std::move(msg),
+                beast::bind_front_handler(
+                    &http_session::on_write,
+                    shared_from_this(),
+                    keep_alive));
         }
 
         return was_full;
     }
 
     void
-    on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
+    on_write(
+        bool keep_alive,
+        beast::error_code ec,
+        std::size_t bytes_transferred)
     {
         boost::ignore_unused(bytes_transferred);
 
         if(ec)
             return fail(ec, "write");
 
-        if(close)
+        if(! keep_alive)
         {
             // This means we should close the connection, usually because
             // the response indicated the "Connection: close" semantic.
@@ -471,7 +477,7 @@ private:
         }
 
         // Inform the queue that a write completed
-        if(do_write_loop())
+        if(do_write())
         {
             // Read another request
             do_read();

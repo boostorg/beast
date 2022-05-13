@@ -91,6 +91,28 @@ buffers_empty(ConstBufferSequence const& buffers)
     return true;
 }
 
+/** Return `false` if a buffer sequence consists of one or more buffers
+
+    Note `buffer_sequence_empty(s)` != `buffers_empty(s)` when `s` consists of
+    one or more empty buffers.
+    
+    See:
+     - @ref buffers_empty
+     - @ref buffer_bytes
+*/
+template<
+    typename BufferSequence,
+    typename std::enable_if<
+        net::is_const_buffer_sequence<BufferSequence>::value ||
+        net::is_mutable_buffer_sequence<BufferSequence>::value>::
+        type const* = nullptr>
+bool
+buffer_sequence_empty(BufferSequence const& s)
+{
+    return net::buffer_sequence_begin(s) ==
+        net::buffer_sequence_end(s);
+}
+
 } // detail
 } // beast
 } // boost

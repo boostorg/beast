@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2022 Seth Heeren (sgheeren at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -12,16 +12,10 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
-#include <boost/asio/write.hpp>
-#include <boost/asio/async_result.hpp>
-#include <boost/asio/compose.hpp>
-#include <boost/asio/coroutine.hpp>
-
-#include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/asio/async_result.hpp>
 
-#include <boost/throw_exception.hpp>
 #include <type_traits>
 
 namespace boost {
@@ -62,168 +56,150 @@ struct is_buffers_generator<
 };
 #endif
 
-//----------------------------------------------------------
+/** Write all output from a BuffersGenerator to a stream.
 
-namespace detail {
+    This function is used to write all of the buffers generated
+    by a caller-provided BuffersGenerator to a stream. The call
+    will block until one of the following conditions is true:
 
-template <
-    class AsyncWriteStream,
-    class BuffersGenerator>
-struct write_buffers_generator_op
-    : boost::asio::coroutine
-{
-    write_buffers_generator_op(AsyncWriteStream& stream,
-                               BuffersGenerator generator)
-        : stream_(stream)
-        , generator_(std::move(generator))
-    {
-    }
+    @li The generator returns an empty buffers sequence.
 
-    template <class Self>
-    void operator()(Self& self,
-                    error_code ec = {},
-                    std::size_t n = 0)
-    {
-        BOOST_ASIO_CORO_REENTER(*this)
-        {
-            for(;;)
-            {
-                BOOST_ASIO_CORO_YIELD
-                {
-                    auto cb = generator_.prepare(ec);
-                    if (ec)
-                        goto complete;
-                    if (boost::beast::buffer_bytes(cb) == 0)
-                        goto complete;
-                    stream_.async_write_some(
-                        cb, std::move(self));
-                }
-                generator_.consume(n);
+    @li An error occurs.
 
-                total_ += n;
-            }
+    This operation is implemented in terms of one or more calls
+    to the stream's `write_some` function.
 
-        complete:
-            self.complete(ec, total_);
-        }
-    }
+    @param stream The stream to which the data is to be written.
+    The type must support the <em>SyncWriteStream</em> concept.
 
-private:
-    AsyncWriteStream& stream_;
-    BuffersGenerator generator_;
-    std::size_t total_ = 0;
-};
+    @param generator The generator to use.
 
-} // detail
+    @param ec Set to the error, if any occurred.
 
-//----------------------------------------------------------
+    @return The number of bytes written to the stream.
 
-template <
+    @see BuffersGenerator
+*/
+template<
     class SyncWriteStream,
     class BuffersGenerator
 #if ! BOOST_BEAST_DOXYGEN
     ,
-    typename std::enable_if<
-        is_buffers_generator<typename std::decay<
-            BuffersGenerator>::type>::value>::type* =
-        nullptr
-#endif
-    >
-size_t
-write(SyncWriteStream& stream,
-      BuffersGenerator&& generator,
-      beast::error_code& ec)
-{
-    static_assert(
-        is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream type requirements not met");
-
-    ec.clear();
-    size_t total = 0;
-    for (;;) {
-        auto cb = generator.prepare(ec);
-        if (ec)
-            break;
-        if (boost::beast::buffer_bytes(cb) == 0)
-            break;
-
-        size_t n = net::write(stream, cb, ec);
-
-        if (ec)
-            break;
-
-        generator.consume(n);
-        total += n;
-    }
-
-    return total;
-}
-
-//----------------------------------------------------------
-
-template <
-    class SyncWriteStream,
-    class BuffersGenerator
-#if ! BOOST_BEAST_DOXYGEN
-    ,
-    typename std::enable_if<
-        is_buffers_generator<typename std::decay<
-            BuffersGenerator>::type>::value>::type* =
-        nullptr
+    typename std::enable_if<is_buffers_generator<
+        typename std::decay<BuffersGenerator>::
+            type>::value>::type* = nullptr
 #endif
     >
 std::size_t
-write(SyncWriteStream& stream, BuffersGenerator&& generator)
-{
-    static_assert(
-        is_sync_write_stream<SyncWriteStream>::value,
-        "SyncWriteStream type requirements not met");
-    beast::error_code ec;
-    std::size_t n = write(
-        stream, std::forward<BuffersGenerator>(generator),
-        ec);
-    if (ec)
-        BOOST_THROW_EXCEPTION(system_error{ ec });
-    return n;
-}
+write(
+    SyncWriteStream& stream,
+    BuffersGenerator&& generator,
+    beast::error_code& ec);
 
-//----------------------------------------------------------
+/** Write all output from a BuffersGenerator to a stream.
 
-template <
+    This function is used to write all of the buffers generated
+    by a caller-provided BuffersGenerator to a stream. The call
+    will block until one of the following conditions is true:
+
+    @li The generator returns an empty buffers sequence.
+
+    @li An error occurs.
+
+    This operation is implemented in terms of one or more calls
+    to the stream's `write_some` function.
+
+    @param stream The stream to which the data is to be written.
+    The type must support the <em>SyncWriteStream</em> concept.
+
+    @param generator The generator to use.
+
+    @return The number of bytes written to the stream.
+
+    @throws system_error Thrown on failure.
+
+    @see BuffersGenerator
+*/
+template<
+    class SyncWriteStream,
+    class BuffersGenerator
+#if ! BOOST_BEAST_DOXYGEN
+    ,
+    typename std::enable_if<is_buffers_generator<
+        typename std::decay<BuffersGenerator>::
+            type>::value>::type* = nullptr
+#endif
+    >
+std::size_t
+write(
+    SyncWriteStream& stream,
+    BuffersGenerator&& generator);
+
+/** Write all output from a BuffersGenerator asynchronously to a
+    stream.
+
+    This function is used to write all of the buffers generated
+    by a caller-provided @ref BuffersGenerator to a stream. The
+    function call always returns immediately. The asynchronous
+    operation will continue until one of the following
+    conditions is true:
+
+    @li The generator returns an empty buffers sequence.
+
+    @li An error occurs.
+
+    This operation is implemented in terms of zero or more calls
+    to the stream's `async_write_some` function, and is known as
+    a <em>composed operation</em>.  The program must ensure that
+    the stream performs no other writes until this operation
+    completes.
+
+    @param stream The stream to which the data is to be written.
+    The type must support the <em>SyncWriteStream</em> concept.
+
+    @param generator The generator to use.
+
+    @param handler The completion handler to invoke when the
+    operation completes. The implementation takes ownership of
+    the handler by performing a decay-copy. The equivalent
+    function signature of the handler must be:
+    @code
+    void handler(
+        error_code const& error,        // result of operation
+        std::size_t bytes_transferred   // the number of bytes written to the stream
+    );
+    @endcode
+    Regardless of whether the asynchronous operation completes
+    immediately or not, the handler will not be invoked from
+    within this function. Invocation of the handler will be
+    performed in a manner equivalent to using `net::post`.
+
+    @see BuffersGenerator
+*/
+template<
     class AsyncWriteStream,
     class BuffersGenerator,
     class CompletionToken
 #if !BOOST_BEAST_DOXYGEN
     ,
-    typename std::enable_if<
-        is_buffers_generator<BuffersGenerator>::value //
-        >::type* = nullptr
+    typename std::enable_if<is_buffers_generator<
+        BuffersGenerator>::value>::type* = nullptr
 #endif
     >
 auto
-async_write(AsyncWriteStream& stream,
-            BuffersGenerator generator,
-            CompletionToken&& token) ->
-    typename net::async_result<
-        typename std::decay<CompletionToken>::type,
-        void(error_code, std::size_t)>::return_type
-{
-    static_assert(
-        beast::is_async_write_stream<AsyncWriteStream>::value,
-        "AsyncWriteStream type requirements not met");
-    return net::async_compose< //
-        CompletionToken,
-        void(error_code, std::size_t)>(
-        detail::write_buffers_generator_op<
-            AsyncWriteStream,
-            BuffersGenerator>{ stream,
-                               std::move(generator) },
-        token, // REVIEW: why doesn't forwarding work here?
-               // SEHE: do we want to take `token` by value?
-        stream);
-}
+async_write(
+    AsyncWriteStream& stream,
+    BuffersGenerator generator,
+    CompletionToken&& token) //
+    -> typename net::async_result<
+        typename std::decay<
+            CompletionToken>::type,
+        void(error_code, std::size_t)>::
+        return_type;
 
 } // namespace beast
 } // namespace boost
 
-#endif // BOOST_BEAST_CORE_BUFFERS_GENERATOR_HPP
+#include <include/boost/beast/core/impl/buffers_generator.hpp>
+
+#endif
