@@ -69,11 +69,11 @@ target_link_libraries(tests-beast
 
 set_property(TARGET tests-beast PROPERTY FOLDER "tests")
 
-add_custom_target(tests-beast-all
-        DEPENDS
-            tests-beast-_experimental-all
-            tests-beast-core-all
-            tests-beast-http-all
-            tests-beast-ssl-all
-            tests-beast-websocket-all
-            tests-beast-zlib-all )
+#add_custom_target(tests-beast-all
+#        DEPENDS
+#            tests-beast-_experimental-all
+#            tests-beast-core-all
+#            tests-beast-http-all
+#            tests-beast-ssl-all
+#            tests-beast-websocket-all
+#            tests-beast-zlib-all )

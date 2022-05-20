@@ -48,6 +48,7 @@ add_library (
         ${ZLIB_SOURCES}
 )
 target_include_directories(lib-zlib PUBLIC "${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11")
+set_property(TARGET lib-zlib PROPERTY FOLDER "static-libs")
 
 set (TEST_MAIN ${PROJECT_SOURCE_DIR}/test/lib_beast.cpp)
 

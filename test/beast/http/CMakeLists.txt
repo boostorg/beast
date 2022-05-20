@@ -55,4 +55,4 @@ set_property(TARGET tests-beast-http PROPERTY FOLDER "tests")
 #
 # Individual tests
 #
-build_individual_tests(tests-beast-http LIBS lib-asio lib-asio-ssl lib-beast lib-test)
+#build_individual_tests(tests-beast-http LIBS lib-asio lib-asio-ssl lib-beast lib-test)
