@@ -281,6 +281,20 @@ public:
     }
 
     void
+    testKeepAlive()
+    {
+        auto request = [](int version)
+        {
+            return http::request<http::string_body>(
+                http::verb::post, "/", version);
+        };
+        BEAST_EXPECT(
+            ! http::message_generator(request(10)).keep_alive());
+        BEAST_EXPECT(
+            http::message_generator(request(11)).keep_alive());
+    }
+
+    void
     run() override
     {
         testGenerate();
@@ -288,6 +302,7 @@ public:
         testAsyncWrite();
         testWrite();
         testFragmentedBody();
+        testKeepAlive();
     }
 };
 
