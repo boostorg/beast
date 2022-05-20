@@ -18,6 +18,28 @@ namespace boost {
 namespace beast {
 namespace http {
 
+/** Type-erased buffers generator for @ref http::message
+   
+    Implements the BuffersGenerator concept for any concrete instance of the
+    @ref http::message template.
+   
+    @ref http::message_generator takes ownership of a message on construction,
+    erasing the concrete type from the interface.
+   
+    This makes it practical for use in server applications to implement request
+    handling:
+   
+    @code
+    template <class Body, class Fields>
+    http::message_generator handle_request(
+        string_view doc_root,
+        http::request<Body, Fields>&& request);
+    @endcode
+   
+    The @ref beast::write and @ref beast::async_write operations are provided
+    for BuffersGenerator. The @ref http::message::keep_alive property is made
+    available for use after writing the message.
+*/
 class message_generator
 {
 public:
@@ -26,20 +48,26 @@ public:
     template <bool isRequest, class Body, class Fields>
     message_generator(http::message<isRequest, Body, Fields>&&);
 
+    /// @ref BuffersGenerator
     bool is_done() const {
         return impl_->is_done();
     }
 
+    /// @ref BuffersGenerator
     const_buffers_type
     prepare(error_code& ec)
     {
         return impl_->prepare(ec);
     }
+
+    /// @ref BuffersGenerator
     void
     consume(std::size_t n)
     {
         impl_->consume(n);
     }
+
+    /// Returns the result of `m.keep_alive()` on the underlying message
     bool
     keep_alive() const noexcept
     {
