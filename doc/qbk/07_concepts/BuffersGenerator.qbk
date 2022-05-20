@@ -51,36 +51,44 @@ In this table:
         This is the type of buffer returned by `g.prepare(ec)`.
     ]
 ][
+    [`g.is_done()`]
+    [`bool`]
+    [
+        Called to ask the generator for its completion status.
+
+        A generator has completed when no new buffer will be produced and
+        previously produced buffers have been fully consumed.
+
+        [*Note:] The result of invoking `prepare` on `g` once it has completed
+        is unspecified.
+
+        This member function does not alter the state of the generator.
+    ]
+][
     [`g.prepare(ec)`]
     [`G::const_buffers_type`]
     [
-        Called to ask the generator to produce buffers containing data for processing.
+        Called to ask the generator to produce buffers containing data for
+        processing.
 
-        [*Note:] any buffers obtained by previous calls to `prepare` are
-        invalidated.
-        
-        The (maximum) capacity of the buffer returned is defined by the
-        generator implementation.
-
-        Whether additional buffers are generated when unconsumed data is
-        already available at the time of the call is defined by the
-        implementation.
-
-        The returned value is the __ConstBufferSequence__ of type `b`
-        representing unconsumed data.
-
-        If the length of the returned sequence is `0`, the generator is
-        considered to have completed.
-
-        The result of calling invoking members on `g` after it has completed is
-        unspecified.
+        The returned value is the __ConstBufferSequence__ representing
+        unconsumed data.
 
         The function will ensure that `ec.failed()` is `false` if there was no
         error or set to the appropriate error code if there was one. 
 
-        The result of invoking `prepare` again after completion or encountered
+        If no unconsumed data is available, this operation shall make progress
+        to eventually reach completion.
+        
+        The result of invoking `prepare` after completion or encountered
         error(s) is defined by the generator implementation. It can not be
         assumed to be meaningful or safe to do so, in general.
+
+        The capacity of the buffer returned is defined by the generator
+        implementation.
+        
+        [*Note:] Any buffers obtained by previous calls to `prepare` are
+        invalidated.
     ]
 ][
     [`g.consume(n)`]
@@ -90,12 +98,16 @@ In this table:
         generator has processed part of the data returned by the previous call
         to `prepare`.
 
-        The value of `n` is allowed to exceed the number of bytes returned from
-        the last call to `prepare`, in which case the call to `consume` shall
-        behave as if `n` was equal to that number.
+        The value of `n` indicates how much of the data processed (in bytes).
 
-        Any previously generated data that has not yet been consumed will
-        be returned from subsequent calls to `prepare`.
+        When `n` exceeds the number of bytes returned from the last call to
+        `prepare`, `consume` shall behave as if `n` was equal to that number.
+
+        Remaining unconsumed data will be returned from subsequent calls to
+        `prepare`.
+
+        [*Note:] Any buffers obtained by previous calls to `prepare` are
+        invalidated.
     ]
 ][
     [`is_buffers_generator<G>`]
@@ -114,6 +126,7 @@ In this table:
     {
         using const_buffers_type = net::const_buffer;
 
+        bool is_done();
         const_buffers_type prepare( error_code& ec );
         void consume( std::size_t n );
     };

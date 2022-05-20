@@ -139,10 +139,11 @@ public:
         error_code ec;
 
         std::string received;
-        message_generator::const_buffers_type b;
 
-        while (buffer_bytes(b = gen.prepare(ec))) {
-            BEAST_EXPECT(!ec);
+        while(! gen.is_done())
+        {
+            message_generator::const_buffers_type b = gen.prepare(ec);
+            BEAST_EXPECT(! ec);
             received += buffers_to_string(b);
 
             gen.consume(buffer_bytes(b));
@@ -160,10 +161,11 @@ public:
         error_code ec;
 
         std::vector<std::string> received;
-        message_generator::const_buffers_type b;
 
-        while (buffer_bytes(b = gen.prepare(ec))) {
-            BEAST_EXPECT(!ec);
+        while(! gen.is_done())
+        {
+            message_generator::const_buffers_type b = gen.prepare(ec);
+            BEAST_EXPECT(! ec);
             received.push_back(buffers_to_string(b).substr(0, 3));
 
             gen.consume(3); // allowed > buffer_bytes(b)

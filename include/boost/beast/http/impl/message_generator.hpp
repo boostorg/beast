@@ -38,13 +38,16 @@ struct message_generator::generator_impl
     {
     }
 
+    bool
+    is_done() override
+    {
+        return sr_.is_done();
+    }
+
     const_buffers_type
     prepare(error_code& ec) override
     {
-        if (sr_.is_done())
-            current_ = {};
-        else
-            sr_.next(ec, visit{ *this });
+        sr_.next(ec, visit{*this});
         return current_;
     }
 

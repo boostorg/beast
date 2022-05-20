@@ -47,18 +47,19 @@ struct write_buffers_generator_op
     {
         BOOST_ASIO_CORO_REENTER(*this)
         {
-            for(;;)
+            while(! g_.is_done())
             {
                 BOOST_ASIO_CORO_YIELD
                 {
                     auto cb = g_.prepare(ec);
                     if(ec)
                         goto complete;
-                    if(detail::buffer_sequence_empty(cb))
-                        goto complete;
                     s_.async_write_some(
                         cb, std::move(self));
                 }
+                if(ec)
+                    goto complete;
+
                 g_.consume(n);
 
                 total_ += n;
@@ -96,12 +97,10 @@ write(
 
     ec.clear();
     size_t total = 0;
-    for(;;)
+    while(! generator.is_done())
     {
         auto cb = generator.prepare(ec);
         if(ec)
-            break;
-        if(detail::buffers_empty(cb))
             break;
 
         size_t n = net::write(stream, cb, ec);

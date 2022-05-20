@@ -46,6 +46,7 @@ struct is_buffers_generator
 template<class T>
 struct is_buffers_generator<
     T, detail::void_t<decltype(
+        bool(std::declval<T const&>().is_done()),
         typename T::const_buffers_type(
             std::declval<T&>().prepare(
                 std::declval<error_code&>())),

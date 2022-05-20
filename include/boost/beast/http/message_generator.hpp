@@ -26,6 +26,10 @@ public:
     template <bool isRequest, class Body, class Fields>
     message_generator(http::message<isRequest, Body, Fields>&&);
 
+    bool is_done() const {
+        return impl_->is_done();
+    }
+
     const_buffers_type
     prepare(error_code& ec)
     {
@@ -46,6 +50,7 @@ private:
     struct impl_base
     {
         virtual ~impl_base() = default;
+        virtual bool is_done() = 0;
         virtual const_buffers_type prepare(error_code& ec) = 0;
         virtual void consume(std::size_t n) = 0;
         virtual bool keep_alive() const noexcept = 0;

@@ -20,6 +20,7 @@
 #include <boost/beast/_experimental/test/stream.hpp>
 
 #include <iostream>
+#include <numeric>
 
 namespace boost {
 namespace beast {
@@ -29,15 +30,31 @@ namespace detail {
 struct test_buffers_generator {
     using underlying_buffer_sequence = std::array<net::const_buffer, 2>;
     using const_buffers_type = buffers_suffix<underlying_buffer_sequence>;
-    size_t iterations_ = 5;
+    std::size_t iterations_ = 5;
     bool verbose_ = false;
+    error_code emulate_error_;
 
-    test_buffers_generator(bool verbose = false) : verbose_(verbose) {}
+    test_buffers_generator(
+        error_code emulate_error = {}, bool verbose = false)
+        : verbose_(verbose)
+        , emulate_error_(emulate_error)
+    {
+    }
 
     const_buffers_type cur_{};
 
-    const_buffers_type prepare(error_code& ec) {
-        if (verbose_)
+    bool
+    is_done() const
+    {
+        return iterations_ == 0 && ! buffer_bytes(cur_);
+    }
+
+    const_buffers_type
+    prepare(error_code& ec)
+    {
+        ec = {};
+        BEAST_EXPECT(! is_done());
+        if(verbose_)
             std::clog
                 << "prepare, iterations_:" << iterations_
                 << " '" << buffers_to_string(cur_) << "' ";
@@ -49,8 +66,10 @@ struct test_buffers_generator {
                         net::buffer("12345", iterations_),
                     });
                 iterations_ -= 1;
-            } else {
-                ec = net::error::eof;
+            }
+            if(emulate_error_ && iterations_ == 3)
+            {
+                ec = emulate_error_; // generate the specified error
             }
         }
 
@@ -60,7 +79,7 @@ struct test_buffers_generator {
         return const_buffers_type{ cur_ };
     }
 
-    void consume(size_t n) {
+    void consume(std::size_t n) {
         cur_.consume(n);
     }
 };
@@ -70,121 +89,177 @@ struct test_buffers_generator {
 class buffers_generator_test : public unit_test::suite
 {
 public:
-    using Generator = detail::test_buffers_generator;
-
     void
-    testMinimalGenerator()
+    testMinimalGenerator(error_code emulate_error)
     {
-        static_assert(is_buffers_generator<Generator>::value,
-                      "buffers_generator not modeled");
+        static_assert(
+            is_buffers_generator<
+                detail::test_buffers_generator>::value,
+            "buffers_generator not modeled");
 
-        Generator gen;
+        detail::test_buffers_generator gen{emulate_error};
         error_code ec;
 
         std::vector<std::string> actual;
-        Generator::const_buffers_type b;
 
-        while (buffer_bytes(b = gen.prepare(ec))) {
-            BEAST_EXPECT(!ec);
+        while(! gen.is_done())
+        {
+            detail::test_buffers_generator::const_buffers_type b =
+                gen.prepare(ec);
+
+            if (ec) {
+                BEAST_EXPECT(emulate_error == ec);
+                // In test we ignore the error because we know that's okay.
+                //
+                // For general models of BuffersGenerator behaviour is
+                // unspecified when using a generator after receiving an error.
+            }
+
             actual.push_back(buffers_to_string(b));
 
             gen.consume(3); // okay if > buffer_bytes
         }
-        BEAST_EXPECT(ec == net::error::eof);
-        BEAST_EXPECT(
-            (actual ==
-             std::vector<std::string>{
-                 "abcde12345", "de12345", "2345", "5",
-                 "abcd1234", "d1234", "34", "abc123", "123",
-                 "ab12", "2", "a1" }));
+        BEAST_EXPECT(! ec.failed());
+
+        if(! emulate_error)
+        {
+            BEAST_EXPECT(
+                    (actual ==
+                     std::vector<std::string>{
+                     "abcde12345", "de12345", "2345", "5",
+                     "abcd1234", "d1234", "34", "abc123", "123",
+                     "ab12", "2", "a1" }));
+        }
     }
 
     void
-    testWrite()
+    testWrite(error_code emulate_error)
     {
         net::io_context ioc;
         test::stream out(ioc), in(ioc);
         test::connect(out, in);
 
         {
-            detail::test_buffers_generator gen;
+            detail::test_buffers_generator gen{emulate_error};
 
             beast::error_code ec;
             auto total = write(out, gen, ec);
-            BEAST_EXPECT(total == 30);
-            BEAST_EXPECT(ec == net::error::eof);
 
-            BEAST_EXPECT(5 == out.nwrite());
-            BEAST_EXPECT(0 == out.nwrite_bytes());
-            BEAST_EXPECT(0 == out.nread_bytes());
-            BEAST_EXPECT(0 == out.nread());
+            BEAST_EXPECT(ec == emulate_error);
 
-            BEAST_EXPECT(30 == in.nwrite_bytes());
-            BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" ==
-                         in.str());
+            if(! emulate_error)
+            {
+                BEAST_EXPECT(total == 30);
+
+                BEAST_EXPECT(5 == out.nwrite());
+                BEAST_EXPECT(30 == in.nwrite_bytes());
+                BEAST_EXPECT(
+                    "abcde12345abcd1234abc123ab12a1" == in.str());
+            } else
+            {
+                BEAST_EXPECT(total == 10);
+
+                BEAST_EXPECT(1 == out.nwrite());
+                BEAST_EXPECT(10 == in.nwrite_bytes());
+                BEAST_EXPECT("abcde12345" == in.str());
+            }
         }
 
         in.clear();
 
         {
             error_code ec;
-            auto total = write(out, detail::test_buffers_generator{}, ec);
-            BEAST_EXPECT(total == 30);
-            BEAST_EXPECT(ec == net::error::eof);
-            BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" == in.str());
+            auto total = write(out, detail::test_buffers_generator{emulate_error}, ec);
+
+            BEAST_EXPECT(ec == emulate_error);
+
+            if(! emulate_error)
+            {
+                BEAST_EXPECT(total == 30);
+                BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" == in.str());
+            } else
+            {
+                BEAST_EXPECT(total == 10);
+                BEAST_EXPECT("abcde12345" == in.str());
+            }
         }
     }
 
     void
-    testWriteException()
+    testWriteException(error_code emulate_error)
     {
         net::io_context ioc;
         test::stream out(ioc), in(ioc);
         {
             test::connect(out, in);
 
-            detail::test_buffers_generator gen;
+            detail::test_buffers_generator gen{emulate_error};
 
             try {
                 auto total = write(out, gen);
-                BEAST_EXPECT(!"unreachable");
-                BEAST_EXPECT(total==30);
-            } catch (system_error const& se) {
-                BEAST_EXPECT(se.code() == net::error::eof);
+                if (emulate_error)
+                    BEAST_EXPECT(!"unreachable");
+                BEAST_EXPECT(total == 30);
+            } catch(system_error const& se)
+            {
+                BEAST_EXPECT(se.code() == emulate_error);
             }
         }
 
-        BEAST_EXPECT(5 == out.nwrite());
-        BEAST_EXPECT(30 == in.nwrite_bytes());
-        BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" == in.str());
+        if(! emulate_error)
+        {
+            BEAST_EXPECT(5 == out.nwrite());
+            BEAST_EXPECT(30 == in.nwrite_bytes());
+            BEAST_EXPECT(
+                "abcde12345abcd1234abc123ab12a1" == in.str());
+        } else
+        {
+            BEAST_EXPECT(1 == out.nwrite());
+            BEAST_EXPECT(10 == in.nwrite_bytes());
+            BEAST_EXPECT("abcde12345" == in.str());
+        }
     }
 
     void
-    testAsyncWrite()
+    testAsyncWrite(error_code emulate_error)
     {
         net::io_context ioc;
         test::stream out(ioc), in(ioc);
         {
             test::connect(out, in);
 
-            detail::test_buffers_generator gen;
+            detail::test_buffers_generator gen{emulate_error};
 
             async_write(
-                out, gen, [&](error_code ec, size_t total) {
-                    BEAST_EXPECT(total == 30);
-                    BEAST_EXPECT(ec == net::error::eof);
+                out,
+                gen,
+                [&](error_code ec, std::size_t total)
+                {
+                    BEAST_EXPECT(ec == emulate_error);
+                    if(! emulate_error)
+                    {
+                        BEAST_EXPECT(total == 30);
+                    } else
+                    {
+                        BEAST_EXPECT(total == 10);
+                    }
                 });
 
             ioc.run();
         }
 
-        BEAST_EXPECT(5 == out.nwrite());
-        BEAST_EXPECT(0 == out.nwrite_bytes());
-        BEAST_EXPECT(0 == out.nread_bytes());
-        BEAST_EXPECT(0 == out.nread());
-
-        BEAST_EXPECT(30 == in.nwrite_bytes());
-        BEAST_EXPECT("abcde12345abcd1234abc123ab12a1" == in.str());
+        if(! emulate_error)
+        {
+            BEAST_EXPECT(5 == out.nwrite());
+            BEAST_EXPECT(30 == in.nwrite_bytes());
+            BEAST_EXPECT(
+                "abcde12345abcd1234abc123ab12a1" == in.str());
+        } else
+        {
+            BEAST_EXPECT(1 == out.nwrite());
+            BEAST_EXPECT(10 == in.nwrite_bytes());
+            BEAST_EXPECT("abcde12345" == in.str());
+        }
     }
 
     void
@@ -200,8 +275,9 @@ public:
 
             try {
                 /*auto total =*/ write(out, gen);
-                BEAST_EXPECT(!"unreachable");
-            } catch (system_error const& se) {
+                BEAST_EXPECT(! "unreachable");
+            } catch(system_error const& se)
+            {
                 BEAST_EXPECT(se.code() == test::error::test_failure);
             }
         }
@@ -223,7 +299,7 @@ public:
             detail::test_buffers_generator gen;
 
             async_write(
-                out, gen, [&](error_code ec, size_t total) {
+                out, gen, [&](error_code ec, std::size_t total) {
                     BEAST_EXPECT(total == 18);
                     BEAST_EXPECT(ec == test::error::test_failure);
                 });
@@ -240,10 +316,14 @@ public:
     void
     run() override
     {
-        testMinimalGenerator();
-        testWrite();
-        testWriteException();
-        testAsyncWrite();
+        for(error_code emulate_error :
+            {error_code{}, error_code{error::timeout}})
+        {
+            testMinimalGenerator(emulate_error);
+            testWrite(emulate_error);
+            testWriteException(emulate_error);
+            testAsyncWrite(emulate_error);
+        }
 
         testWriteFail();
         testAsyncWriteFail();
