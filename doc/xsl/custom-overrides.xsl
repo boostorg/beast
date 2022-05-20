@@ -23,6 +23,7 @@
     'Body',
     'BufferSequence',
     'BufferSequence',  (: TODO: Was this intended to be 'BufferSequence_' ?? :)
+    'BuffersGenerator',
     'CompletionCondition',
     'CompletionHandler',
     'CompletionToken',

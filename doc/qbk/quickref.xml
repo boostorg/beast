@@ -76,15 +76,15 @@
         <bridgehead renderas="sect3">Type Traits</bridgehead>
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.ref.boost__beast__executor_type">executor_type</link></member>
-          <member><link linkend="beast.ref.boost__beast__lowest_layer_type">lowest_layer_type</link></member>
           <member><link linkend="beast.ref.boost__beast__has_get_executor">has_get_executor</link></member>
           <member><link linkend="beast.ref.boost__beast__is_async_read_stream">is_async_read_stream</link></member>
-          <member><link linkend="beast.ref.boost__beast__is_async_write_stream">is_async_write_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__is_async_stream">is_async_stream</link></member>
+          <member><link linkend="beast.ref.boost__beast__is_async_write_stream">is_async_write_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__is_file">is_file</link></member>
           <member><link linkend="beast.ref.boost__beast__is_sync_read_stream">is_sync_read_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__is_sync_stream">is_sync_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__is_sync_write_stream">is_sync_write_stream</link></member>
+          <member><link linkend="beast.ref.boost__beast__lowest_layer_type">lowest_layer_type</link></member>
         </simplelist>
         <bridgehead renderas="sect3">SSL</bridgehead>
         <simplelist type="vert" columns="1">
@@ -141,6 +141,7 @@
       </entry><entry valign="top">
         <bridgehead renderas="sect3">Functions</bridgehead>
         <simplelist type="vert" columns="1">
+          <member><link linkend="beast.ref.boost__beast__async_write">async_write</link></member>
           <member><link linkend="beast.ref.boost__beast__buffer_bytes">buffer_bytes</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_cat">buffers_cat</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_front">buffers_front</link></member>
@@ -152,12 +153,14 @@
           <member><link linkend="beast.ref.boost__beast__ostream">ostream</link></member>
           <member><link linkend="beast.ref.boost__beast__read_size">read_size</link></member>
           <member><link linkend="beast.ref.boost__beast__read_size_or_throw">read_size_or_throw</link></member>
+          <member><link linkend="beast.ref.boost__beast__write">write</link></member>
         </simplelist>
       </entry><entry valign="top">
         <bridgehead renderas="sect3">Type Traits</bridgehead>
         <simplelist type="vert" columns="1">
-          <member><link linkend="beast.ref.boost__beast__buffers_type">buffers_type</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_iterator_type">buffers_iterator_type</link></member>
+          <member><link linkend="beast.ref.boost__beast__buffers_type">buffers_type</link></member>
+          <member><link linkend="beast.ref.boost__beast__is_buffers_generator">is_buffers_generator</link></member>
           <member><link linkend="beast.ref.boost__beast__is_const_buffer_sequence">is_const_buffer_sequence</link></member>
           <member><link linkend="beast.ref.boost__beast__is_mutable_buffer_sequence">is_mutable_buffer_sequence</link></member>
         </simplelist>
@@ -165,6 +168,7 @@
         <bridgehead renderas="sect3">Concepts</bridgehead>
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.concepts.BufferSequence">BufferSequence</link></member>
+          <member><link linkend="beast.concepts.BuffersGenerator">BuffersGenerator</link></member>
           <member><link linkend="beast.concepts.DynamicBuffer">DynamicBuffer</link></member>
         </simplelist>
       </entry>

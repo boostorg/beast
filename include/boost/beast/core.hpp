@@ -19,6 +19,7 @@
 #include <boost/beast/core/buffered_read_stream.hpp>
 #include <boost/beast/core/buffers_adaptor.hpp>
 #include <boost/beast/core/buffers_cat.hpp>
+#include <boost/beast/core/buffers_generator.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>

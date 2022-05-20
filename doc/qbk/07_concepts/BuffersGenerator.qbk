@@ -1,0 +1,140 @@
+[/
+    Copyright (c) 2016-2022 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:BuffersGenerator BuffersGenerator]
+
+A [*BuffersGenerator] provides a generalized interface for generating
+serialized data for sequential processing.
+
+The generator will be asked to produce buffers. The consuming code will signal
+how much of the data has been consumed, and repeatedly query for buffers until
+no more data is available, or the generator indicates an error condition.
+
+Overloads of [link beast.ref.boost__beast__write `write`] and [link
+beast.ref.boost__beast__async_write `async_write`] operations are provided as
+free functions. These operations will consume the output of a
+[*BuffersGenerator] and process the data by writing them to a
+__SyncWriteStream__ or __AsyncWriteStream__ respectively.
+
+[heading Associated Types]
+
+* [link beast.ref.boost__beast__is_buffers_generator `is_buffers_generator`]
+* __ConstBufferSequence__
+
+[heading Requirements]
+
+In this table:
+
+* `G` denotes a type meeting the requirements of [*BuffersGenerator].
+* `g` denotes a value of type `G`.
+* `n` is a value of type `std::size_t`.
+* `ec` is a value of type [link beast.ref.boost__beast__error_code `error_code&`].
+
+[table Valid expressions
+[[Expression] [Type] [Semantics, Pre/Post-conditions]]
+[
+    [`G::const_buffers_type`]
+    []
+    [
+        A type which meets the requirements of __ConstBufferSequence__.
+        This is the type of buffer returned by `g.prepare(ec)`.
+    ]
+][
+    [`g.is_done()`]
+    [`bool`]
+    [
+        Called to ask the generator for its completion status.
+
+        A generator has completed when no new buffer will be produced and
+        previously produced buffers have been fully consumed.
+
+        [*Note:] The result of invoking `prepare` on `g` once it has completed
+        is unspecified.
+
+        This member function does not alter the state of the generator.
+    ]
+][
+    [`g.prepare(ec)`]
+    [`G::const_buffers_type`]
+    [
+        Called to ask the generator to produce buffers containing data for
+        processing.
+
+        The returned value is the __ConstBufferSequence__ representing
+        unconsumed data.
+
+        The function will ensure that `ec.failed()` is `false` if there was no
+        error or set to the appropriate error code if there was one. 
+
+        If no unconsumed data is available, this operation shall make progress
+        to eventually reach completion.
+        
+        The result of invoking `prepare` after completion or encountered
+        error(s) is defined by the generator implementation. It can not be
+        assumed to be meaningful or safe to do so, in general.
+
+        The capacity of the buffer returned is defined by the generator
+        implementation.
+        
+        [*Note:] Any buffers obtained by previous calls to `prepare` are
+        invalidated.
+    ]
+][
+    [`g.consume(n)`]
+    []
+    [
+        This function is called to signal that the consumer (caller) of the
+        generator has processed part of the data returned by the previous call
+        to `prepare`.
+
+        The value of `n` indicates how much of the data processed (in bytes).
+
+        When `n` exceeds the number of bytes returned from the last call to
+        `prepare`, `consume` shall behave as if `n` was equal to that number.
+
+        Remaining unconsumed data will be returned from subsequent calls to
+        `prepare`.
+
+        [*Note:] Any buffers obtained by previous calls to `prepare` are
+        invalidated.
+    ]
+][
+    [`is_buffers_generator<G>`]
+    [`std::true_type`]
+    [
+        An alias for `std::true_type` for `G`, otherwise an alias
+        for `std::false_type`.
+    ]
+]]
+
+[heading Exemplar]
+
+```
+    // A buffer sequence generator
+    struct BuffersGenerator
+    {
+        using const_buffers_type = net::const_buffer;
+
+        bool is_done();
+        const_buffers_type prepare( error_code& ec );
+        void consume( std::size_t n );
+    };
+
+    static_assert(
+        is_buffers_generator<BuffersGenerator>::value, "");
+```
+
+[heading Models]
+
+[heading Algorithms]
+
+* [link beast.ref.boost__beast__async_write `async_write`]
+* [link beast.ref.boost__beast__write `write`] 
+
+[endsect]
