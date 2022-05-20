@@ -286,7 +286,7 @@ public:
         successfully retrieved.
     */
     bool
-    is_done()
+    is_done() const
     {
         return s_ == do_complete;
     }
