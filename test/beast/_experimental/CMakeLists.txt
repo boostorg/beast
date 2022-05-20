@@ -30,6 +30,6 @@ set_property(TARGET tests-beast-_experimental PROPERTY FOLDER "tests")
 #
 # Individual tests
 #
-build_individual_tests(tests-beast-_experimental
-        EXCLUDE
-        LIBS lib-asio lib-asio-ssl lib-beast lib-test)
+#build_individual_tests(tests-beast-_experimental
+#        EXCLUDE
+#        LIBS lib-asio lib-asio-ssl lib-beast lib-test)
