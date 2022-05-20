@@ -100,8 +100,12 @@ struct buffers_cat_view_iterator_base
         net::mutable_buffer
         operator*() const
         {
+        #if 1
+            throw std::logic_error("");
+        #else
             BOOST_BEAST_LOGIC_ERROR_RETURN({},
                 "Dereferencing a one-past-the-end iterator");
+        #endif
         }
 
         operator bool() const noexcept
@@ -188,8 +192,12 @@ private:
         reference
         operator()(mp11::mp_size_t<0>)
         {
+        #if 1
+            throw std::logic_error("");
+        #else
             BOOST_BEAST_LOGIC_ERROR_RETURN({},
                 "Dereferencing a default-constructed iterator");
+        #endif
         }
 
         template<class I>
