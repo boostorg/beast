@@ -96,18 +96,15 @@ path_cat(
     return result;
 }
 
-// This function produces an HTTP response for the given
-// request. The type of the response object depends on the
-// contents of the request, so the interface requires the
-// caller to pass a generic lambda for receiving the response.
-template<
-    class Body, class Allocator,
-    class Send>
-void
+// Return a response for the given request.
+//
+// The concrete type of the response message (which depends on the
+// request), is type-erased in message_generator.
+template <class Body, class Allocator>
+http::message_generator
 handle_request(
     beast::string_view doc_root,
-    http::request<Body, http::basic_fields<Allocator>>&& req,
-    Send&& send)
+    http::request<Body, http::basic_fields<Allocator>>&& req)
 {
     // Returns a bad request response
     auto const bad_request =
@@ -151,13 +148,13 @@ handle_request(
     // Make sure we can handle the method
     if( req.method() != http::verb::get &&
         req.method() != http::verb::head)
-        return send(bad_request("Unknown HTTP-method"));
+        return bad_request("Unknown HTTP-method");
 
     // Request path must be absolute and not contain "..".
     if( req.target().empty() ||
         req.target()[0] != '/' ||
         req.target().find("..") != beast::string_view::npos)
-        return send(bad_request("Illegal request-target"));
+        return bad_request("Illegal request-target");
 
     // Build the path to the requested file
     std::string path = path_cat(doc_root, req.target());
@@ -171,11 +168,11 @@ handle_request(
 
     // Handle the case where the file doesn't exist
     if(ec == beast::errc::no_such_file_or_directory)
-        return send(not_found(req.target()));
+        return not_found(req.target());
 
     // Handle an unknown error
     if(ec)
-        return send(server_error(ec.message()));
+        return server_error(ec.message());
 
     // Cache the size since we need it after the move
     auto const size = body.size();
@@ -188,7 +185,7 @@ handle_request(
         res.set(http::field::content_type, mime_type(path));
         res.content_length(size);
         res.keep_alive(req.keep_alive());
-        return send(std::move(res));
+        return res;
     }
 
     // Respond to GET request
@@ -200,7 +197,7 @@ handle_request(
     res.set(http::field::content_type, mime_type(path));
     res.content_length(size);
     res.keep_alive(req.keep_alive());
-    return send(std::move(res));
+    return res;
 }
 
 //------------------------------------------------------------------------------
@@ -215,49 +212,10 @@ fail(beast::error_code ec, char const* what)
 // Handles an HTTP server connection
 class session : public std::enable_shared_from_this<session>
 {
-    // This is the C++11 equivalent of a generic lambda.
-    // The function object is used to send an HTTP message.
-    struct send_lambda
-    {
-        session& self_;
-
-        explicit
-        send_lambda(session& self)
-            : self_(self)
-        {
-        }
-
-        template<bool isRequest, class Body, class Fields>
-        void
-        operator()(http::message<isRequest, Body, Fields>&& msg) const
-        {
-            // The lifetime of the message has to extend
-            // for the duration of the async operation so
-            // we use a shared_ptr to manage it.
-            auto sp = std::make_shared<
-                http::message<isRequest, Body, Fields>>(std::move(msg));
-
-            // Store a type-erased version of the shared
-            // pointer in the class to keep it alive.
-            self_.res_ = sp;
-
-            // Write the response
-            http::async_write(
-                self_.stream_,
-                *sp,
-                beast::bind_front_handler(
-                    &session::on_write,
-                    self_.shared_from_this(),
-                    sp->need_eof()));
-        }
-    };
-
     beast::tcp_stream stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;
-    std::shared_ptr<void> res_;
-    send_lambda lambda_;
 
 public:
     // Take ownership of the stream
@@ -266,7 +224,6 @@ public:
         std::shared_ptr<std::string const> const& doc_root)
         : stream_(std::move(socket))
         , doc_root_(doc_root)
-        , lambda_(*this)
     {
     }
 
@@ -316,12 +273,26 @@ public:
             return fail(ec, "read");
 
         // Send the response
-        handle_request(*doc_root_, std::move(req_), lambda_);
+        send_response(
+            handle_request(*doc_root_, std::move(req_)));
+    }
+
+    void
+    send_response(http::message_generator&& msg)
+    {
+        bool keep_alive = msg.keep_alive();
+
+        // Write the response
+        beast::async_write(
+            stream_,
+            std::move(msg),
+            beast::bind_front_handler(
+                &session::on_write, shared_from_this(), keep_alive));
     }
 
     void
     on_write(
-        bool close,
+        bool keep_alive,
         beast::error_code ec,
         std::size_t bytes_transferred)
     {
@@ -330,15 +301,12 @@ public:
         if(ec)
             return fail(ec, "write");
 
-        if(close)
+        if(! keep_alive)
         {
             // This means we should close the connection, usually because
             // the response indicated the "Connection: close" semantic.
             return do_close();
         }
-
-        // We're done with the response so delete it
-        res_ = nullptr;
 
         // Read another request
         do_read();
