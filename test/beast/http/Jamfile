@@ -19,6 +19,7 @@ local SOURCES =
     field_compiles.cpp
     fields.cpp
     file_body.cpp
+    message_generator.cpp
     message.cpp
     parser.cpp
     read.cpp

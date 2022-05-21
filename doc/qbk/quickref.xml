@@ -205,6 +205,7 @@
           <member><link linkend="beast.ref.boost__beast__http__file_body">file_body</link></member>
           <member><link linkend="beast.ref.boost__beast__http__header">header</link></member>
           <member><link linkend="beast.ref.boost__beast__http__message">message</link></member>
+          <member><link linkend="beast.ref.boost__beast__http__message_generator">message_generator</link></member>
           <member><link linkend="beast.ref.boost__beast__http__parser">parser</link></member>
           <member><link linkend="beast.ref.boost__beast__http__request">request</link></member>
           <member><link linkend="beast.ref.boost__beast__http__request_header">request_header</link></member>

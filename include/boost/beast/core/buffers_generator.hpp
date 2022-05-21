@@ -11,11 +11,9 @@
 #define BOOST_BEAST_CORE_BUFFERS_GENERATOR_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/async_result.hpp>
-
 #include <type_traits>
 
 namespace boost {
@@ -63,7 +61,7 @@ struct is_buffers_generator<
     by a caller-provided BuffersGenerator to a stream. The call
     will block until one of the following conditions is true:
 
-    @li The generator returns an empty buffers sequence.
+    @li A call to the generator's `is_done` returns `false`.
 
     @li An error occurs.
 
@@ -85,8 +83,7 @@ template<
     class SyncWriteStream,
     class BuffersGenerator
 #if ! BOOST_BEAST_DOXYGEN
-    ,
-    typename std::enable_if<is_buffers_generator<
+    , typename std::enable_if<is_buffers_generator<
         typename std::decay<BuffersGenerator>::
             type>::value>::type* = nullptr
 #endif
@@ -103,7 +100,7 @@ write(
     by a caller-provided BuffersGenerator to a stream. The call
     will block until one of the following conditions is true:
 
-    @li The generator returns an empty buffers sequence.
+    @li A call to the generator's `is_done` returns `false`.
 
     @li An error occurs.
 
@@ -125,8 +122,7 @@ template<
     class SyncWriteStream,
     class BuffersGenerator
 #if ! BOOST_BEAST_DOXYGEN
-    ,
-    typename std::enable_if<is_buffers_generator<
+    , typename std::enable_if<is_buffers_generator<
         typename std::decay<BuffersGenerator>::
             type>::value>::type* = nullptr
 #endif
@@ -145,7 +141,7 @@ write(
     operation will continue until one of the following
     conditions is true:
 
-    @li The generator returns an empty buffers sequence.
+    @li A call to the generator's `is_done` returns `false`.
 
     @li An error occurs.
 
@@ -182,8 +178,7 @@ template<
     class BuffersGenerator,
     class CompletionToken
 #if !BOOST_BEAST_DOXYGEN
-    ,
-    typename std::enable_if<is_buffers_generator<
+    , typename std::enable_if<is_buffers_generator<
         BuffersGenerator>::value>::type* = nullptr
 #endif
     >
@@ -191,16 +186,15 @@ auto
 async_write(
     AsyncWriteStream& stream,
     BuffersGenerator generator,
-    CompletionToken&& token) //
-    -> typename net::async_result<
-        typename std::decay<
-            CompletionToken>::type,
-        void(error_code, std::size_t)>::
-        return_type;
+    CompletionToken&& token) ->
+        typename net::async_result<
+            typename std::decay<
+                CompletionToken>::type,
+            void(error_code, std::size_t)>::return_type;
 
-} // namespace beast
-} // namespace boost
+} // beast
+} // boost
 
-#include <include/boost/beast/core/impl/buffers_generator.hpp>
+#include <boost/beast/core/impl/buffers_generator.hpp>
 
 #endif

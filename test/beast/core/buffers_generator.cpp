@@ -27,7 +27,8 @@ namespace beast {
 
 namespace detail {
 
-struct test_buffers_generator {
+struct test_buffers_generator
+{
     using underlying_buffer_sequence = std::array<net::const_buffer, 2>;
     using const_buffers_type = buffers_suffix<underlying_buffer_sequence>;
     std::size_t iterations_ = 5;
@@ -212,7 +213,8 @@ public:
             BEAST_EXPECT(30 == in.nwrite_bytes());
             BEAST_EXPECT(
                 "abcde12345abcd1234abc123ab12a1" == in.str());
-        } else
+        }
+        else
         {
             BEAST_EXPECT(1 == out.nwrite());
             BEAST_EXPECT(10 == in.nwrite_bytes());
@@ -254,7 +256,8 @@ public:
             BEAST_EXPECT(30 == in.nwrite_bytes());
             BEAST_EXPECT(
                 "abcde12345abcd1234abc123ab12a1" == in.str());
-        } else
+        }
+        else
         {
             BEAST_EXPECT(1 == out.nwrite());
             BEAST_EXPECT(10 == in.nwrite_bytes());
