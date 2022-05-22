@@ -268,7 +268,7 @@ code reviews:
 * <a href="http://www.evoketechnologies.com/blog/code-review-checklist-perform-effective-code-reviews/">Code Review Checklist – To Perform Effective Code Reviews</a>
 * <a href="https://www.codeproject.com/Articles/524235/Codeplusreviewplusguidelines">Code review guidelines</a>
 * <a href="https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md">C++ Core Guidelines</a>
-* <a href="https://www.oreilly.com/library/view/c-coding-standards/0321113586/">C++ Coding Standards (Sutter & Andrescu)</a>
+* <a href="https://www.oreilly.com/library/view/c-coding-standards/0321113586/">C++ Coding Standards (Sutter & Alexandrescu)</a>
 
 Beast thrives on code reviews and any sort of feedback from users and
 stakeholders about its interfaces. Even if you just have questions,
