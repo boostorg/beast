@@ -8,7 +8,7 @@
 #
 
 GroupSources (include/boost/beast beast)
-GroupSources (test/extern/zlib-1.2.11 zlib)
+GroupSources (test/extern/zlib-1.2.12 zlib)
 GroupSources (test/bench/zlib "/")
 
 if (MSVC)
