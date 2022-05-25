@@ -21,33 +21,40 @@ if (OPENSSL_FOUND)
 endif()
 
 set (ZLIB_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/crc32.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/deflate.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/inffast.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/inffixed.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/inflate.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/inftrees.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/trees.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/zlib.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/zutil.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/adler32.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/compress.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/crc32.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/deflate.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/infback.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/inffast.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/inflate.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/inftrees.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/trees.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/uncompr.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11/zutil.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/crc32.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/deflate.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzguts.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inffast.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inffixed.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inflate.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inftrees.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/trees.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zconf.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zlib.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zutil.h
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/adler32.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/compress.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/crc32.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/deflate.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzclose.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzlib.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzread.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzwrite.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inflate.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/infback.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inftrees.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inffast.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/trees.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/uncompr.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zutil.c
 )
 
 add_library (
         lib-zlib
         ${ZLIB_SOURCES}
 )
-target_include_directories(lib-zlib PUBLIC "${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.11")
+target_include_directories(lib-zlib PUBLIC "${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12")
+set_property(TARGET lib-zlib PROPERTY FOLDER "static-libs")
 
 set (TEST_MAIN ${PROJECT_SOURCE_DIR}/test/lib_beast.cpp)
 
