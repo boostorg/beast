@@ -91,6 +91,16 @@ public:
         after a reset, any required internal buffers are not
         dynamically allocated until needed.
 
+        @param level Compression level from 0 to 9.
+
+        @param windowBits The base two logarithm of the window size, or the
+        history buffer. It should be in the range 9..15.
+
+        @param memLevel How much memory should be allocated for the internal
+        compression state, with level from from 1 to 9.
+
+        @param strategy Strategy to tune the compression algorithm.
+
         @note Any unprocessed input or pending output from
         previous calls are discarded.
     */
@@ -363,6 +373,8 @@ public:
     This function makes a conservative estimate of the maximum number
     of bytes needed to store the result of compressing a block of
     data.
+
+
 
     @param bytes The size of the uncompressed data.
 
