@@ -653,6 +653,17 @@ run(runner& r)
         BEAST_FAIL(); \
     }
 
+/** Ensure an exception is not thrown
+*/
+#define BEAST_NO_THROW( EXPR ) \
+    try { \
+        EXPR; \
+        BEAST_PASS(); \
+    } \
+    catch(...) { \
+        BEAST_FAIL(); \
+    }
+
 } // unit_test
 } // beast
 } // boost

@@ -8,7 +8,7 @@
 //
 // This is a derivative work based on Zlib, copyright below:
 /*
-    Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2022 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages

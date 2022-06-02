@@ -19,6 +19,9 @@
 
 #include "zlib-1.2.12/zlib.h"
 
+#include "fixtures/CVE_2018_25032/default.hpp"
+#include "fixtures/CVE_2018_25032/fixed.hpp"
+
 namespace boost {
 namespace beast {
 namespace zlib {
@@ -605,6 +608,34 @@ public:
     }
 
     void
+    testCVE(char const* in, int l, Strategy s)
+    {
+        deflate_stream ds;
+        ds.reset(l, 15, 1, s);
+        z_params p;
+        p.next_in = in;
+        p.avail_in = std::strlen(in);
+        std::size_t n = deflate_upper_bound(p.avail_in);
+        std::vector<unsigned char> out(n);
+        p.next_out = out.data();
+        p.avail_out = n;
+        error_code ec;
+        BEAST_NO_THROW(ds.write(p, Flush::finish, ec));
+        BEAST_EXPECT(ec == zlib::error::end_of_stream);
+    }
+
+    void
+    testCVE()
+    {
+        testCVE(CVE_2018_25032_default, 1, Strategy::fixed);
+        testCVE(CVE_2018_25032_default, 2, Strategy::fixed);
+        testCVE(CVE_2018_25032_default, 6, Strategy::fixed);
+        testCVE(CVE_2018_25032_fixed, 1, Strategy::normal);
+        testCVE(CVE_2018_25032_fixed, 2, Strategy::normal);
+        testCVE(CVE_2018_25032_fixed, 6, Strategy::normal);
+    }
+
+    void
     run() override
     {
         log <<
@@ -625,6 +656,7 @@ public:
         testRLEMatchLengthExceedLookahead(beast_compressor);
         testFlushAfterDistMatch(zlib_compressor);
         testFlushAfterDistMatch(beast_compressor);
+        testCVE();
     }
 };
 

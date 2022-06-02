@@ -8,7 +8,7 @@
 //
 // This is a derivative work based on Zlib, copyright below:
 /*
-    Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2018 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -370,7 +370,7 @@ protected:
     // Depth of each subtree used as tie breaker for trees of equal frequency
     std::uint8_t depth_[2*lCodes+1];
 
-    std::uint8_t *l_buf_;           // buffer for literals or lengths
+    std::uint8_t *sym_buf_;           // buffer for distances and literals or lengths
 
     /*  Size of match buffer for literals/lengths.
         There are 4 reasons for limiting lit_bufsize to 64K:
@@ -391,13 +391,9 @@ protected:
           - I can't count above 4
     */
     uInt lit_bufsize_;
-    uInt last_lit_;                 // running index in l_buf_
 
-    /*  Buffer for distances. To simplify the code, d_buf_ and l_buf_
-        have the same number of elements. To use different lengths, an
-        extra flag array would be necessary.
-    */
-    std::uint16_t* d_buf_;
+    uInt sym_next_;      /* running index in sym_buf */
+    uInt sym_end_;       /* symbol table full when sym_next reaches this */
 
     std::uint32_t opt_len_;         // bit length of current block with optimal trees
     std::uint32_t static_len_;      // bit length of current block with static trees
