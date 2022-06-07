@@ -15,16 +15,17 @@
 
 //[example_http_client
 
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
+#include <boost/filesystem/path.hpp>
 #include <cstdlib>
-#include <iostream>
 #include <fstream>
-#include <string>
+#include <iostream>
 #include <sstream>
+#include <string>
 
 namespace beast = boost::beast;     // from <boost/beast.hpp>
 namespace http = beast::http;       // from <boost/beast/http.hpp>
@@ -49,7 +50,7 @@ int main(int argc, char** argv)
         auto const host = argv[1];
         auto const port = argv[2];
         auto const target = argv[3];
-        std::string const file = argv[4];
+        boost::filesystem::path const fileName = argv[4];
         int version = argc == 6 && !std::strcmp("1.0", argv[5]) ? 10 : 11;
 
         // The io_context is required for all I/O
@@ -71,24 +72,40 @@ int main(int argc, char** argv)
         req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
         // Prepare the multipart/form-data message
-        std::ifstream f(file);
-        std::stringstream file_buffer;
-        file_buffer << f.rdbuf(); // It may be binary files.
+        std::ifstream f(
+            fileName.native(), std::ios::binary); // maybe binary file
+        std::string const file_buffer(
+            std::istreambuf_iterator<char>(f), {});
 
-        std::string payload = "--AaB03x\n" // This is the boundary to limit the start/end of a part. It may be any string. More info on the RFC 2388 (https://datatracker.ietf.org/doc/html/rfc2388)
-                              "Content-Disposition: form-data; name=\"comment\"\n"
-                              "\n"
-                              "Larry\n" 
-                              "--AaB03x\n"
-                              "Content-Disposition: form-data; name=\"files\"; filename=\"" + file.substr(file.find_last_of("/")+1) + "\"\n"
-                              "Content-Type: application/octet-stream\n"
-                              "\n"
-                              + file_buffer.str() + "\n"
-                              "--AaB03x--\n";
+#define MULTI_PART_BOUNDARY                                          \
+    "AaB03x" // This is the boundary to limit the start/end of a
+             // part. It may be any string. More info on the RFC
+             // 2388 (https://datatracker.ietf.org/doc/html/rfc2388)
+#define CRLF                                                         \
+    "\r\n" // Line ends must be CRLF
+           // https://datatracker.ietf.org/doc/html/rfc7231#section-3.1.1.4
 
-        req.set(http::field::content_type, "multipart/form-data; boundary=AaB03x");
-        req.set(http::field::content_length, payload.size());
-        req.body() = payload;
+        std::ostringstream payload;
+        payload
+            << "--" MULTI_PART_BOUNDARY CRLF
+            << R"(Content-Disposition: form-data; name="comment")"
+            << CRLF CRLF "Larry" CRLF << //
+            "--" MULTI_PART_BOUNDARY CRLF
+            << R"(Content-Disposition: form-data; name="files"; filename=)"
+            << fileName.filename() << CRLF
+            << "Content-Type: application/octet-stream" CRLF CRLF
+            << file_buffer << CRLF << //
+            "--" MULTI_PART_BOUNDARY << "--" CRLF;
+
+        req.set(
+            http::field::content_type,
+            "multipart/form-data; boundary=" MULTI_PART_BOUNDARY);
+
+#undef CRLF
+#undef MULTI_PART_BOUNDARY
+
+        req.body() = std::move(payload).str();
+        req.prepare_payload();
 
         // Send the HTTP request to the remote host
         http::write(stream, req);

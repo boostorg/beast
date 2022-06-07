@@ -9,17 +9,18 @@
 
 //------------------------------------------------------------------------------
 //
-// Example: HTTP client, synchronous, POST method
+// Example: HTTP client, synchronous, JSON message
 //
 //------------------------------------------------------------------------------
 
 //[example_http_client
 
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
+#include <boost/json/src.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -29,7 +30,7 @@ namespace http = beast::http;       // from <boost/beast/http.hpp>
 namespace net = boost::asio;        // from <boost/asio.hpp>
 using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
 
-// Performs an HTTP POST and prints the response
+// Performs an HTTP POST with JSON body and prints the response
 int main(int argc, char** argv)
 {
     try
@@ -38,10 +39,10 @@ int main(int argc, char** argv)
         if(argc != 4 && argc != 5)
         {
             std::cerr <<
-                "Usage: http-client-sync-post <host> <port> <target> [<HTTP version: 1.0 or 1.1(default)>]\n" <<
+                "Usage: http-client-sync-post-json <host> <port> <target> [<HTTP version: 1.0 or 1.1(default)>]\n" <<
                 "Example:\n" <<
-                "    http-client-sync-post www.example.com 80 /\n" <<
-                "    http-client-sync-post www.example.com 80 / 1.0\n";
+                "    http-client-sync-post-json www.example.com 80 /\n" <<
+                "    http-client-sync-post-json www.example.com 80 / 1.0\n";
             return EXIT_FAILURE;
         }
         auto const host = argv[1];
@@ -67,10 +68,10 @@ int main(int argc, char** argv)
         req.set(http::field::host, host);
         req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
-        std::string payload = "var1=1&var2=2";
-        req.set(http::field::content_type, "application/x-www-form-urlencoded");
-        req.set(http::field::content_length, payload.size());
-        req.body() = payload;
+        boost::json::value const jv = {"m_list", {1, 2, 3}};
+        req.set(http::field::content_type, "application/json");
+        req.body() = serialize(jv);
+        req.prepare_payload();
 
         // Send the HTTP request to the remote host
         http::write(stream, req);

@@ -22,29 +22,29 @@ target_link_libraries(http-client-sync-get
 
 set_property(TARGET http-client-sync-get PROPERTY FOLDER "example-http-client")
 
-add_executable (http-client-sync-post
+add_executable (http-client-sync-post-form
     ${BOOST_BEAST_FILES}
     Jamfile
-    http_client_sync_post.cpp
+    http_client_sync_post_form.cpp
 )
 
-target_link_libraries(http-client-sync-post
+target_link_libraries(http-client-sync-post-form
     lib-asio
     lib-beast)
 
-set_property(TARGET http-client-sync-post PROPERTY FOLDER "example-http-client")
+set_property(TARGET http-client-sync-post-form PROPERTY FOLDER "example-http-client")
 
-add_executable (http-client-sync-json
+add_executable (http-client-sync-post-json
     ${BOOST_BEAST_FILES}
     Jamfile
-    http_client_sync_json.cpp
+    http_client_sync_post_json.cpp
 )
 
-target_link_libraries(http-client-sync-json
+target_link_libraries(http-client-sync-post-json
     lib-asio
     lib-beast)
 
-set_property(TARGET http-client-sync-json PROPERTY FOLDER "example-http-client")
+set_property(TARGET http-client-sync-post-json PROPERTY FOLDER "example-http-client")
 
 add_executable (http-client-sync-file-upload
     ${BOOST_BEAST_FILES}
