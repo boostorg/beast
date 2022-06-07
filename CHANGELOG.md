@@ -1,6 +1,12 @@
-Version 331: DRAFT
+Version 331: 
 
 * Using core::string_view instead of utility::string_view
+* Use static_string from Boost.StaticString
+* Use span from Boost.Core
+* Fix CVE-2018-25032 in zlib streams
+* Add http::message_generator
+* Add buffers_generator
+* serializer::is_done is const
 
 --------------------------------------------------------------------------------
 
