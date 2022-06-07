@@ -7,8 +7,8 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-exe http-client-sync-get :
-    http_client_sync_get.cpp
+exe http-client-sync :
+    http_client_sync.cpp
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no

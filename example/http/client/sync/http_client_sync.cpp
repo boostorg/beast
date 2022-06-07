@@ -38,10 +38,10 @@ int main(int argc, char** argv)
         if(argc != 4 && argc != 5)
         {
             std::cerr <<
-                "Usage: http-client-sync-get <host> <port> <target> [<HTTP version: 1.0 or 1.1(default)>]\n" <<
+                "Usage: http-client-sync <host> <port> <target> [<HTTP version: 1.0 or 1.1(default)>]\n" <<
                 "Example:\n" <<
-                "    http-client-sync-get www.example.com 80 /\n" <<
-                "    http-client-sync-get www.example.com 80 / 1.0\n";
+                "    http-client-sync www.example.com 80 /\n" <<
+                "    http-client-sync www.example.com 80 / 1.0\n";
             return EXIT_FAILURE;
         }
         auto const host = argv[1];

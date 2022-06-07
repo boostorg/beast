@@ -10,17 +10,17 @@
 GroupSources(include/boost/beast beast)
 GroupSources(example/http/client/sync "/")
 
-add_executable (http-client-sync-get
+add_executable (http-client-sync
     ${BOOST_BEAST_FILES}
     Jamfile
-    http_client_sync_get.cpp
+    http_client_sync.cpp
 )
 
-target_link_libraries(http-client-sync-get
+target_link_libraries(http-client-sync
     lib-asio
     lib-beast)
 
-set_property(TARGET http-client-sync-get PROPERTY FOLDER "example-http-client")
+set_property(TARGET http-client-sync PROPERTY FOLDER "example-http-client")
 
 add_executable (http-client-sync-post-form
     ${BOOST_BEAST_FILES}
