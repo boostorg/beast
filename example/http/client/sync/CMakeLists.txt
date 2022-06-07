@@ -41,6 +41,7 @@ add_executable (http-client-sync-post-json
 )
 
 target_link_libraries(http-client-sync-post-json
+    boost_json
     lib-asio
     lib-beast)
 

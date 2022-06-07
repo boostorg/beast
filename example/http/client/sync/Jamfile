@@ -26,6 +26,7 @@ exe http-client-sync-post-json :
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
+    <library>/boost/json//boost_json
     ;
 
 exe http-client-sync-file-upload :
