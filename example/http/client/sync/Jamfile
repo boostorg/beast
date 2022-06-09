@@ -14,25 +14,11 @@ exe http-client-sync :
     <variant>ubasan:<build>no
     ;
 
-exe http-client-sync-post-form :
-    http_client_sync_post_form.cpp
-    :
-    <variant>coverage:<build>no
-    <variant>ubasan:<build>no
-    ;
-
-exe http-client-sync-post-json :
-    http_client_sync_post_json.cpp
+exe http-client-sync-post :
+    http_client_sync_post.cpp
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
     <library>/boost/json//boost_json
-    ;
-
-exe http-client-sync-file-upload :
-    http_client_sync_file_upload.cpp
-    :
-    <variant>coverage:<build>no
-    <variant>ubasan:<build>no
     <library>/boost/filesystem//boost_filesystem
     ;
