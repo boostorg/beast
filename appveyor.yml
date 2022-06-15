@@ -47,8 +47,8 @@ build: off
 test_script:
   - b2 --debug-configuration variant=release cxxstd=14 address-model=64 toolset=msvc-14.0 libs/beast/example -j3
   - b2 --debug-configuration variant=release cxxstd=14 address-model=64 toolset=msvc-14.0 --verbose-test libs/beast/test//run-fat-tests -j3
-  - b2 --debug-configuration variant=release cxxstd=17 define="BOOST_BEAST_USE_STD_STRING_VIEW" address-model=64 toolset=msvc-14.1 libs/beast/example -j3
-  - b2 --debug-configuration variant=release cxxstd=17 define="BOOST_BEAST_USE_STD_STRING_VIEW" address-model=64 toolset=msvc-14.1 --verbose-test libs/beast/test//run-fat-tests -j3
+  - b2 --debug-configuration variant=release cxxstd=17 address-model=64 toolset=msvc-14.1 libs/beast/example -j3
+  - b2 --debug-configuration variant=release cxxstd=17 address-model=64 toolset=msvc-14.1 --verbose-test libs/beast/test//run-fat-tests -j3
 
 cache:
 - c:\tools\vcpkg\installed\

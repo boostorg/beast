@@ -20,14 +20,6 @@ failure to do so may result in violations of ODR (One Definition Rule).
 [[Definition][Description]]
 [
     [
-        BOOST_BEAST_USE_STD_STRING_VIEW
-    ][
-        Causes Beast to use std::string_view instead of boost::string_view.
-        Requires C++17.
-    ]
-]
-[
-    [
         BOOST_BEAST_SEPARATE_COMPILATION
     ][
         Enables the split compilation mode, which allows the user to compile

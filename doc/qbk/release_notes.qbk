@@ -15,6 +15,7 @@
 
 [*Miscellaneous]
 
+* [issue 2363] Remove `BOOST_BEAST_USE_STD_STRING_VIEW`
 * [issue 2417] use boost::core::string_view. This improves inter-conversion between string_view implementations. Some observable differences for users:
  * `core::string_view` no longer supports the `.to_string()` or `.clear()` extensions from Utility
  * code that relied on `.max_size()` returning `.size(),` needs to be fixed to use `.size()` instead

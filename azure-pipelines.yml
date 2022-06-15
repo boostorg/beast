@@ -42,7 +42,6 @@ jobs:
           CXX: g++-9
           PACKAGES: g++-9
           VARIANT: release
-          B2_FLAGS: <define>BOOST_BEAST_USE_STD_STRING_VIEW
           CXXSTD: 17
           B2_TARGETS: libs/beast/test//run-fat-tests libs/beast/example
         GCC 9 C++11 HEADER_ONLY NO_DEPRECATED:
@@ -86,7 +85,6 @@ jobs:
           CXX: g++-8
           PACKAGES: g++-8
           VARIANT: release
-          B2_FLAGS: <define>BOOST_BEAST_USE_STD_STRING_VIEW
           CXXSTD: 17
           B2_TARGETS: libs/beast/test//run-fat-tests libs/beast/example
         GCC 8 C++11 HEADER_ONLY NO_DEPRECATED:
@@ -303,13 +301,11 @@ jobs:
         MSVC14.2 C++17 x64:
           VM_IMAGE: 'windows-2019'
           TOOLSET: msvc-14.2
-          B2_FLAGS: define=BOOST_BEAST_USE_STD_STRING_VIEW
           CXXSTD: 17
           ADDRMODEL: 64
         MSVC14.1 C++17 x64:
           VM_IMAGE: 'vs2017-win2016'
           TOOLSET: msvc-14.1
-          B2_FLAGS: define=BOOST_BEAST_USE_STD_STRING_VIEW
           CXXSTD: 17
           ADDRMODEL: 64
         MSVC14.0 C++11 x64:
