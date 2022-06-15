@@ -342,20 +342,30 @@ public:
     //--------------------------------------------------------------------------
 
 #if BOOST_BEAST_DOXYGEN
+    /// Get the option value
     template<class Option>
     void
     get_option(Option& opt);
 
+    /// Set the option value
     template<class Option>
     void
     set_option(Option opt);
 #else
-
     void set_option(decorator opt);
-
-    void get_option(timeout& opt);
-    void set_option(timeout const& opt);
 #endif
+
+    /** Set the timeout option
+
+        @throws system_error on failure to reset the
+        timer.
+    */
+    void
+    set_option(timeout const& opt);
+
+    /// Get the timeout option
+    void
+    get_option(timeout& opt);
 
     /** Set the permessage-deflate extension options
 
