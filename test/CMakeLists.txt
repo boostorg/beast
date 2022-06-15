@@ -23,27 +23,27 @@ endif()
 set (ZLIB_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/crc32.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/deflate.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzguts.h
+   #${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzguts.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inffast.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inffixed.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inflate.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inftrees.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/trees.h
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zconf.h
+   #${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zconf.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zlib.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zutil.h
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/adler32.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/compress.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/crc32.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/deflate.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzclose.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzlib.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzread.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzwrite.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inflate.c
+   #${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzclose.c
+   #${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzlib.c
+   #${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzread.c
+   #${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/gzwrite.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/infback.c
-    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inftrees.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inffast.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inflate.c
+    ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/inftrees.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/trees.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/uncompr.c
     ${CMAKE_CURRENT_LIST_DIR}/extern/zlib-1.2.12/zutil.c

@@ -44,14 +44,14 @@ path-constant ZLIB_SOURCES :
     extern/zlib-1.2.12/compress.c
     extern/zlib-1.2.12/crc32.c
     extern/zlib-1.2.12/deflate.c
-    extern/zlib-1.2.12/gzclose.c
-    extern/zlib-1.2.12/gzlib.c
-    extern/zlib-1.2.12/gzread.c
-    extern/zlib-1.2.12/gzwrite.c
-    extern/zlib-1.2.12/inflate.c
+   #extern/zlib-1.2.12/gzclose.c
+   #extern/zlib-1.2.12/gzlib.c
+   #extern/zlib-1.2.12/gzread.c
+   #extern/zlib-1.2.12/gzwrite.c
     extern/zlib-1.2.12/infback.c
-    extern/zlib-1.2.12/inftrees.c
     extern/zlib-1.2.12/inffast.c
+    extern/zlib-1.2.12/inflate.c
+    extern/zlib-1.2.12/inftrees.c
     extern/zlib-1.2.12/trees.c
     extern/zlib-1.2.12/uncompr.c
     extern/zlib-1.2.12/zutil.c
