@@ -18,10 +18,12 @@ namespace boost {
 namespace beast {
 namespace websocket {
 
+#ifndef BOOST_BEAST_DOXYGEN
 template<
     class NextLayer,
     bool deflateSupported = true>
 class stream;
+#endif
 
 } // websocket
 } // beast
