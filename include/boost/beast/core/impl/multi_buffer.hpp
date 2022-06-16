@@ -1203,15 +1203,6 @@ destroy(list_type& list) noexcept
 template<class Allocator>
 void
 basic_multi_buffer<Allocator>::
-destroy(const_iter it)
-{
-    auto& e = list_.erase(it);
-    destroy(e);
-}
-
-template<class Allocator>
-void
-basic_multi_buffer<Allocator>::
 destroy(element& e)
 {
     auto a = rebind_type{this->get()};
