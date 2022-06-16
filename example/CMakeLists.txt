@@ -9,6 +9,7 @@
 
 add_subdirectory (advanced)
 add_subdirectory (http)
+add_subdirectory (json-body)
 add_subdirectory (websocket)
 
 add_subdirectory (echo-op)
