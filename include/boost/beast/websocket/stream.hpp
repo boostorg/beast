@@ -139,6 +139,7 @@ class stream
     using control_cb_type =
         std::function<void(frame_type, string_view)>;
 
+#ifndef BOOST_BEAST_DOXYGEN
     friend class close_test;
     friend class frame_test;
     friend class ping_test;
@@ -153,6 +154,7 @@ class stream
     */
     static std::size_t constexpr max_control_frame_size = 2 + 8 + 4 + 125;
     static std::size_t constexpr tcp_frame_size = 1536;
+#endif
 
     static time_point never() noexcept
     {

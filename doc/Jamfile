@@ -22,7 +22,7 @@ if ! [ type.registered IPP ]
 docca.reference reference.qbk
     :
         xsl/custom-overrides.xsl
-        [ glob-tree-ex ../include/boost/beast : *.hpp *.ipp : detail impl ]
+        [ glob-tree-ex ../include/boost/beast : *.hpp *.ipp : detail impl unit_test ]
     :
         <doxygen:param>PROJECT_NAME=Beast
         <doxygen:param>PROJECT_BRIEF="C++ Networking Library"
