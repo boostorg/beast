@@ -59,7 +59,9 @@ class basic_fields
         std::allocator_traits<Allocator>::pointer>::value,
         "Allocator must use regular pointers");
 
+#ifndef BOOST_BEAST_DOXYGEN
     friend class fields_test; // for `header`
+#endif
 
     struct element;
 
@@ -72,7 +74,9 @@ public:
     /// The type of element used to represent a field
     class value_type
     {
+#ifndef BOOST_BEAST_DOXYGEN
         friend class basic_fields;
+#endif
 
         off_t off_;
         off_t len_;
