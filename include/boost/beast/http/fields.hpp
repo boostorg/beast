@@ -615,6 +615,14 @@ public:
 
     /** Returns a range of iterators to the fields with the specified name.
 
+        This function returns the first and last iterators to the ordered
+        fields with the specified name.
+
+        @note The fields represented by the range are ordered. Its elements
+        are guaranteed to match the field ordering of the message. This
+        means users do not need to sort this range when comparing fields
+        of the same name in different messages.
+
         @param name The field name.
 
         @return A range of iterators to fields with the same name,
@@ -623,13 +631,7 @@ public:
     std::pair<const_iterator, const_iterator>
     equal_range(field name) const;
 
-    /** Returns a range of iterators to the fields with the specified name.
-
-        @param name The field name.
-
-        @return A range of iterators to fields with the same name,
-        otherwise an empty range.
-    */
+    /// @copydoc equal_range(field) const
     std::pair<const_iterator, const_iterator>
     equal_range(string_view name) const;
 
