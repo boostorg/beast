@@ -1397,7 +1397,7 @@ void
 deflate_stream::
 tr_tally_dist(std::uint16_t dist, std::uint8_t len, bool& flush)
 {
-    sym_buf_[sym_next_++] = dist;
+    sym_buf_[sym_next_++] = dist & 0xFF;
     sym_buf_[sym_next_++] = dist >> 8;
     sym_buf_[sym_next_++] = len;
     dist--;
