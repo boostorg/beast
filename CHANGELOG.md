@@ -1,3 +1,10 @@
+Version 332: 
+
+* Fix beast::zlib warnings
+* Improve documentation
+
+--------------------------------------------------------------------------------
+
 Version 331: 
 
 * Using core::string_view instead of utility::string_view
