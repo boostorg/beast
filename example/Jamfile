@@ -26,7 +26,7 @@ project /boost/beast/example
 
 build-project advanced ;
 build-project http ;
-build-project json_body ;
+build-project json-body ;
 build-project websocket ;
 
 # legacy

@@ -10,6 +10,8 @@
 GroupSources(include/boost/beast beast)
 GroupSources(example/json-body "/")
 
+find_package(Boost COMPONENTS coroutine system thread json REQUIRED)
+
 add_executable (http-client-json-body
     ${BOOST_BEAST_FILES}
     Jamfile
@@ -17,7 +19,7 @@ add_executable (http-client-json-body
 )
 
 target_link_libraries(http-client-json-body
-    boost_json
+    Boost::json
     lib-asio
     lib-beast)
 
