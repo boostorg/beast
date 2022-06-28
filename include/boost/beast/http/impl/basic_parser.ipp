@@ -809,6 +809,11 @@ do_field(field f,
             ec = error::bad_content_length;
         };
 
+        auto multiple_content_length = [&ec]
+        {
+            ec = error::multiple_content_length;
+        };
+
         // conflicting field
         if(f_ & flagChunked)
             return bad_content_length();
@@ -831,7 +836,7 @@ do_field(field f,
             if (existing.has_value())
             {
                 if (v != *existing)
-                    return bad_content_length();
+                    return multiple_content_length();
             }
             else
             {
