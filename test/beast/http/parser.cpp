@@ -378,7 +378,7 @@ public:
             response_parser<string_body> parser;
             error_code ec;
             parser.put(net::buffer(message), ec);
-            BEAST_EXPECTS(ec == error::bad_content_length, ec.message());
+            BEAST_EXPECTS(ec == error::multiple_content_length, ec.message());
         };
 
         // multiple contents lengths the same

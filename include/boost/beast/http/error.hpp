@@ -146,6 +146,9 @@ enum class error
     /// An obs-fold exceeded an internal limit.
     bad_obs_fold,
 
+    /// The response contains multiple and conflicting Content-Length.
+    multiple_content_length,
+
     /** The parser is stale.
 
         This happens when attempting to re-use a parser that has
