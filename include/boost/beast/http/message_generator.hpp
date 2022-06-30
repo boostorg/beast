@@ -48,19 +48,19 @@ public:
     template <bool isRequest, class Body, class Fields>
     message_generator(http::message<isRequest, Body, Fields>&&);
 
-    /// @ref BuffersGenerator
+    /// `BuffersGenerator`
     bool is_done() const {
         return impl_->is_done();
     }
 
-    /// @ref BuffersGenerator
+    /// `BuffersGenerator`
     const_buffers_type
     prepare(error_code& ec)
     {
         return impl_->prepare(ec);
     }
 
-    /// @ref BuffersGenerator
+    /// `BuffersGenerator`
     void
     consume(std::size_t n)
     {

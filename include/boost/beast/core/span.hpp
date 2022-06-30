@@ -16,7 +16,8 @@
 namespace boost {
 namespace beast {
 
-using boost::span;
+template<class T, std::size_t E = boost::dynamic_extent>
+using span = boost::span<T, E>;
 
 } // beast
 } // boost
