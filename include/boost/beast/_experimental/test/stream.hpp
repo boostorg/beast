@@ -234,7 +234,7 @@ public:
 
         The stream will be created in a disconnected state.
 
-        @param ioc The `io_context` object that the stream will use to
+        @param context The `io_context` object that the stream will use to
         dispatch handlers for any asynchronous operations.
     */
     template <typename ExecutionContext>

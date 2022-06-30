@@ -136,7 +136,7 @@ write(
     stream.
 
     This function is used to write all of the buffers generated
-    by a caller-provided @ref BuffersGenerator to a stream. The
+    by a caller-provided `BuffersGenerator` to a stream. The
     function call always returns immediately. The asynchronous
     operation will continue until one of the following
     conditions is true:
@@ -156,7 +156,7 @@ write(
 
     @param generator The generator to use.
 
-    @param handler The completion handler to invoke when the
+    @param token The completion handler to invoke when the
     operation completes. The implementation takes ownership of
     the handler by performing a decay-copy. The equivalent
     function signature of the handler must be:

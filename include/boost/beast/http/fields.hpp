@@ -99,7 +99,7 @@ public:
         /// Assignment (deleted)
         value_type& operator=(value_type const&) = delete;
 
-        /// Returns the field enum, which can be @ref field::unknown
+        /// Returns the field enum, which can be @ref boost::beast::http::field::unknown
         field
         name() const;
 
@@ -424,7 +424,7 @@ public:
 
         @param name The field name.
 
-        @param value The value of the field, as a @ref string_view
+        @param value The value of the field, as a @ref boost::beast::string_view
     */
     void
     insert(field name, string_view const& value);
@@ -442,7 +442,7 @@ public:
 
         @param name The field name.
 
-        @param value The value of the field, as a @ref string_view
+        @param value The value of the field, as a @ref boost::beast::string_view
     */
     void
     insert(string_view name, string_view const& value);
@@ -465,7 +465,7 @@ public:
         must be equal to `to_string(name)` using a case-insensitive
         comparison, otherwise the behavior is undefined.
 
-        @param value The value of the field, as a @ref string_view
+        @param value The value of the field, as a @ref boost::beast::string_view
     */
     void
     insert(field name, string_view name_string,
@@ -481,7 +481,7 @@ public:
 
         @param name The field name.
 
-        @param value The value of the field, as a @ref string_view
+        @param value The value of the field, as a @ref boost::beast::string_view
 
         @return The field value.
     */
@@ -498,7 +498,7 @@ public:
 
         @param name The field name.
 
-        @param value The value of the field, as a @ref string_view
+        @param value The value of the field, as a @ref boost::beast::string_view
     */
     void
     set(string_view name, string_view const& value);
@@ -635,7 +635,7 @@ public:
     std::pair<const_iterator, const_iterator>
     equal_range(field name) const;
 
-    /// @copydoc equal_range(field) const
+    /// @copydoc boost::beast::http::basic_fields::equal_range(boost::beast::http::field) const
     std::pair<const_iterator, const_iterator>
     equal_range(string_view name) const;
 

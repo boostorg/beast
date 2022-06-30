@@ -191,7 +191,7 @@ class async_base
 public:
     /** The type of executor associated with this object.
 
-    If a class derived from @ref async_base is a completion
+    If a class derived from @ref boost::beast::async_base is a completion
     handler, then the associated executor of the derived class will
     be this type.
 */
@@ -275,7 +275,7 @@ public:
 
     /** The type of allocator associated with this object.
 
-        If a class derived from @ref async_base is a completion
+        If a class derived from @ref boost::beast::async_base is a completion
         handler, then the associated allocator of the derived class will
         be this type.
     */
@@ -284,7 +284,7 @@ public:
 
     /** Returns the allocator associated with this object.
 
-        If a class derived from @ref async_base is a completion
+        If a class derived from @ref boost::beast::async_base is a completion
         handler, then the object returned from this function will be used
         as the associated allocator of the derived class.
     */
@@ -297,7 +297,7 @@ public:
 
     /** Returns the executor associated with this object.
 
-        If a class derived from @ref async_base is a completion
+        If a class derived from @ref boost::beast::async_base is a completion
         handler, then the object returned from this function will be used
         as the associated executor of the derived class.
     */
@@ -332,16 +332,17 @@ public:
 
         This invokes the final completion handler with the specified
         arguments forwarded. It is undefined to call either of
-        @ref complete or @ref complete_now more than once.
+        @ref boost::beast::async_base::complete or
+        @ref boost::beast::async_base::complete_now more than once.
 
-        Any temporary objects allocated with @ref beast::allocate_stable will
+        Any temporary objects allocated with @ref boost::beast::allocate_stable will
         be automatically destroyed before the final completion handler
         is invoked.
 
         @param is_continuation If this value is `false`, then the
         handler will be submitted to the executor using `net::post`.
         Otherwise the handler will be invoked as if by calling
-        @ref complete_now.
+        @ref boost::beast::async_base::complete_now.
 
         @param args A list of optional parameters to invoke the handler
         with. The completion handler must be invocable with the parameter
@@ -373,9 +374,9 @@ public:
 
         This invokes the final completion handler with the specified
         arguments forwarded. It is undefined to call either of
-        @ref complete or @ref complete_now more than once.
+        @ref boost::beast::async_base::complete or @ref boost::beast::async_base::complete_now more than once.
 
-        Any temporary objects allocated with @ref beast::allocate_stable will
+        Any temporary objects allocated with @ref boost::beast::allocate_stable will
         be automatically destroyed before the final completion handler
         is invoked.
 
