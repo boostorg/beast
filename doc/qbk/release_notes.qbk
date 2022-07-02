@@ -13,14 +13,30 @@
 
 [heading Boost 1.80]
 
-[*Miscellaneous]
+[*API Changes]
 
 * [issue 2417] use boost::core::string_view. This improves inter-conversion between string_view implementations. Some observable differences for users:
  * `core::string_view` no longer supports the `.to_string()` or `.clear()` extensions from Utility
  * code that relied on `.max_size()` returning `.size(),` needs to be fixed to use `.size()` instead
  * `remove_suffix()` and `remove_prefix()` were more lenient than the standard specs; be sure you don't rely on it clamping the argument to valid range
  * `BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS` no longer suppresses conversions to `std::string`
+* Use `span` from Boost.Core
+* Use `static_string` from Boost.StaticString
+* `serializer::is_done` is `const`
 
+[*Features]
+
+* Add buffers_generator
+* Add http::message_generator
+
+[*Fixes]
+
+* Fix CVE-2018-25032 in zlib streams
+* Fix beast::zlib warnings
+
+[*Improvements]
+
+* Improve documentation
 
 [heading Boost 1.79]
 
