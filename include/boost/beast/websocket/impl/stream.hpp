@@ -304,6 +304,22 @@ text() const
     return impl_->wr_opcode == detail::opcode::text;
 }
 
+template<class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+compress(bool value)
+{
+    impl_->wr_compress_opt = value;
+}
+
+template<class NextLayer, bool deflateSupported>
+bool
+stream<NextLayer, deflateSupported>::
+compress() const
+{
+    return impl_->wr_compress_opt;
+}
+
 //------------------------------------------------------------------------------
 
 // _Fail the WebSocket Connection_

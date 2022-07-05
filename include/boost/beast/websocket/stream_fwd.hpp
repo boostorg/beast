@@ -12,23 +12,25 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
+#ifndef BOOST_BEAST_DOXYGEN
+
 //[code_websocket_1h
 
 namespace boost {
 namespace beast {
 namespace websocket {
 
-#ifndef BOOST_BEAST_DOXYGEN
 template<
     class NextLayer,
     bool deflateSupported = true>
 class stream;
-#endif
 
 } // websocket
 } // beast
 } // boost
 
 //]
+
+#endif
 
 #endif

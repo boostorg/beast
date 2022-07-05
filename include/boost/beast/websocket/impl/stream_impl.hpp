@@ -221,11 +221,13 @@ struct stream<NextLayer, deflateSupported>::impl_type
     // Called just before sending
     // the first frame of each message
     void
-    begin_msg()
+    begin_msg(std::size_t n_bytes)
     {
         wr_frag = wr_frag_opt;
         wr_compress =
-            this->pmd_enabled() && wr_compress_opt;
+            this->pmd_enabled() &&
+            wr_compress_opt &&
+            this->should_compress(n_bytes);
 
         // Maintain the write buffer
         if( this->pmd_enabled() ||

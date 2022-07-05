@@ -1,3 +1,9 @@
+Version 338:
+
+* Added per message compression options.
+
+--------------------------------------------------------------------------------
+
 Version 337:
 
 * Added timeout option to websocket

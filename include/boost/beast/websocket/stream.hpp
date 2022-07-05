@@ -597,6 +597,42 @@ public:
     bool
     text() const;
 
+    /** Set the compress message write option.
+
+        This controls whether or not outgoing messages should be
+        compressed. The setting is only applied when
+
+        @li The template parameter `deflateSupported` is true
+        @li Compression is enable. This is controlled with `stream::set_option`
+        @li Client and server have negotiated permessage-deflate settings
+        @li The message is larger than `permessage_deflate::msg_size_threshold`
+
+        This function permits adjusting per-message compression.
+        Changing the opcode after a message is started will only take effect
+        after the current message being sent is complete.
+
+        The default setting is to compress messages whenever the conditions
+        above are true.
+
+        @param value `true` if outgoing messages should be compressed
+
+        @par Example
+        Disabling compression for a single message.
+        @code
+            ws.compress(false);
+            ws.write(net::buffer(s), ec);
+            ws.compress(true);
+        @endcode
+    */
+    void
+    compress(bool value);
+
+    /// Returns `true` if the compress message write option is set.
+    bool
+    compress() const;
+
+
+
     /*
         timer settings
 

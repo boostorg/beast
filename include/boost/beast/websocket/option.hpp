@@ -55,6 +55,9 @@ struct permessage_deflate
 
     /// Deflate memory level, 1..9
     int memLevel = 4;
+
+    /// The minimum size a message should have to be compressed
+    std::size_t msg_size_threshold = 0;
 };
 
 } // websocket
