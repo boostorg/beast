@@ -11,6 +11,13 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.80]
+
+* Fix for CVE-2018-25032 in permessage-deflate
+* fields_alloc in http-server-fast no longer leaks
+
+[/-----------------------------------------------------------------------------]
+
 [heading Boost 1.79]
 
 [*Fixes]

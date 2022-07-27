@@ -1,3 +1,10 @@
+Version 330.1:
+
+* Fix for CVE-2018-25032 in permessage-deflate
+* fields_alloc in http-server-fast no longer leaks
+
+--------------------------------------------------------------------------------
+
 Version 330:
 
 * Update release notes for Boost 1.79.
