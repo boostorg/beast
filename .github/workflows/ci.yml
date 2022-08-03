@@ -172,22 +172,22 @@ jobs:
           - description: macos-cxx11
             toolset: clang
             cxxstd: "11"
-            os: macos-10.15
+            os: macos-11
             supported: true
           - description: macos-cxx14
             toolset: clang
             cxxstd: "14"
-            os: macos-10.15
+            os: macos-11
             supported: true
           - description: macos-cxx17
             toolset: clang
             cxxstd: "17"
-            os: macos-10.15
+            os: macos-11
             supported: true
           - description: macos-cxx2a
             toolset: clang
             cxxstd: "2a"
-            os: macos-10.15
+            os: macos-11
             supported: true
 
     runs-on: ${{ matrix.os }}
@@ -251,8 +251,8 @@ jobs:
           ./bootstrap.sh
           ./b2 -d0 headers
 
-      - name: Macos specific
-        if: matrix.os == 'macos-10.15'
+      - name: Macos 11 specific
+        if: matrix.os == 'macos-11'
         run: |
           echo "macos - set up homebrew openssl"
           cat > ~/user-config.jam <<EOF
