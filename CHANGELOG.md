@@ -1,3 +1,7 @@
+* Upgrade OS on some drone CI jobs.
+
+--------------------------------------------------------------------------------
+
 Version 334:
 
 * Fix version number in CML.
