@@ -83,7 +83,7 @@ endfunction()
 #
 #-------------------------------------------------------------------------------
 
-project (Beast VERSION 332)
+project (Beast VERSION 334)
 
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 option (Beast_BUILD_EXAMPLES "Build examples" ON)
