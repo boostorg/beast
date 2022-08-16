@@ -1,3 +1,9 @@
+Version 334:
+
+* Fix version number in CML.
+
+--------------------------------------------------------------------------------
+
 Version 333:
 
 * Workaround TSAN CI bug.
