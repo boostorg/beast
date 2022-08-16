@@ -1,3 +1,7 @@
+* Workaround TSAN CI bug.
+
+--------------------------------------------------------------------------------
+
 Version 332: 
 
 * Fix beast::zlib warnings
