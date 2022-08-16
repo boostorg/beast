@@ -1,15 +1,17 @@
+Version 333:
+
 * Workaround TSAN CI bug.
 
 --------------------------------------------------------------------------------
 
-Version 332: 
+Version 332:
 
 * Fix beast::zlib warnings
 * Improve documentation
 
 --------------------------------------------------------------------------------
 
-Version 331: 
+Version 331:
 
 * Using core::string_view instead of utility::string_view
 * Use static_string from Boost.StaticString
