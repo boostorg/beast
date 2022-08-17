@@ -190,7 +190,7 @@ private:
 
     using set_t = typename boost::intrusive::make_multiset<
         element,
-        boost::intrusive::constant_time_size<true>,
+        boost::intrusive::constant_time_size<false>,
         boost::intrusive::compare<key_compare>
             >::type;
 

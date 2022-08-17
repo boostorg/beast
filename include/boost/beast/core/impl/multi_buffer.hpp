@@ -779,7 +779,7 @@ shrink_to_fit()
         };
 
     // partial last buffer
-    if(list_.size() > 1 && out_ != list_.end())
+    if(out_ != list_.begin() && out_ != list_.end())
     {
         BOOST_ASSERT(out_ ==
             list_.iterator_to(list_.back()));
@@ -815,7 +815,8 @@ shrink_to_fit()
         }
         else
         {
-            BOOST_ASSERT(list_.size() == 1);
+            BOOST_ASSERT(out_ ==
+                list_.iterator_to(list_.back()));
             BOOST_ASSERT(out_pos_ > in_pos_);
             auto const n = out_pos_ - in_pos_;
             auto& e = alloc(n);
