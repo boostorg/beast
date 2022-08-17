@@ -127,7 +127,7 @@ class basic_multi_buffer
         beast::detail::allocator_traits<rebind_type>;
 
     using list_type = typename boost::intrusive::make_list<
-        element, boost::intrusive::constant_time_size<true>>::type;
+        element, boost::intrusive::constant_time_size<false>>::type;
 
     using iter = typename list_type::iterator;
 
