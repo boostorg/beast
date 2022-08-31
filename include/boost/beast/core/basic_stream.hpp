@@ -919,6 +919,17 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
 
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::partial
+        @li @c net::cancellation_type::total
+
+        if they are also supported by the socket's @c async_connect operation.
+
         @see async_connect
     */
     template<
@@ -972,6 +983,18 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::partial
+        @li @c net::cancellation_type::total
+
+        if they are also supported by the socket's @c async_connect operation.
+
     */
     template<
         class EndpointSequence,
@@ -1064,6 +1087,17 @@ public:
             }
         };
         @endcode
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::partial
+        @li @c net::cancellation_type::total
+
+        if they are also supported by the socket's @c async_connect operation.
     */
     template<
         class EndpointSequence,
@@ -1129,6 +1163,17 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::partial
+        @li @c net::cancellation_type::total
+
+        if they are also supported by the socket's @c async_connect operation.
     */
     template<
         class Iterator,
@@ -1189,6 +1234,17 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::partial
+        @li @c net::cancellation_type::total
+
+        if they are also supported by the socket's @c async_connect operation.
     */
     template<
         class Iterator,
@@ -1316,6 +1372,17 @@ public:
         number of bytes. Consider using the function `net::async_read` if you need
         to ensure that the requested amount of data is read before the asynchronous
         operation completes.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::partial
+        @li @c net::cancellation_type::total
+
+        if they are also supported by the socket's @c async_read_some operation.
     */
     template<
         class MutableBufferSequence,
@@ -1439,6 +1506,17 @@ public:
         number of bytes. Consider using the function `net::async_write` if you need
         to ensure that the requested amount of data is sent before the asynchronous
         operation completes.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::partial
+        @li @c net::cancellation_type::total
+
+        if they are also supported by the socket's @c async_write_some operation.
     */
     template<
         class ConstBufferSequence,

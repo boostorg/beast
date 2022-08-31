@@ -1602,6 +1602,20 @@ public:
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
 
+         @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        @note `terminal` cancellation will may close the underlying socket.
+
         @see
         @li <a href="https://tools.ietf.org/html/rfc6455#section-7.1.2">Websocket Closing Handshake (RFC6455)</a>
     */
@@ -1706,6 +1720,21 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        `terminal` cancellation leaves the stream in an undefined state,
+        so that only closing it is guaranteed to succeed.
     */
     template<
         BOOST_BEAST_ASYNC_TPARAM1 WriteHandler =
@@ -1814,6 +1843,21 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        `terminal` cancellation leaves the stream in an undefined state,
+        so that only closing it is guaranteed to succeed.
     */
     template<
         BOOST_BEAST_ASYNC_TPARAM1 WriteHandler =
@@ -1975,6 +2019,21 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        `terminal` cancellation leaves the stream in an undefined state,
+        so that only closing it is guaranteed to succeed.
     */
     template<
         class DynamicBuffer,
@@ -2154,6 +2213,21 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        `terminal` cancellation leaves the stream in an undefined state,
+        so that only closing it is guaranteed to succeed.
     */
     template<
         class DynamicBuffer,
@@ -2258,6 +2332,21 @@ public:
         from the beginning.
 
         @param ec Set to indicate what error occurred, if any.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        `terminal` cancellation leaves the stream in an undefined state,
+        so that only closing it is guaranteed to succeed.
     */
     template<class MutableBufferSequence>
     std::size_t
@@ -2329,6 +2418,22 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        `terminal` cancellation leaves the stream in an undefined state,
+        so that only closing it is guaranteed to succeed.
     */
     template<
         class MutableBufferSequence,
@@ -2452,6 +2557,21 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        `terminal` cancellation leaves the stream in an undefined state,
+        so that only closing it is guaranteed to succeed.
     */
     template<
         class ConstBufferSequence,
@@ -2490,6 +2610,7 @@ public:
         @return The number of bytes sent from the buffers.
 
         @throws system_error Thrown on failure.
+
     */
     template<class ConstBufferSequence>
     std::size_t
@@ -2575,6 +2696,21 @@ public:
         immediately or not, the handler will not be invoked from within
         this function. Invocation of the handler will be performed in a
         manner equivalent to using `net::post`.
+
+        @par Per-Operation Cancellation
+
+        This asynchronous operation supports cancellation for the following
+        net::cancellation_type values:
+
+        @li @c net::cancellation_type::terminal
+        @li @c net::cancellation_type::total
+
+        `total` cancellation succeeds if the operation is suspended due to ongoing
+        control operations such as a ping/pong.
+        `terminal` cancellation succeeds when supported by the underlying stream.
+
+        `terminal` cancellation leaves the stream in an undefined state,
+        so that only closing it is guaranteed to succeed.
     */
     template<
         class ConstBufferSequence,

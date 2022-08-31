@@ -77,6 +77,16 @@ class basic_stream<Executor>::read_op : public detail::stream_read_op_base
           return net::get_associated_allocator(h_);
         }
 
+        using cancellation_slot_type =
+            net::associated_cancellation_slot_t<Handler>;
+
+        cancellation_slot_type
+        get_cancellation_slot() const noexcept
+        {
+            return net::get_associated_cancellation_slot(h_,
+                net::cancellation_slot());
+        }
+
         void
         operator()(error_code ec)
         {

@@ -48,6 +48,7 @@ add_executable (tests-beast-core
     file_posix.cpp
     file_stdio.cpp
     file_win32.cpp
+    filtering_cancellation_slot.cpp
     flat_buffer.cpp
     flat_static_buffer.cpp
     flat_stream.cpp

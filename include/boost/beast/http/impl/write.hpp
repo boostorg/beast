@@ -178,8 +178,18 @@ class write_op
     Stream& s_;
     serializer<isRequest, Body, Fields>& sr_;
     std::size_t bytes_transferred_ = 0;
+    net::cancellation_state st_{this->
+        beast::async_base<Handler, beast::executor_type<Stream>>
+            ::get_cancellation_slot()};
 
 public:
+    using cancellation_slot_type = net::cancellation_slot;
+    cancellation_slot_type get_cancellation_slot() const noexcept
+    {
+        return st_.slot();
+    }
+
+
     template<class Handler_>
     write_op(
         Handler_&& h,
@@ -227,6 +237,8 @@ public:
                         s_, sr_, std::move(*this));
                 }
                 bytes_transferred_ += bytes_transferred;
+                if (!ec && st_.cancelled() != net::cancellation_type::none)
+                    ec = net::error::operation_aborted;
                 if(ec)
                     goto upcall;
                 if(Predicate{}(sr_))

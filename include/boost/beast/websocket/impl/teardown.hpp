@@ -59,6 +59,7 @@ public:
         , nb_(false)
     {
         (*this)({}, 0, false);
+        this->set_allowed_cancellation(net::cancellation_type::all);
     }
 
     void

@@ -25,6 +25,12 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/write.hpp>
+#include <boost/asio/bind_cancellation_slot.hpp>
+#include <boost/asio/error.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/connect_pipe.hpp>
+#include <boost/asio/readable_pipe.hpp>
+#include <boost/asio/writable_pipe.hpp>
 #include <atomic>
 
 #if BOOST_ASIO_HAS_CO_AWAIT
@@ -729,7 +735,57 @@ public:
         }
     }
 
-
+    void
+    testCancellation(yield_context do_yield)
+    {
+        // this is tested on a pipe
+        // because the test::stream doesn't implement cancellation 
+        {
+            response<string_body> m;
+            error_code ec;
+            net::writable_pipe ts{ioc_};
+            net::readable_pipe tr{ioc_};
+            net::connect_pipe(tr, ts);
+            net::cancellation_signal cl;
+            net::post(ioc_, [&]{cl.emit(net::cancellation_type::all);});
+            net::steady_timer timeout(ioc_, std::chrono::seconds(5));
+            timeout.async_wait(
+                [&](error_code ec)
+                {
+                    BEAST_EXPECT(ec == net::error::operation_aborted);
+                    if (!ec) // this means the cancel failed!
+                        ts.close();
+                });
+            multi_buffer b;
+            async_read(tr, b, m, net::bind_cancellation_slot(cl.slot(), do_yield[ec]));
+            timeout.cancel();
+            BEAST_EXPECT(ec == net::error::operation_aborted);
+        }
+        {
+            response<string_body> m;
+            error_code ec;
+            net::writable_pipe ts{ioc_};
+            net::readable_pipe tr{ioc_};
+            net::connect_pipe(tr, ts);
+            net::cancellation_signal cl;
+            net::post(ioc_, [&]{cl.emit(net::cancellation_type::all);});
+            net::steady_timer timeout(ioc_, std::chrono::seconds(5));
+            timeout.async_wait(
+                [&](error_code ec)
+                {
+                    // using BEAST_EXPECT HERE is a race condition, since the test suite might
+                    BEAST_EXPECT(ec == net::error::operation_aborted);
+                    if (!ec) // this means the cancel failed!
+                        ts.close();
+                });
+            multi_buffer b;
+            async_read(tr, b, m, net::bind_cancellation_slot(cl.slot(), do_yield[ec]));
+            timeout.cancel();
+            BEAST_EXPECT(ec == net::error::operation_aborted);
+        }
+        // the timer handler may be invoked after the test suite is complete if we don't post.
+        asio::post(ioc_, do_yield);
+    }
     void
     run() override
     {
@@ -761,6 +817,11 @@ public:
                      testReadSomeHeader(yield);
                  });
         testReadSomeHeader();
+        yield_to(
+            [&](yield_context yield)
+            {
+                testCancellation(yield);
+            });
     }
 
 

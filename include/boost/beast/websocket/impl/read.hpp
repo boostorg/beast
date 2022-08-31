@@ -107,8 +107,14 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_read_some"));
 
-                    impl.op_r_rd.emplace(std::move(*this));
+                    this->set_allowed_cancellation(net::cancellation_type::all);
+                    impl.op_r_rd.emplace(std::move(*this), net::cancellation_type::all);
                 }
+                if (ec)
+                    return this->complete(cont, ec, bytes_written_);
+
+                this->set_allowed_cancellation(net::cancellation_type::terminal);
+
                 impl.rd_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
                 {
@@ -275,6 +281,9 @@ public:
 
                                 impl.op_rd.emplace(std::move(*this));
                             }
+                            if (ec)
+                                return this->complete(cont, ec, bytes_written_);
+
                             impl.wr_block.lock(this);
                             BOOST_ASIO_CORO_YIELD
                             {
@@ -629,6 +638,9 @@ public:
 
                     impl.op_rd.emplace(std::move(*this));
                 }
+                if (ec)
+                    return this->complete(cont, ec, bytes_written_);
+
                 impl.wr_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
                 {

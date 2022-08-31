@@ -90,9 +90,15 @@ public:
                     BOOST_ASIO_HANDLER_LOCATION((
                         __FILE__, __LINE__,
                         "websocket::async_close"));
-
-                    impl.op_close.emplace(std::move(*this));
+                    this->set_allowed_cancellation(net::cancellation_type::all);
+                    impl.op_close.emplace(std::move(*this),
+                                          net::cancellation_type::all);
                 }
+                // cancel fired before we could do anything.
+                if (ec == net::error::operation_aborted)
+                    return this->complete(cont, ec);
+                this->set_allowed_cancellation(net::cancellation_type::terminal);
+
                 impl.wr_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
                 {
@@ -143,9 +149,17 @@ public:
                     BOOST_ASIO_HANDLER_LOCATION((
                         __FILE__, __LINE__,
                         "websocket::async_close"));
-
+                    // terminal only, that's the default
                     impl.op_r_close.emplace(std::move(*this));
                 }
+                if (ec == net::error::operation_aborted)
+                {
+                    // if a cancellation fires here, we do a dirty shutdown
+                    impl.change_status(status::closed);
+                    close_socket(get_lowest_layer(impl.stream()));
+                    return this->complete(cont, ec);
+                }
+
                 impl.rd_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
                 {
@@ -185,7 +199,7 @@ public:
                             beast::detail::bind_continuation(std::move(*this)));
                     }
                     impl.rd_buf.commit(bytes_transferred);
-                    if(impl.check_stop_now(ec))
+                    if(impl.check_stop_now(ec)) //< this catches cancellation
                         goto upcall;
                 }
                 if(detail::is_control(impl.rd_fh.op))
