@@ -199,6 +199,10 @@ has both an
 [@boost:/doc/html/boost_asio/overview/core/allocation.html ['associated allocator]]
 returned by
 [@boost:/doc/html/boost_asio/reference/get_associated_allocator.html `net::get_associated_allocator`],
+, an
+[@boost:/doc/html/boost_asio/reference/associated_cancellation_slot.html ['associated cancellation slot]]
+returned by
+[@boost:/doc/html/boost_asio/reference/associated_cancellation_slot.html `net::get_associated_cancellation_slot`].
 and an
 [@boost:/doc/html/boost_asio/reference/associated_executor.html ['associated executor]]
 returned by
@@ -210,6 +214,8 @@ These associations may be specified intrusively:
 Or these associations may be specified non-intrusively, by specializing
 the class templates
 [@boost:/doc/html/boost_asio/reference/associated_allocator.html `net::associated_allocator`]
+,
+[@boost:/doc/html/boost_asio/reference/associated_cancellation_slot.html `net::associated_cancellation_slot`]
 and
 [@boost:/doc/html/boost_asio/reference/associated_executor.html `net::associated_executor`]:
 
@@ -226,6 +232,36 @@ before the completion handler is invoked. The executor is a cheaply copyable
 object providing the algorithm used to invoke the completion handler. Unless
 customized by the caller, a completion handler defaults to using
 `std::allocator<void>` and the executor of the corresponding I/O object.
+
+The function 
+[@boost:/doc/html/boost_asio/reference/bind_allocator.html `net::bind_allocator`]
+can be used whent he caller wants to assign a custom allocator to the operation.
+
+
+A completion token's associated cancellation_slot can be used to cancel single 
+operations. This is often passed through by the completion token such as 
+[@boost:/doc/html/boost_asio/reference/use_awaitable.html `net::use_awaitable`]
+or 
+[@boost:/doc/html/boost_asio/reference/yield_context.html `net::yield_context`]
+. 
+
+The available [@boost:/doc/html/boost_asio/reference/cancellation_type.html cancellation types] are listed below.
+
+# `terminal`
+    Requests cancellation where, following a successful cancellation, 
+    the only safe operations on the I/O object are closure or destruction.
+
+# `partial`
+    Requests cancellation where a successful cancellation may result in partial 
+    side effects or no side effects. Following cancellation, 
+    the I/O object is in a well-known state, and may be used for further operations.
+
+# `total`
+    Requests cancellation where a successful cancellation results in no apparent side effects.
+     Following cancellation, the I/O object is in the same observable state as it was prior to the operation.
+
+
+
 
 Networking prescribes facilities to determine the context in which
 handlers run. Every I/O object refers to an __ExecutionContext__ for

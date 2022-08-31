@@ -251,6 +251,9 @@ struct handler
     using executor_type = boost::asio::io_context::executor_type;
     executor_type get_executor() const noexcept;
 
+    using cancellation_slot_type =  boost::asio::cancellation_slot;
+    cancellation_slot_type get_cancellation_slot() const noexcept;
+
     void operator()(boost::beast::error_code, std::size_t);
 };
 //]
@@ -265,6 +268,12 @@ inline auto handler::get_executor() const noexcept ->
     static boost::asio::io_context ioc;
     return ioc.get_executor();
 }
+inline auto handler::get_cancellation_slot() const noexcept ->
+    cancellation_slot_type
+{
+    return cancellation_slot_type();
+}
+
 inline void handler::operator()(
     boost::beast::error_code, std::size_t)
 {
@@ -296,6 +305,18 @@ struct associated_executor<handler, Executor>
         Executor const& ex = Executor{}) noexcept;
 };
 
+template<class CancellationSlot>
+struct associated_cancellation_slot<handler, CancellationSlot>
+{
+    using type = cancellation_slot;
+
+    static
+    type
+    get(handler const& h,
+        CancellationSlot const& cs = CancellationSlot{}) noexcept;
+};
+
+
 } // boost
 } // asio
 //]
@@ -314,6 +335,15 @@ get(handler const&, Executor const&) noexcept -> type
 {
     return {};
 }
+
+template<class CancellationSlot>
+auto
+boost::asio::associated_cancellation_slot<handler, CancellationSlot>::
+get(handler const&, CancellationSlot const&) noexcept -> type
+{
+    return {};
+}
+
 
 //------------------------------------------------------------------------------
 

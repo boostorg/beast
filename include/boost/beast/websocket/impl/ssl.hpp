@@ -66,6 +66,8 @@ struct ssl_shutdown_op
     {
         BOOST_ASIO_CORO_REENTER(*this)
         {
+            self.reset_cancellation_state(net::enable_total_cancellation());
+
             BOOST_ASIO_CORO_YIELD
                 s_.async_shutdown(std::move(self));
             ec_ = ec;

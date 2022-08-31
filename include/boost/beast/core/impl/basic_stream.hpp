@@ -283,6 +283,7 @@ public:
         , pg_()
         , b_(b)
     {
+        this->set_allowed_cancellation(net::cancellation_type::all);
         if (buffer_bytes(b_) == 0 && state().pending)
         {
             // Workaround:
@@ -452,6 +453,7 @@ public:
         , pg0_(impl_->read.pending)
         , pg1_(impl_->write.pending)
     {
+        this->set_allowed_cancellation(net::cancellation_type::all);
         if(state().timer.expiry() != stream_base::never())
         {
             BOOST_ASIO_HANDLER_LOCATION((
@@ -489,6 +491,7 @@ public:
         , pg0_(impl_->read.pending)
         , pg1_(impl_->write.pending)
     {
+        this->set_allowed_cancellation(net::cancellation_type::all);
         if(state().timer.expiry() != stream_base::never())
         {
             BOOST_ASIO_HANDLER_LOCATION((
@@ -526,6 +529,7 @@ public:
         , pg0_(impl_->read.pending)
         , pg1_(impl_->write.pending)
     {
+        this->set_allowed_cancellation(net::cancellation_type::all);
         if(state().timer.expiry() != stream_base::never())
         {
             BOOST_ASIO_HANDLER_LOCATION((

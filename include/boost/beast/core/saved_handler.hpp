@@ -11,6 +11,7 @@
 #define BOOST_BEAST_CORE_SAVED_HANDLER_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/asio/cancellation_type.hpp>
 
 namespace boost {
 namespace beast {
@@ -72,10 +73,13 @@ public:
         The implementation takes ownership of the handler by performing a decay-copy.
 
         @param alloc The allocator to use.
+
+        @param cancel_type The type of cancellation allowed to complete this op.
     */
     template<class Handler, class Allocator>
     void
-    emplace(Handler&& handler, Allocator const& alloc);
+    emplace(Handler&& handler, Allocator const& alloc, 
+            net::cancellation_type cancel_type = net::cancellation_type::terminal);
 
     /** Store a completion handler in the container.
 
@@ -85,10 +89,13 @@ public:
 
         @param handler The completion handler to store.
         The implementation takes ownership of the handler by performing a decay-copy.
+
+        @param cancel_type The type of cancellation allowed to complete this op.
     */
     template<class Handler>
     void
-    emplace(Handler&& handler);
+    emplace(Handler&& handler,
+            net::cancellation_type cancel_type = net::cancellation_type::terminal);
 
     /** Discard the saved handler, if one exists.
 

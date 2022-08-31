@@ -266,6 +266,9 @@ public:
 
 // read and respond to an upgrade request
 //
+// Cancellation: the async_accept cancellation can be terminal
+// because it will just interrupt the reading of the header.
+//
 template<class NextLayer, bool deflateSupported>
 template<class Handler, class Decorator>
 class stream<NextLayer, deflateSupported>::accept_op

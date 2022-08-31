@@ -14,6 +14,7 @@
 #include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/async_base.hpp>
+#include <boost/beast/core/detail/filtering_cancellation_slot.hpp>
 #include <boost/beast/core/detail/work_guard.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
@@ -187,7 +188,7 @@ class async_base
 
     Handler h_;
     detail::select_work_guard_t<Executor1> wg1_;
-
+    net::cancellation_type act_{net::cancellation_type::terminal};
 public:
     /** The type of executor associated with this object.
 
@@ -306,6 +307,38 @@ public:
     {
         return net::get_associated_executor(
             h_, wg1_.get_executor());
+    }
+
+    /** The type of cancellation_slot associated with this object.
+
+        If a class derived from @ref async_base is a completion
+        handler, then the associated cancellation_slot of the
+        derived class will be this type.
+
+        The default type is a filtering cancellation slot,
+        that only allows terminal cancellation.
+    */
+    using cancellation_slot_type =
+            beast::detail::filtering_cancellation_slot<net::associated_cancellation_slot_t<Handler>>;
+
+    /** Returns the cancellation_slot associated with this object.
+
+        If a class derived from @ref async_base is a completion
+        handler, then the object returned from this function will be used
+        as the associated cancellation_slot of the derived class.
+    */
+    cancellation_slot_type
+    get_cancellation_slot() const noexcept
+    {
+        return cancellation_slot_type(act_, net::get_associated_cancellation_slot(h_,
+            net::cancellation_slot()));
+    }
+
+    /// Set the allowed cancellation types, default is `terminal`.
+    void set_allowed_cancellation(
+            net::cancellation_type allowed_cancellation_types = net::cancellation_type::terminal)
+    {
+        act_ = allowed_cancellation_types;
     }
 
     /// Returns the handler associated with this object

@@ -21,6 +21,7 @@ add_executable (tests-beast-websocket
     test.hpp
     _detail_prng.cpp
     accept.cpp
+    cancel.cpp
     close.cpp
     error.cpp
     frame.cpp

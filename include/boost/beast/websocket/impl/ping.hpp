@@ -86,9 +86,12 @@ public:
                     BOOST_ASIO_HANDLER_LOCATION((
                         __FILE__, __LINE__,
                         "websocket::async_ping"));
-
-                    impl.op_ping.emplace(std::move(*this));
+                    this->set_allowed_cancellation(net::cancellation_type::all);
+                    impl.op_ping.emplace(std::move(*this), net::cancellation_type::all);
                 }
+                if (ec)
+                    return this->complete(cont, ec);
+                this->set_allowed_cancellation(net::cancellation_type::terminal);
                 impl.wr_block.lock(this);
                 BOOST_ASIO_CORO_YIELD
                 {

@@ -1,3 +1,9 @@
+Version 342:
+
+* Support per operation cancellation
+
+--------------------------------------------------------------------------------
+
 Version 341:
 
 *  Expect header field with the "100-continue" is handled in upgrade.
@@ -18,7 +24,6 @@ Version 339:
 * defining BOOST_BEAST_USE_STD_STRING_VIEW yields a deprecation warning
 
 --------------------------------------------------------------------------------
-
 
 Version 338:
 

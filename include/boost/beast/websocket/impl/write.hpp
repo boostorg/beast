@@ -181,9 +181,14 @@ operator()(
                         "websocket::async_write" :
                         "websocket::async_write_some"
                     ));
-
-                impl.op_wr.emplace(std::move(*this));
+                this->set_allowed_cancellation(net::cancellation_type::all);
+                impl.op_wr.emplace(std::move(*this),
+                                   net::cancellation_type::all);
             }
+            if (ec)
+                return this->complete(cont, ec, bytes_transferred_);
+
+            this->set_allowed_cancellation(net::cancellation_type::terminal);
             impl.wr_block.lock(this);
             BOOST_ASIO_CORO_YIELD
             {

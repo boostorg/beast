@@ -163,6 +163,17 @@ teardown(
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
+    @par Per-Operation Cancellation
+
+    This asynchronous operation supports cancellation for the following
+    net::cancellation_type values:
+
+    @li @c net::cancellation_type::terminal
+    @li @c net::cancellation_type::partial
+    @li @c net::cancellation_type::total
+
+    if they are also supported by the socket's @c async_wait operation.
+
 */
 template<
     class Protocol, class Executor,

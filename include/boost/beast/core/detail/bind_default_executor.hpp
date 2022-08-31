@@ -67,6 +67,16 @@ public:
             h_, this->get());
     }
 
+    using cancellation_slot_type =
+        net::associated_cancellation_slot_t<Handler>;
+
+    cancellation_slot_type
+    get_cancellation_slot() const noexcept
+    {
+        return net::get_associated_cancellation_slot(h_,
+            net::cancellation_slot());
+    }
+
     // The allocation hooks are still defined because they trivially forward to
     // user hooks. Forward here ensures that the user will get a compile error
     // if they build their code with BOOST_ASIO_NO_DEPRECATED.

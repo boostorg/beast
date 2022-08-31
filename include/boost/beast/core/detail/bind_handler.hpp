@@ -13,6 +13,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/detail/tuple.hpp>
 #include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_cancellation_slot.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
@@ -47,6 +48,9 @@ class bind_wrapper
 
     template<class T, class Allocator>
     friend struct net::associated_allocator;
+
+    template<class T, class CancellationSlot>
+    friend struct net::associated_cancellation_slot;
 
     template<class Arg, class Vals>
     static
@@ -217,6 +221,10 @@ class bind_front_wrapper
     template<class T, class Allocator>
     friend struct net::associated_allocator;
 
+    template<class T, class CancellationSlot>
+    friend struct net::associated_cancellation_slot;
+
+
     template<std::size_t... I, class... Ts>
     void
     invoke(
@@ -384,6 +392,42 @@ struct associated_allocator<
             Handler, Allocator>::get(op.h_, alloc);
     }
 };
+
+template<class Handler, class... Args, class CancellationSlot>
+struct associated_cancellation_slot<
+    beast::detail::bind_wrapper<Handler, Args...>, CancellationSlot>
+{
+    using type = typename
+        associated_cancellation_slot<Handler>::type;
+
+    static
+    type
+    get(beast::detail::bind_wrapper<Handler, Args...> const& op,
+        CancellationSlot const& slot = CancellationSlot{}) noexcept
+    {
+        return associated_cancellation_slot<
+            Handler, CancellationSlot>::get(op.h_, slot);
+    }
+};
+
+template<class Handler, class... Args, class CancellationSlot>
+struct associated_cancellation_slot<
+    beast::detail::bind_front_wrapper<Handler, Args...>, CancellationSlot>
+{
+    using type = typename
+        associated_cancellation_slot<Handler>::type;
+
+    static
+    type
+    get(beast::detail::bind_front_wrapper<Handler, Args...> const& op,
+        CancellationSlot const& slot = CancellationSlot{}) noexcept
+    {
+        return associated_cancellation_slot<
+            Handler, CancellationSlot>::get(op.h_, slot);
+    }
+};
+
+
 
 } // asio
 } // boost
