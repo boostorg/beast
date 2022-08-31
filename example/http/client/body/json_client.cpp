@@ -13,8 +13,6 @@ using tcp = net::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 int main(int argc, char ** argv)
 {
-    net::io_context ctx;
-
     // Our test endpoint for testing the json
     const auto host = "postman-echo.com";
     const auto target = "/post";
@@ -37,7 +35,7 @@ int main(int argc, char ** argv)
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     req.set(http::field::content_type, "application/json");
-    req.body() = {{"type", "test"}, {"content", "nonsense"}};
+    req.body() = {{"type", "test"}, {"content", "pure awesomeness"}};
     req.prepare_payload();
     // Send the HTTP request to the remote host
     http::write(stream, req);

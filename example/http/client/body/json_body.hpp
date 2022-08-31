@@ -35,13 +35,14 @@ struct json_body
         writer(boost::beast::http::header<isRequest, Fields> const& h, 
                value_type const& body)
         {
+            // The serializer holds a pointer to the value, so all we need to do is to reset it.
             serializer.reset(&body);
         }
 
         void
         init(boost::system::error_code& ec)
         {
-            // The specification requires this to indicate "no error"
+            // The serializer always works, so no error can occur here.
             ec = {};
         }
     
@@ -49,6 +50,7 @@ struct json_body
         get(boost::system::error_code& ec)
         {
             ec = {};
+            // We serialize as much as we can with the buffer. Often that'll suffice
             const auto len = serializer.read(buffer, sizeof(buffer));
             return std::make_pair(
                 boost::asio::const_buffer(len.data(), len.size()), 
@@ -56,7 +58,7 @@ struct json_body
         }
       private:
         json::serializer serializer;
-        // half of the probably networking buffer, let's leave some space for headers
+        // half of the probable networking buffer, let's leave some space for headers
         char buffer[32768]; 
     };
 
@@ -73,7 +75,10 @@ struct json_body
             boost::system::error_code& ec)
         {
             
-            // The specification requires this to indicate "no error"
+            // If we know the content-length, we can allocate a monotonic resource to increase the parsing speed.
+            // We're using it rather then a static_resource, so a consumer can modify the resulting value.
+            // It is also only assumption that the parsed json will be smaller than the serialize one,
+            // it might not always be the case.
             if (content_length)
                 parser.reset(json::make_shared_resource<json::monotonic_resource>(*content_length));
             ec = {};
@@ -83,9 +88,8 @@ struct json_body
         std::size_t
         put(ConstBufferSequence const& buffers, boost::system::error_code& ec)
         {
-            // The specification requires this to indicate "no error"
             ec = {};
-
+            // The parser just uses the `ec` to indicate errors, so we don't need to do anything.
             return parser.write_some(
                 static_cast<const char*>(buffers.data()), buffers.size(), ec);
         }
@@ -93,8 +97,8 @@ struct json_body
         void
         finish(boost::system::error_code& ec)
         {
-            // The specification requires this to indicate "no error"
             ec = {};
+            // We check manually if the json is complete.
             if (parser.done())
                 body = parser.release();
             else
