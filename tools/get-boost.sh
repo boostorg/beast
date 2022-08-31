@@ -82,7 +82,8 @@ git submodule update --init --depth 20 --jobs 4 \
     libs/tuple \
     libs/type_index \
     libs/typeof \
-    libs/unordered
+    libs/unordered \
+    libs/json
 
 echo Submodule update complete
 
