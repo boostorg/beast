@@ -1,3 +1,7 @@
+* Remove incorrect ASSERT in WebSocket read.
+
+--------------------------------------------------------------------------------
+
 Version 335:
 
 * Reduce size of multi_buffer.

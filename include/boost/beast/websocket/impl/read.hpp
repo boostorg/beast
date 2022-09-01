@@ -123,7 +123,11 @@ public:
                 BOOST_ASSERT(!ec);
                 if(impl.check_stop_now(ec))
                 {
-                    BOOST_ASSERT(ec == net::error::operation_aborted);
+                    // Issue 2264 - There is no guarantee that the next
+                    // error will be operation_aborted.
+                    // The error could be a result of the peer resetting the 
+                    // connection
+                    // BOOST_ASSERT(ec == net::error::operation_aborted);
                     goto upcall;
                 }
                 // VFALCO Should never get here
