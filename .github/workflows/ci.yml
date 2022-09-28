@@ -8,6 +8,10 @@ env:
 jobs:
   posix:
     if: true
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       fail-fast: false
       matrix:
@@ -16,7 +20,7 @@ jobs:
 # minimum requirement is gcc 4.8
           - toolset: gcc-4.8
             cxxstd: "11"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: g++-4.8
             supported: true
@@ -24,39 +28,42 @@ jobs:
 # It dies with ICE when compiling
           - toolset: gcc-5
             cxxstd: "11,14,1z"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: g++-5
             supported: true
           - toolset: gcc-6
             cxxstd: "11,14,1z"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: g++-6
             supported: true
           - toolset: gcc-7
             cxxstd: "11,14,17"
-            os: ubuntu-18.04
+            os: ubuntu-22.04
+            container: ubuntu:18.04
             install: g++-7
             supported: true
           - toolset: gcc-8
             cxxstd: "11,14,17,2a"
-            os: ubuntu-18.04
+            os: ubuntu-22.04
+            container: ubuntu:18.04
             install: g++-8
             supported: true
           - toolset: gcc-9
             cxxstd: "11,14,17,2a"
-            os: ubuntu-18.04
+            os: ubuntu-22.04
+            container: ubuntu:18.04
             install: g++-9
             supported: true
           - toolset: gcc-10
             cxxstd: "11,14,17,2a"
-            os: ubuntu-18.04
+            os: ubuntu-22.04
             install: g++-10
             supported: true
           - toolset: gcc-11
             cxxstd: "11,14,17,20"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             install: g++-11
             supported: true
 # clang 3.5 not supported
@@ -64,42 +71,42 @@ jobs:
           - toolset: clang
             compiler: clang++-3.6
             cxxstd: "11,14"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: clang-3.6
             supported: true
           - toolset: clang
             compiler: clang++-3.7
             cxxstd: "11,14"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: clang-3.7
             supported: true
           - toolset: clang
             compiler: clang++-3.8
             cxxstd: "11,14"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: clang-3.8
             supported: true
           - toolset: clang
             compiler: clang++-3.9
             cxxstd: "11,14"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: clang-3.9
             supported: true
           - toolset: clang
             compiler: clang++-4.0
             cxxstd: "11,14"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: clang-4.0
             supported: true
           - toolset: clang
             compiler: clang++-5.0
             cxxstd: "11,14,1z"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             container: ubuntu:16.04
             install: clang-5.0
             supported: true
@@ -107,25 +114,29 @@ jobs:
             install: clang-6.0
             compiler: clang++-6.0
             cxxstd: "11,14,17"
-            os: ubuntu-18.04
+            os: ubuntu-22.04
+            container: ubuntu:18.04
             supported: true
           - toolset: clang
             install: clang-7
             compiler: clang++-7
             cxxstd: "11,14"
-            os: ubuntu-18.04
+            os: ubuntu-22.04
+            container: ubuntu:18.04
             supported: true
           - toolset: clang
             install: clang-8
             compiler: clang++-8
             cxxstd: "11,14,17"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
+            container: ubuntu:18.04
             supported: true
           - toolset: clang
             install: clang-9
             compiler: clang++-9
             cxxstd: "11,14,17,2a"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
+            container: ubuntu:18.04
             supported: "Causes segfault on GHA CI, not on official image"
           - toolset: clang
             install: clang-10
@@ -143,7 +154,19 @@ jobs:
             install: clang-12
             compiler: clang++-12
             cxxstd: "11,14,17,20"
-            os: ubuntu-20.04
+            os: ubuntu-22.04
+            supported: true
+          - toolset: clang
+            install: clang-13
+            compiler: clang++-13
+            cxxstd: "11,14,17,20"
+            os: ubuntu-22.04
+            supported: true
+          - toolset: clang
+            install: clang-14
+            compiler: clang++-14
+            cxxstd: "11,14,17,20"
+            os: ubuntu-22.04
             supported: true
 # macos
           - description: macos-cxx11
@@ -181,6 +204,11 @@ jobs:
             sudo apt-add-repository ppa:git-core/ppa
             sudo apt-get -o Acquire::Retries=3 update && apt-get -o Acquire::Retries=3 -y install git
             python_version=$(python3 -c 'import sys; print("{0.major}.{0.minor}".format(sys.version_info))')
+            if [[ ${python_version} =~ ^3\.[0-5]$ ]]; then
+                 true
+            else
+                apt-get install -y python3-distutils
+            fi
             sudo wget https://bootstrap.pypa.io/pip/$python_version/get-pip.py
             sudo python3 get-pip.py
             sudo /usr/local/bin/pip install cmake
