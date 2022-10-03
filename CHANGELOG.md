@@ -1,3 +1,9 @@
+Version 337:
+
+* Added timeout option to websocket
+
+--------------------------------------------------------------------------------
+
 Version 336:
 
 * Remove incorrect ASSERT in WebSocket read.
