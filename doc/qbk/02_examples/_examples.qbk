@@ -44,6 +44,10 @@ used to evaluate robustness. All asynchronous clients support timeouts.
         [HTTP crawl (asynchronous)]
         [[path_link example/http/client/crawl/http_crawl.cpp http_crawl.cpp]]
         []
+][
+        [HTTP json_body (synchronous)]
+        [[path_link example/http/client/body/json_body.hpp example/http/client/body/json_client.cpp]]
+
 ]]
 
 These WebSocket clients connect to a

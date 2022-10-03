@@ -11,6 +11,7 @@ add_subdirectory (async)
 add_subdirectory (coro)
 add_subdirectory (crawl)
 add_subdirectory (sync)
+add_subdirectory (json)
 
 if (OPENSSL_FOUND)
     add_subdirectory (async-ssl)
