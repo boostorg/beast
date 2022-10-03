@@ -22,16 +22,18 @@ b2 headers
 
 echo "============> SCRIPT"
 
+IF DEFINED DEFINE SET B2_DEFINE="define=%DEFINE%"
+
 echo "Running tests"
-b2 --debug-configuration variant=%VARIANT% cxxstd=%CXXSTD% define=%DEFINE% address-model=%ADDRESS_MODEL% toolset=%TOOLSET% --verbose-test libs/beast/test -j3
+b2 --debug-configuration variant=%VARIANT% cxxstd=%CXXSTD% %B2_DEFINE% address-model=%ADDRESS_MODEL% toolset=%TOOLSET% --verbose-test libs/beast/test -j3
 if !errorlevel! neq 0 exit /b !errorlevel!
 
 echo "Running libs/beast/example"
-b2 --debug-configuration variant=%VARIANT% cxxstd=%CXXSTD% define=%DEFINE% address-model=%ADDRESS_MODEL% toolset=%TOOLSET% libs/beast/example -j3
+b2 --debug-configuration variant=%VARIANT% cxxstd=%CXXSTD% %B2_DEFINE% address-model=%ADDRESS_MODEL% toolset=%TOOLSET% libs/beast/example -j3
 if !errorlevel! neq 0 exit /b !errorlevel!
 
 echo "Running run-fat-tests"
-b2 --debug-configuration variant=%VARIANT% cxxstd=%CXXSTD% define=%DEFINE% address-model=%ADDRESS_MODEL% toolset=%TOOLSET% --verbose-test libs/beast/test//run-fat-tests -j3
+b2 --debug-configuration variant=%VARIANT% cxxstd=%CXXSTD% %B2_DEFINE% address-model=%ADDRESS_MODEL% toolset=%TOOLSET% --verbose-test libs/beast/test//run-fat-tests -j3
 if !errorlevel! neq 0 exit /b !errorlevel!
 
 echo "============> COMPLETED"

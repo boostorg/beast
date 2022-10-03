@@ -1,3 +1,11 @@
+Version 339:
+
+* BOOST_BEAST_USE_STD_STRING_VIEW is replaced by boost/core string_view.
+* defining BOOST_BEAST_USE_STD_STRING_VIEW yields a deprecation warning
+
+--------------------------------------------------------------------------------
+
+
 Version 338:
 
 * Added per message compression options.
