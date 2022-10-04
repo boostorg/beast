@@ -154,7 +154,7 @@ decode(void* dest, char const* src, std::size_t len)
 {
     char* out = static_cast<char*>(dest);
     auto in = reinterpret_cast<unsigned char const*>(src);
-    unsigned char c3[3], c4[4];
+    unsigned char c3[3], c4[4] = {0,0,0,0};
     int i = 0;
     int j = 0;
 
