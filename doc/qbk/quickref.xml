@@ -125,6 +125,7 @@
         <simplelist type="vert" columns="1">
           <member><link linkend="beast.ref.boost__beast__basic_flat_buffer">basic_flat_buffer</link></member>
           <member><link linkend="beast.ref.boost__beast__basic_multi_buffer">basic_multi_buffer</link></member>
+          <member><link linkend="beast.ref.boost__beast__buffer_ref">buffer_ref</link></member>
           <member><link linkend="beast.ref.boost__beast__buffered_read_stream">buffered_read_stream</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_adaptor">buffers_adaptor</link></member>
           <member><link linkend="beast.ref.boost__beast__buffers_cat_view">buffers_cat_view</link></member>
@@ -152,6 +153,7 @@
           <member><link linkend="beast.ref.boost__beast__ostream">ostream</link></member>
           <member><link linkend="beast.ref.boost__beast__read_size">read_size</link></member>
           <member><link linkend="beast.ref.boost__beast__read_size_or_throw">read_size_or_throw</link></member>
+          <member><link linkend="beast.ref.boost__beast__ref">ref</link></member>
           <member><link linkend="beast.ref.boost__beast__write">write</link></member>
         </simplelist>
       </entry><entry valign="top">

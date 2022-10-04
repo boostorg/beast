@@ -593,6 +593,184 @@ test_dynamic_buffer(
         is_mutable_dynamic_buffer<DynamicBuffer_v0>{});
 }
 
+
+/** Test an instance of a dynamic buffer or mutable dynamic buffer.
+*/
+template<class DynamicBuffer_v0>
+void
+test_dynamic_buffer_ref(DynamicBuffer_v0 b0)
+{
+    BOOST_STATIC_ASSERT(
+            net::is_dynamic_buffer_v1<DynamicBuffer_v0>::value);
+
+    BOOST_STATIC_ASSERT(
+            net::is_const_buffer_sequence<typename
+            DynamicBuffer_v0::const_buffers_type>::value);
+
+    BOOST_STATIC_ASSERT(
+            net::is_mutable_buffer_sequence<typename
+            DynamicBuffer_v0::mutable_buffers_type>::value);
+
+    BEAST_EXPECT(b0.size() == 0);
+    BEAST_EXPECT(buffer_bytes(b0.data()) == 0);
+
+    // members
+    {
+        string_view src = "Hello, world!";
+
+        DynamicBuffer_v0 b1(b0);
+        auto const mb = b1.prepare(src.size());
+        b1.commit(net::buffer_copy(mb,
+                                   net::const_buffer(src.data(), src.size())));
+
+        // copy constructor
+        {
+            DynamicBuffer_v0 b2(b1);
+            BEAST_EXPECT(b2.size() == b1.size());
+            BEAST_EXPECT(
+                    buffers_to_string(b1.data()) ==
+                    buffers_to_string(b2.data()));
+
+            // https://github.com/boostorg/beast/issues/1621
+            b2.consume(1);
+            BEAST_EXPECT(b0.size() == b2.size());
+            BEAST_EXPECT(
+                    buffers_to_string(b2.data()) ==
+                    buffers_to_string(b0.data()));
+        }
+
+        // move constructor
+        {
+            DynamicBuffer_v0 b2(b1);
+            DynamicBuffer_v0 b3(std::move(b2));
+            BEAST_EXPECT(b3.size() == b1.size());
+            BEAST_EXPECT(
+                    buffers_to_string(b3.data()) ==
+                    buffers_to_string(b1.data()));
+        }
+    }
+
+    // n == 0
+    {
+
+        DynamicBuffer_v0 b(b0);
+
+        const std::size_t len = b0.size();
+        BEAST_EXPECT(b.size() == len);
+        BEAST_EXPECT(buffer_bytes(b.prepare(0)) == 0);
+        b.commit(0);
+        BEAST_EXPECT(b.size() == len);
+        b.commit(1);
+        BEAST_EXPECT(b.size() == len);
+        b.commit(b.max_size() + 1);
+        BEAST_EXPECT(b.size() == len);
+        b.consume(0);
+        BEAST_EXPECT(b.size() == len);
+        b.consume(1);
+        BEAST_EXPECT(b.size() == len - 1);
+        b.consume(len - 1);
+        BEAST_EXPECTS(b.size() == 0, typeid(b).name());
+    }
+
+    // max_size
+    {
+        DynamicBuffer_v0 b(b0);
+        if(b.max_size() + 1 > b.max_size())
+        {
+            try
+            {
+                b.prepare(b.max_size() + 1);
+                BEAST_FAIL();
+            }
+            catch(std::length_error const&)
+            {
+                BEAST_PASS();
+            }
+            catch(...)
+            {
+                BEAST_FAIL();
+            }
+        }
+        else
+            BEAST_EXPECT(b.max_size() == std::numeric_limits<std::size_t>::max());
+    }
+
+    // setup source buffer
+    char buf[13];
+    unsigned char k0 = 0;
+    string_view src(buf, sizeof(buf));
+    if(src.size() > b0.max_size())
+        src = {src.data(), b0.max_size()};
+    BEAST_EXPECT(b0.max_size() >= src.size());
+    BEAST_EXPECT(b0.size() == 0);
+    BEAST_EXPECT(buffer_bytes(b0.data()) == 0);
+    auto const make_new_src =
+            [&buf, &k0, &src]
+            {
+                auto k = k0++;
+                for(std::size_t i = 0; i < src.size(); ++i)
+                    buf[i] = k++;
+            };
+
+    // readable / writable buffer sequence tests
+    {
+        make_new_src();
+        DynamicBuffer_v0 b(b0);
+        auto const& bc(b);
+        auto const mb = b.prepare(src.size());
+        BEAST_EXPECT(buffer_bytes(mb) == src.size());
+        beast::test_buffer_sequence(mb);
+        b.commit(net::buffer_copy(mb,
+                                  net::const_buffer(src.data(), src.size())));
+        BEAST_EXPECT(
+                buffer_bytes(bc.data()) == src.size());
+        beast::test_buffer_sequence(bc.data());
+    }
+
+    // h = in size
+    // i = prepare size
+    // j = commit size
+    // k = consume size
+    for(std::size_t h = 1; h <= src.size(); ++h)
+    {
+        string_view in(src.data(), h);
+        for(std::size_t i = 1; i <= in.size(); ++i) {
+            for(std::size_t j = 1; j <= i + 1; ++j) {
+                for(std::size_t k = 1; k <= in.size(); ++k) {
+                    {
+                        make_new_src();
+
+                        const std::size_t len = b0.size();
+                        DynamicBuffer_v0 b(b0);
+
+                        auto const& bc(b);
+                        net::const_buffer cb(in.data(), in.size());
+                        while(cb.size() > 0)
+                        {
+                            auto const mb = b.prepare(
+                                    std::min<std::size_t>(i,
+                                                          b.max_size() - b.size()));
+                            auto const n = net::buffer_copy(mb,
+                                                            net::const_buffer(cb.data(),
+                                                                              std::min<std::size_t>(j, cb.size())));
+                            b.commit(n);
+                            cb += n;
+                        }
+                        BEAST_EXPECT(b.size() == (in.size() + len));
+                        BEAST_EXPECT(buffer_bytes(bc.data()) == in.size() + len);
+                        BEAST_EXPECT(beast::buffers_to_string(bc.data()).substr(len) == in);
+                        while(b.size() > 0)
+                            b.consume(k);
+                        BEAST_EXPECT(buffer_bytes(bc.data()) == 0);
+                    }
+                } } }
+    }
+
+    // MutableDynamicBuffer_v0 refinement
+    detail::test_mutable_dynamic_buffer(b0,
+                                        is_mutable_dynamic_buffer<DynamicBuffer_v0>{});
+}
+
 } // beast
 } // boost
 
