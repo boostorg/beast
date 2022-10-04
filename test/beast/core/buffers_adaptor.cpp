@@ -24,6 +24,8 @@
 namespace boost {
 namespace beast {
 
+template class buffers_adaptor<net::mutable_buffer>;
+
 struct buffers_adaptor_test_hook
 {
     template<class MutableBufferSequence>
