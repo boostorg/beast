@@ -96,6 +96,16 @@ transferred.
     This function converts a buffer sequence to a `std::string`. It can
     be used for diagnostic purposes and tests.
 ]]
+[[
+ [link beast.ref.boost__beast__buffer_ref `buffer_ref`]
+ [link beast.ref.boost__beast__ref `ref`]
+
+][
+    This function converts a beast buffer, that is to be passed by reference,
+    into a buffer reference, that can be passed by value into asio functions.
+
+    It implements the __DynamicBuffer__v2__ concept.
+]]
 ]
 
 The __DynamicBuffer__ concept introduced in __Asio__ models a buffer

@@ -87,6 +87,8 @@
 [def __SyncReadStream__         [@boost:/doc/html/boost_asio/reference/SyncReadStream.html ['SyncReadStream]]]
 [def __SyncWriteStream__        [@boost:/doc/html/boost_asio/reference/SyncWriteStream.html ['SyncWriteStream]]]
 [def __WriteHandler__           [@boost:/doc/html/boost_asio/reference/WriteHandler.html ['WriteHandler]]]
+[def __DynamicBuffer__v1__      [@boost:/doc/html/boost_asio/reference/DynamicBuffer_v1.html ['DynamicBuffer_v1']]]
+[def __DynamicBuffer__v2__      [@boost:/doc/html/boost_asio/reference/DynamicBuffer_v2.html ['DynamicBuffer_v2']]]
 
 [/ Beast Named Requirements ]
 
