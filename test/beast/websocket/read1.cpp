@@ -137,6 +137,30 @@ public:
                 beast::error::timeout));
             test::run(ioc);
         }
+
+        {
+            stream<tcp::socket> ws1(ioc);
+            stream<tcp::socket> ws2(ioc);
+            test::connect(ws1.next_layer(), ws2.next_layer());
+            ws1.async_handshake("test", "/", test::success_handler());
+            ws2.async_accept(test::success_handler());
+            test::run(ioc);
+
+            std::string res ;
+            auto b = asio::dynamic_buffer(res);
+            ws1.set_option(stream_base::timeout{
+                    stream_base::none(),
+                    std::chrono::milliseconds(50),
+                    false});
+            ws1.async_read(b, test::success_handler());
+            ws2.async_write(net::const_buffer("Hello, world!", 13),
+                            test::success_handler());
+            test::run(ioc);
+
+            BEAST_EXPECT(res == "Hello, world!");
+        }
+
+
     }
 
     void

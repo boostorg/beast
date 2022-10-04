@@ -693,6 +693,25 @@ public:
         }
 
         {
+            // bytes_transferred returns length of header
+            request_parser<string_body> p;
+            test::stream s(ioc);
+            s.append(string_view(hdr));
+            s.append(string_view(body));
+            std::string res ;
+            auto fb = asio::dynamic_buffer(res);
+            error_code ec;
+            auto bt = read_header(s, fb, p, ec);
+            BEAST_EXPECTS(!ec, ec.message());
+            BEAST_EXPECT(bt == hdr.size());
+
+            // next read should be zero-size, success
+            bt = read_header(s, fb, p, ec);
+            BEAST_EXPECTS(!ec, ec.message());
+            BEAST_EXPECTS(bt == 0, std::to_string(0));
+        }
+
+        {
             // incomplete header consumes all parsable header bytes
             request_parser<string_body> p;
             test::stream s(ioc);
