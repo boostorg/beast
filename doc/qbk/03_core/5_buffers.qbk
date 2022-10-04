@@ -167,6 +167,31 @@ set of additional implementations of the dynamic buffer concept:
 ]]
 ]
 
+The buffers provide different guarantees regarding the allocated memory; stable means that existing
+mutable and const_buffers obtained by calling `data` or `prepare`, will remain valid.
+
+Note that copies always requires a new call to `data` and `prepare`.`
+
+[table Memory stability
+[[Name] [Allocation] [buffer sequence length] [Max Size] [Movable] [prepare/commit] [consume]]
+[
+    [[link beast.ref.boost__beast__flat_buffer `flat_buffer`]]
+    [dynamic] [1] [dynamic] [yes] [invalidating] [invalidating]
+]
+[
+    [[link beast.ref.boost__beast__multi_buffer `multi_buffer`]]
+    [dynamic] [dynamic] [stable] [yesy] [invalidating]
+]
+[
+    [[link beast.ref.boost__beast__flat_static_buffer `flat_static_buffer`]]
+    [static] [1] [static] [no] [invalidating]
+]
+[
+    [[link beast.ref.boost__beast__static_buffer `static_buffer`]]
+    [static] [1-2] [static] [no] [may invalidate]
+]
+]
+
 These two functions facilitate buffer interoperability with standard
 output streams.
 
