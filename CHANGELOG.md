@@ -2,6 +2,8 @@ Version 340:
 
 * file_body buffer size can be set by BOOST_BEAST_FILE_BODY_CHUNK_SIZE
 * file_body_posix has sendfile implementation
+* sendfile/Transmitfile is in config.hpp
+* forward declaration for file_body to make the lookup reliable 
 
 Version 339:
 

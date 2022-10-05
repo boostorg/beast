@@ -12,13 +12,7 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
-#if ! defined(BOOST_BEAST_USE_WIN32_FILE)
-# ifdef _WIN32
-#  define BOOST_BEAST_USE_WIN32_FILE 1
-# else
-#  define BOOST_BEAST_USE_WIN32_FILE 0
-# endif
-#endif
+
 
 #if BOOST_BEAST_USE_WIN32_FILE
 

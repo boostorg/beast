@@ -101,4 +101,43 @@ namespace net = boost::asio;
 #define BOOST_BEAST_ASYNC_TPARAM2 BOOST_ASIO_COMPLETION_TOKEN_FOR(void(::boost::beast::error_code, ::std::size_t))
 #endif
 
+#if ! defined(BOOST_BEAST_USE_WIN32_FILE)
+# ifdef _WIN32
+#  define BOOST_BEAST_USE_WIN32_FILE 1
+# else
+#  define BOOST_BEAST_USE_WIN32_FILE 0
+# endif
+#endif
+
+#if ! defined(BOOST_BEAST_NO_POSIX_FILE)
+# if ! defined(__APPLE__)   && ! defined(__linux__) \
+  && ! defined(__FreeBSD__) && ! defined(__FreeBSD)
+#  define BOOST_BEAST_NO_POSIX_FILE
+# endif
+#endif
+
+
+#if ! defined(BOOST_BEAST_USE_POSIX_FILE)
+# if ! defined(BOOST_BEAST_NO_POSIX_FILE)
+#  define BOOST_BEAST_USE_POSIX_FILE 1
+# else
+#  define BOOST_BEAST_USE_POSIX_FILE 0
+# endif
+#endif
+
+#if BOOST_BEAST_USE_POSIX_FILE
+
+#if defined(__linux__)
+#define BOOST_BEAST_HAS_SENDFILE 1
+#define BOOST_BEAST_SENDFILE_POSIX_STYLE 1
+#elif defined(__FreeBSD__) || defined(__FreeBSD)
+#define BOOST_BEAST_HAS_SENDFILE 1
+#define BOOST_BEAST_SENDFILE_FREEBSD_STYLE 1
+#elif defined(__APPLE__)
+#define BOOST_BEAST_HAS_SENDFILE 1
+#define BOOST_BEAST_SENDFILE_APPLE_STYLE 1
+#endif
+
+#endif
+
 #endif

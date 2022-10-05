@@ -12,19 +12,6 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
-#if ! defined(BOOST_BEAST_NO_POSIX_FILE)
-# if ! defined(__APPLE__) && ! defined(__linux__)
-#  define BOOST_BEAST_NO_POSIX_FILE
-# endif
-#endif
-
-#if ! defined(BOOST_BEAST_USE_POSIX_FILE)
-# if ! defined(BOOST_BEAST_NO_POSIX_FILE)
-#  define BOOST_BEAST_USE_POSIX_FILE 1
-# else
-#  define BOOST_BEAST_USE_POSIX_FILE 0
-# endif
-#endif
 
 #if BOOST_BEAST_USE_POSIX_FILE
 

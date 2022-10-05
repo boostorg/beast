@@ -11,6 +11,7 @@
 #define BOOST_BEAST_HTTP_BASIC_FILE_BODY_HPP
 
 #include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/http/basic_file_body_fwd.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/file_base.hpp>
 #include <boost/beast/http/message.hpp>
