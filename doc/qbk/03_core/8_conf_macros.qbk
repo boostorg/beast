@@ -35,6 +35,15 @@ failure to do so may result in violations of ODR (One Definition Rule).
         Enables the use of deprecated APIs within Beast.
     ]
 ]
+[
+    [
+        BOOST_BEAST_FILE_BODY_CHUNK_SIZE
+    ][
+        This configuration parameter sets the chunk size used to read from files
+        in file_bodies. Unused when transfer with TransmitFile or sendfile is possible.
+        It defaults to 65535.
+    ]
+]
 ]
 
 [endsect]

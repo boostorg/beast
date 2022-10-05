@@ -1,3 +1,7 @@
+Version 340:
+
+* file_body buffer size can be set by BOOST_BEAST_FILE_BODY_CHUNK_SIZE
+
 Version 339:
 
 * BOOST_BEAST_USE_STD_STRING_VIEW is replaced by boost/core string_view.

@@ -21,6 +21,10 @@
 #include <cstdint>
 #include <utility>
 
+#if !defined(BOOST_BEAST_FILE_BODY_CHUNK_SIZE)
+#define BOOST_BEAST_FILE_BODY_CHUNK_SIZE 65535
+#endif
+
 namespace boost {
 namespace beast {
 namespace http {
@@ -236,7 +240,7 @@ class basic_file_body<File>::writer
 {
     value_type& body_;      // The body we are reading from
     std::uint64_t remain_;  // The number of unread bytes
-    char buf_[4096];        // Small buffer for reading
+    char buf_[BOOST_BEAST_FILE_BODY_CHUNK_SIZE];        // Small buffer for reading
 
 public:
     // The type of buffer sequence returned by `get`.
