@@ -245,8 +245,8 @@ public:
                 st2 << std::fstream{tem2.native()}.rdbuf();
                 auto s1 = st1.str();
                 auto s2 = st2.str();
-                BEAST_EXPECT(s1.size() == 4097100);
-                BEAST_EXPECT(s2.size() == 4097100);
+                BEAST_EXPECTS(s1.size() == 4097100, std::to_string(s1.size()));
+                BEAST_EXPECTS(s2.size() == 4097100, std::to_string(s2.size()));
                 BEAST_EXPECT(s1 == s2);
             }
 
@@ -332,8 +332,8 @@ public:
                 st2 << std::fstream{tem2.native()}.rdbuf();
                 auto s1 = st1.str();
                 auto s2 = st2.str();
-                BEAST_EXPECT(s1.size() == 4097100);
-                BEAST_EXPECT(s2.size() == 4097100);
+                BEAST_EXPECTS(s1.size() == 4097100, std::to_string(s1.size()));
+                BEAST_EXPECTS(s2.size() == 4097100, std::to_string(s2.size()));
                 BEAST_EXPECT(s1 == s2);
             }
 
