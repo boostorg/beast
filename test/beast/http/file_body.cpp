@@ -16,11 +16,17 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/http/parser.hpp>
+#include <boost/beast/http/read.hpp>
 #include <boost/beast/http/serializer.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/asio/error.hpp>
+
+#include <boost/asio/local/stream_protocol.hpp>
+#include <boost/asio/local/connect_pair.hpp>
+
 #include <fstream>
+#include <thread>
+
 
 namespace boost {
 namespace beast {
@@ -162,36 +168,187 @@ public:
             }
             fstemp.close();
         }
+    }
 
-        // open the file and read the header
+
+    template<class File>
+    void
+    fileActuallySend() // so we actually test sendfile/TransmitFile
+    {
+
+        net::io_context ctx;
+        auto const temp = boost::filesystem::unique_path();
+        auto const tem2 = boost::filesystem::unique_path();
+
+        error_code ec;
+        string_view const ten =
+                "0123456789"; // 40
+        // create the temporary file
+        std::size_t to_write = 4097100;
+
+        {
+            std::ofstream fstemp(temp.native());
+            std::size_t written = 0;
+            // we need to hi the buffer limit
+            while (written < to_write)
+            {
+                auto size = (std::min)(ten.size(), to_write - written);
+                fstemp << ten.substr(0, size);
+                BEAST_EXPECT(fstemp.good());
+                written += size;
+            }
+            fstemp.close();
+        }
+
+        std::thread writer;
+        try
         {
             using file_body_type = basic_file_body<File>;
 
-            typename file_body_type::value_type value;
-            // opened in write mode so we can truncate later
-            value.open(temp.path().string<std::string>().c_str(), file_mode::read, ec);
-            BEAST_EXPECTS(! ec, ec.message());
+            net::io_context ctx;
+            net::local::stream_protocol::socket sink{ctx}, source{ctx};
+            net::local::connect_pair(source, sink, ec);
 
-            response_header<> header;
-            header.version(11);
-            header.result(status::accepted);
-            header.set(field::server, "test");
-            header.set(field::content_length, "4097");
-
-            typename file_body_type::writer w(header, value);
-            auto maybe_range = w.get(ec);
-            BEAST_EXPECTS(!ec, ec.message());
-            BEAST_EXPECTS(maybe_range.has_value(), "no range returned");
-            BEAST_EXPECT(maybe_range.value().second);
-
-            value.file().seek(4097, ec);
             BEAST_EXPECTS(!ec, ec.message());
 
-            maybe_range = w.get(ec);
-            BEAST_EXPECTS(ec == error::short_read, ec.message());
-            BEAST_EXPECTS(!maybe_range.has_value(), "range returned on error");
+            writer = std::thread{[&]{
+                        error_code ec_;
+
+                        http::response<file_body_type> req;
+                        req.version(11);
+                        req.set(field::server, "test");
+                        req.body().open(temp.string<std::string>().c_str(),
+                                 file_mode::read, ec_);
+
+                        BEAST_EXPECT(!ec_);
+                        req.prepare_payload();
+
+                        BEAST_EXPECT(req.payload_size().value() == 4097100);
+                        http::write(sink, req, ec_);
+                        BEAST_EXPECTS(!ec_, ec_.message());
+                    }};
+
+            http::response<file_body> res;
+            res.body().open(tem2.string<std::string>().c_str(), file_mode::write_new, ec);
+
+            BEAST_EXPECTS(!ec, ec.message());
+
+            flat_buffer buf;
+            http::read(source, buf, res, ec);
+            BEAST_EXPECTS(!ec, ec.message());
+            sink.close();
+            source.close();
+            writer.join();
+
+            {
+                std::ostringstream st1, st2;
+                st1 << std::fstream{temp.native()}.rdbuf();
+                st2 << std::fstream{tem2.native()}.rdbuf();
+                auto s1 = st1.str();
+                auto s2 = st2.str();
+                BEAST_EXPECT(s1.size() == 4097100);
+                BEAST_EXPECT(s2.size() == 4097100);
+                BEAST_EXPECT(s1 == s2);
+            }
+
         }
+        catch(...)
+        {
+            writer.join();
+            throw;
+        }
+        boost::filesystem::remove(temp, ec);
+        boost::filesystem::remove(tem2, ec);
     }
+
+    template<class File>
+    void
+    fileActuallySendAsync() // so we actually test sendfile/TransmitFile
+    {
+
+        net::io_context ctx;
+        auto const temp = boost::filesystem::unique_path();
+        auto const tem2 = boost::filesystem::unique_path();
+
+        error_code ec;
+        string_view const ten =
+                "0123456789"; // 40
+        // create the temporary file
+        std::size_t to_write = 4097100;
+
+        {
+            std::ofstream fstemp(temp.native());
+            std::size_t written = 0;
+            // we need to hi the buffer limit
+            while (written < to_write)
+            {
+                auto size = (std::min)(ten.size(), to_write - written);
+                fstemp << ten.substr(0, size);
+                BEAST_EXPECT(fstemp.good());
+                written += size;
+            }
+            fstemp.close();
+        }
+
+        std::thread writer;
+        try
+        {
+            using file_body_type = basic_file_body<File>;
+
+            net::io_context ctx;
+            net::local::stream_protocol::socket sink{ctx}, source{ctx};
+            net::local::connect_pair(source, sink, ec);
+            BEAST_EXPECTS(!ec, ec.message());
+
+            http::response<file_body_type> req;
+            req.version(11);
+            req.set(field::server, "test");
+            req.body().open(temp.string<std::string>().c_str(),
+                            file_mode::read, ec);
+
+            BEAST_EXPECT(!ec);
+            req.prepare_payload();
+            http::async_write(sink, req,
+                              [](error_code ec_, std::size_t)
+                              {
+                                BEAST_EXPECTS(!ec_, ec_.message());
+                              });
+            BEAST_EXPECT(req.payload_size().value() == 4097100);
+
+            http::response<file_body> res;
+            res.body().open(tem2.string<std::string>().c_str(), file_mode::write_new, ec);
+
+            BEAST_EXPECTS(!ec, ec.message());
+
+            flat_buffer buf;
+            http::async_read(source, buf, res,
+                             [](error_code ec_, std::size_t) { BEAST_EXPECTS(!ec_, ec_.message());});
+
+            ctx.run();
+            sink.close();
+            source.close();
+
+            {
+                std::ostringstream st1, st2;
+                st1 << std::fstream{temp.native()}.rdbuf();
+                st2 << std::fstream{tem2.native()}.rdbuf();
+                auto s1 = st1.str();
+                auto s2 = st2.str();
+                BEAST_EXPECT(s1.size() == 4097100);
+                BEAST_EXPECT(s2.size() == 4097100);
+                BEAST_EXPECT(s1 == s2);
+            }
+
+        }
+        catch(...)
+        {
+            writer.join();
+            throw;
+        }
+        boost::filesystem::remove(temp, ec);
+        boost::filesystem::remove(tem2, ec);
+    }
+
 
     void
     run() override
@@ -211,6 +368,22 @@ public:
     #if BOOST_BEAST_USE_WIN32_FILE
         fileBodyUnexpectedEofOnGet<file_win32>();
     #endif
+
+        fileActuallySend<file_stdio>();
+#if BOOST_BEAST_USE_POSIX_FILE
+        fileActuallySend<file_posix>();
+#endif
+#if BOOST_BEAST_USE_WIN32_FILE
+        fileActuallySend<file_win32>();
+#endif
+
+        fileActuallySendAsync<file_stdio>();
+#if BOOST_BEAST_USE_POSIX_FILE
+        fileActuallySendAsync<file_posix>();
+#endif
+#if BOOST_BEAST_USE_WIN32_FILE
+        fileActuallySendAsync<file_win32>();
+#endif
 
     }
 };

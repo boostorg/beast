@@ -4,6 +4,7 @@ Version 340:
 * file_body_posix has sendfile implementation
 * sendfile/Transmitfile is in config.hpp
 * forward declaration for file_body to make the lookup reliable 
+* tests for sendfile/TransmitFile
 
 Version 339:
 
