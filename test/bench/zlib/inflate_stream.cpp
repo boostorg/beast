@@ -111,7 +111,7 @@ public:
         for(;;)
         {
             error_code ec;
-            is.write(zs, Flush::sync, ec);
+            is.write(zs, flush::sync, ec);
             if(ec)
                 throw std::logic_error("inflate_stream failed");
             if(zs.avail_out > 0)

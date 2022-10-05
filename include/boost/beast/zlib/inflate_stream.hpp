@@ -206,7 +206,7 @@ public:
         again with more input and more output space to continue decompressing.
     */
     void
-    write(z_params& zs, Flush flush, error_code& ec)
+    write(z_params& zs, flush flush, error_code& ec)
     {
         doWrite(zs, flush, ec);
     }

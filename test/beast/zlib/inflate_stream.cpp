@@ -36,7 +36,7 @@ class inflate_stream_test : public beast::unit_test::suite
         virtual void* next_out() const noexcept = 0;
         virtual void next_out(void*) noexcept = 0;
 
-        virtual error_code write(Flush) = 0;
+        virtual error_code write(flush) = 0;
         virtual ~IDecompressor() = default;
     };
     class ZlibDecompressor : public IDecompressor {
@@ -81,7 +81,7 @@ class inflate_stream_test : public beast::unit_test::suite
         virtual void* next_out() const noexcept override { return zs.next_out; }
         virtual void next_out(void* ptr) noexcept override { zs.next_out = (Bytef*)ptr; }
 
-        error_code write(Flush flush) override {
+        error_code write(flush flush) override {
             constexpr static int zlib_flushes[] = {0, Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH, Z_TREES};
             const auto zlib_flush = zlib_flushes[static_cast<int>(flush)];
             const auto res = inflate(&zs, zlib_flush);
@@ -136,7 +136,7 @@ class inflate_stream_test : public beast::unit_test::suite
         virtual void* next_out() const noexcept override { return zp.next_out; }
         virtual void next_out(void* ptr) noexcept override { zp.next_out = (Bytef*)ptr; }
 
-        error_code write(Flush flush) override {
+        error_code write(flush flush) override {
             error_code ec{};
             is.write(zp, flush, ec);
             return ec;
@@ -235,10 +235,10 @@ public:
     {
         Split in_;
         Split check_;
-        Flush flush_;
+        flush flush_;
 
     public:
-        Beast(Split in, Split check, Flush flush = Flush::sync)
+        Beast(Split in, Split check, flush flush = flush::sync)
             : in_(in)
             , check_(check)
             , flush_(flush)
@@ -466,7 +466,7 @@ public:
             m.level(6);
             m.window(9);
             m.strategy(Z_DEFAULT_STRATEGY);
-            m(Beast{full, once, Flush::block}, check);
+            m(Beast{full, once, flush::block}, check);
         }
         {
             // Check a known string - this provides more stable coverage,
@@ -530,7 +530,7 @@ public:
 
         while (zs.avail_in > 0 && !ec)
         {
-            is.write(zs, Flush::sync, ec);
+            is.write(zs, flush::sync, ec);
             auto n = (std::min)(zs.avail_in, len);
             zs.next_in = static_cast<char const*>(zs.next_in) + n;
             zs.avail_in -= n;
@@ -606,9 +606,9 @@ public:
         d.next_out(&out[0]);
         d.avail_in(in.size());
         d.avail_out(out.size());
-        ec = d.write(Flush::trees);
+        ec = d.write(flush::trees);
         BEAST_EXPECT(!ec);
-        ec = d.write(Flush::sync);
+        ec = d.write(flush::sync);
         BEAST_EXPECT(!ec);
         BEAST_EXPECT(d.avail_out() == 0);
         BEAST_EXPECT(out == "Hello");
@@ -626,9 +626,9 @@ public:
         d.next_out(&out[0]);
         d.avail_in(in.size());
         d.avail_out(out.size());
-        ec = d.write(Flush::trees);
+        ec = d.write(flush::trees);
         BEAST_EXPECT(!ec);
-        ec = d.write(Flush::sync);
+        ec = d.write(flush::sync);
         BEAST_EXPECT(!ec);
         BEAST_EXPECT(d.avail_out() == 0);
         BEAST_EXPECT(out == "Hello");

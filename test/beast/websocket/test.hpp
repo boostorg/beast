@@ -93,7 +93,7 @@ public:
             permessage_deflate pmd;
             pmd.server_enable = true;
             pmd.server_max_window_bits = 9;
-            pmd.compLevel = 1;
+            pmd.compression_level = 1;
             ws_.set_option(pmd);
 
             switch(k)

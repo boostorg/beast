@@ -444,7 +444,7 @@ public:
         pmd.server_enable = true;
         pmd.client_max_window_bits = 9;
         pmd.server_max_window_bits = 9;
-        pmd.compLevel = 1;
+        pmd.compression_level = 1;
 
         // message size limit
         doTest<true>(pmd,
@@ -635,7 +635,7 @@ public:
         pmd.server_enable = true;
         pmd.client_max_window_bits = 9;
         pmd.server_max_window_bits = 9;
-        pmd.compLevel = 1;
+        pmd.compression_level = 1;
         doTestRead(pmd, SyncClient{});
         yield_to([&](yield_context yield)
         {

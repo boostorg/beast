@@ -73,7 +73,7 @@ doReset(int windowBits)
 
 void
 inflate_stream::
-doWrite(z_params& zs, Flush flush, error_code& ec)
+doWrite(z_params& zs, flush flush_, error_code& ec)
 {
     ranges r;
     r.in.first = static_cast<
@@ -98,7 +98,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
 
             // VFALCO TODO Don't allocate update the window unless necessary
             if(/*wsize_ ||*/ (r.out.used() && mode_ < BAD &&
-                    (mode_ < CHECK || flush != Flush::finish)))
+                    (mode_ < CHECK || flush_ != flush::finish)))
                 w_.write(r.out.first, r.out.used());
 
             zs.next_in = r.in.next;
@@ -112,7 +112,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 (mode_ == LEN_ || mode_ == COPY_ ? 256 : 0);
 
             if(((! r.in.used() && ! r.out.used()) ||
-                    flush == Flush::finish) && ! ec)
+                flush_ == flush::finish) && ! ec)
                 ec = error::need_buffers;
         };
     auto const err =
@@ -134,7 +134,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             break;
 
         case TYPE:
-            if(flush == Flush::block || flush == Flush::trees)
+            if(flush_ == flush::block || flush_ == flush::trees)
                 return done();
             // fall through
 
@@ -162,7 +162,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 // fixed Huffman table
                 fixedTables();
                 mode_ = LEN_;             /* decode codes */
-                if(flush == Flush::trees)
+                if(flush_ == flush::trees)
                     return done();
                 break;
             case 2:
@@ -190,7 +190,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             // undefined right shift behavior.
             bi_.flush();
             mode_ = COPY_;
-            if(flush == Flush::trees)
+            if(flush_ == flush::trees)
                 return done();
             BOOST_FALLTHROUGH;
         }
@@ -346,7 +346,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 return;
             }
             mode_ = LEN_;
-            if(flush == Flush::trees)
+            if(flush_ == flush::trees)
                 return done();
             BOOST_FALLTHROUGH;
         }

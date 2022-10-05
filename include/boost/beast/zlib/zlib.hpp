@@ -46,9 +46,9 @@ namespace beast {
 namespace zlib {
 
 #if !defined(__MACTYPES__)
-using Byte = unsigned char; // 8 bits
+using byte = unsigned char; // 8 bits
 #endif
-using uInt = unsigned int;  // 16 bits or more
+using uint = unsigned int;  // 16 bits or more
 
 /* Possible values of the data_type field (though see inflate()) */
 enum kind
@@ -156,7 +156,7 @@ struct z_params
         inflate_stream::write
 
 */
-enum class Flush
+enum class flush
 {
     // order matters
 
@@ -206,7 +206,7 @@ enum compression
 
     These are used when compressing streams.
 */
-enum class Strategy
+enum class strategy
 {
     /** Default strategy.
 

@@ -47,7 +47,7 @@ class deflate_stream_test : public beast::unit_test::suite
         virtual std::size_t total_out() const noexcept = 0;
 
         virtual std::size_t bound(std::size_t) = 0;
-        virtual error_code write(Flush) = 0;
+        virtual error_code write(flush) = 0;
         virtual ~ICompressor() = default;
     };
     class ZlibCompressor : public ICompressor {
@@ -88,7 +88,7 @@ class deflate_stream_test : public beast::unit_test::suite
         std::size_t bound(std::size_t src_size) override {
            return deflateBound(&zs, static_cast<uLong>(src_size));
         }
-        error_code write(Flush flush) override {
+        error_code write(flush flush) override {
             constexpr static int zlib_flushes[] = {0, Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH, Z_TREES};
             const auto zlib_flush = zlib_flushes[static_cast<int>(flush)];
             if(zs.next_in == nullptr && zs.avail_in != 0)
@@ -151,7 +151,7 @@ class deflate_stream_test : public beast::unit_test::suite
         std::size_t bound(std::size_t src_size) override {
             return ds.upper_bound(src_size);
         }
-        error_code write(Flush flush) override {
+        error_code write(flush flush) override {
           error_code ec{};
           ds.write(zp, flush, ec);
           return ec;
@@ -291,17 +291,17 @@ public:
         int strategy, std::string const&);
 
     static
-    Strategy
-    toStrategy(int strategy)
+    strategy
+    toStrategy(int strategy_)
     {
-        switch(strategy)
+        switch(strategy_)
         {
         default:
-        case 0: return Strategy::normal;
-        case 1: return Strategy::filtered;
-        case 2: return Strategy::huffman;
-        case 3: return Strategy::rle;
-        case 4: return Strategy::fixed;
+        case 0: return strategy::normal;
+        case 1: return strategy::filtered;
+        case 2: return strategy::huffman;
+        case 3: return strategy::rle;
+        case 4: return strategy::fixed;
         }
     }
 
@@ -326,7 +326,7 @@ public:
             bool progress = true;
             for(;;)
             {
-                error_code ec = c.write(Flush::full);
+                error_code ec = c.write(flush::full);
                 if( ec == error::need_buffers ||
                     ec == error::end_of_stream) // per zlib FAQ
                     goto fin;
@@ -376,7 +376,7 @@ public:
                 for(;;)
                 {
                     error_code ec = c.write(
-                        bi ? Flush::full : Flush::none);
+                            bi ? flush::full : flush::none);
                     if( ec == error::need_buffers ||
                         ec == error::end_of_stream) // per zlib FAQ
                         goto fin;
@@ -446,17 +446,17 @@ public:
         except<std::invalid_argument>(
             [&]()
             {
-                c.init(-42, 15, 8, static_cast<int>(Strategy::normal));
+                c.init(-42, 15, 8, static_cast<int>(strategy::normal));
             });
         except<std::invalid_argument>(
             [&]()
             {
-                c.init(compression::default_size, -1, 8, static_cast<int>(Strategy::normal));
+                c.init(compression::default_size, -1, 8, static_cast<int>(strategy::normal));
             });
         except<std::invalid_argument>(
             [&]()
             {
-                c.init(compression::default_size, 15, -1, static_cast<int>(Strategy::normal));
+                c.init(compression::default_size, 15, -1, static_cast<int>(strategy::normal));
             });
         except<std::invalid_argument>(
             [&]()
@@ -464,7 +464,7 @@ public:
                 c.init();
                 c.avail_in(1);
                 c.next_in(nullptr);
-                c.write(Flush::full);
+                c.write(flush::full);
             });
     }
 
@@ -479,19 +479,19 @@ public:
         c.avail_in(s.size());
         c.next_out(&out.front());
         c.avail_out(out.size());
-        error_code ec = c.write(Flush::sync);
+        error_code ec = c.write(flush::sync);
         BEAST_EXPECT(!ec);
         c.next_in(nullptr);
         c.avail_in(0);
-        ec = c.write(Flush::finish);
+        ec = c.write(flush::finish);
         BEAST_EXPECT(ec == error::end_of_stream);
         c.next_in(s.data());
         c.avail_in(s.size());
         c.next_out(&out.front());
         c.avail_out(out.size());
-        ec = c.write(Flush::sync);
+        ec = c.write(flush::sync);
         BEAST_EXPECT(ec == error::stream_error);
-        ec = c.write(Flush::finish);
+        ec = c.write(flush::finish);
         BEAST_EXPECT(ec == error::need_buffers);
     }
 
@@ -507,9 +507,9 @@ public:
         c.next_out(&out.front());
         c.avail_out(out.size());
         error_code ec;
-        ec = c.write(Flush::none);
+        ec = c.write(flush::none);
         BEAST_EXPECT(!ec);
-        ec = c.write(Flush::partial);
+        ec = c.write(flush::partial);
         BEAST_EXPECT(!ec);
     }
 
@@ -519,7 +519,7 @@ public:
         struct fixture
         {
             ICompressor& c;
-            explicit fixture(ICompressor&c, std::size_t n, Strategy s) : c(c)
+            explicit fixture(ICompressor&c, std::size_t n, strategy s) : c(c)
             {
                 c.init(8, 15, 1, static_cast<int>(s));
                 std::iota(in.begin(), in.end(), std::uint8_t{0});
@@ -534,25 +534,25 @@ public:
             std::string out;
         };
 
-        for (auto s : {Strategy::huffman, Strategy::rle, Strategy::normal})
+        for (auto s : {strategy::huffman, strategy::rle, strategy::normal})
         {
             {
                 fixture f{c, 264, s};
-                error_code ec = c.write(Flush::finish);
+                error_code ec = c.write(flush::finish);
                 BEAST_EXPECT(ec == error::end_of_stream);
                 BEAST_EXPECT(c.avail_out() == 1);
             }
 
             {
                 fixture f{c,263, s};
-                error_code ec = c.write(Flush::finish);
+                error_code ec = c.write(flush::finish);
                 BEAST_EXPECT(!ec);
                 BEAST_EXPECT(c.avail_out() == 0);
             }
 
             {
                 fixture f{c, 20, s};
-                error_code ec = c.write(Flush::sync);
+                error_code ec = c.write(flush::sync);
                 BEAST_EXPECT(!ec);
             }
 
@@ -565,7 +565,7 @@ public:
         std::vector<std::uint8_t> in;
         in.resize(300);
 
-        c.init(8, 15, 1, static_cast<int>(Strategy::rle));
+        c.init(8, 15, 1, static_cast<int>(strategy::rle));
         std::fill_n(in.begin(), 4, 'a');
         std::string out;
         out.resize(in.size() * 2);
@@ -575,7 +575,7 @@ public:
         c.avail_out(out.size());
 
         error_code ec;
-        ec = c.write(Flush::sync);
+        ec = c.write(flush::sync);
         BEAST_EXPECT(!ec);
     }
 
@@ -593,7 +593,7 @@ public:
             std::iota(in.begin() + n, in.end(),
                 static_cast<std::uint8_t>(0));
 
-            c.init(8, 15, 1, static_cast<int>(Strategy::normal));
+            c.init(8, 15, 1, static_cast<int>(strategy::normal));
             std::string out;
             out.resize(out_size);
             c.next_in(in.data());
@@ -602,13 +602,13 @@ public:
             c.avail_out(out.size());
 
             error_code ec;
-            ec = c.write(Flush::sync);
+            ec = c.write(flush::sync);
             BEAST_EXPECT(!ec);
         }
     }
 
     void
-    testCVE(char const* in, int l, Strategy s)
+    testCVE(char const* in, int l, strategy s)
     {
         deflate_stream ds;
         ds.reset(l, 15, 1, s);
@@ -620,19 +620,19 @@ public:
         p.next_out = out.data();
         p.avail_out = n;
         error_code ec;
-        BEAST_NO_THROW(ds.write(p, Flush::finish, ec));
+        BEAST_NO_THROW(ds.write(p, flush::finish, ec));
         BEAST_EXPECT(ec == zlib::error::end_of_stream);
     }
 
     void
     testCVE()
     {
-        testCVE(CVE_2018_25032_default, 1, Strategy::fixed);
-        testCVE(CVE_2018_25032_default, 2, Strategy::fixed);
-        testCVE(CVE_2018_25032_default, 6, Strategy::fixed);
-        testCVE(CVE_2018_25032_fixed, 1, Strategy::normal);
-        testCVE(CVE_2018_25032_fixed, 2, Strategy::normal);
-        testCVE(CVE_2018_25032_fixed, 6, Strategy::normal);
+        testCVE(CVE_2018_25032_default, 1, strategy::fixed);
+        testCVE(CVE_2018_25032_default, 2, strategy::fixed);
+        testCVE(CVE_2018_25032_default, 6, strategy::fixed);
+        testCVE(CVE_2018_25032_fixed, 1, strategy::normal);
+        testCVE(CVE_2018_25032_fixed, 2, strategy::normal);
+        testCVE(CVE_2018_25032_fixed, 6, strategy::normal);
     }
 
     void

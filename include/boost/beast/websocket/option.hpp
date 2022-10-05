@@ -51,10 +51,10 @@ struct permessage_deflate
     bool client_no_context_takeover = false;
 
     /// Deflate compression level 0..9
-    int compLevel = 8;
+    int compression_level = 8;
 
     /// Deflate memory level, 1..9
-    int memLevel = 4;
+    int memory_level = 4;
 
     /// The minimum size a message should have to be compressed
     std::size_t msg_size_threshold = 0;

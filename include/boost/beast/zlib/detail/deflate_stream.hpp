@@ -227,7 +227,7 @@ protected:
     };
 
     // VFALCO This might not be needed, e.g. for zip/gzip
-    enum StreamStatus
+    enum stream_status
     {
         EXTRA_STATE = 69,
         NAME_STATE = 73,
@@ -240,10 +240,10 @@ protected:
     /* A std::uint16_t is an index in the character window. We use short instead of int to
      * save space in the various tables. IPos is used only for parameter passing.
      */
-    using IPos = unsigned;
+    using i_pos = unsigned;
 
     using self = deflate_stream;
-    typedef block_state(self::*compress_func)(z_params& zs, Flush flush);
+    typedef block_state(self::*compress_func)(z_params& zs, flush flush);
 
     //--------------------------------------------------------------------------
 
@@ -254,17 +254,17 @@ protected:
     std::unique_ptr<std::uint8_t[]> buf_;
 
     int status_;                    // as the name implies
-    Byte* pending_buf_;             // output still pending
+    byte* pending_buf_;             // output still pending
     std::uint32_t
         pending_buf_size_;          // size of pending_buf
-    Byte* pending_out_;             // next pending byte to output to the stream
-    uInt pending_;                  // nb of bytes in the pending buffer
-    boost::optional<Flush>
+    byte* pending_out_;             // next pending byte to output to the stream
+    uint pending_;                  // nb of bytes in the pending buffer
+    boost::optional<flush>
         last_flush_;                // value of flush param for previous deflate call
 
-    uInt w_size_;                   // LZ77 window size (32K by default)
-    uInt w_bits_;                   // log2(w_size)  (8..16)
-    uInt w_mask_;                   // w_size - 1
+    uint w_size_;                   // LZ77 window size (32K by default)
+    uint w_bits_;                   // log2(w_size)  (8..16)
+    uint w_mask_;                   // w_size - 1
 
     /*  Sliding window. Input bytes are read into the second half of the window,
         and move to the first half later to keep a dictionary of at least wSize
@@ -274,7 +274,7 @@ protected:
         the window size to 64K.
         To do: use the user input buffer as sliding window.
     */
-    Byte *window_ = nullptr;
+    byte *window_ = nullptr;
 
     /*  Actual size of window: 2*wSize, except when the user input buffer
         is directly used as sliding window.
@@ -289,40 +289,40 @@ protected:
 
     std::uint16_t* head_;           // Heads of the hash chains or 0
 
-    uInt  ins_h_;                   // hash index of string to be inserted
-    uInt  hash_size_;               // number of elements in hash table
-    uInt  hash_bits_;               // log2(hash_size)
-    uInt  hash_mask_;               // hash_size-1
+    uint  ins_h_;                   // hash index of string to be inserted
+    uint  hash_size_;               // number of elements in hash table
+    uint  hash_bits_;               // log2(hash_size)
+    uint  hash_mask_;               // hash_size-1
 
     /*  Number of bits by which ins_h must be shifted at each input
         step. It must be such that after minMatch steps,
         the oldest byte no longer takes part in the hash key, that is:
         hash_shift * minMatch >= hash_bits
     */
-    uInt hash_shift_;
+    uint hash_shift_;
 
     /*  Window position at the beginning of the current output block.
         Gets negative when the window is moved backwards.
     */
     long block_start_;
 
-    uInt match_length_;             // length of best match
-    IPos prev_match_;               // previous match
+    uint match_length_;             // length of best match
+    i_pos prev_match_;               // previous match
     int match_available_;           // set if previous match exists
-    uInt strstart_;                 // start of string to insert
-    uInt match_start_;              // start of matching string
-    uInt lookahead_;                // number of valid bytes ahead in window
+    uint strstart_;                 // start of string to insert
+    uint match_start_;              // start of matching string
+    uint lookahead_;                // number of valid bytes ahead in window
 
     /*  Length of the best match at previous step. Matches not greater
         than this are discarded. This is used in the lazy match evaluation.
     */
-    uInt prev_length_;
+    uint prev_length_;
 
     /*  To speed up deflation, hash chains are never searched beyond
         this length. A higher limit improves compression ratio but
         degrades the speed.
     */
-    uInt max_chain_length_;
+    uint max_chain_length_;
 
     /*  Attempt to find a better match only when the current match is strictly
         smaller than this value. This mechanism is used only for compression
@@ -332,13 +332,13 @@ protected:
         greater than this length. This saves time but degrades compression.
         used only for compression levels <= 3.
     */
-    uInt max_lazy_match_;
+    uint max_lazy_match_;
 
     int level_;                     // compression level (1..9)
-    Strategy strategy_;             // favor or force Huffman coding
+    strategy strategy_;             // favor or force Huffman coding
 
     // Use a faster search when the previous match is longer than this
-    uInt good_match_;
+    uint good_match_;
 
     int nice_match_;                // Stop searching when current match exceeds this
 
@@ -390,15 +390,15 @@ protected:
             trees more frequently.
           - I can't count above 4
     */
-    uInt lit_bufsize_;
+    uint lit_bufsize_;
 
-    uInt sym_next_;      /* running index in sym_buf */
-    uInt sym_end_;       /* symbol table full when sym_next reaches this */
+    uint sym_next_;      /* running index in sym_buf */
+    uint sym_end_;       /* symbol table full when sym_next reaches this */
 
     std::uint32_t opt_len_;         // bit length of current block with optimal trees
     std::uint32_t static_len_;      // bit length of current block with static trees
-    uInt matches_;                  // number of string matches in current block
-    uInt insert_;                   // bytes at end of window left to insert
+    uint matches_;                  // number of string matches in current block
+    uint insert_;                   // bytes at end of window left to insert
 
     /*  Output buffer.
         Bits are inserted starting at the bottom (least significant bits).
@@ -492,7 +492,7 @@ protected:
             complete recalculation each time.
     */
     void
-    update_hash(uInt& h, std::uint8_t c)
+    update_hash(uint& h, std::uint8_t c)
     {
         h = ((h << hash_shift_) ^ c) & hash_mask_;
     }
@@ -504,7 +504,7 @@ protected:
     clear_hash()
     {
         head_[hash_size_-1] = 0;
-        std::memset((Byte *)head_, 0,
+        std::memset((byte *)head_, 0,
             (unsigned)(hash_size_-1)*sizeof(*head_));
     }
 
@@ -531,7 +531,7 @@ protected:
             bytes of the input file).
     */
     void
-    insert_string(IPos& hash_head)
+    insert_string(i_pos& hash_head)
     {
         update_hash(ins_h_, window_[strstart_ + (minMatch-1)]);
         hash_head = prev_[strstart_ & w_mask_] = head_[ins_h_];
@@ -611,14 +611,14 @@ protected:
     lut_type const&
     get_lut();
 
-    BOOST_BEAST_DECL void doReset             (int level, int windowBits, int memLevel, Strategy strategy);
+    BOOST_BEAST_DECL void doReset             (int level, int windowBits, int memLevel, strategy strategy);
     BOOST_BEAST_DECL void doReset             ();
     BOOST_BEAST_DECL void doClear             ();
     BOOST_BEAST_DECL std::size_t doUpperBound (std::size_t sourceLen) const;
     BOOST_BEAST_DECL void doTune              (int good_length, int max_lazy, int nice_length, int max_chain);
-    BOOST_BEAST_DECL void doParams            (z_params& zs, int level, Strategy strategy, error_code& ec);
-    BOOST_BEAST_DECL void doWrite             (z_params& zs, boost::optional<Flush> flush, error_code& ec);
-    BOOST_BEAST_DECL void doDictionary        (Byte const* dict, uInt dictLength, error_code& ec);
+    BOOST_BEAST_DECL void doParams            (z_params& zs, int level, strategy strategy, error_code& ec);
+    BOOST_BEAST_DECL void doWrite             (z_params& zs, boost::optional<flush> flush_, error_code& ec);
+    BOOST_BEAST_DECL void doDictionary        (byte const* dict, uint dictLength, error_code& ec);
     BOOST_BEAST_DECL void doPrime             (int bits, int value, error_code& ec);
     BOOST_BEAST_DECL void doPending           (unsigned* value, int* bits);
 
@@ -650,41 +650,41 @@ protected:
     BOOST_BEAST_DECL void fill_window         (z_params& zs);
     BOOST_BEAST_DECL void flush_pending       (z_params& zs);
     BOOST_BEAST_DECL void flush_block         (z_params& zs, bool last);
-    BOOST_BEAST_DECL int  read_buf            (z_params& zs, Byte *buf, unsigned size);
-    BOOST_BEAST_DECL uInt longest_match       (IPos cur_match);
+    BOOST_BEAST_DECL int  read_buf            (z_params& zs, byte *buf, unsigned size);
+    BOOST_BEAST_DECL uint longest_match       (i_pos cur_match);
 
-    BOOST_BEAST_DECL block_state f_stored     (z_params& zs, Flush flush);
-    BOOST_BEAST_DECL block_state f_fast       (z_params& zs, Flush flush);
-    BOOST_BEAST_DECL block_state f_slow       (z_params& zs, Flush flush);
-    BOOST_BEAST_DECL block_state f_rle        (z_params& zs, Flush flush);
-    BOOST_BEAST_DECL block_state f_huff       (z_params& zs, Flush flush);
+    BOOST_BEAST_DECL block_state f_stored     (z_params& zs, flush flush);
+    BOOST_BEAST_DECL block_state f_fast       (z_params& zs, flush flush);
+    BOOST_BEAST_DECL block_state f_slow       (z_params& zs, flush flush);
+    BOOST_BEAST_DECL block_state f_rle        (z_params& zs, flush flush);
+    BOOST_BEAST_DECL block_state f_huff       (z_params& zs, flush flush);
 
     block_state
-    deflate_stored(z_params& zs, Flush flush)
+    deflate_stored(z_params& zs, flush flush)
     {
         return f_stored(zs, flush);
     }
 
     block_state
-    deflate_fast(z_params& zs, Flush flush)
+    deflate_fast(z_params& zs, flush flush)
     {
         return f_fast(zs, flush);
     }
 
     block_state
-    deflate_slow(z_params& zs, Flush flush)
+    deflate_slow(z_params& zs, flush flush)
     {
         return f_slow(zs, flush);
     }
 
     block_state
-    deflate_rle(z_params& zs, Flush flush)
+    deflate_rle(z_params& zs, flush flush)
     {
         return f_rle(zs, flush);
     }
 
     block_state
-    deflate_huff(z_params& zs, Flush flush)
+    deflate_huff(z_params& zs, flush flush)
     {
         return f_huff(zs, flush);
     }

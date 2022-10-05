@@ -100,7 +100,7 @@ struct impl_base<true>
             if(zs.avail_in == 0)
                 continue;
             zs.next_in = in.data();
-            zo.write(zs, zlib::Flush::none, ec);
+            zo.write(zs, zlib::flush::none, ec);
             if(ec)
             {
                 if(ec != zlib::error::need_buffers)
@@ -129,7 +129,7 @@ struct impl_base<true>
                 //
                 // VFALCO We could do this flush twice depending
                 //        on how much space is in the output.
-                zo.write(zs, zlib::Flush::block, ec);
+                zo.write(zs, zlib::flush::block, ec);
                 BOOST_ASSERT(! ec || ec == zlib::error::need_buffers);
                 if(ec == zlib::error::need_buffers)
                     ec = {};
@@ -137,7 +137,7 @@ struct impl_base<true>
                     return false;
                 if(zs.avail_out >= 6)
                 {
-                    zo.write(zs, zlib::Flush::sync, ec);
+                    zo.write(zs, zlib::flush::sync, ec);
                     BOOST_ASSERT(! ec);
                     // remove flush marker
                     zs.total_out -= 4;
@@ -166,7 +166,7 @@ struct impl_base<true>
     void
     inflate(
         zlib::z_params& zs,
-        zlib::Flush flush,
+        zlib::flush flush,
         error_code& ec)
     {
         pmd_->zi.write(zs, flush, ec);
@@ -221,12 +221,12 @@ struct impl_base<true>
             o.client_max_window_bits < 9)
             BOOST_THROW_EXCEPTION(std::invalid_argument{
                 "invalid client_max_window_bits"});
-        if( o.compLevel < 0 ||
-            o.compLevel > 9)
+        if(o.compression_level < 0 ||
+           o.compression_level > 9)
             BOOST_THROW_EXCEPTION(std::invalid_argument{
                 "invalid compLevel"});
-        if( o.memLevel < 1 ||
-            o.memLevel > 9)
+        if(o.memory_level < 1 ||
+           o.memory_level > 9)
             BOOST_THROW_EXCEPTION(std::invalid_argument{
                 "invalid memLevel"});
         pmd_opts_ = o;
@@ -274,20 +274,20 @@ struct impl_base<true>
                 pmd_->zi.reset(
                     pmd_config_.server_max_window_bits);
                 pmd_->zo.reset(
-                    pmd_opts_.compLevel,
+                    pmd_opts_.compression_level,
                     pmd_config_.client_max_window_bits,
-                    pmd_opts_.memLevel,
-                    zlib::Strategy::normal);
+                    pmd_opts_.memory_level,
+                    zlib::strategy::normal);
             }
             else
             {
                 pmd_->zi.reset(
                     pmd_config_.client_max_window_bits);
                 pmd_->zo.reset(
-                    pmd_opts_.compLevel,
+                    pmd_opts_.compression_level,
                     pmd_config_.server_max_window_bits,
-                    pmd_opts_.memLevel,
-                    zlib::Strategy::normal);
+                    pmd_opts_.memory_level,
+                    zlib::strategy::normal);
             }
         }
     }
@@ -383,7 +383,7 @@ struct impl_base<false>
     void
     inflate(
         zlib::z_params&,
-        zlib::Flush,
+        zlib::flush,
         error_code&)
     {
     }

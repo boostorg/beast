@@ -79,7 +79,7 @@ public:
     */
     deflate_stream()
     {
-        reset(6, 15, DEF_MEM_LEVEL, Strategy::normal);
+        reset(6, 15, DEF_MEM_LEVEL, strategy::normal);
     }
 
     /** Reset the stream and compression settings.
@@ -106,10 +106,10 @@ public:
     */
     void
     reset(
-        int level,
-        int windowBits,
-        int memLevel,
-        Strategy strategy)
+            int level,
+            int windowBits,
+            int memLevel,
+            strategy strategy)
     {
         doReset(level, windowBits, memLevel, strategy);
     }
@@ -292,9 +292,9 @@ public:
     */
     void
     write(
-        z_params& zs,
-        Flush flush,
-        error_code& ec)
+            z_params& zs,
+            flush flush,
+            error_code& ec)
     {
         doWrite(zs, flush, ec);
     }
@@ -320,10 +320,10 @@ public:
     */
     void
     params(
-        z_params& zs,
-        int level,
-        Strategy strategy,
-        error_code& ec)
+            z_params& zs,
+            int level,
+            strategy strategy,
+            error_code& ec)
     {
         doParams(zs, level, strategy, ec);
     }

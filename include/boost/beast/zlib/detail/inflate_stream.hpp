@@ -75,7 +75,7 @@ protected:
 
     BOOST_BEAST_DECL
     void
-    doWrite(z_params& zs, Flush flush, error_code& ec);
+    doWrite(z_params& zs, flush flush_, error_code& ec);
 
     void
     doReset()

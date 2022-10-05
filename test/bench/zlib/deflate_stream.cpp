@@ -70,10 +70,10 @@ public:
         z_params zs;
         deflate_stream ds;
         ds.reset(
-            Z_DEFAULT_COMPRESSION,
-            15,
-            4,
-            Strategy::normal);
+                Z_DEFAULT_COMPRESSION,
+                15,
+                4,
+                strategy::normal);
         std::string out;
         out.resize(deflate_upper_bound(in.size()));
         zs.next_in = in.data();
@@ -81,7 +81,7 @@ public:
         zs.next_out = &out[0];
         zs.avail_out = out.size();
         error_code ec;
-        ds.write(zs, Flush::full, ec);
+        ds.write(zs, flush::full, ec);
         BEAST_EXPECTS(! ec, ec.message());
         out.resize(zs.total_out);
         return out;

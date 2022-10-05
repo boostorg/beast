@@ -208,7 +208,7 @@ public:
         permessage_deflate pmd;
         pmd.client_enable = true;
         pmd.server_enable = true;
-        pmd.compLevel = 1;
+        pmd.compression_level = 1;
 
         // deflate
         doTest(pmd, [&](ws_type& ws)
@@ -549,7 +549,7 @@ public:
             {
                 permessage_deflate pmd;
                 pmd.client_enable = true;
-                pmd.compLevel = 1;
+                pmd.compression_level = 1;
                 ws.set_option(pmd);
             }
             ws.next_layer().connect(es.stream());

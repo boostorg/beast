@@ -129,25 +129,25 @@ public:
 
         {
             permessage_deflate pmd;
-            pmd.compLevel = -1;
+            pmd.compression_level = -1;
             bad(pmd);
         }
 
         {
             permessage_deflate pmd;
-            pmd.compLevel = 10;
+            pmd.compression_level = 10;
             bad(pmd);
         }
 
         {
             permessage_deflate pmd;
-            pmd.memLevel = 0;
+            pmd.memory_level = 0;
             bad(pmd);
         }
 
         {
             permessage_deflate pmd;
-            pmd.memLevel = 10;
+            pmd.memory_level = 10;
             bad(pmd);
         }
     }

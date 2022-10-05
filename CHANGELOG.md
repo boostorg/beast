@@ -1,3 +1,9 @@
+Version 340:
+
+* zlib uses camel_case spelling
+
+--------------------------------------------------------------------------------
+
 Version 339:
 
 * BOOST_BEAST_USE_STD_STRING_VIEW is replaced by boost/core string_view.

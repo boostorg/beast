@@ -67,7 +67,7 @@ setup_stream(websocket::stream<NextLayer>& ws)
     websocket::permessage_deflate pmd;
     pmd.client_enable = true;
     pmd.server_enable = true;
-    pmd.compLevel = 3;
+    pmd.compression_level = 3;
     ws.set_option(pmd);
 
     ws.auto_fragment(false);

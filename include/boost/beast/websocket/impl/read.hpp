@@ -577,7 +577,7 @@ public:
                     {
                         break;
                     }
-                    impl.inflate(zs, zlib::Flush::sync, ec);
+                    impl.inflate(zs, zlib::flush::sync, ec);
                     if(impl.check_stop_now(ec))
                         goto upcall;
                     if(fin && zs.total_out == 0) {
@@ -1321,7 +1321,7 @@ loop:
             {
                 break;
             }
-            impl.inflate(zs, zlib::Flush::sync, ec);
+            impl.inflate(zs, zlib::flush::sync, ec);
             if(impl.check_stop_now(ec))
                 return bytes_written;
             if (fin && zs.total_out == 0) {

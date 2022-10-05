@@ -227,10 +227,10 @@ deflate_stream::get_lut() ->
 void
 deflate_stream::
 doReset(
-    int level,
-    int windowBits,
-    int memLevel,
-    Strategy strategy)
+        int level,
+        int windowBits,
+        int memLevel,
+        strategy strategy)
 {
     if(level == default_size)
         level = 6;
@@ -318,7 +318,7 @@ doTune(
 
 void
 deflate_stream::
-doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
+doParams(z_params& zs, int level, strategy strategy, error_code& ec)
 {
     compress_func func;
 
@@ -335,7 +335,7 @@ doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
         zs.total_in != 0)
     {
         // Flush the last buffer:
-        doWrite(zs, Flush::block, ec);
+        doWrite(zs, flush::block, ec);
         if(ec == error::need_buffers && pending_ == 0)
             ec = {};
     }
@@ -356,7 +356,7 @@ doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
 //
 void
 deflate_stream::
-doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
+doWrite(z_params& zs, boost::optional<flush> flush_, error_code& ec)
 {
     maybe_init();
 
@@ -364,7 +364,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
         BOOST_THROW_EXCEPTION(std::invalid_argument{"invalid input"});
 
     if(zs.next_out == nullptr ||
-        (status_ == FINISH_STATE && flush != Flush::finish))
+        (status_ == FINISH_STATE && flush_ != flush::finish))
     {
         ec = error::stream_error;
         return;
@@ -376,11 +376,11 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
     }
 
     // value of flush param for previous deflate call
-    auto old_flush = boost::make_optional<Flush>(
+    auto old_flush = boost::make_optional<zlib::flush>(
         last_flush_.is_initialized(),
-        last_flush_ ? *last_flush_ : Flush::none);
+        last_flush_ ? *last_flush_ : flush::none);
 
-    last_flush_ = flush;
+    last_flush_ = flush_;
 
     // Flush as much pending output as possible
     if(pending_ != 0)
@@ -399,8 +399,8 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
         }
     }
     else if(zs.avail_in == 0 && (
-            old_flush && flush <= *old_flush // Caution: depends on enum order
-        ) && flush != Flush::finish)
+            old_flush && flush_ <= *old_flush // Caution: depends on enum order
+        ) && flush_ != flush::finish)
     {
         /* Make sure there is something to do and avoid duplicate consecutive
          * flushes. For repeated and useless calls with Flush::finish, we keep
@@ -420,21 +420,21 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
     /* Start a new block or continue the current one.
      */
     if(zs.avail_in != 0 || lookahead_ != 0 ||
-        (flush != Flush::none && status_ != FINISH_STATE))
+        (flush_ != flush::none && status_ != FINISH_STATE))
     {
         block_state bstate;
 
         switch(strategy_)
         {
-        case Strategy::huffman:
-            bstate = deflate_huff(zs, flush.get());
+        case strategy::huffman:
+            bstate = deflate_huff(zs, flush_.get());
             break;
-        case Strategy::rle:
-            bstate = deflate_rle(zs, flush.get());
+        case strategy::rle:
+            bstate = deflate_rle(zs, flush_.get());
             break;
         default:
         {
-            bstate = (this->*(get_config(level_).func))(zs, flush.get());
+            bstate = (this->*(get_config(level_).func))(zs, flush_.get());
             break;
         }
         }
@@ -460,18 +460,18 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
         }
         if(bstate == block_done)
         {
-            if(flush == Flush::partial)
+            if(flush_ == flush::partial)
             {
                 tr_align();
             }
-            else if(flush != Flush::block)
+            else if(flush_ != flush::block)
             {
                 /* FULL_FLUSH or SYNC_FLUSH */
                 tr_stored_block(nullptr, 0L, 0);
                 /* For a full flush, this empty block will be recognized
                  * as a special marker by inflate_sync().
                  */
-                if(flush == Flush::full)
+                if(flush_ == flush::full)
                 {
                     clear_hash(); // forget history
                     if(lookahead_ == 0)
@@ -491,7 +491,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
         }
     }
 
-    if(flush == Flush::finish)
+    if(flush_ == flush::finish)
     {
         ec = error::end_of_stream;
         return;
@@ -501,7 +501,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
 // VFALCO Warning: untested
 void
 deflate_stream::
-doDictionary(Byte const* dict, uInt dictLength, error_code& ec)
+doDictionary(byte const* dict, uint dictLength, error_code& ec)
 {
     if(lookahead_)
     {
@@ -525,14 +525,14 @@ doDictionary(Byte const* dict, uInt dictLength, error_code& ec)
     /* insert dict into window and hash */
     z_params zs;
     zs.avail_in = dictLength;
-    zs.next_in = (const Byte *)dict;
+    zs.next_in = (const byte *)dict;
     zs.avail_out = 0;
     zs.next_out = 0;
     fill_window(zs);
     while(lookahead_ >= minMatch)
     {
-        uInt str = strstart_;
-        uInt n = lookahead_ - (minMatch-1);
+        uint str = strstart_;
+        uint n = lookahead_ - (minMatch-1);
         do
         {
             update_hash(ins_h_, window_[str + minMatch-1]);
@@ -559,7 +559,7 @@ doPrime(int bits, int value, error_code& ec)
 {
     maybe_init();
 
-    if((Byte *)(sym_buf_) < pending_out_ + ((Buf_size + 7) >> 3))
+    if((byte *)(sym_buf_) < pending_out_ + ((Buf_size + 7) >> 3))
     {
         ec = error::need_buffers;
         return;
@@ -610,7 +610,7 @@ init()
     hash_mask_ = hash_size_ - 1;
     hash_shift_ =  ((hash_bits_+minMatch-1)/minMatch);
 
-    auto const nwindow  = w_size_ * 2*sizeof(Byte);
+    auto const nwindow  = w_size_ * 2*sizeof(byte);
     auto const nprev    = w_size_ * sizeof(std::uint16_t);
     auto const nhead    = hash_size_ * sizeof(std::uint16_t);
     auto const noverlay = lit_bufsize_ * (sizeof(std::uint16_t)+2);
@@ -623,7 +623,7 @@ init()
         buf_size_ = needed;
     }
 
-    window_ = reinterpret_cast<Byte*>(buf_.get());
+    window_ = reinterpret_cast<byte*>(buf_.get());
     prev_   = reinterpret_cast<std::uint16_t*>(buf_.get() + nwindow);
     std::memset(prev_, 0, nprev);
     head_   = reinterpret_cast<std::uint16_t*>(buf_.get() + nwindow + nprev);
@@ -682,7 +682,7 @@ init()
     pending_out_ = pending_buf_;
 
     status_ = BUSY_STATE;
-    last_flush_ = Flush::none;
+    last_flush_ = flush::none;
 
     tr_init();
     lm_init();
@@ -1229,7 +1229,7 @@ compress_block(
             } /* literal or match pair ? */
 
             /* Check that the overlay between pending_buf and d_buf+l_buf is ok: */
-            BOOST_ASSERT((uInt)(pending_) < lit_bufsize_ + sx);
+            BOOST_ASSERT((uint)(pending_) < lit_bufsize_ + sx);
         }
         while(sx < sym_next_);
     }
@@ -1288,7 +1288,7 @@ bi_windup()
     if(bi_valid_ > 8)
         put_short(bi_buf_);
     else if(bi_valid_ > 0)
-        put_byte((Byte)bi_buf_);
+        put_byte((byte)bi_buf_);
     bi_buf_ = 0;
     bi_valid_ = 0;
 }
@@ -1307,7 +1307,7 @@ bi_flush()
     }
     else if(bi_valid_ >= 8)
     {
-        put_byte((Byte)bi_buf_);
+        put_byte((byte)bi_buf_);
         bi_buf_ >>= 8;
         bi_valid_ -= 8;
     }
@@ -1395,7 +1395,7 @@ tr_stored_block(
 
 void
 deflate_stream::
-tr_tally_dist(std::uint16_t dist, std::uint8_t len, bool& flush)
+tr_tally_dist(std::uint16_t dist, std::uint8_t len, bool& flush_)
 {
     sym_buf_[sym_next_++] = dist & 0xFF;
     sym_buf_[sym_next_++] = dist >> 8;
@@ -1403,18 +1403,18 @@ tr_tally_dist(std::uint16_t dist, std::uint8_t len, bool& flush)
     dist--;
     dyn_ltree_[lut_.length_code[len]+literals+1].fc++;
     dyn_dtree_[d_code(dist)].fc++;
-    flush = (sym_next_ == sym_end_);
+    flush_ = (sym_next_ == sym_end_);
 }
 
 void
 deflate_stream::
-tr_tally_lit(std::uint8_t c, bool& flush)
+tr_tally_lit(std::uint8_t c, bool& flush_)
 {
     sym_buf_[sym_next_++] = 0;
     sym_buf_[sym_next_++] = 0;
     sym_buf_[sym_next_++] = c;
     dyn_ltree_[c].fc++;
-    flush = (sym_next_ == sym_end_);
+    flush_ = (sym_next_ == sym_end_);
 }
 
 //------------------------------------------------------------------------------
@@ -1494,7 +1494,7 @@ tr_flush_block(
         // force static trees
 #else
     }
-    else if(strategy_ == Strategy::fixed || static_lenb == opt_lenb)
+    else if(strategy_ == strategy::fixed || static_lenb == opt_lenb)
     {
 #endif
         send_bits((STATIC_TREES<<1)+last, 3);
@@ -1524,7 +1524,7 @@ fill_window(z_params& zs)
     unsigned n, m;
     unsigned more;    // Amount of free space at the end of the window.
     std::uint16_t *p;
-    uInt wsize = w_size_;
+    uint wsize = w_size_;
 
     do
     {
@@ -1610,7 +1610,7 @@ fill_window(z_params& zs)
         // Initialize the hash value now that we have some input:
         if(lookahead_ + insert_ >= minMatch)
         {
-            uInt str = strstart_ - insert_;
+            uint str = strstart_ - insert_;
             ins_h_ = window_[str];
             update_hash(ins_h_, window_[str + 1]);
             while(insert_)
@@ -1718,7 +1718,7 @@ flush_block(z_params& zs, bool last)
 */
 int
 deflate_stream::
-read_buf(z_params& zs, Byte *buf, unsigned size)
+read_buf(z_params& zs, byte *buf, unsigned size)
 {
     auto len = clamp(zs.avail_in, size);
     if(len == 0)
@@ -1744,27 +1744,27 @@ read_buf(z_params& zs, Byte *buf, unsigned size)
     For 80x86 and 680x0, an optimized version will be provided in match.asm or
     match.S. The code will be functionally equivalent.
 */
-uInt
+uint
 deflate_stream::
-longest_match(IPos cur_match)
+longest_match(i_pos cur_match)
 {
     unsigned chain_length = max_chain_length_;/* max hash chain length */
-    Byte *scan = window_ + strstart_; /* current string */
-    Byte *match;                       /* matched string */
+    byte *scan = window_ + strstart_; /* current string */
+    byte *match;                       /* matched string */
     int len;                           /* length of current match */
     int best_len = prev_length_;              /* best match length so far */
     int nice_match = nice_match_;             /* stop if match long enough */
-    IPos limit = strstart_ > (IPos)max_dist() ?
-        strstart_ - (IPos)max_dist() : 0;
+    i_pos limit = strstart_ > (i_pos)max_dist() ?
+        strstart_ - (i_pos)max_dist() : 0;
     /* Stop when cur_match becomes <= limit. To simplify the code,
      * we prevent matches with the string of window index 0.
      */
     std::uint16_t *prev = prev_;
-    uInt wmask = w_mask_;
+    uint wmask = w_mask_;
 
-    Byte *strend = window_ + strstart_ + maxMatch;
-    Byte scan_end1  = scan[best_len-1];
-    Byte scan_end   = scan[best_len];
+    byte *strend = window_ + strstart_ + maxMatch;
+    byte scan_end1  = scan[best_len-1];
+    byte scan_end   = scan[best_len];
 
     /* The code is optimized for HASH_BITS >= 8 and maxMatch-2 multiple of 16.
      * It is easy to get rid of this optimization if necessary.
@@ -1778,7 +1778,7 @@ longest_match(IPos cur_match)
     /* Do not look for matches beyond the end of the input. This is necessary
      * to make deflate deterministic.
      */
-    if((uInt)nice_match > lookahead_)
+    if((uint)nice_match > lookahead_)
         nice_match = lookahead_;
 
     BOOST_ASSERT((std::uint32_t)strstart_ <= window_size_-kMinLookahead);
@@ -1838,8 +1838,8 @@ longest_match(IPos cur_match)
     while((cur_match = prev[cur_match & wmask]) > limit
         && --chain_length != 0);
 
-    if((uInt)best_len <= lookahead_)
-        return (uInt)best_len;
+    if((uint)best_len <= lookahead_)
+        return (uint)best_len;
     return lookahead_;
 }
 
@@ -1855,7 +1855,7 @@ longest_match(IPos cur_match)
 */
 auto
 deflate_stream::
-f_stored(z_params& zs, Flush flush) ->
+f_stored(z_params& zs, flush flush_) ->
     block_state
 {
     /* Stored blocks are limited to 0xffff bytes, pending_buf is limited
@@ -1877,7 +1877,7 @@ f_stored(z_params& zs, Flush flush) ->
                    block_start_ >= (long)w_size_);
 
             fill_window(zs);
-            if(lookahead_ == 0 && flush == Flush::none)
+            if(lookahead_ == 0 && flush_ == flush::none)
                 return need_more;
 
             if(lookahead_ == 0) break; /* flush the current block */
@@ -1891,8 +1891,8 @@ f_stored(z_params& zs, Flush flush) ->
         max_start = block_start_ + max_block_size;
         if(strstart_ == 0 || (std::uint32_t)strstart_ >= max_start) {
             /* strstart == 0 is possible when wraparound on 16-bit machine */
-            lookahead_ = (uInt)(strstart_ - max_start);
-            strstart_ = (uInt)max_start;
+            lookahead_ = (uint)(strstart_ - max_start);
+            strstart_ = (uint)max_start;
             flush_block(zs, false);
             if(zs.avail_out == 0)
                 return need_more;
@@ -1900,14 +1900,14 @@ f_stored(z_params& zs, Flush flush) ->
         /* Flush if we may have to slide, otherwise block_start may become
          * negative and the data will be gone:
          */
-        if(strstart_ - (uInt)block_start_ >= max_dist()) {
+        if(strstart_ - (uint)block_start_ >= max_dist()) {
             flush_block(zs, false);
             if(zs.avail_out == 0)
                 return need_more;
         }
     }
     insert_ = 0;
-    if(flush == Flush::finish)
+    if(flush_ == flush::finish)
     {
         flush_block(zs, true);
         if(zs.avail_out == 0)
@@ -1931,10 +1931,10 @@ f_stored(z_params& zs, Flush flush) ->
 */
 auto
 deflate_stream::
-f_fast(z_params& zs, Flush flush) ->
+f_fast(z_params& zs, flush flush_) ->
     block_state
 {
-    IPos hash_head;       /* head of the hash chain */
+    i_pos hash_head;       /* head of the hash chain */
     bool bflush;           /* set if current block must be flushed */
 
     for(;;)
@@ -1947,7 +1947,7 @@ f_fast(z_params& zs, Flush flush) ->
         if(lookahead_ < kMinLookahead)
         {
             fill_window(zs);
-            if(lookahead_ < kMinLookahead && flush == Flush::none)
+            if(lookahead_ < kMinLookahead && flush_ == flush::none)
                 return need_more;
             if(lookahead_ == 0)
                 break; /* flush the current block */
@@ -2022,7 +2022,7 @@ f_fast(z_params& zs, Flush flush) ->
         }
     }
     insert_ = strstart_ < minMatch-1 ? strstart_ : minMatch-1;
-    if(flush == Flush::finish)
+    if(flush_ == flush::finish)
     {
         flush_block(zs, true);
         if(zs.avail_out == 0)
@@ -2044,10 +2044,10 @@ f_fast(z_params& zs, Flush flush) ->
 */
 auto
 deflate_stream::
-f_slow(z_params& zs, Flush flush) ->
+f_slow(z_params& zs, flush flush_) ->
     block_state
 {
-    IPos hash_head;          /* head of hash chain */
+    i_pos hash_head;          /* head of hash chain */
     bool bflush;              /* set if current block must be flushed */
 
     /* Process the input block. */
@@ -2061,7 +2061,7 @@ f_slow(z_params& zs, Flush flush) ->
         if(lookahead_ < kMinLookahead)
         {
             fill_window(zs);
-            if(lookahead_ < kMinLookahead && flush == Flush::none)
+            if(lookahead_ < kMinLookahead && flush_ == flush::none)
                 return need_more;
             if(lookahead_ == 0)
                 break; /* flush the current block */
@@ -2089,7 +2089,7 @@ f_slow(z_params& zs, Flush flush) ->
             match_length_ = longest_match(hash_head);
             /* longest_match() sets match_start */
 
-            if(match_length_ <= 5 && (strategy_ == Strategy::filtered
+            if(match_length_ <= 5 && (strategy_ == strategy::filtered
                 || (match_length_ == minMatch &&
                     strstart_ - match_start_ > kTooFar)
                 ))
@@ -2106,7 +2106,7 @@ f_slow(z_params& zs, Flush flush) ->
         if(prev_length_ >= minMatch && match_length_ <= prev_length_)
         {
             /* Do not insert strings in hash table beyond this. */
-            uInt max_insert = strstart_ + lookahead_ - minMatch;
+            uint max_insert = strstart_ + lookahead_ - minMatch;
 
             tr_tally_dist(
                 static_cast<std::uint16_t>(strstart_ -1 - prev_match_),
@@ -2160,14 +2160,14 @@ f_slow(z_params& zs, Flush flush) ->
             lookahead_--;
         }
     }
-    BOOST_ASSERT(flush != Flush::none);
+    BOOST_ASSERT(flush_ != flush::none);
     if(match_available_)
     {
         tr_tally_lit(window_[strstart_-1], bflush);
         match_available_ = 0;
     }
     insert_ = strstart_ < minMatch-1 ? strstart_ : minMatch-1;
-    if(flush == Flush::finish)
+    if(flush_ == flush::finish)
     {
         flush_block(zs, true);
         if(zs.avail_out == 0)
@@ -2189,12 +2189,12 @@ f_slow(z_params& zs, Flush flush) ->
 */
 auto
 deflate_stream::
-f_rle(z_params& zs, Flush flush) ->
+f_rle(z_params& zs, flush flush_) ->
     block_state
 {
     bool bflush;            // set if current block must be flushed
-    uInt prev;              // byte at distance one to match
-    Byte *scan, *strend;    // scan goes up to strend for length of run
+    uint prev;              // byte at distance one to match
+    byte *scan, *strend;    // scan goes up to strend for length of run
 
     for(;;)
     {
@@ -2204,7 +2204,7 @@ f_rle(z_params& zs, Flush flush) ->
          */
         if(lookahead_ <= maxMatch) {
             fill_window(zs);
-            if(lookahead_ <= maxMatch && flush == Flush::none) {
+            if(lookahead_ <= maxMatch && flush_ == flush::none) {
                 return need_more;
             }
             if(lookahead_ == 0) break; /* flush the current block */
@@ -2227,7 +2227,7 @@ f_rle(z_params& zs, Flush flush) ->
                 if(match_length_ > lookahead_)
                     match_length_ = lookahead_;
             }
-            BOOST_ASSERT(scan <= window_+(uInt)(window_size_-1));
+            BOOST_ASSERT(scan <= window_+(uint)(window_size_-1));
         }
 
         /* Emit match if have run of minMatch or longer, else emit literal */
@@ -2253,7 +2253,7 @@ f_rle(z_params& zs, Flush flush) ->
         }
     }
     insert_ = 0;
-    if(flush == Flush::finish)
+    if(flush_ == flush::finish)
     {
         flush_block(zs, true);
         if(zs.avail_out == 0)
@@ -2275,7 +2275,7 @@ f_rle(z_params& zs, Flush flush) ->
  */
 auto
 deflate_stream::
-f_huff(z_params& zs, Flush flush) ->
+f_huff(z_params& zs, flush flush_) ->
     block_state
 {
     bool bflush;             // set if current block must be flushed
@@ -2288,7 +2288,7 @@ f_huff(z_params& zs, Flush flush) ->
             fill_window(zs);
             if(lookahead_ == 0)
             {
-                if(flush == Flush::none)
+                if(flush_ == flush::none)
                     return need_more;
                 break;      // flush the current block
             }
@@ -2307,7 +2307,7 @@ f_huff(z_params& zs, Flush flush) ->
         }
     }
     insert_ = 0;
-    if(flush == Flush::finish)
+    if(flush_ == flush::finish)
     {
         flush_block(zs, true);
         if(zs.avail_out == 0)
