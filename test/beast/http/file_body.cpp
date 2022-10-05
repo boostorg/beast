@@ -19,9 +19,10 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/serializer.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/_experimental/test/tcp.hpp>
 #include <boost/filesystem.hpp>
 
-#include <boost/asio/local/stream_protocol.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/local/connect_pair.hpp>
 
 #include <fstream>
@@ -206,10 +207,8 @@ public:
             using file_body_type = basic_file_body<File>;
 
             net::io_context ctx;
-            net::local::stream_protocol::socket sink{ctx}, source{ctx};
-            net::local::connect_pair(source, sink, ec);
-
-            BEAST_EXPECTS(!ec, ec.message());
+            net::ip::tcp::socket sink{ctx}, source{ctx};
+            test::connect(source, sink);
 
             writer = std::thread{[&]{
                         error_code ec_;
@@ -296,9 +295,8 @@ public:
             using file_body_type = basic_file_body<File>;
 
             net::io_context ctx;
-            net::local::stream_protocol::socket sink{ctx}, source{ctx};
-            net::local::connect_pair(source, sink, ec);
-            BEAST_EXPECTS(!ec, ec.message());
+            net::ip::tcp::socket sink{ctx}, source{ctx};
+            test::connect(source, sink);
 
             http::response<file_body_type> req;
             req.version(11);
