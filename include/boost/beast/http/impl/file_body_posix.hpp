@@ -401,7 +401,7 @@ write_some(
 
     auto res = detail::call_sendfile(sock.native_handle(),
                                      w.body_.file_.native_handle(),
-                                     off, (std::min)(w.body_.size_ - off, sr.limit()));
+                                     off, (std::min<std::size_t>)(w.body_.size_ - off, sr.limit()));
     if(res == static_cast<ssize_t>(-1))
     {
         // the file can't do nonblock anyhow, so only the socket can block
@@ -501,7 +501,7 @@ class write_some_posix_op
 
         const auto res = detail::call_sendfile(sock_.native_handle(),
                                          sr_.get().body().file_.native_handle(),
-                                         off, (std::min)(sr_.get().body().size() - off, sr_.limit()));
+                                         off, (std::min<std::size_t>)(sr_.get().body().size() - off, sr_.limit()));
 
         if(res == static_cast<ssize_t>(-1))
         {
