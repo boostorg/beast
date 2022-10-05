@@ -18,7 +18,7 @@ namespace boost {
 namespace asio {
 
 template<typename, typename>
-struct basic_stream_socket;
+class basic_stream_socket;
 
 }
 
