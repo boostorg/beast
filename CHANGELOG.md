@@ -1,6 +1,7 @@
 Version 340:
 
 * file_body buffer size can be set by BOOST_BEAST_FILE_BODY_CHUNK_SIZE
+* file_body_posix has sendfile implementation
 
 Version 339:
 
