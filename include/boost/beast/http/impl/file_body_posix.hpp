@@ -57,25 +57,25 @@ inline ssize_t call_sendfile(int out_fd, int in_fd, off_t &offset, size_t count)
     if (res != -1)
     {
         offset += read;
-        return static_cast<std::ssize_t>(read);
+        return static_cast<ssize_t>(read);
     }
     else
-        return static_cast<std::ssize_t>(-1);
+        return static_cast<ssize_t>(-1);
 }
 
 #elif BOOST_BEAST_SENDFILE_APPLE_STYLE
 
 inline ssize_t call_sendfile(int out_fd, int in_fd, off_t &offset, size_t count)
 {
-    off_t read = count
+    off_t read = count;
     const auto res = ::sendfile(in_fd, out_fd, offset, &read, nullptr, 0);
     if (res != -1)
     {
         offset += read;
-        return static_cast<std::ssize_t>(read);
+        return static_cast<ssize_t>(read);
     }
     else
-        return static_cast<std::ssize_t>(-1);
+        return static_cast<ssize_t>(-1);
 }
 
 #endif
