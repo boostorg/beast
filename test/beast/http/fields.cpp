@@ -1073,6 +1073,20 @@ public:
     }
 
     void
+    testEmpty()
+    {
+        beast::http::fields req;
+        req.insert("abc", "");
+        req.set("cba", "");
+        auto itr = req.find("abc");
+        BEAST_EXPECT(itr != req.end());
+        BEAST_EXPECT(itr->value().empty());
+        itr = req.find("cba");
+        BEAST_EXPECT(itr != req.end());
+        BEAST_EXPECT(itr->value().empty());
+    }
+
+    void
     run() override
     {
         testMembers();
@@ -1089,6 +1103,7 @@ public:
 
         testIssue1828();
         boost::ignore_unused(&fields_test::testIssue2085);
+        testEmpty();
     }
 };
 

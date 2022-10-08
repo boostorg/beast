@@ -421,6 +421,7 @@ public:
         If one or more fields with the same name already exist,
         the new field will be inserted after the last field with
         the matching name, in serialization order.
+        The value can be an empty string.
 
         @param name The field name.
 
@@ -439,6 +440,7 @@ public:
         If one or more fields with the same name already exist,
         the new field will be inserted after the last field with
         the matching name, in serialization order.
+        The value can be an empty string.
 
         @param name The field name.
 
@@ -457,6 +459,7 @@ public:
         If one or more fields with the same name already exist,
         the new field will be inserted after the last field with
         the matching name, in serialization order.
+        The value can be an empty string.
 
         @param name The field name.
 
@@ -477,13 +480,14 @@ public:
     /** Set a field value, removing any other instances of that field.
 
         First removes any values with matching field names, then
-        inserts the new field value.
+        inserts the new field value. The value may be an empty string.
 
         @param name The field name.
 
         @param value The value of the field, as a @ref boost::beast::string_view
 
         @return The field value.
+
     */
     void
     set(field name, string_view const& value);
@@ -494,7 +498,7 @@ public:
     /** Set a field value, removing any other instances of that field.
 
         First removes any values with matching field names, then
-        inserts the new field value.
+        inserts the new field value. The value can be an empty string.
 
         @param name The field name.
 
