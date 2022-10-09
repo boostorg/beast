@@ -107,6 +107,9 @@ int main(int argc, char** argv)
 
         // Gracefully close the stream
         beast::error_code ec;
+
+        // For some web servers it may hang as they do not implement TLS session termination properly
+        // In that case you may need to skip it and close TCP socket
         stream.shutdown(ec);
         if(ec == net::error::eof)
         {
@@ -118,6 +121,13 @@ int main(int argc, char** argv)
             throw beast::system_error{ec};
 
         // If we get here then the connection is closed gracefully
+
+        // As final step we need to close underlying TCP connection
+        beast::get_lowest_layer(stream).socket().shutdown( boost::asio::socket_base::shutdown_both, ec);
+
+        if(ec) {
+            throw beast::system_error{ec};
+        }
     }
     catch(std::exception const& e)
     {
