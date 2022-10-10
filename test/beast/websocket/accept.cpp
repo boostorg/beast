@@ -816,6 +816,87 @@ public:
         }
     }
 
+    void testIssue264Sync()
+    {
+        net::io_context ioc;
+        using tcp = net::ip::tcp;
+
+        stream<tcp::socket> ws1(ioc);
+        tcp::socket s2(ioc);
+        test::connect(ws1.next_layer(), s2);
+
+        http::request<http::empty_body> req{http::verb::get, "/api", 11};
+        req.set(http::field::connection, "upgrade");
+        req.set(http::field::upgrade, "websocket");
+        req.set(http::field::expect, "100-continue");
+        req.set(http::field::host, "test");
+        req.set(http::field::sec_websocket_version, "13");
+        req.set(http::field::sec_websocket_key, "1234");
+
+        req.prepare_payload();
+
+        std::thread thr{
+            [&]
+            {
+                beast::error_code ec;
+                ws1.accept(ec);
+                BEAST_EXPECTS(!ec, ec.message());
+            }};
+
+        http::async_write(s2, req, test::success_handler());
+        http::response<http::empty_body> res1, res2;
+
+        flat_buffer buf;
+        http::async_read(s2, buf, res1,
+             [&](error_code ec, std::size_t)
+             {
+                 BEAST_EXPECTS(!ec, ec.message());
+                 BEAST_EXPECTS(res1.result() == http::status::continue_, obsolete_reason(res1.result()));
+                 if (res1.result() == http::status::continue_)
+                     http::async_read(s2, buf, res2, test::success_handler());
+            });
+
+        test::run_for(ioc, std::chrono::seconds(1));
+        thr.join();
+    }
+
+
+    void testIssue264Async()
+    {
+        net::io_context ioc;
+        using tcp = net::ip::tcp;
+
+        stream<tcp::socket> ws1(ioc);
+        tcp::socket s2(ioc);
+        test::connect(ws1.next_layer(), s2);
+
+        http::request<http::empty_body> req{http::verb::get, "/api", 11};
+        req.set(http::field::connection, "upgrade");
+        req.set(http::field::upgrade, "websocket");
+        req.set(http::field::expect, "100-continue");
+        req.set(http::field::host, "test");
+        req.set(http::field::sec_websocket_version, "13");
+        req.set(http::field::sec_websocket_key, "1234");
+
+        req.prepare_payload();
+
+        http::async_write(s2, req, test::success_handler());
+        http::response<http::empty_body> res1, res2;
+
+        ws1.async_accept(test::success_handler());
+        flat_buffer buf;
+        http::async_read(s2, buf, res1,
+                         [&](error_code ec, std::size_t)
+                         {
+                             BEAST_EXPECTS(!ec, ec.message());
+                             BEAST_EXPECTS(res1.result() == http::status::continue_, obsolete_reason(res1.result()));
+                             if (res1.result() == http::status::continue_)
+                                 http::async_read(s2, buf, res2, test::success_handler());
+                         });
+
+        test::run_for(ioc, std::chrono::seconds(1));
+    }
+
 #if BOOST_ASIO_HAS_CO_AWAIT
     void testAwaitableCompiles(
         stream<net::ip::tcp::socket>& s,
@@ -850,6 +931,8 @@ public:
 #if BOOST_ASIO_HAS_CO_AWAIT
         boost::ignore_unused(&accept_test::testAwaitableCompiles);
 #endif
+        testIssue264Sync();
+        testIssue264Async();
     }
 };
 

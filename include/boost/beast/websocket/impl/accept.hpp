@@ -171,6 +171,8 @@ class stream<NextLayer, deflateSupported>::response_op
     boost::weak_ptr<impl_type> wp_;
     error_code result_; // must come before res_
     response_type& res_;
+    http::response<http::empty_body> res_100_;
+    bool needs_res_100_{false};
 
 public:
     template<
@@ -192,6 +194,15 @@ public:
         , res_(beast::allocate_stable<response_type>(*this,
             sp->build_response(req, decorator, result_)))
     {
+        auto itr = req.find(http::field::expect);
+        if (itr != req.end() && iequals(itr->value(), "100-continue")) // do
+        {
+            res_100_.version(res_.version());
+            res_100_.set(http::field::server, res_[http::field::server]);
+            res_100_.result(http::status::continue_);
+            res_100_.prepare_payload();
+            needs_res_100_ = true;
+        }
         (*this)({}, 0, cont);
     }
 
@@ -212,6 +223,16 @@ public:
         {
             impl.change_status(status::handshake);
             impl.update_timer(this->get_executor());
+
+            if (needs_res_100_)
+            {
+                BOOST_ASIO_CORO_YIELD
+                {
+                    BOOST_ASIO_HANDLER_LOCATION((__FILE__, __LINE__, "websocket::async_accept"));
+                    http::async_write(
+                            impl.stream(), res_100_, std::move(*this));
+                }
+            }
 
             // Send response
             BOOST_ASIO_CORO_YIELD
@@ -323,6 +344,7 @@ public:
                 // the handler.
                 auto const req = p_.release();
                 auto const decorator = d_;
+
                 response_op<Handler>(
                     this->release_handler(),
                         sp, req, decorator, true);
@@ -417,6 +439,20 @@ do_accept(
 
     error_code result;
     auto const res = impl_->build_response(req, decorator, result);
+
+    auto itr = req.find(http::field::expect);
+    if (itr != req.end() && iequals(itr->value(), "100-continue")) // do
+    {
+        http::response<http::empty_body> res_100;
+        res_100.version(res.version());
+        res_100.set(http::field::server, res[http::field::server]);
+        res_100.result(http::status::continue_);
+        res_100.prepare_payload();
+        http::write(impl_->stream(), res_100, ec);
+        if (ec)
+            return;
+    }
+
     http::write(impl_->stream(), res, ec);
     if(ec)
         return;

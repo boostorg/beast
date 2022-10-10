@@ -1,3 +1,9 @@
+Version 340:
+
+*  Expect header field with the "100-continue" is handled in upgrade.
+
+--------------------------------------------------------------------------------
+
 Version 339:
 
 * BOOST_BEAST_USE_STD_STRING_VIEW is replaced by boost/core string_view.

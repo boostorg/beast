@@ -137,7 +137,7 @@ receive_expect_100_continue(
         return;
 
     // Check for the Expect field value
-    if(parser.get()[field::expect] == "100-continue")
+    if(beast::iequals(parser.get()[field::expect], "100-continue"))
     {
         // send 100 response
         response<empty_body> res;
