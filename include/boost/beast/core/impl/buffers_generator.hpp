@@ -143,18 +143,15 @@ write(SyncWriteStream& stream, BuffersGenerator&& generator)
 template<
     class AsyncWriteStream,
     class BuffersGenerator,
-    class CompletionToken,
+    BOOST_BEAST_ASYNC_TPARAM2 CompletionToken,
     typename std::enable_if<is_buffers_generator<
         BuffersGenerator>::value>::type* /*= nullptr*/
     >
-auto
+BOOST_BEAST_ASYNC_RESULT2(CompletionToken)
 async_write(
     AsyncWriteStream& stream,
     BuffersGenerator generator,
-    CompletionToken&& token) ->
-    typename net::async_result<
-        typename std::decay<CompletionToken>::type,
-        void(error_code, std::size_t)>::return_type
+    CompletionToken&& token)
 {
     static_assert(
         beast::is_async_write_stream<AsyncWriteStream>::value,

@@ -768,6 +768,14 @@ basic_stream(basic_stream&& other)
     // controlling its lifetime.
 }
 
+template<class Protocol, class Executor, class RatePolicy>
+template<class Executor_>
+basic_stream<Protocol, Executor, RatePolicy>::
+basic_stream(basic_stream<Protocol, Executor_, RatePolicy> && other)
+    : impl_(boost::make_shared<impl_type>(std::false_type{}, std::move(other.impl_->socket)))
+{
+}
+
 //------------------------------------------------------------------------------
 
 template<class Protocol, class Executor, class RatePolicy>

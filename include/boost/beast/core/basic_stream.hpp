@@ -233,6 +233,7 @@ public:
     using endpoint_type = typename Protocol::endpoint;
 
 private:
+    using op_state = basic_op_state<Executor>;
     static_assert(
         net::is_executor<Executor>::value || net::execution::is_executor<Executor>::value,
         "Executor type requirements not met");
@@ -247,15 +248,12 @@ private:
 
         op_state read;
         op_state write;
-#if 0
         net::basic_waitable_timer<
             std::chrono::steady_clock,
             net::wait_traits<
                 std::chrono::steady_clock>,
             Executor> timer; // rate timer;
-#else
-        net::steady_timer timer;
-#endif
+
         int waiting = 0;
 
         impl_type(impl_type&&) = default;
@@ -356,6 +354,22 @@ public:
         ! std::is_constructible<RatePolicy, Arg0>::value>::type>
     explicit
     basic_stream(Arg0&& argo, Args&&... args);
+
+
+    /** Constructor
+     *
+     * A constructor that rebinds the executor.
+     *
+     * @tparam Executor_ The new executor
+     * @param other The original socket to be rebound.
+     */
+    template<class Executor_>
+    explicit
+    basic_stream(basic_stream<Protocol, Executor_, RatePolicy> && other);
+
+
+    template<typename, typename, typename>
+    friend class basic_stream;
 #endif
 
     /** Constructor
