@@ -92,6 +92,17 @@ public:
     /// The type of the executor associated with the object.
     using executor_type = typename stream_type::executor_type;
 
+    /// Rebinds the stream type to another executor.
+    template<class Executor1>
+    struct rebind_executor
+    {
+        /// The stream type when rebound to the specified executor.
+        using other = ssl_stream<
+                typename stream_type::template rebind_executor<Executor1>::other
+                >;
+    };
+
+
     /** Construct a stream.
 
         This constructor creates a stream and initialises the underlying stream
@@ -400,10 +411,10 @@ public:
           const boost::system::error_code& error // Result of operation.
         ); @endcode
     */
-    template<class HandshakeHandler>
+    template<BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler = net::default_completion_token_t<executor_type>>
     BOOST_ASIO_INITFN_RESULT_TYPE(HandshakeHandler, void(boost::system::error_code))
     async_handshake(handshake_type type,
-        BOOST_ASIO_MOVE_ARG(HandshakeHandler) handler)
+        BOOST_ASIO_MOVE_ARG(HandshakeHandler) handler = net::default_completion_token_t<executor_type>{})
     {
         return p_->next_layer().async_handshake(type,
             BOOST_ASIO_MOVE_CAST(HandshakeHandler)(handler));
@@ -430,10 +441,12 @@ public:
           std::size_t bytes_transferred // Amount of buffers used in handshake.
         ); @endcode
     */
-    template<class ConstBufferSequence, class BufferedHandshakeHandler>
+    template<class ConstBufferSequence,
+             BOOST_BEAST_ASYNC_TPARAM1 BufferedHandshakeHandler = net::default_completion_token_t<executor_type>>
     BOOST_ASIO_INITFN_RESULT_TYPE(BufferedHandshakeHandler, void(boost::system::error_code, std::size_t))
     async_handshake(handshake_type type, ConstBufferSequence const& buffers,
-        BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler)
+        BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler
+            = net::default_completion_token_t<executor_type>{})
     {
         return p_->next_layer().async_handshake(type, buffers,
             BOOST_ASIO_MOVE_CAST(BufferedHandshakeHandler)(handler));
@@ -477,9 +490,9 @@ public:
           const boost::system::error_code& error // Result of operation.
         ); @endcode
     */
-    template<class ShutdownHandler>
+    template<BOOST_BEAST_ASYNC_TPARAM1 ShutdownHandler = net::default_completion_token_t<executor_type>>
     BOOST_ASIO_INITFN_RESULT_TYPE(ShutdownHandler, void(boost::system::error_code))
-    async_shutdown(BOOST_ASIO_MOVE_ARG(ShutdownHandler) handler)
+    async_shutdown(BOOST_ASIO_MOVE_ARG(ShutdownHandler) handler = net::default_completion_token_t<executor_type>{})
     {
         return p_->next_layer().async_shutdown(
             BOOST_ASIO_MOVE_CAST(ShutdownHandler)(handler));
@@ -555,10 +568,11 @@ public:
         need to ensure that all data is written before the asynchronous operation
         completes.
     */
-    template<class ConstBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 WriteHandler>
+    template<class ConstBufferSequence,
+             BOOST_BEAST_ASYNC_TPARAM2 WriteHandler = net::default_completion_token_t<executor_type>>
     BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler, void(boost::system::error_code, std::size_t))
     async_write_some(ConstBufferSequence const& buffers,
-        BOOST_ASIO_MOVE_ARG(WriteHandler) handler)
+        BOOST_ASIO_MOVE_ARG(WriteHandler) handler= net::default_completion_token_t<executor_type>{})
     {
         return p_->async_write_some(buffers,
             BOOST_ASIO_MOVE_CAST(WriteHandler)(handler));
@@ -636,10 +650,12 @@ public:
         if you need to ensure that the requested amount of data is read before
         the asynchronous operation completes.
     */
-    template<class MutableBufferSequence, BOOST_BEAST_ASYNC_TPARAM2 ReadHandler>
+    template<class MutableBufferSequence,
+             BOOST_BEAST_ASYNC_TPARAM2 ReadHandler = net::default_completion_token_t<executor_type>>
     BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void(boost::system::error_code, std::size_t))
     async_read_some(MutableBufferSequence const& buffers,
-        BOOST_ASIO_MOVE_ARG(ReadHandler) handler)
+        BOOST_ASIO_MOVE_ARG(ReadHandler) handler
+            = net::default_completion_token_t<executor_type>{})
     {
         return p_->async_read_some(buffers,
             BOOST_ASIO_MOVE_CAST(ReadHandler)(handler));
@@ -657,7 +673,7 @@ public:
         ssl_stream<SyncStream>& stream,
         boost::system::error_code& ec);
 
-    template<class AsyncStream, class TeardownHandler>
+    template<class AsyncStream, BOOST_BEAST_ASYNC_TPARAM1 TeardownHandler>
     friend
     void
     async_teardown(
@@ -680,12 +696,13 @@ teardown(
     teardown(role, *stream.p_, ec);
 }
 
-template<class AsyncStream, class TeardownHandler>
+template<class AsyncStream,
+        BOOST_BEAST_ASYNC_TPARAM1 TeardownHandler = net::default_completion_token_t<beast::executor_type<AsyncStream>>>
 void
 async_teardown(
     boost::beast::role_type role,
     ssl_stream<AsyncStream>& stream,
-    TeardownHandler&& handler)
+    TeardownHandler&& handler = net::default_completion_token_t<beast::executor_type<AsyncStream>>{})
 {
     // Just forward it to the underlying ssl::stream
     using boost::beast::websocket::async_teardown;

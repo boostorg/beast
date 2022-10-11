@@ -59,6 +59,15 @@ stream(Args&&... args)
 }
 
 template<class NextLayer, bool deflateSupported>
+template<class Other>
+stream<NextLayer, deflateSupported>::
+stream(stream<Other> && other)
+    : impl_(boost::make_shared<impl_type>(std::move(other.next_layer())))
+{
+}
+
+
+template<class NextLayer, bool deflateSupported>
 auto
 stream<NextLayer, deflateSupported>::
 get_executor() noexcept ->

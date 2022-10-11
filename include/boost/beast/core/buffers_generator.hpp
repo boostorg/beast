@@ -13,6 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/core/error.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/async_result.hpp>
 #include <type_traits>
 
@@ -176,21 +177,19 @@ write(
 template<
     class AsyncWriteStream,
     class BuffersGenerator,
-    class CompletionToken
+    BOOST_BEAST_ASYNC_TPARAM2 CompletionToken
+    = net::default_completion_token_t<executor_type<AsyncWriteStream>>
 #if !BOOST_BEAST_DOXYGEN
     , typename std::enable_if<is_buffers_generator<
         BuffersGenerator>::value>::type* = nullptr
 #endif
     >
-auto
+BOOST_BEAST_ASYNC_RESULT2(CompletionToken)
 async_write(
     AsyncWriteStream& stream,
     BuffersGenerator generator,
-    CompletionToken&& token) ->
-        typename net::async_result<
-            typename std::decay<
-                CompletionToken>::type,
-            void(error_code, std::size_t)>::return_type;
+    CompletionToken&& token
+        = net::default_completion_token_t<executor_type<AsyncWriteStream>>{});
 
 } // beast
 } // boost

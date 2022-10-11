@@ -162,6 +162,7 @@ class stream
     }
 
 public:
+
     /// Indicates if the permessage-deflate extension is supported
     using is_deflate_supported =
         std::integral_constant<bool, deflateSupported>;
@@ -173,6 +174,16 @@ public:
     /// The type of the executor associated with the object.
     using executor_type =
         beast::executor_type<next_layer_type>;
+
+    /// Rebinds the stream type to another executor.
+    template<class Executor1>
+    struct rebind_executor
+    {
+        /// The stream type when rebound to the specified executor.
+        using other = stream<
+                typename next_layer_type::template rebind_executor<Executor1>::other,
+                deflateSupported>;
+    };
 
     /** Destructor
 
@@ -210,6 +221,20 @@ public:
     template<class... Args>
     explicit
     stream(Args&&... args);
+
+    /** Rebinding constructor
+     *
+     *  This constructor creates a the websocket stream from a
+     *  websocket stream with a different executor.
+     *
+     *  @throw Any exception thrown by the NextLayer rebind constructor.
+     *
+     *  @param other The other websocket stream to construct from.
+     */
+    template<class Other>
+    explicit
+    stream(stream<Other> && other);
+
 
     //--------------------------------------------------------------------------
 
