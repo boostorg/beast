@@ -8,6 +8,7 @@
 #
 
 add_subdirectory (async)
+add_subdirectory (awaitable)
 add_subdirectory (coro)
 add_subdirectory (fast)
 add_subdirectory (small)
