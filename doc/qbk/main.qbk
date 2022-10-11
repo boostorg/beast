@@ -164,6 +164,7 @@
 [import ../../test/doc/websocket_8_notes.cpp]
 
 [import ../../include/boost/beast/core/detect_ssl.hpp]
+[import ../../include/boost/beast/version.hpp]
 [import ../../test/beast/core/rate_policy.cpp]
 
 __new__ indicates a new or updated section in this version.
@@ -185,6 +186,7 @@ __new__ indicates an item that was recently added.
 [block'''</reference>''']
 
 [include release_notes.qbk]
+[include version.qbk]
 
 [include 01_intro/_intro.qbk]
 [include 02_examples/_examples.qbk]

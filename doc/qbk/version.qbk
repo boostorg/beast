@@ -1,0 +1,21 @@
+ [/
+    Copyright (c) 2022 Klemens D. Morgenstern (klemens dot morgenstern at gmx dot net)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section Beast API Version]
+
+Beast maintains it's own API version, which is more fine-grained than the
+boost release.
+
+It can be obtained as a string from the `BOOST_BEAST_VERSION` macro 
+or a string through `BOOST_BEAST_VERSION_STRING`.
+
+[version]
+
+
+[endsect]
