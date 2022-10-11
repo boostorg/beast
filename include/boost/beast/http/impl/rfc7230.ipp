@@ -18,11 +18,10 @@ namespace beast {
 namespace http {
 
 
-std::string
-param_list::const_iterator::
-unquote(string_view sr)
+void param_list::const_iterator::
+unquote(string_view sr, std::string &s)
 {
-    std::string s;
+    s.clear();
     s.reserve(sr.size());
     auto it = sr.begin() + 1;
     auto end = sr.end() - 1;
@@ -33,7 +32,6 @@ unquote(string_view sr)
         s.push_back(*it);
         ++it;
     }
-    return s;
 }
 
 void
@@ -50,7 +48,7 @@ increment()
     else if(! pi_.v.second.empty() &&
         pi_.v.second.front() == '"')
     {
-        s_ = unquote(pi_.v.second);
+        unquote(pi_.v.second, s_);
         pi_.v.second = string_view{
             s_.data(), s_.size()};
     }
