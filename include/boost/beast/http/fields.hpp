@@ -317,7 +317,7 @@ public:
         If more than one field with the specified name exists, the
         first field defined by insertion order is returned.
 
-        @param name The name of the field.
+        @param name The name of the field. It is interpreted as a case-insensitive string.
 
         @return The field value.
 
@@ -341,7 +341,7 @@ public:
         If more than one field with the specified name exists, the
         first field defined by insertion order is returned.
 
-        @param name The name of the field.
+        @param name The name of the field. It is interpreted as a case-insensitive string.
     */
     string_view const
     operator[](string_view name) const;
@@ -442,7 +442,7 @@ public:
         the matching name, in serialization order.
         The value can be an empty string.
 
-        @param name The field name.
+        @param name The field name. It is interpreted as a case-insensitive string.
 
         @param value The value of the field, as a @ref boost::beast::string_view
     */
@@ -500,7 +500,7 @@ public:
         First removes any values with matching field names, then
         inserts the new field value. The value can be an empty string.
 
-        @param name The field name.
+        @param name The field name. It is interpreted as a case-insensitive string.
 
         @param value The value of the field, as a @ref boost::beast::string_view
     */
@@ -548,7 +548,7 @@ public:
         invalidated. Other references and iterators are not
         affected.
 
-        @param name The field name.
+        @param name The field name. It is interpreted as a case-insensitive string.
 
         @return The number of fields removed.
     */
@@ -590,7 +590,7 @@ public:
 
     /** Return the number of fields with the specified name.
 
-        @param name The field name.
+        @param name The field name. It is interpreted as a case-insensitive string.
     */
     std::size_t
     count(string_view name) const;
@@ -613,7 +613,7 @@ public:
         If more than one field with the specified name exists, the
         first field defined by insertion order is returned.
 
-        @param name The field name.
+        @param name The field name. It is interpreted as a case-insensitive string.
 
         @return An iterator to the matching field, or `end()` if
         no match was found.
