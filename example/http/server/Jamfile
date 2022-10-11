@@ -13,6 +13,7 @@ build-project fast ;
 build-project small ;
 build-project stackless ;
 build-project sync ;
+build-project awaitable ;
 
 # SSL
 build-project async-ssl ;

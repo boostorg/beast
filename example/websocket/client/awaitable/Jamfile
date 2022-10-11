@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+# Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
 #
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,10 +7,9 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-build-project server ;
-
-# SSL
-build-project server-flex ;
-
-# C++20
-build-project server-flex-awaitable ;
+exe websocket-client-awaitable :
+    websocket_client_awaitable.cpp
+    :
+    <variant>coverage:<build>no
+    <variant>ubasan:<build>no
+    ;
