@@ -1,6 +1,14 @@
-Version 340:
+Version 341:
 
 *  Expect header field with the "100-continue" is handled in upgrade.
+
+--------------------------------------------------------------------------------
+
+Version 340:
+
+* buffers have a features table in the docs
+* buffer_ref allows using beast buffers with asio
+* buffer_adaptor works with multi-buffer
 
 --------------------------------------------------------------------------------
 
