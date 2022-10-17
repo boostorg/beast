@@ -14,6 +14,8 @@ windowsglobalimage="cppalliance/dronevs2019"
 
 def main(ctx):
   return [
+  freebsd_cxx("gcc 11 freebsd", "g++-11", buildtype="boost", buildscript="drone", freebsd_version="13.1", environment={'B2_TOOLSET': 'gcc-11', 'B2_CXXSTD': '17,20', 'B2_LINKFLAGS': '-Wl,-rpath=/usr/local/lib/gcc11'}, globalenv=globalenv),
+  freebsd_cxx("clang 14 freebsd", "clang++-14", buildtype="boost", buildscript="drone", freebsd_version="13.1", environment={'B2_TOOLSET': 'clang-14', 'B2_CXXSTD': '17,20'}, globalenv=globalenv),
   linux_cxx("clang 14 s390x", "clang++-14", packages="clang-14 libc6-dbg libc++-dev libstdc++-10-dev", llvm_os="jammy", llvm_ver="14", buildtype="boost", buildscript="drone", image="cppalliance/droneubuntu2204:multiarch", environment={'B2_TOOLSET': 'clang', 'COMPILER': 'clang++-14', 'B2_CXXSTD': '11,14,17,20', 'B2_ARCHITECTURE': 's390x'}, arch="s390x", globalenv=globalenv),
   linux_cxx("gcc 11 s390x", "g++-11", packages="g++-11", buildtype="boost", buildscript="drone", image="cppalliance/droneubuntu2004:multiarch", environment={'B2_TOOLSET': 'gcc-11', 'B2_CXXSTD': '17,2a'}, arch="s390x", globalenv=globalenv),
   linux_cxx("clang 12 arm64", "clang++-12", packages="clang-12 libc6-dbg libc++-dev libstdc++-9-dev", llvm_os="focal", llvm_ver="12", buildtype="boost", buildscript="drone", image="cppalliance/droneubuntu2004:multiarch", environment={'B2_TOOLSET': 'clang', 'COMPILER': 'clang++-12', 'B2_CXXSTD': '11,14,17,20'}, arch="arm64", globalenv=globalenv),
