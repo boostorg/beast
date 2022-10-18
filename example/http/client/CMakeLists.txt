@@ -9,6 +9,7 @@
 
 add_subdirectory (async)
 add_subdirectory (coro)
+add_subdirectory (cpp20coro)
 add_subdirectory (crawl)
 add_subdirectory (sync)
 add_subdirectory (body)

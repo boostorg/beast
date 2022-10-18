@@ -9,6 +9,7 @@
 
 build-project async ;
 build-project coro ;
+build-project cpp20coro ;
 build-project crawl ;
 build-project sync ;
 
