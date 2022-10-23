@@ -209,7 +209,7 @@ read_close(
     if(n == 1)
     {
         // invalid payload size == 1
-        ec = error::bad_close_size;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_close_size);
         return;
     }
 
@@ -225,7 +225,7 @@ read_close(
     if(! is_valid_close_code(cr.code))
     {
         // invalid close code
-        ec = error::bad_close_code;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_close_code);
         return;
     }
 
@@ -233,7 +233,7 @@ read_close(
         cr.reason.data(), cr.reason.size()))
     {
         // not valid utf-8
-        ec = error::bad_close_payload;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_close_payload);
         return;
     }
     ec = {};

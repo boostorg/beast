@@ -352,7 +352,9 @@ do_fail(
         ec = {};
     }
     if(! ec)
-        ec = ev;
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, ev);
+    }
     if(ec && ec != error::closed)
         impl_->change_status(status::failed);
     else

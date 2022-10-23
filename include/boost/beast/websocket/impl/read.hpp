@@ -87,7 +87,7 @@ public:
         auto sp = wp_.lock();
         if(! sp)
         {
-            ec = net::error::operation_aborted;
+            BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
             bytes_written_ = 0;
             return this->complete(cont, ec, bytes_written_);
         }
@@ -136,7 +136,7 @@ public:
                 // a `close_op` wrote a close frame
                 BOOST_ASSERT(impl.wr_close);
                 BOOST_ASSERT(impl.status_ != status::open);
-                ec = net::error::operation_aborted;
+                BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
                 goto upcall;
             }
             else
@@ -145,7 +145,7 @@ public:
                 if( impl.status_ == status::closed ||
                     impl.status_ == status::failed)
                 {
-                    ec = net::error::operation_aborted;
+                    BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
                     goto upcall;
                 }
             }
@@ -691,7 +691,9 @@ public:
                 ec = {};
             }
             if(! ec)
-                ec = result_;
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, result_);
+            }
             if(ec && ec != error::closed)
                 impl.change_status(status::failed);
             else
@@ -756,7 +758,7 @@ public:
         auto sp = wp_.lock();
         if(! sp)
         {
-            ec = net::error::operation_aborted;
+            BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
             bytes_written_ = 0;
             return this->complete(cont, ec, bytes_written_);
         }

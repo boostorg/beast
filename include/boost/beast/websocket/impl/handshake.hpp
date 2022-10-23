@@ -93,7 +93,7 @@ public:
         auto sp = wp_.lock();
         if(! sp)
         {
-            ec = net::error::operation_aborted;
+            BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
             return this->complete(cont, ec);
         }
         auto& impl = *sp;
@@ -162,7 +162,7 @@ public:
                     }
                     else
                     {
-                        ec = http::error::buffer_overflow;
+                        BOOST_BEAST_ASSIGN_EC(ec, http::error::buffer_overflow);
                     }
                 }
 
@@ -271,7 +271,7 @@ do_handshake(
             }
             else
             {
-                ec = http::error::buffer_overflow;
+                BOOST_BEAST_ASSIGN_EC(ec, http::error::buffer_overflow);
             }
         }
     }

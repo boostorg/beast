@@ -34,7 +34,7 @@ dynamic_buffer_prepare_noexcept(
     if(buffer.max_size() - buffer.size() < size)
     {
         // length error
-        ec = ev;
+        BOOST_BEAST_ASSIGN_EC(ec, ev);
         return boost::none;
     }
     boost::optional<typename
@@ -67,7 +67,7 @@ dynamic_buffer_prepare(
     }
     catch(std::length_error const&)
     {
-        ec = ev;
+        BOOST_BEAST_ASSIGN_EC(ec, ev);
     }
     return boost::none;
 

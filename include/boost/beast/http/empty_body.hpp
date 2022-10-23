@@ -78,7 +78,7 @@ struct empty_body
         put(ConstBufferSequence const&,
             error_code& ec)
         {
-            ec = error::unexpected_body;
+            BOOST_BEAST_ASSIGN_EC(ec, error::unexpected_body);
             return 0;
         }
 

@@ -399,7 +399,7 @@ loop:
             ++it;
             if(it == last)
             {
-                ec = error::bad_chunk_extension;
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
                 return it;
             }
             if(*it != ' ' && *it != '\t')
@@ -409,7 +409,7 @@ loop:
     // ';'
     if(*it != ';')
     {
-        ec = error::bad_chunk_extension;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
         return it;
     }
 semi:
@@ -419,7 +419,7 @@ semi:
     {
         if(it == last)
         {
-            ec = error::bad_chunk_extension;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
             return it;
         }
         if(*it != ' ' && *it != '\t')
@@ -430,7 +430,7 @@ semi:
     {
         if(! detail::is_token_char(*it))
         {
-            ec = error::bad_chunk_extension;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
             return it;
         }
         auto const first = it;
@@ -455,7 +455,7 @@ semi:
         ++it;
         if(it == last)
         {
-            ec = error::bad_chunk_extension;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
             return it;
         }
     }
@@ -466,7 +466,7 @@ semi:
     }
     if(*it != '=')
     {
-        ec = error::bad_chunk_extension;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
         return it;
     }
     ++it; // skip '='
@@ -475,7 +475,7 @@ semi:
     {
         if(it == last)
         {
-            ec = error::bad_chunk_extension;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
             return it;
         }
         if(*it != ' ' && *it != '\t')
@@ -488,7 +488,7 @@ semi:
         // token
         if(! detail::is_token_char(*it))
         {
-            ec = error::bad_chunk_extension;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
             return it;
         }
         auto const first = it;
@@ -514,7 +514,7 @@ semi:
         {
             if(it == last)
             {
-                ec = error::bad_chunk_extension;
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
                 return it;
             }
             if(*it == '"')
@@ -524,7 +524,7 @@ semi:
                 ++it;
                 if(it == last)
                 {
-                    ec = error::bad_chunk_extension;
+                    BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
                     return it;
                 }
             }

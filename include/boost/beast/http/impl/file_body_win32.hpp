@@ -162,7 +162,7 @@ struct basic_file_body<file_win32>
                 return boost::none;
             if (nread == 0)
             {
-                ec = error::short_read;
+                BOOST_BEAST_ASSIGN_EC(ec, error::short_read);
                 return boost::none;
             }
             BOOST_ASSERT(nread != 0);

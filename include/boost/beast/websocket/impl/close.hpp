@@ -76,7 +76,7 @@ public:
         auto sp = wp_.lock();
         if(! sp)
         {
-            ec = net::error::operation_aborted;
+            BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
             return this->complete(cont, ec);
         }
         auto& impl = *sp;
@@ -260,7 +260,9 @@ public:
                 ec = {};
             }
             if(! ec)
-                ec = ev_;
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, ev_);
+            }
             if(ec)
                 impl.change_status(status::failed);
             else

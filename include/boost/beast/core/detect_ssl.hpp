@@ -647,7 +647,7 @@ operator()(error_code ec, std::size_t bytes_transferred, bool cont)
             }
 
             // Restore the saved error code
-            ec = ec_;
+            BOOST_BEAST_ASSIGN_EC(ec, ec_);
         }
 
         // Invoke the final handler.

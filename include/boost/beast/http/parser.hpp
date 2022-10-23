@@ -345,7 +345,7 @@ private:
         BOOST_ASSERT(! used_);
         if(used_)
         {
-            ec = error::stale_parser;
+            BOOST_BEAST_ASSIGN_EC(ec, error::stale_parser);
             return;
         }
         used_ = true;
@@ -395,7 +395,7 @@ private:
         BOOST_ASSERT(! used_);
         if(used_)
         {
-            ec = error::stale_parser;
+            BOOST_BEAST_ASSIGN_EC(ec, error::stale_parser);
             return;
         }
         used_ = true;

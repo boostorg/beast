@@ -92,7 +92,7 @@ struct basic_dynamic_body
             auto const n = buffer_bytes(buffers);
             if(beast::detail::sum_exceeds(body_.size(), n, body_.max_size()))
             {
-                ec = error::buffer_overflow;
+                BOOST_BEAST_ASSIGN_EC(ec, error::buffer_overflow);
                 return 0;
             }
             auto const mb =
