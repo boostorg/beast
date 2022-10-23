@@ -83,7 +83,9 @@ class basic_stream<Executor>::read_op : public detail::stream_read_op_base
             std::size_t bytes_transferred = 0;
             auto sp = wp_.lock();
             if(! sp)
-                ec = net::error::operation_aborted;
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
+            }
             if(! ec)
             {
                 std::lock_guard<std::mutex> lock(sp->m);
@@ -98,7 +100,7 @@ class basic_stream<Executor>::read_op : public detail::stream_read_op_base
                 }
                 else if (buffer_bytes(b_) > 0)
                 {
-                    ec = net::error::eof;
+                    BOOST_BEAST_ASSIGN_EC(ec, net::error::eof);
                 }
             }
 
@@ -311,7 +313,7 @@ read_some(MutableBufferSequence const& buffers,
 
     // deliver error
     BOOST_ASSERT(in_->code != detail::stream_status::ok);
-    ec = net::error::eof;
+    BOOST_BEAST_ASSIGN_EC(ec, net::error::eof);
     return 0;
 }
 
@@ -382,7 +384,7 @@ write_some(
     auto out = out_.lock();
     if(! out)
     {
-        ec = net::error::connection_reset;
+        BOOST_BEAST_ASSIGN_EC(ec, net::error::connection_reset);
         return 0;
     }
 
@@ -441,7 +443,9 @@ async_teardown(
     s.close();
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
-        ec = net::error::eof;
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, net::error::eof);
+    }
     else
         ec = {};
 

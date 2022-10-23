@@ -215,7 +215,7 @@ public:
         auto sp = wp_.lock();
         if(! sp)
         {
-            ec = net::error::operation_aborted;
+            BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
             return this->complete(cont, ec);
         }
         auto& impl = *sp;
@@ -247,7 +247,10 @@ public:
             if(impl.check_stop_now(ec))
                 goto upcall;
             if(! ec)
-                ec = result_;
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, result_);
+                BOOST_BEAST_ASSIGN_EC(ec, result_);
+            }
             if(! ec)
             {
                 impl.do_pmd_config(res_);
@@ -311,7 +314,7 @@ public:
         auto sp = wp_.lock();
         if(! sp)
         {
-            ec = net::error::operation_aborted;
+            BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
             return this->complete(cont, ec);
         }
         auto& impl = *sp;
@@ -334,7 +337,9 @@ public:
                     impl.rd_buf, p_, std::move(*this));
             }
             if(ec == http::error::end_of_stream)
-                ec = error::closed;
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, error::closed);
+            }
             if(impl.check_stop_now(ec))
                 goto upcall;
 
@@ -456,7 +461,7 @@ do_accept(
     http::write(impl_->stream(), res, ec);
     if(ec)
         return;
-    ec = result;
+    BOOST_BEAST_ASSIGN_EC(ec, result);
     if(ec)
     {
         // VFALCO TODO Respect keep alive setting, perform
@@ -488,7 +493,9 @@ do_accept(
     http::request_parser<http::empty_body> p;
     http::read(next_layer(), impl_->rd_buf, p, ec);
     if(ec == http::error::end_of_stream)
-        ec = error::closed;
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::closed);
+    }
     if(ec)
         return;
     do_accept(p.get(), decorator, ec);

@@ -89,7 +89,7 @@ public:
             {
                 if(*length > body_.max_size())
                 {
-                    ec = error::buffer_overflow;
+                    BOOST_BEAST_ASSIGN_EC(ec, error::buffer_overflow);
                     return;
                 }
                 body_.reserve(beast::detail::clamp(*length));
@@ -106,7 +106,7 @@ public:
             auto const len = body_.size();
             if (n > body_.max_size() - len)
             {
-                ec = error::buffer_overflow;
+                BOOST_BEAST_ASSIGN_EC(ec, error::buffer_overflow);
                 return 0;
             }
 

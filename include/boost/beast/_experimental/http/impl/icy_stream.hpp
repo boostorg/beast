@@ -157,7 +157,7 @@ public:
                         net::mutable_buffer{},
                         std::move(*this));
                 }
-                ec = ec_;
+                BOOST_BEAST_ASSIGN_EC(ec, ec_);
                 bytes_transferred = n_;
             }
             this->complete_now(ec, bytes_transferred);

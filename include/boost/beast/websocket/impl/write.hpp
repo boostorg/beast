@@ -162,7 +162,7 @@ operator()(
     auto sp = wp_.lock();
     if(! sp)
     {
-        ec = net::error::operation_aborted;
+        BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
         bytes_transferred_ = 0;
         return this->complete(cont, ec, bytes_transferred_);
     }

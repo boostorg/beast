@@ -367,7 +367,7 @@ get(error_code& ec) ->
 
     if (nread == 0)
     {
-        ec = error::short_read;
+        BOOST_BEAST_ASSIGN_EC(ec, error::short_read);
         return boost::none;
     }
 

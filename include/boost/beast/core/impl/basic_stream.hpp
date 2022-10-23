@@ -326,7 +326,7 @@ public:
                 if(state().timer.expiry() <= clock_type::now())
                 {
                     impl_->close();
-                    ec = beast::error::timeout;
+                    BOOST_BEAST_ASSIGN_EC(ec, beast::error::timeout);
                 }
                 goto upcall;
             }
@@ -371,7 +371,7 @@ public:
                     if(state().timeout)
                     {
                         // yes, socket already closed
-                        ec = beast::error::timeout;
+                        BOOST_BEAST_ASSIGN_EC(ec, beast::error::timeout);
                         state().timeout = false;
                     }
                     goto upcall;
@@ -407,7 +407,7 @@ public:
                     if(state().timeout)
                     {
                         // yes, socket already closed
-                        ec = beast::error::timeout;
+                        BOOST_BEAST_ASSIGN_EC(ec, beast::error::timeout);
                         state().timeout = false;
                     }
                 }
@@ -566,7 +566,7 @@ public:
                 if(state().timeout)
                 {
                     // yes, socket already closed
-                    ec = beast::error::timeout;
+                    BOOST_BEAST_ASSIGN_EC(ec, beast::error::timeout);
                     state().timeout = false;
                 }
             }

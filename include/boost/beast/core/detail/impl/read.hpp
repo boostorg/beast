@@ -96,7 +96,7 @@ public:
                 BOOST_ASIO_CORO_YIELD
                 s_.async_read_some(
                     b_.prepare(0), std::move(*this));
-                ec = ec_;
+                BOOST_BEAST_ASSIGN_EC(ec, ec_);
             }
             this->complete_now(ec, total_);
         }
