@@ -29,6 +29,7 @@ git submodule update --init --depth 20 --jobs 4 \
     libs/assert \
     libs/config \
     libs/core \
+    libs/describe \
     libs/endian \
     libs/filesystem \
     libs/intrusive \
