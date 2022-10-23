@@ -23,6 +23,10 @@ namespace http {
 */
 using dynamic_body = basic_dynamic_body<multi_buffer>;
 
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+extern template struct basic_dynamic_body<multi_buffer>;
+#endif
+
 } // http
 } // beast
 } // boost

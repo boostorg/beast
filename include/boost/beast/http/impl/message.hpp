@@ -19,6 +19,19 @@ namespace boost {
 namespace beast {
 namespace http {
 
+template<class Fields> header<true, Fields>::header() = default;
+template<class Fields> header<true, Fields>::header(header&&) = default;
+template<class Fields> header<true, Fields>::header(header const&) = default;
+template<class Fields> header<true, Fields>& header<true, Fields>::operator=(header&&) = default;
+template<class Fields> header<true, Fields>& header<true, Fields>::operator=(header const&) = default;
+
+template<class Fields> header<false, Fields>::header() = default;
+template<class Fields> header<false, Fields>::header(header&&) = default;
+template<class Fields> header<false, Fields>::header(header const&) = default;
+template<class Fields> header<false, Fields>& header<false, Fields>::operator=(header&&) = default;
+template<class Fields> header<false, Fields>& header<false, Fields>::operator=(header const&) = default;
+
+
 template<class Fields>
 template<class Arg1, class... ArgN, class>
 header<true, Fields>::

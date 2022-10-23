@@ -11,6 +11,7 @@
 #define BOOST_BEAST_HTTP_IMPL_BASIC_PARSER_IPP
 
 #include <boost/beast/http/basic_parser.hpp>
+#include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/rfc7230.hpp>
 #include <boost/beast/core/buffer_traits.hpp>

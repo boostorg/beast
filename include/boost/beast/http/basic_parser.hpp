@@ -133,10 +133,9 @@ class basic_parser
 #ifndef BOOST_BEAST_DOXYGEN
     friend class basic_parser_test;
 #endif
-
 protected:
     /// Default constructor
-    basic_parser() = default;
+    basic_parser();
 
     /** Move constructor
 

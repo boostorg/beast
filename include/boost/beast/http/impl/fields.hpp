@@ -31,6 +31,9 @@ namespace beast {
 namespace http {
 
 template<class Allocator>
+basic_fields<Allocator>::basic_fields() = default;
+
+template<class Allocator>
 class basic_fields<Allocator>::writer
 {
 public:

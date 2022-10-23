@@ -496,6 +496,13 @@ using request_parser = parser<true, Body, Allocator>;
 template<class Body, class Allocator = std::allocator<char>>
 using response_parser = parser<false, Body, Allocator>;
 
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+
+extern template class basic_parser<true>;
+extern template class basic_parser<false>;
+
+#endif
+
 } // http
 } // beast
 } // boost

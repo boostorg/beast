@@ -213,7 +213,7 @@ public:
     ~basic_fields();
 
     /// Constructor.
-    basic_fields() = default;
+    basic_fields();
 
     /** Constructor.
 
@@ -788,6 +788,10 @@ private:
 
 /// A typical HTTP header fields container
 using fields = basic_fields<std::allocator<char>>;
+
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+extern template class basic_fields<std::allocator<char>>;
+#endif
 
 } // http
 } // beast

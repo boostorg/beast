@@ -33,24 +33,37 @@ the program, with the macro BOOST_BEAST_SEPARATE_COMPILATION defined.
 #include <boost/beast/core/detail/base64.ipp>
 #include <boost/beast/core/detail/sha1.ipp>
 #include <boost/beast/core/detail/impl/temporary_buffer.ipp>
+#include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/impl/error.ipp>
+#include <boost/beast/http/impl/file_body.ipp>
 #include <boost/beast/core/impl/file_posix.ipp>
 #include <boost/beast/core/impl/file_stdio.ipp>
 #include <boost/beast/core/impl/file_win32.ipp>
+#include <boost/beast/core/impl/flat_buffer.hpp>
 #include <boost/beast/core/impl/flat_static_buffer.ipp>
+#include <boost/beast/core/impl/multi_buffer.hpp>
 #include <boost/beast/core/impl/saved_handler.ipp>
 #include <boost/beast/core/impl/static_buffer.ipp>
 #include <boost/beast/core/impl/string.ipp>
+#include <boost/beast/core/multi_buffer.hpp>
+#include <boost/beast/core/impl/tcp_stream.ipp>
 
 #include <boost/beast/http/detail/basic_parser.ipp>
 #include <boost/beast/http/detail/rfc7230.ipp>
+#include <boost/beast/http/dynamic_body.hpp>
+#include <boost/beast/http/fields.hpp>
 #include <boost/beast/http/impl/basic_parser.ipp>
+#include <boost/beast/http/impl/dynamic_body.ipp>
 #include <boost/beast/http/impl/error.ipp>
 #include <boost/beast/http/impl/field.ipp>
 #include <boost/beast/http/impl/fields.ipp>
+#include <boost/beast/http/impl/message.ipp>
 #include <boost/beast/http/impl/rfc7230.ipp>
 #include <boost/beast/http/impl/status.ipp>
+#include <boost/beast/http/impl/string_body.ipp>
 #include <boost/beast/http/impl/verb.ipp>
+#include <boost/beast/http/message.hpp>
+#include <boost/beast/http/string_body.hpp>
 
 #include <boost/beast/websocket/detail/hybi13.ipp>
 #include <boost/beast/websocket/detail/mask.ipp>

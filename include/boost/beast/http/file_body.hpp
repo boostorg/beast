@@ -26,6 +26,11 @@ namespace http {
 /// A message body represented by a file on the filesystem.
 using file_body = basic_file_body<file>;
 
+#if !defined(BOOST_BEAST_HEADER_ONLY) && !BOOST_BEAST_USE_WIN32_FILE
+extern template struct basic_file_body<file>;
+#endif
+
+
 } // http
 } // beast
 } // boost

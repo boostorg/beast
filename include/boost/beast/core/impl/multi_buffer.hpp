@@ -11,6 +11,7 @@
 #define BOOST_BEAST_IMPL_MULTI_BUFFER_HPP
 
 #include <boost/beast/core/buffer_traits.hpp>
+#include <boost/beast/core/multi_buffer.hpp>
 #include <boost/config/workaround.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/assert.hpp>
@@ -106,7 +107,7 @@ class basic_multi_buffer<Allocator>::subrange
     const_iter end_;
     size_type begin_pos_;   // offset in begin_
     size_type last_pos_;    // offset in std::prev(end_)
-
+    constexpr static bool is_mutable = isMutable;
     friend class basic_multi_buffer;
 
     subrange(
@@ -253,7 +254,7 @@ class basic_multi_buffer<Allocator>::subrange
 public:
     using value_type = typename
         std::conditional<
-            isMutable,
+                is_mutable ,
             net::mutable_buffer,
             net::const_buffer>::type;
 
@@ -280,12 +281,12 @@ public:
         return *this;
     }
 #else
-    subrange(subrange const&) = default;
-    subrange& operator=(subrange const&) = default;
+    subrange(subrange const&);
+    subrange& operator=(subrange const&);
 #endif
 
     template<
-        bool isMutable_ = isMutable,
+        bool isMutable_ = isMutable ,
         class = typename std::enable_if<! isMutable_>::type>
     subrange(
         subrange<true> const& other) noexcept
@@ -323,6 +324,16 @@ public:
 
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
 # pragma warning (pop)
+#else
+template<class Allocator>
+template<bool isMutable>
+basic_multi_buffer<Allocator>::
+subrange<isMutable>::subrange(subrange const&) = default;
+template<class Allocator>
+template<bool isMutable>
+typename basic_multi_buffer<Allocator>::template subrange<isMutable>&
+basic_multi_buffer<Allocator>::
+subrange<isMutable>::operator=(subrange const&) = default;
 #endif
 
 //------------------------------------------------------------------------------
@@ -356,11 +367,11 @@ public:
     using iterator_category =
         std::bidirectional_iterator_tag;
 
-    const_iterator() = default;
+    const_iterator();
     const_iterator(
-        const_iterator const& other) = default;
+        const_iterator const& other);
     const_iterator& operator=(
-        const_iterator const& other) = default;
+        const_iterator const& other);
 
     bool
     operator==(
@@ -425,6 +436,26 @@ public:
         return temp;
     }
 };
+
+
+template<class Allocator>
+template<bool isMutable>
+basic_multi_buffer<Allocator>::subrange<isMutable>::
+    const_iterator::const_iterator() = default;
+
+template<class Allocator>
+template<bool isMutable>
+basic_multi_buffer<Allocator>::subrange<isMutable>::
+    const_iterator::const_iterator(
+        const_iterator const& other) = default;
+
+template<class Allocator>
+template<bool isMutable>
+typename basic_multi_buffer<Allocator>::template subrange<isMutable>::
+    const_iterator&
+basic_multi_buffer<Allocator>::subrange<isMutable>::
+    const_iterator::operator=(
+        const_iterator const& other) = default;
 
 //------------------------------------------------------------------------------
 
@@ -1271,6 +1302,17 @@ debug_check() const
     }
 #endif
 }
+
+#if defined(BOOST_BEAST_SOURCE)
+template class basic_multi_buffer<std::allocator<char>>;
+template class basic_multi_buffer<std::allocator<char>>::subrange<true>;
+template class basic_multi_buffer<std::allocator<char>>::subrange<false>;
+#else
+extern template class basic_multi_buffer<std::allocator<char>>;
+extern template class basic_multi_buffer<std::allocator<char>>::subrange<true>;
+extern template class basic_multi_buffer<std::allocator<char>>::subrange<false>;
+#endif
+
 
 } // beast
 } // boost

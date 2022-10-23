@@ -72,19 +72,19 @@ public:
     using fields_type = Fields;
 
     /// Constructor
-    header() = default;
+    header();
 
     /// Constructor
-    header(header&&) = default;
+    header(header&&);
 
     /// Constructor
-    header(header const&) = default;
+    header(header const&);
 
     /// Assignment
-    header& operator=(header&&) = default;
+    header& operator=(header&&);
 
     /// Assignment
-    header& operator=(header const&) = default;
+    header& operator=(header const&);
 
     /** Return the HTTP-version.
 
@@ -272,19 +272,19 @@ public:
     using fields_type = Fields;
 
     /// Constructor.
-    header() = default;
+    header();
 
     /// Constructor
-    header(header&&) = default;
+    header(header&&);
 
     /// Constructor
-    header(header const&) = default;
+    header(header const&);
 
     /// Assignment
-    header& operator=(header&&) = default;
+    header& operator=(header&&);
 
     /// Assignment
-    header& operator=(header const&) = default;
+    header& operator=(header const&);
 
     /** Constructor
 
@@ -452,6 +452,12 @@ using request_header = header<true, Fields>;
 /// A typical HTTP response header
 template<class Fields = fields>
 using response_header = header<false, Fields>;
+
+
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+extern template class header<true, fields>;
+extern template class header<false, fields>;
+#endif
 
 #if defined(BOOST_MSVC)
 // Workaround for MSVC bug with private base classes

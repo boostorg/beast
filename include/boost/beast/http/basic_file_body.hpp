@@ -102,16 +102,16 @@ public:
 
         If the file is open, it is closed first.
     */
-    ~value_type() = default;
+    ~value_type();
 
     /// Constructor
-    value_type() = default;
+    value_type();
 
     /// Constructor
-    value_type(value_type&& other) = default;
+    value_type(value_type&& other);
 
     /// Move assignment
-    value_type& operator=(value_type&& other) = default;
+    value_type& operator=(value_type&& other);
 
     /// Return the file
     File& file()
@@ -161,6 +161,21 @@ public:
     void
     reset(File&& file, error_code& ec);
 };
+
+template<class File>
+basic_file_body<File>::
+value_type::value_type() = default;
+
+template<class File>
+basic_file_body<File>::
+value_type::~value_type() = default;
+
+template<class File>
+basic_file_body<File>::value_type::value_type(value_type&& other) = default;
+
+template<class File>
+typename basic_file_body<File>::value_type&
+basic_file_body<File>::value_type::operator=(value_type&& other) = default;
 
 template<class File>
 void

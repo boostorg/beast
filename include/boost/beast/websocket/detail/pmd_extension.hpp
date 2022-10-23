@@ -113,6 +113,15 @@ BOOST_BEAST_DECL
 void
 pmd_normalize(pmd_offer& offer);
 
+
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+
+extern template void pmd_read(pmd_offer&, http::fields const&);
+extern template void pmd_write(http::fields &,pmd_offer const&);
+extern template void pmd_negotiate(http::fields &,  pmd_offer&, pmd_offer const&, permessage_deflate const& );
+
+#endif
+
 } // detail
 } // websocket
 } // beast

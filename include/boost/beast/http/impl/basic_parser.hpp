@@ -19,6 +19,9 @@ namespace beast {
 namespace http {
 
 template<bool isRequest>
+basic_parser<isRequest>::basic_parser() = default;
+
+template<bool isRequest>
 template<class ConstBufferSequence>
 std::size_t
 basic_parser<isRequest>::

@@ -522,6 +522,10 @@ private:
 using flat_buffer =
     basic_flat_buffer<std::allocator<char>>;
 
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+extern template class basic_flat_buffer<std::allocator<char>>;
+#endif
+
 } // beast
 } // boost
 

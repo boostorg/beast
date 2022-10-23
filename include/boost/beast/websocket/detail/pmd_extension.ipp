@@ -302,6 +302,14 @@ pmd_normalize(pmd_offer& offer)
     }
 }
 
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+
+template void pmd_read(pmd_offer&, http::fields const&);
+template void pmd_write(http::fields &,pmd_offer const&);
+template void pmd_negotiate(http::fields &,  pmd_offer&, pmd_offer const&, permessage_deflate const& );
+
+#endif
+
 } // detail
 } // websocket
 } // beast

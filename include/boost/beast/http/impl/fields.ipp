@@ -131,6 +131,11 @@ keep_alive_impl(
 }
 
 } // detail
+
+#if defined(BOOST_BEAST_SOURCE)
+template class basic_fields<std::allocator<char>>;
+#endif
+
 } // http
 } // beast
 } // boost

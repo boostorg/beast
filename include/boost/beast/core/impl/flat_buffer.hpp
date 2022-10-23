@@ -538,6 +538,11 @@ alloc(std::size_t n)
     return alloc_traits::allocate(this->get(), n);
 }
 
+
+#if defined(BOOST_BEAST_SOURCE)
+template class basic_flat_buffer<std::allocator<char>>;
+#endif
+
 } // beast
 } // boost
 
