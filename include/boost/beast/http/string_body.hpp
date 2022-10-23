@@ -179,6 +179,13 @@ public:
 /// A <em>Body</em> using `std::string`
 using string_body = basic_string_body<char>;
 
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+#if !defined(BOOST_BEAST_SOURCE)
+extern
+#endif
+template struct basic_string_body<char>;
+#endif
+
 } // http
 } // beast
 } // boost

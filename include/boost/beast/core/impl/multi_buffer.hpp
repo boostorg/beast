@@ -1272,6 +1272,11 @@ debug_check() const
 #endif
 }
 
+#if defined(BOOST_BEAST_SOURCE)
+template class basic_multi_buffer<std::allocator<char>>;
+#endif
+
+
 } // beast
 } // boost
 

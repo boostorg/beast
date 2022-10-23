@@ -789,6 +789,13 @@ private:
 /// A typical HTTP header fields container
 using fields = basic_fields<std::allocator<char>>;
 
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+#if !defined(BOOST_BEAST_SOURCE)
+extern
+#endif
+template class basic_fields<std::allocator<char>>;
+#endif
+
 } // http
 } // beast
 } // boost

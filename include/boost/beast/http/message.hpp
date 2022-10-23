@@ -453,6 +453,18 @@ using request_header = header<true, Fields>;
 template<class Fields = fields>
 using response_header = header<false, Fields>;
 
+
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+#if !defined(BOOST_BEAST_SOURCE)
+extern
+#endif
+template class header<true, fields>;
+#if !defined(BOOST_BEAST_SOURCE)
+extern
+#endif
+template class header<false, fields>;
+#endif
+
 #if defined(BOOST_MSVC)
 // Workaround for MSVC bug with private base classes
 namespace detail {

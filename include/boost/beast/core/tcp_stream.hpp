@@ -28,6 +28,17 @@ using tcp_stream = basic_stream<
     net::any_io_executor,
     unlimited_rate_policy>;
 
+
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+#if !defined(BOOST_BEAST_SOURCE)
+extern
+#endif
+template class  basic_stream<
+        net::ip::tcp,
+        net::any_io_executor,
+        unlimited_rate_policy>;
+#endif
+
 } // beast
 } // boost
 

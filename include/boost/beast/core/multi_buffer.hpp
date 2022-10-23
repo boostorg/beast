@@ -586,6 +586,10 @@ private:
 /// A typical multi buffer
 using multi_buffer = basic_multi_buffer<std::allocator<char>>;
 
+#if !defined(BOOST_BEAST_HEADER_ONLY)
+extern template class basic_multi_buffer<std::allocator<char>>;
+#endif
+
 } // beast
 } // boost
 
