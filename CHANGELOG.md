@@ -1,3 +1,8 @@
+Version 343:
+
+* Beast IO-objects support rebinding constructors
+* C++20 coroutine examples
+
 Version 342:
 
 * Support per operation cancellation
