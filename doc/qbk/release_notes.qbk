@@ -11,6 +11,43 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.81]
+
+[*Features]
+
+* Add `buffers_generator`
+* Add [link beast.ref.boost__beast__http__message_generator `http::message_generator`]
+* Add [link beast.ref.boost__beast__buffer_ref `buffer_ref`]
+* Support for per-operation cancellation
+
+[*Fixes]
+
+* [issue 2439] Fix CVE-2018-25032 in zlib streams
+* [issue 264] Websocket support continue in upgrade
+* [issue 471] Unquote takes s by reference
+
+[*Improvements]
+
+* [issue 2104] C++20 awaitable examples.
+* [issue 226], [issue 227] per-message compression options
+* [issue 2449] websocket timeout option api
+* [issue 2468] multiple content length error
+
+[*Miscellaneous]
+
+* Use `span` from Boost.Core
+* Use `static_string` from Boost.StaticString
+* `serializer::is_done` is `const`
+* Support for default-completion and rebind
+* [issue 2469] s390x architecture support
+
+[*Documentation]
+
+* [issue 891] Feature table for buffers
+* [issue 516] Case-insensitivity for fields is stated
+* [issue 298] api version is documented
+
+
 [heading Boost 1.80]
 
 [*Miscellaneous]
