@@ -186,7 +186,7 @@ public:
             if (blocking_ == net::execution::blocking.possibly)
             {
                 s_.on_invoke();
-                net::execution::execute(ex_, std::forward<F>(f));
+                ex_.execute(std::forward<F>(f));
             }
             else
             {
@@ -220,11 +220,9 @@ public:
         dispatch(F&& f, Alloc const& a)
         {
             s_.on_invoke();
-            net::execution::execute(
-                net::prefer(ex_,
-                    net::execution::blocking.possibly,
-                    net::execution::allocator(a)),
-                std::forward<F>(f));
+            net::prefer(ex_,
+                net::execution::blocking.possibly,
+                net::execution::allocator(a)).execute(std::forward<F>(f));
             // previously equivalent to
             // ex_.dispatch(std::forward<F>(f), a);
         }

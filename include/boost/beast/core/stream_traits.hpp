@@ -111,7 +111,7 @@ using executor_type =
 #else
 template<class T>
 using executor_type =
-    decltype(std::declval<T&>().get_executor());
+    typename std::decay<decltype(std::declval<T&>().get_executor())>::type;
 #endif
 
 /** Determine if `T` has the `get_executor` member function.

@@ -107,6 +107,11 @@ struct nested_alloc
     struct allocator_type
     {
     };
+
+    allocator_type get_allocator() const noexcept
+    {
+        return allocator_type{};
+    }
 };
 
 struct intrusive_alloc
@@ -114,11 +119,21 @@ struct intrusive_alloc
     struct allocator_type
     {
     };
+
+    allocator_type get_allocator() const noexcept
+    {
+        return allocator_type{};
+    }
 };
 
 struct no_ex
 {
     using executor_type = net::system_executor;
+
+    executor_type get_executor() const noexcept
+    {
+        return executor_type{};
+    }
 };
 
 struct nested_ex
@@ -126,6 +141,11 @@ struct nested_ex
     struct executor_type
     {
     };
+
+    executor_type get_executor() const noexcept
+    {
+        return executor_type{};
+    }
 };
 
 struct intrusive_ex
@@ -133,6 +153,11 @@ struct intrusive_ex
     struct executor_type
     {
     };
+
+    executor_type get_executor() const noexcept
+    {
+        return executor_type{};
+    }
 };
 
 template<class E, class A>

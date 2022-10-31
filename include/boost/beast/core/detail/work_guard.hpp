@@ -34,9 +34,9 @@ struct select_work_guard
 template<class Executor>
 struct execution_work_guard
 {
-    using executor_type = decltype(
-        net::prefer(std::declval<Executor const&>(),
-            net::execution::outstanding_work.tracked));
+    using executor_type = typename std::decay<decltype(
+         net::prefer(std::declval<Executor const&>(),
+            net::execution::outstanding_work.tracked))>::type;
 
     execution_work_guard(Executor const& exec)
     : ex_(net::prefer(exec, net::execution::outstanding_work.tracked))
