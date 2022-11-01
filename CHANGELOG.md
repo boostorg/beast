@@ -1,7 +1,17 @@
+Version 344:
+
+* Internal fixes adopting to asio changes.
+
+
+--------------------------------------------------------------------------------
+
+
 Version 343:
 
 * Beast IO-objects support rebinding constructors
 * C++20 coroutine examples
+
+--------------------------------------------------------------------------------
 
 Version 342:
 
