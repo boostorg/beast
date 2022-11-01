@@ -66,6 +66,7 @@ int main(int argc, char** argv)
         http::request<http::string_body> req{http::verb::get, target, version};
         req.set(http::field::host, host);
         req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.prepare_payload();
 
         // Send the HTTP request to the remote host
         http::write(stream, req);
