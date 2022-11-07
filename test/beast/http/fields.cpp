@@ -149,6 +149,33 @@ public:
                 BEAST_EXPECT(f.get_allocator() == a1);
                 BEAST_EXPECT(f.get_allocator() != unequal_t{});
             }
+            {
+                fields f = {
+                    {"X-Header", "test"},
+                    {http::field::user_agent, "test-agent"},
+                    {"X-Header2", "tst"}
+                };
+
+                BEAST_EXPECT(std::distance(f.begin(), f.end()) == 3);
+                BEAST_EXPECT(f["X-Header"] == "test");
+                BEAST_EXPECT(f[http::field::user_agent] == "test-agent");
+                BEAST_EXPECT(f["X-Header2"] == "tst");
+
+            }
+            {
+
+                fields f = {{
+                    {"X-Header", "test"},
+                    {http::field::user_agent, "test-agent"},
+                    {"X-Header2", "tst"}
+                }, std::allocator<void>()};
+
+                BEAST_EXPECT(std::distance(f.begin(), f.end()) == 3);
+                BEAST_EXPECT(f["X-Header"] == "test");
+                BEAST_EXPECT(f[http::field::user_agent] == "test-agent");
+                BEAST_EXPECT(f["X-Header2"] == "tst");
+
+            }
         }
 
         // move construction

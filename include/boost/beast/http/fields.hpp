@@ -31,6 +31,24 @@ namespace boost {
 namespace beast {
 namespace http {
 
+
+/// A reference to initialize a fields structure from an  initializer list.
+struct element_ref
+{
+  /// Usage as `{http::field::user_agent, "Beast"}`
+  element_ref(field f, string_view value) : f_(f), value_(value) {}
+  /// Usage as `{"User-Agent", "Beast"}`
+  element_ref(string_view key, string_view value) : key_(key), value_(value) {}
+
+ private:
+  field f_;
+  string_view key_;
+  string_view value_;
+
+  template<typename >
+  friend class basic_fields;
+};
+
 /** A container for storing HTTP header fields.
 
     This container is designed to store the field value pairs that make
@@ -214,6 +232,19 @@ public:
 
     /// Constructor.
     basic_fields() = default;
+
+    /** Construct from an initializer list.
+
+       @param elements The values to initialize the basic_fields from.
+     */
+    basic_fields(std::initializer_list<element_ref> elements);
+
+    /** Construct from an initializer list.
+       @param elements The values to initialize the basic_fields from.
+       @param alloc The allocator to use.
+     */
+    basic_fields(std::initializer_list<element_ref> elements,
+                 Allocator const &alloc);
 
     /** Constructor.
 

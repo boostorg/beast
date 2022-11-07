@@ -394,6 +394,17 @@ basic_fields(basic_fields&& other, Allocator const& alloc)
     }
 }
 
+
+template<class Allocator>
+basic_fields<Allocator>::
+basic_fields(basic_fields const& other,
+             Allocator const& alloc)
+    : boost::empty_value<Allocator>(boost::empty_init_t(), alloc)
+{
+  copy_all(other);
+}
+
+
 template<class Allocator>
 basic_fields<Allocator>::
 basic_fields(basic_fields const& other)
@@ -405,11 +416,27 @@ basic_fields(basic_fields const& other)
 
 template<class Allocator>
 basic_fields<Allocator>::
-basic_fields(basic_fields const& other,
+basic_fields(std::initializer_list<element_ref> elements)
+{
+    for (const auto & elem : elements)
+        if (elem.key_.empty())
+            insert(elem.f_, elem.value_);
+        else
+            insert(elem.key_, elem.value_);
+}
+
+
+template<class Allocator>
+basic_fields<Allocator>::
+basic_fields(std::initializer_list<element_ref> elements,
         Allocator const& alloc)
     : boost::empty_value<Allocator>(boost::empty_init_t(), alloc)
 {
-    copy_all(other);
+    for (const auto & elem : elements)
+        if (elem.key_.empty())
+            insert(elem.f_, elem.value_);
+        else
+            insert(elem.key_, elem.value_);
 }
 
 template<class Allocator>
