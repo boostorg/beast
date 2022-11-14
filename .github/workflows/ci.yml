@@ -212,7 +212,7 @@ jobs:
             sudo wget https://bootstrap.pypa.io/pip/$python_version/get-pip.py
             sudo python3 get-pip.py
             sudo /usr/local/bin/pip install cmake
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install packages
         if: matrix.install
@@ -399,7 +399,7 @@ jobs:
     runs-on: ${{matrix.os}}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup OpenSSL
         shell: cmd
