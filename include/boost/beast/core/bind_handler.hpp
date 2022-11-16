@@ -28,7 +28,7 @@ namespace beast {
 
     The passed handler and arguments are forwarded into the returned
     handler, whose associated allocator and associated executor will
-    will be the same as those of the original handler.
+    be the same as those of the original handler.
 
     @par Example
 
