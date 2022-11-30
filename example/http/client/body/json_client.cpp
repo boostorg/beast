@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
     // Make the connection on the IP address we get from a lookup
     stream.connect(results);
 
-    // Set up an HTTP GET request message
+    // Set up an HTTP POST request message
     http::request<json_body> req{http::verb::post, target, 11};
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
