@@ -452,7 +452,7 @@ struct impl_base<false>
         return false;
     }
 
-    bool should_compress(std::size_t n_bytes) const
+    bool should_compress(std::size_t) const
     {
         return false;
     }
