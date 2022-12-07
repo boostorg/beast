@@ -389,11 +389,13 @@ public:
         if(! is_continuation)
         {
             auto const ex = get_executor();
-            net::post(net::bind_executor(
-                ex,
-                beast::bind_front_handler(
-                    std::move(h_),
-                    std::forward<Args>(args)...)));
+            net::post(
+                wg1_.get_executor(),
+                net::bind_executor(
+                  ex,
+                  beast::bind_front_handler(
+                      std::move(h_),
+                      std::forward<Args>(args)...)));
             wg1_.reset();
         }
         else

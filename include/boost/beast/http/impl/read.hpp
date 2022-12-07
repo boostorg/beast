@@ -245,6 +245,7 @@ public:
                         "http::async_read_some"));
 
                     net::post(
+                        s_.get_executor(),
                         beast::bind_front_handler(std::move(self), ec));
                 }
             }
@@ -284,7 +285,7 @@ public:
                         __FILE__, __LINE__,
                         "http::async_read"));
 
-                    net::post(std::move(self));
+                    net::post(s_.get_executor(), std::move(self));
                 }
             }
             else

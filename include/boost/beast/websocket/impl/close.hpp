@@ -106,7 +106,7 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_close"));
 
-                    net::post(std::move(*this));
+                    net::post(sp->stream().get_executor(), std::move(*this));
                 }
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
             }
@@ -167,7 +167,7 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_close"));
 
-                    net::post(std::move(*this));
+                    net::post(sp->stream().get_executor(), std::move(*this));
                 }
                 BOOST_ASSERT(impl.rd_block.is_locked(this));
                 if(impl.check_stop_now(ec))

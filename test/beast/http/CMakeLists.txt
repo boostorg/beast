@@ -15,6 +15,7 @@ add_executable (tests-beast-http
     ${BOOST_BEAST_FILES}
     ${EXTRAS_FILES}
     Jamfile
+    any_completion_handler.cpp
     message_fuzz.hpp
     test_parser.hpp
     basic_dynamic_body.cpp
