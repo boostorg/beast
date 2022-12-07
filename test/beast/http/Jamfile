@@ -8,6 +8,7 @@
 #
 
 local SOURCES =
+    any_completion_handler.cpp
     basic_dynamic_body.cpp
     basic_file_body.cpp
     basic_parser.cpp

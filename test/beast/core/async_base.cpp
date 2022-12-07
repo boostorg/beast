@@ -596,7 +596,7 @@ public:
                     ioc1.get_executor());
             op->complete(false);
             delete op;
-            BEAST_EXPECT(ioc1.run() == 0);
+            BEAST_EXPECT(ioc1.run() == 1);
             BEAST_EXPECT(ioc2.run() == 1);
         }
         {

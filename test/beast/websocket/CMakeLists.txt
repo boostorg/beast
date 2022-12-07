@@ -20,6 +20,7 @@ add_executable (tests-beast-websocket
     _detail_impl_base.cpp
     test.hpp
     _detail_prng.cpp
+    any_completion_handler.cpp
     accept.cpp
     cancel.cpp
     close.cpp

@@ -99,7 +99,7 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_ping"));
 
-                    net::post(std::move(*this));
+                    net::post(sp->stream().get_executor(), std::move(*this));
                 }
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
             }
@@ -208,8 +208,7 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_ping"));
 
-                    net::post(
-                        this->get_executor(), std::move(*this));
+                    net::post(sp->stream().get_executor(), std::move(*this));
                 }
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
             }

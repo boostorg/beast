@@ -128,7 +128,7 @@ public:
                         "websocket::tcp::async_teardown"
                         ));
 
-                    net::post(bind_front_handler(
+                    net::post(s_.get_executor(), bind_front_handler(
                         std::move(*this), ec));
                 }
             }
