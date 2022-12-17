@@ -471,7 +471,7 @@ public:
     {
         if(ec)
         {
-            ec = make_win32_error(ec);
+            BOOST_BEAST_ASSIGN_EC(ec, make_win32_error(ec));
         }
         else if(! ec && ! header_)
         {
@@ -573,8 +573,8 @@ write_some(
         0);
     if(! bSuccess)
     {
-        ec = detail::make_win32_error(
-            boost::winapi::GetLastError());
+        BOOST_BEAST_ASSIGN_EC(ec, detail::make_win32_error(
+            boost::winapi::GetLastError()));
         return 0;
     }
     w.pos_ += nNumberOfBytesToWrite;

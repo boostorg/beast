@@ -326,7 +326,7 @@ doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
         level = 6;
     if(level < 0 || level > 9)
     {
-        ec = error::stream_error;
+        BOOST_BEAST_ASSIGN_EC(ec, error::stream_error);
         return;
     }
     func = get_config(level_).func;
@@ -366,12 +366,12 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
     if(zs.next_out == nullptr ||
         (status_ == FINISH_STATE && flush != Flush::finish))
     {
-        ec = error::stream_error;
+        BOOST_BEAST_ASSIGN_EC(ec, error::stream_error);
         return;
     }
     if(zs.avail_out == 0)
     {
-        ec = error::need_buffers;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_buffers);
         return;
     }
 
@@ -406,14 +406,14 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
          * flushes. For repeated and useless calls with Flush::finish, we keep
          * returning Z_STREAM_END instead of Z_BUF_ERROR.
          */
-        ec = error::need_buffers;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_buffers);
         return;
     }
 
     // User must not provide more input after the first FINISH:
     if(status_ == FINISH_STATE && zs.avail_in != 0)
     {
-        ec = error::need_buffers;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_buffers);
         return;
     }
 
@@ -493,7 +493,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
 
     if(flush == Flush::finish)
     {
-        ec = error::end_of_stream;
+        BOOST_BEAST_ASSIGN_EC(ec, error::end_of_stream);
         return;
     }
 }
@@ -505,7 +505,7 @@ doDictionary(Byte const* dict, uInt dictLength, error_code& ec)
 {
     if(lookahead_)
     {
-        ec = error::stream_error;
+        BOOST_BEAST_ASSIGN_EC(ec, error::stream_error);
         return;
     }
 
@@ -561,7 +561,7 @@ doPrime(int bits, int value, error_code& ec)
 
     if((Byte *)(sym_buf_) < pending_out_ + ((Buf_size + 7) >> 3))
     {
-        ec = error::need_buffers;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_buffers);
         return;
     }
 
