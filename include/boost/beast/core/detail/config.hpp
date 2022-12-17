@@ -113,4 +113,8 @@ namespace net = boost::asio;
 
 #endif
 
+#ifndef BOOST_BEAST_FILE_BUFFER_SIZE
+#define BOOST_BEAST_FILE_BUFFER_SIZE 4096
+#endif
+
 #endif

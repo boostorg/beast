@@ -124,9 +124,9 @@ struct basic_file_body<file_win32>
                 basic_file_body<file_win32>, Fields>& sr,
             error_code& ec);
 
-        value_type& body_;  // The body we are reading from
-        std::uint64_t pos_; // The current position in the file
-        char buf_[4096];    // Small buffer for reading
+        value_type& body_;                       // The body we are reading from
+        std::uint64_t pos_;                      // The current position in the file
+        char buf_[BOOST_BEAST_FILE_BUFFER_SIZE]; // Small buffer for reading
 
     public:
         using const_buffers_type =

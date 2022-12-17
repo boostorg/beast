@@ -234,9 +234,9 @@ size(value_type const& body)
 template<class File>
 class basic_file_body<File>::writer
 {
-    value_type& body_;      // The body we are reading from
-    std::uint64_t remain_;  // The number of unread bytes
-    char buf_[4096];        // Small buffer for reading
+    value_type& body_;                       // The body we are reading from
+    std::uint64_t remain_;                   // The number of unread bytes
+    char buf_[BOOST_BEAST_FILE_BUFFER_SIZE]; // Small buffer for reading
 
 public:
     // The type of buffer sequence returned by `get`.

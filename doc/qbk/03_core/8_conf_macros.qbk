@@ -35,6 +35,13 @@ failure to do so may result in violations of ODR (One Definition Rule).
         Enables the use of deprecated APIs within Beast.
     ]
 ]
+[
+    [
+        BOOST_BEAST_FILE_BUFFER_SIZE
+    ][
+        Sets the small buffer size for the file_body. Defaults to 4096.
+    ]
+]
 ]
 
 [endsect]
