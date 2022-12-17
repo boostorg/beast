@@ -17,6 +17,7 @@
 #include <boost/beast/core/static_string.hpp>
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/serializer.hpp>
+#include <boost/beast/http/string_body.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/asio/error.hpp>
@@ -40,6 +41,23 @@ public:
             buffer.commit(net::buffer_copy(
                 buffer.prepare(buffer_bytes(buffers)),
                 buffers));
+        }
+    };
+
+    struct string_parser
+    {
+        parser<false, string_body> p;
+        std::size_t last_consumption;
+        template<class ConstBufferSequence>
+        void
+        operator()(error_code&, ConstBufferSequence const& buffers)
+        {
+            error_code ec;
+            BEAST_EXPECT(!p.is_done());
+            if (!p.is_done())
+                last_consumption = p.put(buffers, ec);
+
+            BEAST_EXPECT(!ec);
         }
     };
 
@@ -193,6 +211,87 @@ public:
         }
     }
 
+    template<class File, bool useReset>
+    void
+    readPartialFile()
+    {
+
+        auto temp = temp_file(log);
+
+        error_code ec;
+        string_view const ten =
+                "0123456789"; // 40
+        // create the temporary file
+        {
+            std::ofstream fstemp(temp.path().native());
+            std::size_t written = 0;
+            std::size_t to_write = 2048;
+            while (written < to_write)
+            {
+                auto size = (std::min)(ten.size(), to_write - written);
+                fstemp << ten.substr(0, size);
+                BEAST_EXPECT(fstemp.good());
+                written += size;
+            }
+            fstemp.close();
+        }
+
+        // open the file and read the header
+        {
+            using file_body_type = basic_file_body<File>;
+
+            typename file_body_type::value_type value;
+            // opened in write mode so we can truncate later
+            value.open(temp.path().string<std::string>().c_str(), file_mode::read, ec);
+            BEAST_EXPECTS(!ec, ec.message());
+
+            response<basic_file_body<File>> res{status::ok, 11};
+            res.set(field::server, "test");
+
+            if (useReset)
+            {
+                File f;
+                f.open(temp.path().string<std::string>().c_str(), file_mode::read, ec);
+                BEAST_EXPECTS(!ec, ec.message());
+                f.seek(1005, ec); // so we start at char 5
+                BEAST_EXPECTS(!ec, ec.message());
+                res.body().reset(std::move(f), ec);
+                BEAST_EXPECTS(!ec, ec.message());
+            }
+            else
+            {
+                res.body().open(temp.path().string<std::string>().c_str(), file_mode::read, ec);
+                BEAST_EXPECTS(!ec, ec.message());
+                res.body().seek(1005, ec); // so we start at char 5
+                BEAST_EXPECTS(!ec, ec.message());
+            }
+
+            res.prepare_payload();
+            BEAST_EXPECT(res.payload_size().value_or(0) == (2048 - 1005));
+            BEAST_EXPECTS(! ec, ec.message());
+
+            string_parser visit;
+            serializer<false, basic_file_body<File>, fields> sr{res};
+
+            while (!sr.is_done())
+            {
+                sr.next(ec, visit);
+                sr.consume(visit.last_consumption);
+            }
+
+            BEAST_EXPECT(visit.p.is_header_done());
+            BEAST_EXPECT(visit.p.content_length_remaining().value() == 0);
+
+            BEAST_EXPECT(visit.p.is_done());
+
+            auto data = visit.p.get();
+
+            BEAST_EXPECT(data.payload_size().value_or(0) == (2048 - 1005));
+            BEAST_EXPECT(data.body().size() == (2048 - 1005));
+            BEAST_EXPECT(data.body().front() == '5');
+        }
+    }
+
     void
     run() override
     {
@@ -211,6 +310,17 @@ public:
     #if BOOST_BEAST_USE_WIN32_FILE
         fileBodyUnexpectedEofOnGet<file_win32>();
     #endif
+
+        readPartialFile<file_stdio, true>();
+        readPartialFile<file_stdio, false>();
+#if BOOST_BEAST_USE_POSIX_FILE
+        readPartialFile<file_posix, true>();
+        readPartialFile<file_posix, false>();
+#endif
+#if BOOST_BEAST_USE_WIN32_FILE
+        readPartialFile<file_win32, true>();
+        readPartialFile<file_win32, false>();
+#endif
 
     }
 };
