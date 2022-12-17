@@ -246,7 +246,9 @@ teardown(
 
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
-        ec = net::error::eof;
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, net::error::eof);
+    }
     else
         ec = {};
 }

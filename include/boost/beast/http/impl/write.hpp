@@ -238,7 +238,9 @@ public:
                 }
                 bytes_transferred_ += bytes_transferred;
                 if (!ec && st_.cancelled() != net::cancellation_type::none)
-                    ec = net::error::operation_aborted;
+                {
+                    BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
+                }
                 if(ec)
                     goto upcall;
                 if(Predicate{}(sr_))

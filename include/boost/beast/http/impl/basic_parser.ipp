@@ -90,7 +90,7 @@ put(net::const_buffer buffer,
     BOOST_ASSERT(!is_done());
     if (is_done())
     {
-        ec = error::stale_parser;
+        BOOST_BEAST_ASSIGN_EC(ec, error::stale_parser);
         return 0;
     }
     auto p = static_cast<char const*>(buffer.data());
@@ -104,7 +104,7 @@ loop:
     case state::nothing_yet:
         if(n == 0)
         {
-            ec = error::need_more;
+            BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
             return 0;
         }
         state_ = state::start_line;
@@ -123,7 +123,7 @@ loop:
             {
                 if(n >= header_limit_)
                 {
-                    ec = error::header_limit;
+                    BOOST_BEAST_ASSIGN_EC(ec, error::header_limit);
                     goto done;
                 }
                 if(p + 3 <= p1)
@@ -136,7 +136,7 @@ loop:
         n = static_cast<std::size_t>(p1 - p);
         if(p >= p1)
         {
-            ec = error::need_more;
+            BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
             goto done;
         }
         BOOST_FALLTHROUGH;
@@ -154,7 +154,7 @@ loop:
             {
                 if(n >= header_limit_)
                 {
-                    ec = error::header_limit;
+                    BOOST_BEAST_ASSIGN_EC(ec, error::header_limit);
                     goto done;
                 }
                 if(p + 3 <= p1)
@@ -239,14 +239,14 @@ put_eof(error_code& ec)
     if( state_ == state::start_line ||
         state_ == state::fields)
     {
-        ec = error::partial_message;
+        BOOST_BEAST_ASSIGN_EC(ec, error::partial_message);
         return;
     }
     if(f_ & (flagContentLength | flagChunked))
     {
         if(state_ != state::complete)
         {
-            ec = error::partial_message;
+            BOOST_BEAST_ASSIGN_EC(ec, error::partial_message);
             return;
         }
         ec = {};
@@ -272,7 +272,7 @@ maybe_need_more(
         n = header_limit_;
     if(n < skip_ + 4)
     {
-        ec = error::need_more;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
         return;
     }
     auto const term =
@@ -282,10 +282,10 @@ maybe_need_more(
         skip_ = n - 3;
         if(skip_ + 4 > header_limit_)
         {
-            ec = error::header_limit;
+            BOOST_BEAST_ASSIGN_EC(ec, error::header_limit);
             return;
         }
-        ec = error::need_more;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
         return;
     }
     skip_ = 0;
@@ -320,18 +320,18 @@ parse_start_line(
         return;
     if(version < 10 || version > 11)
     {
-        ec = error::bad_version;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_version);
         return;
     }
 
     if(p + 2 > last)
     {
-        ec = error::need_more;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
         return;
     }
     if(p[0] != '\r' || p[1] != '\n')
     {
-        ec = error::bad_version;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_version);
         return;
     }
     p += 2;
@@ -368,19 +368,19 @@ parse_start_line(
         return;
     if(version < 10 || version > 11)
     {
-        ec = error::bad_version;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_version);
         return;
     }
 
     // SP
     if(p + 1 > last)
     {
-        ec = error::need_more;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
         return;
     }
     if(*p++ != ' ')
     {
-        ec = error::bad_version;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_version);
         return;
     }
 
@@ -421,13 +421,15 @@ parse_fields(char const*& in,
     {
         if(p + 2 > last)
         {
-            ec = error::need_more;
+            BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
             return;
         }
         if(p[0] == '\r')
         {
             if(p[1] != '\n')
-                ec = error::bad_line_ending;
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_line_ending);
+            }
             in = p + 2;
             return;
         }
@@ -462,7 +464,7 @@ finish_header(error_code& ec, std::true_type)
         if(body_limit_.has_value() &&
            len_ > body_limit_)
         {
-            ec = error::body_limit;
+            BOOST_BEAST_ASSIGN_EC(ec, error::body_limit);
             return;
         }
         if(len_ > 0)
@@ -527,7 +529,7 @@ finish_header(error_code& ec, std::false_type)
             if(body_limit_.has_value() &&
                len_ > body_limit_)
             {
-                ec = error::body_limit;
+                BOOST_BEAST_ASSIGN_EC(ec, error::body_limit);
                 return;
             }
         }
@@ -591,7 +593,7 @@ parse_body_to_eof(char const*& p,
     {
         if (n > *body_limit_)
         {
-            ec = error::body_limit;
+            BOOST_BEAST_ASSIGN_EC(ec, error::body_limit);
             return;
         }
         *body_limit_ -= n;
@@ -631,7 +633,7 @@ parse_chunk_header(char const*& p0,
     {
         if(n < skip_ + 2)
         {
-            ec = error::need_more;
+            BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
             return;
         }
         if(f_ & flagExpectCRLF)
@@ -641,7 +643,7 @@ parse_chunk_header(char const*& p0,
             // be parsed in one call instead of two.
             if(! parse_crlf(p))
             {
-                ec = error::bad_chunk;
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk);
                 return;
             }
         }
@@ -650,7 +652,7 @@ parse_chunk_header(char const*& p0,
             return;
         if(! eol)
         {
-            ec = error::need_more;
+            BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
             skip_ = n - 1;
             return;
         }
@@ -660,7 +662,7 @@ parse_chunk_header(char const*& p0,
         std::uint64_t size;
         if(! parse_hex(p, size))
         {
-            ec = error::bad_chunk;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk);
             return;
         }
         if(size != 0)
@@ -669,7 +671,7 @@ parse_chunk_header(char const*& p0,
             {
                 if (size > *body_limit_)
                 {
-                    ec = error::body_limit;
+                    BOOST_BEAST_ASSIGN_EC(ec, error::body_limit);
                     return;
                 }
                 *body_limit_ -= size;
@@ -680,7 +682,7 @@ parse_chunk_header(char const*& p0,
                 return;
             if(p != eol -2 )
             {
-                ec = error::bad_chunk_extension;
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
                 return;
             }
             auto const ext = make_string(start, p);
@@ -713,7 +715,7 @@ parse_chunk_header(char const*& p0,
     {
         BOOST_ASSERT(n >= 3);
         skip_ = n - 3;
-        ec = error::need_more;
+        BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
         return;
     }
 
@@ -723,7 +725,7 @@ parse_chunk_header(char const*& p0,
         return;
     if(p != eol - 2)
     {
-        ec = error::bad_chunk_extension;
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
         return;
     }
     auto const ext = make_string(start, p);
@@ -774,7 +776,7 @@ do_field(field f,
         if(! validate_list(list))
         {
             // VFALCO Should this be a field specific error?
-            ec = error::bad_value;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_value);
             return;
         }
         for(auto const& s : list)
@@ -806,12 +808,12 @@ do_field(field f,
     {
         auto bad_content_length = [&ec]
         {
-            ec = error::bad_content_length;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_content_length);
         };
 
         auto multiple_content_length = [&ec]
         {
-            ec = error::multiple_content_length;
+            BOOST_BEAST_ASSIGN_EC(ec, error::multiple_content_length);
         };
 
         // conflicting field
@@ -861,14 +863,14 @@ do_field(field f,
         if(f_ & flagChunked)
         {
             // duplicate
-            ec = error::bad_transfer_encoding;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_transfer_encoding);
             return;
         }
 
         if(f_ & flagContentLength)
         {
             // conflicting field
-            ec = error::bad_transfer_encoding;
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_transfer_encoding);
             return;
         }
 
