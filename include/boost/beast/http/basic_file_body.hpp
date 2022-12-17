@@ -160,6 +160,19 @@ public:
     */
     void
     reset(File&& file, error_code& ec);
+
+    /** Set the cursor position of the file.
+
+        This function can be used to move the cursor of the file ahead
+        so that only a part gets read. This file will also adjust the
+        value_type, in case the file is already part of a body.
+
+        @param offset The offset in bytes from the beginning of the file
+
+        @param ec Set to the error, if any occurred
+    */
+
+    void seek(std::uint64_t offset, error_code& ec);
 };
 
 template<class File>
@@ -210,7 +223,28 @@ reset(File&& file, error_code& ec)
 
     // Cache the size
     file_size_ = file_.size(ec);
+
+    // Consider the offset
+    if (!ec)
+        file_size_ -= file_.pos(ec);
 }
+
+template<class File>
+void
+basic_file_body<File>::
+value_type::
+seek(std::uint64_t offset, error_code& ec)
+{
+    file_.seek(offset, ec);
+    // Cache the size
+    if (!ec)
+        file_size_ = file_.size(ec);
+
+    // Consider the offset
+    if (!ec)
+        file_size_ -= file_.pos(ec);
+}
+
 
 // This is called from message::payload_size
 template<class File>

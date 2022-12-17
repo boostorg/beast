@@ -94,7 +94,7 @@ struct basic_file_body<file_win32>
         std::uint64_t
         size() const
         {
-            return size_;
+            return last_ - first_;
         }
 
         void
@@ -105,6 +105,9 @@ struct basic_file_body<file_win32>
 
         void
         reset(file_win32&& file, error_code& ec);
+
+        void
+        seek(std::uint64_t offset, error_code& ec);
     };
 
     //--------------------------------------------------------------------------
@@ -284,9 +287,27 @@ reset(file_win32&& file, error_code& ec)
             close();
             return;
         }
-        first_ = 0;
+
+        first_ = file_.pos(ec);
+        if(ec)
+        {
+            close();
+            return;
+        }
+
         last_ = size_;
     }
+}
+
+
+inline
+void
+basic_file_body<file_win32>::
+value_type::
+seek(std::uint64_t offset, error_code& ec)
+{
+  first_ = offset;
+  file_.seek(offset, ec);
 }
 
 //------------------------------------------------------------------------------
