@@ -105,7 +105,7 @@ jobs:
             supported: true
           - toolset: clang
             compiler: clang++-5.0
-            cxxstd: "11,14"
+            cxxstd: "11,14,1z"
             os: ubuntu-22.04
             container: ubuntu:16.04
             install: clang-5.0
