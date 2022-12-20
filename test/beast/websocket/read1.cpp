@@ -73,7 +73,7 @@ public:
             flat_buffer b;
             ws1.set_option(stream_base::timeout{
                 stream_base::none(),
-                std::chrono::milliseconds(50),
+                std::chrono::milliseconds(200),
                 false});
             ws1.async_read(b, test::success_handler());
             ws2.async_write(net::const_buffer("Hello, world!", 13),
@@ -92,7 +92,7 @@ public:
             flat_buffer b;
             ws1.set_option(stream_base::timeout{
                 stream_base::none(),
-                std::chrono::milliseconds(50),
+                std::chrono::milliseconds(200),
                 false});
             ws1.async_read(b, test::success_handler());
             ws2.async_write(net::const_buffer("Hello, world!", 13),
@@ -150,7 +150,7 @@ public:
             auto b = asio::dynamic_buffer(res);
             ws1.set_option(stream_base::timeout{
                     stream_base::none(),
-                    std::chrono::milliseconds(50),
+                    std::chrono::milliseconds(200),
                     false});
             ws1.async_read(b, test::success_handler());
             ws2.async_write(net::const_buffer("Hello, world!", 13),
