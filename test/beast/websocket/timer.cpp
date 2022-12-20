@@ -42,7 +42,7 @@ struct timer_test : unit_test::suite
 
             ws2.set_option(stream_base::timeout{
                 stream_base::none(),
-                std::chrono::milliseconds(100),
+                std::chrono::milliseconds(200),
                 true});
             flat_buffer b1;
             flat_buffer b2;
