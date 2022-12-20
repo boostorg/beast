@@ -50,10 +50,10 @@ public:
     {
     }
 
-    handler(handler&& other,boost::source_location loc = BOOST_CURRENT_LOCATION)
+    handler(handler&& other)
         : ec_(other.ec_)
         , pass_(boost::exchange(other.pass_, true))
-        , loc_(loc)
+        , loc_(other.loc_)
 
     {
     }
