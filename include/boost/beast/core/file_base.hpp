@@ -73,15 +73,14 @@ enum class file_mode
     */
     write_existing,
 
-    /** Appending to a new or truncated file
+    /** Appending to a new or existing file
 
         The current file position shall be set to the end of
         the file prior to each write.
 
         @li If the file does not exist, it is created.
 
-        @li If the file exists, it is truncated to
-        zero size upon opening.
+        @li If the file exists, the new data gets appended.
     */
     append,
 
