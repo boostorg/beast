@@ -104,7 +104,7 @@ namespace net = boost::asio;
 
 
 #ifdef BOOST_BEAST_NO_SOURCE_LOCATION
-#define BOOST_BEAST_ASSIGN_EC(ec, error) ec.assign(error)
+#define BOOST_BEAST_ASSIGN_EC(ec, error) ec = error
 #else
 
 #define BOOST_BEAST_ASSIGN_EC(ec, error) \
