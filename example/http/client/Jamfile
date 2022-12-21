@@ -20,3 +20,5 @@ build-project coro-ssl ;
 build-project sync-ssl ;
 
 build-project body ;
+
+build-project methods ;
