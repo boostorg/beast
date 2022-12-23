@@ -68,8 +68,9 @@ struct stream<NextLayer, deflateSupported>::impl_type
             impl_type>(this->detail::service::
                 impl_type::shared_from_this());
     }
-
-    net::steady_timer       timer;          // used for timeouts
+    using executor_type = typename std::decay<NextLayer>::type::executor_type;
+    typename net::steady_timer::rebind_executor<executor_type>::other
+                            timer;          // used for timeouts
     close_reason            cr;             // set from received close frame
     control_cb_type         ctrl_cb;        // control callback
 
