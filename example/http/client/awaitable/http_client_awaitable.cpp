@@ -37,13 +37,6 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
-// Report a failure
-void
-fail(beast::error_code ec, char const* what)
-{
-    std::cerr << what << ": " << ec.message() << "\n";
-}
-
 // Performs an HTTP GET and prints the response
 net::awaitable<void>
 do_session(
@@ -53,7 +46,9 @@ do_session(
     int version)
 {
     // These objects perform our I/O
-
+    // They use an executor with a default completion token of use_awaitable
+    // This makes our code easy, but will use exceptions as the default error handling,
+    // i.e. if the connection drops, we might see an exception.
     auto resolver = net::use_awaitable.as_default_on(tcp::resolver(co_await net::this_coro::executor));
     auto stream = net::use_awaitable.as_default_on(beast::tcp_stream(co_await net::this_coro::executor));
 
@@ -125,20 +120,23 @@ int main(int argc, char** argv)
     net::io_context ioc;
 
     // Launch the asynchronous operation
-    net::co_spawn(ioc,
-                  do_session(host, port, target, version),
-                  [](std::exception_ptr e)
-                  {
-                    if (e)
-                    try
-                    {
-                        std::rethrow_exception(e);
-                    }
-                    catch(std::exception & e)
-                    {
-                        std::cerr << "Error: " << e.what() << "\n";
-                    }
-                  });
+    net::co_spawn(
+        ioc,
+        do_session(host, port, target, version),
+        // If the awaitable exists with an exception, it gets delivered here as `e`.
+        // This can happen for regular errors, such as connection drops.
+        [](std::exception_ptr e)
+        {
+          if (e)
+          try
+          {
+              std::rethrow_exception(e);
+          }
+          catch(std::exception & ex)
+          {
+              std::cerr << "Error: " << ex.what() << "\n";
+          }
+        });
 
     // Run the I/O service. The call will return when
     // the get operation is complete.
