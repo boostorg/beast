@@ -15,6 +15,7 @@ build-project awaitable ;
 
 # SSL
 build-project async-ssl ;
+build-project awaitable-ssl ;
 build-project coro-ssl ;
 build-project sync-ssl ;
 
