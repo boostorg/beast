@@ -128,14 +128,20 @@ spawn(F0&& f, FN&&... fn)
         [&]
         {
             asio::spawn(ioc_,
+                std::allocator_arg,
+                boost::context::fixedsize_stack(2 * 1024 * 1024),
                 [&](yield_context yield)
                 {
                     f(yield);
                     std::lock_guard<std::mutex> lock{m_};
                     if(--running_ == 0)
                         cv_.notify_all();
-                }
-                , boost::coroutines::attributes(2 * 1024 * 1024));
+                },
+                [](std::exception_ptr e)
+                {
+                    if (e)
+                        std::rethrow_exception(e);
+                });
         });
     spawn(fn...);
 }

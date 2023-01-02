@@ -12,5 +12,5 @@ exe websocket-client-coro :
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
-    <library>/boost/coroutine//boost_coroutine
+    <library>/boost/context//boost_context
     ;

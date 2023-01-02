@@ -36,7 +36,7 @@ project /boost/beast/test
     <library>/boost/beast//lib-asio/<link>static
     <boost.beast.separate-compilation>on:<library>/boost/beast//lib-beast/<link>static
     <library>/boost/filesystem//boost_filesystem
-    <library>/boost/coroutine//boost_coroutine
+    <library>/boost/context//boost_context
     ;
 
 path-constant ZLIB_SOURCES :

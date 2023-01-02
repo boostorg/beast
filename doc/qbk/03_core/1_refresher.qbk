@@ -340,6 +340,9 @@ customization points in the initiating function signature. Here is the
 signature for
 [@boost:/doc/html/boost_asio/reference/async_write/overload1.html `net::async_write`]:
 
+Note that a `spawn` function itself has a completion signature,
+but we're ignoring it's result in the example by using `asio::detached`.
+
 [code_core_1_refresher_9]
 
 The type of the function's return value is determined by the

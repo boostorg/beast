@@ -74,12 +74,14 @@ snippets()
     {
     //[code_core_1_refresher_5s
         asio::spawn(
+            sock.get_executor(),
             [&sock](net::yield_context yield)
             {
                 std::size_t bytes_transferred = net::async_write(sock,
                     net::const_buffer("Hello, world!", 13), yield);
                 (void)bytes_transferred;
-            });
+            },
+            asio::detached);
     //]
     }
 }
