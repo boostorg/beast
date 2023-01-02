@@ -166,6 +166,7 @@ public:
         auto s2 = net::use_awaitable.as_default_on(std::move(s1));
 #ifdef BOOST_ASIO_HAS_DEFAULT_FUNCTION_TEMPLATE_ARGUMENTS
         auto bt = co_await s2.async_read_some(b);
+        ignore_unused(bt);
         bt = co_await s2.async_write_some(b);
 #else
         auto bt = co_await s2.async_read_some(b,
