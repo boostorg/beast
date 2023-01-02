@@ -39,6 +39,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <list>
 #include <string>
 #include <thread>
 #include <vector>
