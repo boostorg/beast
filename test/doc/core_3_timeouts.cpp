@@ -397,7 +397,10 @@ https_get (std::string const& host, std::string const& target, error_code& ec)
 
         // Set the string to return to the caller
         result = std::move(res.body());
-    });
+    },
+    // this will capture exceptions thrown by the coroutine,
+    // which we're ignoring, since we're using error_codes to capture them.
+    asio::detached);
 
     // `run` will dispatch completion handlers, and block until there is
     // no more "work" remaining. When this call returns, the operations

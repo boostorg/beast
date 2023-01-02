@@ -15,6 +15,7 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/asio/detached.hpp>
 #include <boost/asio/spawn.hpp>
 #include <algorithm>
 #include <cstdlib>
@@ -135,7 +136,10 @@ do_listen(
                     &do_session,
                     websocket::stream<
                         beast::tcp_stream>(std::move(socket)),
-                    std::placeholders::_1));
+                    std::placeholders::_1),
+                    // we ignore the result of the session,
+                    // most errors are handled with error_code
+                    boost::asio::detached);
     }
 }
 
@@ -163,7 +167,18 @@ int main(int argc, char* argv[])
             &do_listen,
             std::ref(ioc),
             tcp::endpoint{address, port},
-            std::placeholders::_1));
+            std::placeholders::_1),
+            // on completion, spawn will call this function
+            [](std::exception_ptr ex)
+            {
+                // if an exception occurred in the coroutine,
+                // it's something critical, e.g. out of memory
+                // we capture normal errors in the ec
+                // so we just rethrow the exception here,
+                // which will cause `ioc.run()` to throw
+                if (ex)
+                    std::rethrow_exception(ex);
+            });
 
     // Run the I/O service on the requested number of threads
     std::vector<std::thread> v;

@@ -134,7 +134,18 @@ int main(int argc, char** argv)
         std::string(target),
         version,
         std::ref(ioc),
-        std::placeholders::_1));
+        std::placeholders::_1),
+            // on completion, spawn will call this function
+           [](std::exception_ptr ex)
+           {
+               // if an exception occurred in the coroutine,
+               // it's something critical, e.g. out of memory
+               // we capture normal errors in the ec
+               // so we just rethrow the exception here,
+               // which will cause `ioc.run()` to throw
+               if (ex)
+                   std::rethrow_exception(ex);
+           });
 
     // Run the I/O service. The call will return when
     // the get operation is complete.

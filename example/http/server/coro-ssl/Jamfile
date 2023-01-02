@@ -19,5 +19,5 @@ exe http-server-coro-ssl :
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
-    <library>/boost/coroutine//boost_coroutine
+    <library>/boost/context//boost_context
     ;
