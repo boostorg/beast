@@ -149,13 +149,8 @@ close() noexcept
         error_code ec;
         socket.close(ec);
     }
-    try
-    {
-        timer.cancel();
-    }
-    catch(...)
-    {
-    }
+    error_code ec;
+    timer.cancel(ec);
 }
 
 //------------------------------------------------------------------------------
