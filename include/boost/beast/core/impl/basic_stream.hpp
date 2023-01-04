@@ -149,6 +149,7 @@ close() noexcept
         error_code ec;
         socket.close(ec);
     }
+#if !defined(BOOST_NO_EXCEPTIONS)
     try
     {
         timer.cancel();
@@ -156,6 +157,9 @@ close() noexcept
     catch(...)
     {
     }
+#else
+    timer.cancel();
+#endif
 }
 
 //------------------------------------------------------------------------------
