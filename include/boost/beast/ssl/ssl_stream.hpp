@@ -442,7 +442,7 @@ public:
         ); @endcode
     */
     template<class ConstBufferSequence,
-             BOOST_BEAST_ASYNC_TPARAM1 BufferedHandshakeHandler = net::default_completion_token_t<executor_type>>
+             BOOST_BEAST_ASYNC_TPARAM2 BufferedHandshakeHandler = net::default_completion_token_t<executor_type>>
     BOOST_ASIO_INITFN_RESULT_TYPE(BufferedHandshakeHandler, void(boost::system::error_code, std::size_t))
     async_handshake(handshake_type type, ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler
