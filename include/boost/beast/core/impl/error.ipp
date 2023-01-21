@@ -26,6 +26,9 @@ public:
         return "boost.beast";
     }
 
+    error_codes() : error_category(0x002f6e94401c6e8bu)  {}
+
+
     BOOST_BEAST_DECL
     std::string
     message(int ev) const override
@@ -61,6 +64,9 @@ public:
     {
         return "boost.beast";
     }
+
+    error_conditions() : error_category(0x3dd0b0ce843c5b10u)  {}
+
 
     BOOST_BEAST_DECL
     std::string

@@ -27,6 +27,8 @@ public:
         return "beast.http";
     }
 
+    http_error_category() : error_category(0x964627da815bf210u)  {}
+
     std::string
     message(int ev) const override
     {
