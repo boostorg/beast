@@ -20,6 +20,9 @@ namespace detail {
 class error_codes : public error_category
 {
 public:
+
+    error_codes() : error_category(0x065d7edd7687edafu )  {}
+
     const char*
     name() const noexcept override
     {
@@ -122,6 +125,9 @@ public:
     {
         return "boost.beast.websocket";
     }
+
+    error_conditions() : error_category(0x7a8de5d61799ce9eu)  {}
+
 
     std::string
     message(int cv) const override
