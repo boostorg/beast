@@ -161,7 +161,8 @@ int main(int argc, char** argv)
           // This can happen for regular errors, such as connection drops.
           [](std::exception_ptr e)
           {
-            if (e)
+            if (!e)
+                return ;
             try
             {
                 std::rethrow_exception(e);
