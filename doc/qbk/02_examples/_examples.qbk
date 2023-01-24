@@ -43,7 +43,7 @@ used to evaluate robustness. All asynchronous clients support timeouts.
 ][
         [WebSocket, C++20 coroutine]
         [[path_link example/http/client/awaitable/http_client_awaitable.cpp http_client_awaitable.cpp]]
-        []
+        [[path_link example/http/client/awaitable-ssl/http_client_awaitable_ssl.cpp http_client_awaitable_ssl.cpp]]
 ][
         [HTTP crawl (asynchronous)]
         [[path_link example/http/client/crawl/http_crawl.cpp http_crawl.cpp]]
