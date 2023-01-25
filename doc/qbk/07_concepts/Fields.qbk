@@ -9,12 +9,6 @@
 
 [section:Fields Fields]
 
-[warning
-    The ['Fields] concept is deprecated and will be removed in
-    a future version. The information on this page is provided
-    for historical purposes only.
-]
-
 An instance of [*Fields] is a container for holding HTTP header fields
 and their values. The implementation also calls upon the container to
 store the request target and non-standard strings for method and obsolete
