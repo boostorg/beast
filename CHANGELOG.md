@@ -1,3 +1,16 @@
+Version 346:
+
+* beast file_body & file support seek
+* file_body buffer size can be configured
+* examples & tests use context instead of coroutine
+* basic_stream doesn't use try-catch with no-exceptions set
+* error categories use numeric id
+* timer inside basic_stream uses the right executor
+* self-posting is posting to the io-object's executor
+* all error_codes use source_locations
+
+--------------------------------------------------------------------------------
+
 Version 345:
 
 * Warning & typo fixes.
