@@ -23,6 +23,7 @@
 #include <boost/asio/post.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/bind/placeholders.hpp>
+#include <boost/bind/std_placeholders.hpp>
 #include <boost/core/exchange.hpp>
 #include <memory>
 #include <string>

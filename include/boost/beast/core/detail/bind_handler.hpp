@@ -20,6 +20,7 @@
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/mp11/integer_sequence.hpp>
+#include <boost/bind/std_placeholders.hpp>
 #include <boost/is_placeholder.hpp>
 #include <functional>
 #include <type_traits>
@@ -64,21 +65,6 @@ class bind_wrapper
     {
         boost::ignore_unused(vals);
         return std::forward<Arg>(arg);
-    }
-
-    template<class Arg, class Vals>
-    static
-    typename std::enable_if<
-        std::is_placeholder<typename
-            std::decay<Arg>::type>::value != 0,
-        tuple_element<std::is_placeholder<
-            typename std::decay<Arg>::type>::value - 1,
-        Vals>>::type&&
-    extract(Arg&&, Vals&& vals)
-    {
-        return detail::get<std::is_placeholder<
-            typename std::decay<Arg>::type>::value - 1>(
-                std::forward<Vals>(vals));
     }
 
     template<class Arg, class Vals>
