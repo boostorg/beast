@@ -17,7 +17,7 @@ While
 general logical operations, the websocket stream has a more sophisticated timeout
 mechanism built-in which may be enabled and configured. The timeout features
 of the TCP or basic stream should not be used when working with a websocket
-stream. The interface to these timeout features is show in this table.
+stream. The interface to these timeout features is shown in this table.
 
 [table WebSocket Timeout Interface
 [[Name][Description]]
