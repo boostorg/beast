@@ -20,6 +20,7 @@
 #include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/mp11/integer_sequence.hpp>
+#include <boost/bind/std_placeholders.hpp>
 #include <boost/is_placeholder.hpp>
 #include <functional>
 #include <type_traits>
@@ -85,7 +86,9 @@ class bind_wrapper
     static
     typename std::enable_if<
         boost::is_placeholder<typename
-            std::decay<Arg>::type>::value != 0,
+            std::decay<Arg>::type>::value != 0 &&
+        std::is_placeholder<typename
+            std::decay<Arg>::type>::value == 0,
         tuple_element<boost::is_placeholder<
             typename std::decay<Arg>::type>::value - 1,
         Vals>>::type&&
