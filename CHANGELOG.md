@@ -1,3 +1,11 @@
+Version 347:
+
+* `placeholder` ambiguity fix.
+* awaitable server example fix
+* doc updates.
+
+--------------------------------------------------------------------------------
+
 Version 346:
 
 * beast file_body & file support seek
