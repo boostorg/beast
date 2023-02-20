@@ -11,6 +11,23 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.82]
+
+[*Features]
+
+* [issue 2475] Add `error_code`s use source_location
+
+[*Fixes]
+
+* [issue 2602] tcp_stream uses the correct executor of the timer.
+* [issue 2638] `std::placeholders` ambiguity fix.
+
+[*Improvements]
+
+* error_categories use numeric ids
+* `file_body` support seek
+
+
 [heading Boost 1.81]
 
 [*Features]
