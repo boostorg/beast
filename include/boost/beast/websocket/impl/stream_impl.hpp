@@ -155,6 +155,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
     {
         // VFALCO TODO analyze and remove dupe code in reset()
         timer.expires_at(never());
+        idle_counter = 0;
         timed_out = false;
         cr.code = close_code::none;
         role = role_;
@@ -192,6 +193,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
     {
         BOOST_ASSERT(status_ != status::open);
         timer.expires_at(never());
+        idle_counter = 0;
         cr.code = close_code::none;
         rd_remain = 0;
         rd_cont = false;

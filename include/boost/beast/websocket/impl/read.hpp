@@ -196,6 +196,7 @@ public:
                     }
                     BOOST_ASSERT(impl.rd_block.is_locked(this));
                     impl.rd_buf.commit(bytes_transferred);
+                    if (bytes_transferred) impl.update_timer(this->get_executor());
                     if(impl.check_stop_now(ec))
                         goto upcall;
                     impl.reset_idle();
