@@ -44,7 +44,7 @@ def main(ctx):
         ],
         # Standards
         '>=11',
-        docs=False, ubsan=False
+        docs=False, ubsan=False, cache_dir='cache'
 )
 
   alljobs.extend(generatedjobs)
@@ -52,5 +52,4 @@ def main(ctx):
   return alljobs
 
 # from https://github.com/boostorg/boost-ci
-load("@boost_ci//ci/drone/:functions.star", "linux_cxx","windows_cxx","osx_cxx","freebsd_cxx")
-load("@url//:.drone.star", "generate")
+load("@ci_automation//ci/drone/:functions.star", "linux_cxx","windows_cxx","osx_cxx","freebsd_cxx", "generate")
