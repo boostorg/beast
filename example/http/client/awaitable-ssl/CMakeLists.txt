@@ -22,4 +22,4 @@ target_link_libraries(http-client-awaitable-ssl
     lib-asio-ssl
     lib-beast)
 
-set_property(TARGET http-client-awaitable PROPERTY FOLDER "example-http-client")
+set_property(TARGET http-client-awaitable-ssl PROPERTY FOLDER "example-http-client")
