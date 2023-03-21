@@ -386,6 +386,7 @@ public:
             net::io_context ioc;
             test::stream ts{ioc,
                 "GET / HTTP/1.1\r\n\r\n"};
+            ts.close(); // make sure the read completes
             BEAST_EXPECT(handler::count() == 0);
             multi_buffer b;
             request<dynamic_body> m;
