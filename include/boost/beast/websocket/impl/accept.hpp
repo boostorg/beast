@@ -145,7 +145,7 @@ build_response(
     res.result(http::status::switching_protocols);
     res.version(req.version());
     res.set(http::field::upgrade, "websocket");
-    res.set(http::field::connection, "upgrade");
+    res.set(http::field::connection, "Upgrade");
     {
         detail::sec_ws_accept_type acc;
         detail::make_sec_ws_accept(acc, key);

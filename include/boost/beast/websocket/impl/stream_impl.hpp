@@ -632,7 +632,7 @@ build_request(
     req.method(http::verb::get);
     req.set(http::field::host, host);
     req.set(http::field::upgrade, "websocket");
-    req.set(http::field::connection, "upgrade");
+    req.set(http::field::connection, "Upgrade");
     detail::make_sec_ws_key(key);
     req.set(http::field::sec_websocket_key, to_string_view(key));
     req.set(http::field::sec_websocket_version, "13");
