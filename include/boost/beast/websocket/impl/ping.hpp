@@ -17,6 +17,7 @@
 #include <boost/beast/websocket/detail/frame.hpp>
 #include <boost/beast/websocket/impl/stream_impl.hpp>
 #include <boost/asio/coroutine.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
@@ -99,7 +100,8 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_ping"));
 
-                    net::post(sp->stream().get_executor(), std::move(*this));
+                    const auto ex = this->get_immediate_executor();
+                    net::dispatch(ex, std::move(*this));
                 }
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
             }

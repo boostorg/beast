@@ -23,7 +23,6 @@
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/post.hpp>
 #include <boost/assert.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
