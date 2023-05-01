@@ -16,6 +16,7 @@
 #include <boost/beast/http/detail/type_traits.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
+#include <cstdint>
 #include <type_traits>
 #include <utility>
 

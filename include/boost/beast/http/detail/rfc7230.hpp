@@ -11,6 +11,7 @@
 #define BOOST_BEAST_HTTP_DETAIL_RFC7230_HPP
 
 #include <boost/beast/core/string.hpp>
+#include <cstdint>
 #include <iterator>
 #include <utility>
 

@@ -13,6 +13,7 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/type_traits/make_void.hpp>
+#include <cstdint>
 #include <type_traits>
 
 namespace boost {

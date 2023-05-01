@@ -19,6 +19,7 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <boost/assert.hpp>
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <type_traits>
