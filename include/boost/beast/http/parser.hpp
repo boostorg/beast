@@ -16,6 +16,7 @@
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <type_traits>
