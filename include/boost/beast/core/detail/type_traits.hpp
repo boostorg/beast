@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_DETAIL_TYPE_TRAITS_HPP
 #define BOOST_BEAST_DETAIL_TYPE_TRAITS_HPP
 
+#include <boost/type_traits/aligned_storage.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <type_traits>
 #include <new>
@@ -56,16 +57,6 @@ using make_void = boost::make_void<Ts...>;
 template<class... Ts>
 using void_t = boost::void_t<Ts...>;
 
-// deprecated in C++23
-template<std::size_t Len, std::size_t Align>
-struct aligned_storage
-{
-    struct type
-    {
-        alignas(Align) unsigned char data[Len];
-    };
-};
-
 // (since C++11) missing from g++4.8
 template<std::size_t Len, class... Ts>
 struct aligned_union
@@ -74,7 +65,7 @@ struct aligned_union
     std::size_t constexpr alignment_value =
         max_alignof<Ts...>();
 
-    using type = typename aligned_storage<
+    using type = typename boost::aligned_storage<
         (Len > max_sizeof<Ts...>()) ? Len : (max_sizeof<Ts...>()),
             alignment_value>::type;
 };

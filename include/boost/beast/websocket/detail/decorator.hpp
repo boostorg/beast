@@ -10,9 +10,9 @@
 #ifndef BOOST_BEAST_WEBSOCKET_DETAIL_DECORATOR_HPP
 #define BOOST_BEAST_WEBSOCKET_DETAIL_DECORATOR_HPP
 
-#include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/core/exchange.hpp>
+#include <boost/type_traits/aligned_storage.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <algorithm>
 #include <memory>
@@ -63,7 +63,7 @@ class decorator
     {
         void* p_;
         void (*fn_)();
-        typename beast::detail::aligned_storage<
+        typename beast::aligned_storage<
             sizeof(exemplar),
             alignof(exemplar)>::type buf_;
     };
