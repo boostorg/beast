@@ -63,7 +63,7 @@ class decorator
     {
         void* p_;
         void (*fn_)();
-        typename beast::aligned_storage<
+        typename boost::aligned_storage<
             sizeof(exemplar),
             alignof(exemplar)>::type buf_;
     };
