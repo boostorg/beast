@@ -673,7 +673,7 @@ public:
         ssl_stream<SyncStream>& stream,
         boost::system::error_code& ec);
 
-    template<class AsyncStream, BOOST_BEAST_ASYNC_TPARAM1 TeardownHandler>
+    template<class AsyncStream, typename TeardownHandler>
     friend
     void
     async_teardown(
@@ -697,7 +697,7 @@ teardown(
 }
 
 template<class AsyncStream,
-        BOOST_BEAST_ASYNC_TPARAM1 TeardownHandler = net::default_completion_token_t<beast::executor_type<AsyncStream>>>
+        typename TeardownHandler = net::default_completion_token_t<beast::executor_type<AsyncStream>>>
 void
 async_teardown(
     boost::beast::role_type role,
