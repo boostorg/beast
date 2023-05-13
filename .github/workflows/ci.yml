@@ -291,8 +291,10 @@ jobs:
                   echo "skipping: ${toolset} ${standard} ${variant}"
                 else
                   echo "running: ${toolset} ${standard} ${variant}"
-                  ./b2 -j3 libs/$LIBRARY/test toolset=${toolset} cxxstd=${standard} variant=${variant}
+                  cd libs/$LIBRARY
+                  ../../b2 -j3 test toolset=${toolset} cxxstd=${standard} variant=${variant}
                   err=$?
+                  cd ../..
                 fi
               done
             done
@@ -456,8 +458,10 @@ jobs:
             for standard in ${standards} ; do
               for address_model in ${address_models} ; do
                 for variant in ${variants} ; do
-                  echo "running: ${toolset} ${standard} ${address_model} ${variant}"
-                  ./b2 -j3 ${{matrix.cxxflags}} libs/$LIBRARY/test toolset=${toolset} cxxstd=${standard} address-model=${address_model} variant=${variant} || exit $?
+                  cd libs/$LIBRARY/test
+                  echo "running: ${toolset} ${standard} ${address_model} ${variant} in $(pwd)"
+                  ../../../b2 -j3 ${{matrix.cxxflags}} toolset=${toolset} cxxstd=${standard} address-model=${address_model} variant=${variant} || exit $?
+                  cd ../../..
                 done
               done
             done
