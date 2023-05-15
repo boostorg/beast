@@ -12,6 +12,7 @@
 
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/core/exchange.hpp>
+#include <boost/type_traits/aligned_storage.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <algorithm>
 #include <memory>
@@ -62,7 +63,7 @@ class decorator
     {
         void* p_;
         void (*fn_)();
-        typename std::aligned_storage<
+        typename boost::aligned_storage<
             sizeof(exemplar),
             alignof(exemplar)>::type buf_;
     };

@@ -10,6 +10,7 @@
 #ifndef BOOST_BEAST_DETAIL_TYPE_TRAITS_HPP
 #define BOOST_BEAST_DETAIL_TYPE_TRAITS_HPP
 
+#include <boost/type_traits/aligned_storage.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <type_traits>
 #include <new>
@@ -64,7 +65,7 @@ struct aligned_union
     std::size_t constexpr alignment_value =
         max_alignof<Ts...>();
 
-    using type = typename std::aligned_storage<
+    using type = typename boost::aligned_storage<
         (Len > max_sizeof<Ts...>()) ? Len : (max_sizeof<Ts...>()),
             alignment_value>::type;
 };
