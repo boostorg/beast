@@ -235,7 +235,7 @@ customized by the caller, a completion handler defaults to using
 
 The function 
 [@boost:/doc/html/boost_asio/reference/bind_allocator.html `net::bind_allocator`]
-can be used whent he caller wants to assign a custom allocator to the operation.
+can be used when he caller wants to assign a custom allocator to the operation.
 
 
 A completion token's associated cancellation_slot can be used to cancel single 
@@ -314,7 +314,7 @@ providing a customizable means for transforming the signature of the initiating
 function to use other types of objects and methods in place of a completion
 handler callback. For example to call to write a string to a socket
 asynchronously, using a `std::future` to receive the number of bytes transferred
-thusly looks like this:
+thus looks like this:
 
 [code_core_1_refresher_4s]
 
@@ -350,7 +350,7 @@ The type of the function's return value is determined by the
 customization point, which comes with specializations for common library
 types such as `std::future` and may also be specialized for user-defined
 types. The body of the initiating function calls the
-[@boost:/doc/html/boost_asio/reference/async_inititate.html `net::async_initiate`]
+[@boost:/doc/html/boost_asio/reference/async_initiate.html `net::async_initiate`]
 helper to capture the arguments and forward them to the specialization of
 `async_result`. An additional "initiation function" object is provided which
 `async_result` may use to immediately launch the operation, or defer the launch
