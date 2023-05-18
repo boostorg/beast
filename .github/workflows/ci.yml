@@ -284,6 +284,7 @@ jobs:
           standards=$(sed 's/,/ /g' <<<"${{matrix.cxxstd}}")
           variants="debug release"
           err=0
+          cd libs/$LIBRARY
           for toolset in ${toolsets} ; do
             for standard in ${standards} ; do
               for variant in ${variants} ; do
@@ -291,7 +292,7 @@ jobs:
                   echo "skipping: ${toolset} ${standard} ${variant}"
                 else
                   echo "running: ${toolset} ${standard} ${variant}"
-                  ./b2 -j3 libs/$LIBRARY/test toolset=${toolset} cxxstd=${standard} variant=${variant}
+                  ../../b2 -j3 test toolset=${toolset} cxxstd=${standard} variant=${variant}
                   err=$?
                 fi
               done
@@ -400,19 +401,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
       - name: Setup OpenSSL
+        env:
+          OPENSSL_ROOT: "C:\\OpenSSL"
         shell: cmd
         run: |
           echo Install choco
           powershell -Command iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
           if "${{matrix.addrmd}}" == "64" (
             choco install --no-progress -y openssl --x64
-            mklink /D "C:\\OpenSSL" "C:\\Program Files\\OpenSSL-Win64"
+            mklink /D %OPENSSL_ROOT% "C:\\Program Files\\OpenSSL"
+            refreshenv
           ) else (
             choco install --no-progress -y openssl --x86
-            mklink /D "C:\\OpenSSL" "C:\\Program Files (x86)\\OpenSSL-Win32"
+            mklink /D %OPENSSL_ROOT% "C:\\Program Files (x86)\\OpenSSL-Win32"
+            refreshenv
           )
+          set
 
       - name: Setup Boost
         shell: cmd
@@ -440,10 +445,12 @@ jobs:
 
       - name: Run tests
         shell: bash
+        env:
+          OPENSSL_ROOT: "C:/OpenSSL"
         run: |
           echo "current directory: $(pwd)"
           cd ../boost-root
-          export OPENSSL_ROOT="C:\\OpenSSL"
+          export OPENSSL_ROOT="C:/OpenSSL"
           if [[ "${{matrix.supported}}" != "true" ]] ; then
             echo "This configuration is not supported because ${{matrix.supported}}"
             exit 0
@@ -452,12 +459,13 @@ jobs:
           standards=$(sed 's/,/ /g' <<<"${{matrix.cxxstd}}")
           address_models=$(sed 's/,/ /g' <<<"${{matrix.addrmd}}")
           variants="debug release"
+          cd libs/$LIBRARY
           for toolset in ${toolsets} ; do
             for standard in ${standards} ; do
               for address_model in ${address_models} ; do
                 for variant in ${variants} ; do
                   echo "running: ${toolset} ${standard} ${address_model} ${variant}"
-                  ./b2 -j3 ${{matrix.cxxflags}} libs/$LIBRARY/test toolset=${toolset} cxxstd=${standard} address-model=${address_model} variant=${variant} || exit $?
+                  ../../b2 -j3 ${{matrix.cxxflags}} test toolset=${toolset} cxxstd=${standard} address-model=${address_model} variant=${variant} || exit $?
                 done
               done
             done
