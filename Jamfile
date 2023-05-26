@@ -105,18 +105,25 @@ lib lib-asio
         $(defines)
     ;
 
+if [ os.name ] = LINUX
+{
+  lib dl ;
+}
+
 lib lib-asio-ssl
     : test/lib_asio_ssl.cpp
     : requirements
         <link>static
         $(defines)
-        [ ac.check-library /openssl//ssl : <library>/openssl//ssl/<link>shared : <build>no ]
+        [ ac.check-library /openssl//ssl    : <library>/openssl//ssl/<link>shared : <build>no ]
         [ ac.check-library /openssl//crypto : <library>/openssl//crypto/<link>shared : <build>no ]
     : usage-requirements
         $(defines)
-        [ ac.check-library /openssl//ssl : <library>/openssl//ssl/<link>shared : <build>no ]
-        [ ac.check-library /openssl//crypto : <library>/openssl//crypto/<link>shared : <build>no ]
+        <library>/openssl//ssl/<link>shared
+        <library>/openssl//crypto/<link>shared
+        <target-os>linux:<library>dl
     ;
+
 
 lib lib-beast
     : test/lib_beast.cpp
