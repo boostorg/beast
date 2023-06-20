@@ -166,6 +166,8 @@ public:
                             cancel_counter++;
 
                         BEAST_EXPECTS(ec == net::error::operation_aborted
+                                    // freebsd does this in tests.
+                                    || ec == net::error::connection_reset
                                     || ec == net::error::broken_pipe
                                      // winapi WSAECONNRESET, as system_category
                                     || ec == error_code(10054, boost::system::system_category())
