@@ -116,8 +116,10 @@ struct stream_base
             An outstanding read operation must be pending, which will
             complete immediately the error @ref beast::error::timeout.
 
-            @li When `keep_alive_pings` is `false`, the connection will be closed.
-            An outstanding read operation must be pending, which will
+            @li When `keep_alive_pings` is `false`, the connection will
+            be closed if there has been no activity. Both websocket
+            message frames and control frames count as activity. An
+            outstanding read operation must be pending, which will
             complete immediately the error @ref beast::error::timeout.
         */
         bool keep_alive_pings;

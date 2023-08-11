@@ -88,6 +88,79 @@ public:
                     se.code().message());
             }
         }
+
+        // inactivity timeout doesn't happen when you get pings
+        {
+            echo_server es{log};
+            stream<test::stream> ws{ioc_};
+
+            // We have an inactivity timeout of 2s, but don't send pings
+            ws.set_option(stream_base::timeout{
+                stream_base::none(),
+                std::chrono::milliseconds(2000),
+                false
+            });
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            flat_buffer b;
+            bool got_timeout = false;
+            ws.async_read(b,
+                [&](error_code ec, std::size_t)
+                {
+                    if(ec != beast::error::timeout)
+                        BOOST_THROW_EXCEPTION(
+                            system_error{ec});
+                    got_timeout = true;
+                });
+            // We are connected, base state
+            BEAST_EXPECT(ws.impl_->idle_counter == 0);
+
+            test::run_for(ioc_, std::chrono::milliseconds(1250));
+            // After 1.25s idle, no timeout but idle counter is 1
+            BEAST_EXPECT(ws.impl_->idle_counter == 1);
+
+            es.async_ping();
+            test::run_for(ioc_, std::chrono::milliseconds(500));
+            // The server sent a ping at 1.25s mark, and we're now at 1.75s mark.
+            // We haven't hit the idle timer yet (happens at 1s, 2s, 3s)
+            BEAST_EXPECT(ws.impl_->idle_counter == 0);
+            BEAST_EXPECT(!got_timeout);
+
+            test::run_for(ioc_, std::chrono::milliseconds(750));
+            // At 2.5s total; should have triggered the idle timer
+            BEAST_EXPECT(ws.impl_->idle_counter == 1);
+            BEAST_EXPECT(!got_timeout);
+
+            test::run_for(ioc_, std::chrono::milliseconds(750));
+            // At 3s total; should have triggered the idle timer again without
+            // activity and triggered timeout.
+            BEAST_EXPECT(got_timeout);
+        }
+
+        // inactivity timeout doesn't happen when you send pings
+        {
+            echo_server es{log};
+            stream<test::stream> ws{ioc_};
+            ws.set_option(stream_base::timeout{
+                stream_base::none(),
+                std::chrono::milliseconds(600),
+                true
+            });
+            unsigned n_pongs = 0;
+            ws.control_callback({[&](frame_type kind, string_view)
+                {
+                    if (kind == frame_type::pong)
+                        ++n_pongs;
+                }});
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            flat_buffer b;
+            ws.async_read(b, test::fail_handler(asio::error::operation_aborted));
+            // We are connected, base state
+            test::run_for(ioc_, std::chrono::seconds(1));
+            // About a second later, we should have close to 5 pings/pongs, and no timeout
+            BEAST_EXPECTS(2 <= n_pongs && n_pongs <= 3, "Unexpected nr of pings: " + std::to_string(n_pongs));
+        }
     }
 
     void
