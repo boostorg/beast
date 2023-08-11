@@ -59,8 +59,8 @@ There are three timeout settings which may be set independently on the stream:
     [[link beast.ref.boost__beast__websocket__stream_base__timeout.idle_timeout `timeout::idle_timeout`]]
     [`duration`]
     [
-        If no data is received from the peer for a time equal to the idle
-        timeout, then the connection will time out.
+        If no data or control frames are received from the peer for a time
+        equal to the idle timeout, then the connection will time out.
         The value returned by
         [link beast.ref.boost__beast__websocket__stream_base.none `stream_base::none()`]
         may be assigned to disable this timeout.

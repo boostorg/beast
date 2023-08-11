@@ -135,6 +135,12 @@ public:
         }
 
         void
+        async_ping()
+        {
+            ws_.async_ping("", [](error_code){});
+        }
+
+        void
         async_close()
         {
             net::post(ioc_,
