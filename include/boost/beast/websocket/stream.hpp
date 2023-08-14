@@ -1762,13 +1762,13 @@ public:
         so that only closing it is guaranteed to succeed.
     */
     template<
-        BOOST_BEAST_ASYNC_TPARAM1 WriteHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 PingHandler =
             net::default_completion_token_t<executor_type>
     >
-    BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
+    BOOST_BEAST_ASYNC_RESULT1(PingHandler)
     async_ping(
         ping_data const& payload,
-        WriteHandler&& handler =
+        PingHandler&& handler =
             net::default_completion_token_t<
                 executor_type>{});
 
@@ -1885,13 +1885,13 @@ public:
         so that only closing it is guaranteed to succeed.
     */
     template<
-        BOOST_BEAST_ASYNC_TPARAM1 WriteHandler =
+        BOOST_BEAST_ASYNC_TPARAM1 PongHandler =
             net::default_completion_token_t<executor_type>
     >
-    BOOST_BEAST_ASYNC_RESULT1(WriteHandler)
+    BOOST_BEAST_ASYNC_RESULT1(PongHandler)
     async_pong(
         ping_data const& payload,
-        WriteHandler&& handler =
+        PongHandler&& handler =
             net::default_completion_token_t<
                 executor_type>{});
 
