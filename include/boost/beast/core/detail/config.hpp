@@ -41,8 +41,8 @@ namespace net = boost::asio;
 # endif
 
 #elif defined(BOOST_GCC)
-# if(BOOST_GCC < 40801)
-#  error Beast requires C++11: gcc version 4.8 or later needed
+# if(BOOST_GCC < 50000)
+#  error Beast requires C++11: gcc version 5 or later needed
 # endif
 
 #else

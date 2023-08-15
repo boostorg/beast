@@ -30,7 +30,7 @@ def main(ctx):
 
   generatedjobs = generate(
         # Compilers
-        ['gcc >=4.8',
+        ['gcc >=5.0',
          'clang >=3.8',
          # 'msvc >=14.1',
          'arm64-gcc latest',
