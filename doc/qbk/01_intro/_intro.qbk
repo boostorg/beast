@@ -60,7 +60,7 @@ Beast requires:
 * [*Boost:] Beast only works with Boost, not stand-alone Asio
 * [*OpenSSL:] Version 1.0.2 or higher. Required to build the tests, examples, and to use TLS/Secure sockets.
 
-Tested with these compilers: msvc-14+, gcc 4.8.4+, clang 3.6+.
+Tested with these compilers: msvc-14+, gcc 5.0+, clang 3.6+.
 
 Sources are [*header-only]. Adding additional libraries to the
 linking step for your programs to use Beast is normally not
