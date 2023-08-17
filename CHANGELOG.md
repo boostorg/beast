@@ -1,3 +1,13 @@
+Version 348:
+
+* multiple CI fixes
+* jamfile uses openssl.jam
+* websocket uses upper case Upgrade for connection field
+* ssl_stream does not use BOOST_BEAST_ASYNC_TPARAM1 because of clang-16
+* doc updates
+
+--------------------------------------------------------------------------------
+
 Version 347:
 
 * `placeholder` ambiguity fix.

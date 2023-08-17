@@ -37,7 +37,9 @@ project /boost/beast/test
     <boost.beast.separate-compilation>on:<library>/boost/beast//lib-beast/<link>static
     <library>/boost/filesystem//boost_filesystem
     <library>/boost/context//boost_context
-    ;
+    <address-sanitizer>norecover:<context-impl>ucontext
+    <address-sanitizer>norecover:<define>BOOST_USE_ASAN=1
+  ;
 
 path-constant ZLIB_SOURCES :
     extern/zlib-1.2.12/adler32.c

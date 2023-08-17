@@ -102,11 +102,11 @@ class message_generator_test : public beast::unit_test::suite
 
     // only rvalue refs
     BOOST_STATIC_ASSERT(
-        not std::is_constructible<
+        ! std::is_constructible<
             message_generator,
             message<true, string_body>&>::value);
     BOOST_STATIC_ASSERT(
-        not std::is_constructible<
+        ! std::is_constructible<
             message_generator,
             message<true, string_body> const&>::value);
 

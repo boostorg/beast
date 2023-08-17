@@ -180,7 +180,7 @@ Note that copies always requires a new call to `data` and `prepare`.`
 ]
 [
     [[link beast.ref.boost__beast__multi_buffer `multi_buffer`]]
-    [dynamic] [dynamic] [stable] [yesy] [invalidating]
+    [dynamic] [dynamic] [stable] [yes] [invalidating]
 ]
 [
     [[link beast.ref.boost__beast__flat_static_buffer `flat_static_buffer`]]

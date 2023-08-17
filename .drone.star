@@ -44,7 +44,7 @@ def main(ctx):
         ],
         # Standards
         '>=11',
-        docs=False, ubsan=False, cache_dir='cache'
+        docs=False, ubsan=False, asan=False, cache_dir='cache'
 )
 
   alljobs.extend(generatedjobs)

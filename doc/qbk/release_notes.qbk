@@ -11,6 +11,15 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.83]
+
+[*Fixes]
+
+* [issue 2680] aligned_storage unused for C+23
+* [issue 2653] MSVC literal `not` error
+* [issue 2661] ssl_stream ambiguity error on clang
+* [issue 2649] Jamefile uses openssl.jam
+
 [heading Boost 1.82]
 
 [*Features]

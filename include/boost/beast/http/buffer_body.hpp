@@ -16,6 +16,8 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/type_traits.hpp>
 #include <boost/optional.hpp>
+
+#include <cstdint>
 #include <type_traits>
 #include <utility>
 

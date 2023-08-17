@@ -16,6 +16,7 @@ import modules ;
 import testing ;
 import ../config/checks/config : requires ;
 
+using openssl ;
 boost.use-project ;
 
 lib socket ; # SOLARIS, QNXNTO
@@ -24,54 +25,6 @@ lib ws2_32 ; # NT
 lib mswsock ; # NT
 lib ipv6 ; # HPUX
 lib network ; # HAIKU
-
-lib ssl ;
-lib crypto ;
-lib crypt32 ;
-
-# Microsoft Windows section. Refer to FAQ "Windows and OpenSSL"
-if [ os.name ] = NT
-{
-  local OPENSSL_ROOT_DEFAULT = "C:/OpenSSL" ;
-  local OPENSSL_ROOT_ENV = [ os.environ OPENSSL_ROOT ] ;
-  local OPENSSL_ROOT = "" ;
-  if $(OPENSSL_ROOT_ENV)
-    {
-       OPENSSL_ROOT = $(OPENSSL_ROOT_ENV) ;
-    }
-  else 
-    {
-      OPENSSL_ROOT = $(OPENSSL_ROOT_DEFAULT) ;
-    }
-  project
-    : requirements
-      <include>$(OPENSSL_ROOT)/include
-      <variant>debug:<library-path>$(OPENSSL_ROOT)/lib
-      <target-os>windows<variant>debug:<library-path>$(OPENSSL_ROOT)/debug/lib
-      <variant>release:<library-path>$(OPENSSL_ROOT)/lib
-    ;
-
-  if [ path.exists $(OPENSSL_ROOT)/lib/libssl.lib ]
-    {
-      echo "OpenSSL > 1.1.0. Including libssl" ;
-      lib ssl : : <target-os>windows <name>libssl ;
-    }
-  if [ path.exists $(OPENSSL_ROOT)/lib/libcrypto.lib ]
-    {
-      echo "OpenSSL > 1.1.0. Including libcrypto" ;
-      lib crypto : : <target-os>windows <name>libcrypto ;
-    }
-  if [ path.exists $(OPENSSL_ROOT)/lib/ssleay32.lib ]
-    {
-      echo "OpenSSL < 1.1.0. Including ssleay32" ;
-      lib ssl : : <target-os>windows <name>ssleay32 ;
-    }
-  if [ path.exists $(OPENSSL_ROOT)/lib/libeay32.lib ]
-    {
-      echo "OpenSSL < 1.1.0. Including libeay32" ;
-      lib crypto : : <target-os>windows <name>libeay32 ;
-    }
-}
 
 feature.feature boost.beast.allow-deprecated : on off : propagated composite ;
 feature.compose <boost.beast.allow-deprecated>on : <define>BOOST_BEAST_ALLOW_DEPRECATED ;
@@ -152,16 +105,25 @@ lib lib-asio
         $(defines)
     ;
 
+if [ os.name ] = LINUX
+{
+  lib dl ;
+}
+
 lib lib-asio-ssl
     : test/lib_asio_ssl.cpp
     : requirements
         <link>static
         $(defines)
-        [ ac.check-library /boost/beast//ssl : <library>/boost/beast//ssl/<link>shared : <build>no ]
-        [ ac.check-library /boost/beast//crypto : <library>/boost/beast//crypto/<link>shared : <build>no ]
+        [ ac.check-library /openssl//ssl    : <library>/openssl//ssl/<link>shared : <build>no ]
+        [ ac.check-library /openssl//crypto : <library>/openssl//crypto/<link>shared : <build>no ]
     : usage-requirements
         $(defines)
+        <library>/openssl//ssl/<link>shared
+        <library>/openssl//crypto/<link>shared
+        <target-os>linux:<library>dl
     ;
+
 
 lib lib-beast
     : test/lib_beast.cpp
