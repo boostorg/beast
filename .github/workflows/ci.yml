@@ -411,14 +411,13 @@ jobs:
           echo Install choco
           powershell -Command iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
           if "${{matrix.addrmd}}" == "64" (
-            set openssl_install_flag=--x64
+            choco install --no-progress -y openssl --x64
           )
           if "${{matrix.addrmd}}" == "32" (
-            set openssl_install_flag=--x86
+            ; as of 17.08.23 openssl 3 doesn't support x86
             set openssl_install_dir="C:\\Program Files (x86)\\OpenSSL-Win32"
+            choco install --no-progress -y openssl --forcex86 --version 1.1.1.2100
           )
-
-          choco install --no-progress -y openssl %openssl_install_flag%
 
           if "${{matrix.addrmd}}" == "64" (
             if exist "C:\Program Files\OpenSSL\" (
