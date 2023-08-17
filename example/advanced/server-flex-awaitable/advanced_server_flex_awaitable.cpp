@@ -944,12 +944,15 @@ template<typename Stream>
 BOOST_ASIO_NODISCARD net::awaitable<void, executor_type>
 run_session(Stream & stream, beast::flat_buffer & buffer, const std::shared_ptr<std::string const> & doc_root)
 {
-    http::request_parser<http::string_body> parser;
+    // a new parser must be used for every message
+    // so we use an optional to reconstruct it every time.
+    std::optional<http::request_parser<http::string_body>> parser;
+    parser.emplace();
     // Apply a reasonable limit to the allowed size
     // of the body in bytes to prevent abuse.
-    parser.body_limit(10000);
+    parser->body_limit(10000);
 
-    auto [ec, bytes_transferred] = co_await http::async_read(stream, buffer, parser);
+    auto [ec, bytes_transferred] = co_await http::async_read(stream, buffer, *parser);
 
     if(ec == http::error::end_of_stream)
         co_await do_eof(stream);
@@ -964,20 +967,20 @@ run_session(Stream & stream, beast::flat_buffer & buffer, const std::shared_ptr<
          cs.cancelled() == net::cancellation_type::none;
          cs = co_await net::this_coro::cancellation_state)
     {
-        if(websocket::is_upgrade(parser.get()))
+        if(websocket::is_upgrade(parser->get()))
         {
             // Disable the timeout.
             // The websocket::stream uses its own timeout settings.
             beast::get_lowest_layer(stream).expires_never();
 
-            co_await run_websocket_session(stream, buffer, parser.release(), doc_root);
+            co_await run_websocket_session(stream, buffer, parser->release(), doc_root);
             co_return ;
         }
 
         // we follow a different strategy then the other example: instead of queue responses,
         // we always to one read & write in parallel.
 
-        auto res = handle_request(*doc_root, parser.release());
+        auto res = handle_request(*doc_root, parser->release());
         if (!res.keep_alive())
         {
             http::message_generator msg{std::move(res)};
@@ -987,11 +990,16 @@ run_session(Stream & stream, beast::flat_buffer & buffer, const std::shared_ptr<
             co_return ;
         }
 
+        // we must use a new parser for every async_read
+        parser.reset();
+        parser.emplace();
+        parser->body_limit(10000);
+
         http::message_generator msg{std::move(res)};
 
         auto [_, ec_r, sz_r, ec_w, sz_w ] =
                 co_await net::experimental::make_parallel_group(
-                    http::async_read(stream, buffer, parser, net::deferred),
+                    http::async_read(stream, buffer, *parser, net::deferred),
                     beast::async_write(stream, std::move(msg), net::deferred))
                         .async_wait(net::experimental::wait_for_all(),
                                     net::as_tuple(net::use_awaitable_t<executor_type>{}));
