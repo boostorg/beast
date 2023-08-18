@@ -13,7 +13,7 @@ set -eu
 # it is the name of the branch targeted by the pull request (in many cases this
 # will be master).
 MAIN_BRANCH="0"
-if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "develop" ]]; then
+if [[ $DRONE_BRANCH == "master" || $DRONE_BRANCH == "develop" ]]; then
     MAIN_BRANCH="1"
 fi
 
