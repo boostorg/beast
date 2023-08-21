@@ -412,7 +412,7 @@ public:
         ); @endcode
     */
     template<BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler = net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(HandshakeHandler, void(boost::system::error_code))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(HandshakeHandler, void(boost::system::error_code))
     async_handshake(handshake_type type,
         BOOST_ASIO_MOVE_ARG(HandshakeHandler) handler = net::default_completion_token_t<executor_type>{})
     {
@@ -443,7 +443,7 @@ public:
     */
     template<class ConstBufferSequence,
              BOOST_BEAST_ASYNC_TPARAM2 BufferedHandshakeHandler = net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(BufferedHandshakeHandler, void(boost::system::error_code, std::size_t))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(BufferedHandshakeHandler, void(boost::system::error_code, std::size_t))
     async_handshake(handshake_type type, ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(BufferedHandshakeHandler) handler
             = net::default_completion_token_t<executor_type>{})
@@ -491,7 +491,7 @@ public:
         ); @endcode
     */
     template<BOOST_BEAST_ASYNC_TPARAM1 ShutdownHandler = net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ShutdownHandler, void(boost::system::error_code))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(ShutdownHandler, void(boost::system::error_code))
     async_shutdown(BOOST_ASIO_MOVE_ARG(ShutdownHandler) handler = net::default_completion_token_t<executor_type>{})
     {
         return p_->next_layer().async_shutdown(
@@ -570,7 +570,7 @@ public:
     */
     template<class ConstBufferSequence,
              BOOST_BEAST_ASYNC_TPARAM2 WriteHandler = net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler, void(boost::system::error_code, std::size_t))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(WriteHandler, void(boost::system::error_code, std::size_t))
     async_write_some(ConstBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(WriteHandler) handler= net::default_completion_token_t<executor_type>{})
     {
@@ -652,7 +652,7 @@ public:
     */
     template<class MutableBufferSequence,
              BOOST_BEAST_ASYNC_TPARAM2 ReadHandler = net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void(boost::system::error_code, std::size_t))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(ReadHandler, void(boost::system::error_code, std::size_t))
     async_read_some(MutableBufferSequence const& buffers,
         BOOST_ASIO_MOVE_ARG(ReadHandler) handler
             = net::default_completion_token_t<executor_type>{})

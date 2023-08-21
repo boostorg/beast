@@ -23,6 +23,7 @@ add_executable (tests-beast-http
     basic_parser.cpp
     buffer_body.cpp
     chunk_encode.cpp
+    deferred.cpp
     dynamic_body.cpp
     empty_body.cpp
     error.cpp

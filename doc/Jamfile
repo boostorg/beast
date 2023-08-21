@@ -41,7 +41,7 @@ docca.reference reference.qbk
             \"BOOST_BEAST_ASYNC_RESULT2(t)=__deduced__\" \\
             \"BOOST_BEAST_ASYNC_TPARAM1=class\" \\
             \"BOOST_BEAST_ASYNC_TPARAM2=class\" \\
-            \"BOOST_ASIO_INITFN_RESULT_TYPE(t,a)=__deduced__\" \\
+            \"BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(t,a)=__deduced__\" \\
             \"BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(e)= =__deduced__\" \\
             \"BOOST_ASIO_COMPLETION_TOKEN_FOR(sig)=class\" \\
             GENERATING_DOCUMENTATION \\
