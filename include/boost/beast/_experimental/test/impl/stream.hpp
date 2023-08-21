@@ -31,11 +31,6 @@ template<class Executor>
 template<class Handler, class Buffers>
 class basic_stream<Executor>::read_op : public detail::stream_read_op_base
 {
-    using ex1_type =
-        executor_type;
-    using ex2_type
-        = net::associated_executor_t<Handler, ex1_type>;
-
     struct lambda
     {
         Handler h_;
@@ -44,7 +39,8 @@ class basic_stream<Executor>::read_op : public detail::stream_read_op_base
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
         net::any_io_executor wg2_;
 #else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
-        net::executor_work_guard<ex2_type> wg2_;
+        net::executor_work_guard<
+            net::associated_executor_t<Handler, net::any_io_executor>> wg2_;
 #endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
 
         lambda(lambda&&) = default;
@@ -330,7 +326,7 @@ read_some(MutableBufferSequence const& buffers,
 template<class Executor>
 template<class MutableBufferSequence,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, std::size_t)) ReadHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void(error_code, std::size_t))
+BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(ReadHandler, void(error_code, std::size_t))
 basic_stream<Executor>::
 async_read_some(
     MutableBufferSequence const& buffers,
@@ -414,7 +410,7 @@ write_some(
 template<class Executor>
 template<class ConstBufferSequence,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, std::size_t)) WriteHandler>
-BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler, void(error_code, std::size_t))
+BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(WriteHandler, void(error_code, std::size_t))
 basic_stream<Executor>::
 async_write_some(
     ConstBufferSequence const& buffers,

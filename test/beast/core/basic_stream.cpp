@@ -1298,7 +1298,7 @@ public:
                 resolve_results.begin()->endpoint(),
                 net::use_awaitable))>);
 
-        auto comparison_function = [](error_code&, net::ip::tcp::endpoint) { return true; };
+        auto comparison_function = [](error_code const&, net::ip::tcp::endpoint) { return true; };
 
         static_assert(std::is_same_v<
             net::awaitable<net::ip::tcp::resolver::results_type::const_iterator>, decltype(

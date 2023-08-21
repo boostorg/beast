@@ -15,6 +15,7 @@ local SOURCES =
     accept.cpp
     cancel.cpp
     close.cpp
+    deferred.cpp
     error.cpp
     frame.cpp
     handshake.cpp

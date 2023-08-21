@@ -468,7 +468,7 @@ public:
         class MutableBufferSequence,
         BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, std::size_t)) ReadHandler
             BOOST_ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
-    BOOST_ASIO_INITFN_RESULT_TYPE(ReadHandler, void(error_code, std::size_t))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(ReadHandler, void(error_code, std::size_t))
     async_read_some(
         MutableBufferSequence const& buffers,
         ReadHandler&& handler BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type));
@@ -547,7 +547,7 @@ public:
         class ConstBufferSequence,
         BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, std::size_t)) WriteHandler
             BOOST_ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
-    BOOST_ASIO_INITFN_RESULT_TYPE(WriteHandler, void(error_code, std::size_t))
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(WriteHandler, void(error_code, std::size_t))
     async_write_some(
         ConstBufferSequence const& buffers,
         WriteHandler&& handler BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(executor_type)

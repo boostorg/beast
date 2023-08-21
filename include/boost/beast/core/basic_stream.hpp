@@ -1022,7 +1022,7 @@ public:
                 EndpointSequence>::value>::type
     #endif
     >
-    BOOST_ASIO_INITFN_RESULT_TYPE(
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(
         RangeConnectHandler,
         void(error_code, typename Protocol::endpoint))
     async_connect(
@@ -1126,7 +1126,7 @@ public:
                 EndpointSequence>::value>::type
     #endif
     >
-    BOOST_ASIO_INITFN_RESULT_TYPE(
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(
         RangeConnectHandler,
         void(error_code, typename Protocol::endpoint))
     async_connect(
@@ -1195,7 +1195,7 @@ public:
             void(error_code, Iterator))
             IteratorConnectHandler =
                 net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(
         IteratorConnectHandler,
         void(error_code, Iterator))
     async_connect(
@@ -1267,7 +1267,7 @@ public:
             void(error_code, Iterator))
             IteratorConnectHandler =
                 net::default_completion_token_t<executor_type>>
-    BOOST_ASIO_INITFN_RESULT_TYPE(
+    BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(
         IteratorConnectHandler,
         void(error_code, Iterator))
     async_connect(

@@ -24,6 +24,7 @@ add_executable (tests-beast-websocket
     accept.cpp
     cancel.cpp
     close.cpp
+    deferred.cpp
     error.cpp
     frame.cpp
     handshake.cpp
