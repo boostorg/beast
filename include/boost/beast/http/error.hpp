@@ -41,7 +41,7 @@ enum class error
 
         This error is returned during parsing when additional
         octets are needed. The caller should append more data
-        to the existing buffer and retry the parse operaetion.
+        to the existing buffer and retry the parse operation.
     */
     need_more,
 
