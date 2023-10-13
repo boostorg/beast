@@ -156,8 +156,9 @@ write_some(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    Regardless of whether the asynchronous operation completes
-    immediately or not, the handler will not be invoked from within
+    If the handler has an associated immediate executor,
+    an immediate completion will be dispatched to it.
+    Otherwise, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
@@ -295,8 +296,9 @@ write_header(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    Regardless of whether the asynchronous operation completes
-    immediately or not, the handler will not be invoked from within
+    If the handler has an associated immediate executor,
+    an immediate completion will be dispatched to it.
+    Otherwise, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
@@ -431,8 +433,9 @@ write(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    Regardless of whether the asynchronous operation completes
-    immediately or not, the handler will not be invoked from within
+    If the handler has an associated immediate executor,
+    an immediate completion will be dispatched to it.
+    Otherwise, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
@@ -668,8 +671,9 @@ write(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    Regardless of whether the asynchronous operation completes
-    immediately or not, the handler will not be invoked from within
+    If the handler has an associated immediate executor,
+    an immediate completion will be dispatched to it.
+    Otherwise, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 
@@ -742,8 +746,9 @@ async_write(
         std::size_t bytes_transferred   // the number of bytes written to the stream
     );
     @endcode
-    Regardless of whether the asynchronous operation completes
-    immediately or not, the handler will not be invoked from within
+    If the handler has an associated immediate executor,
+    an immediate completion will be dispatched to it.
+    Otherwise, the handler will not be invoked from within
     this function. Invocation of the handler will be performed in a
     manner equivalent to using `net::post`.
 

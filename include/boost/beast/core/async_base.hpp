@@ -18,10 +18,12 @@
 #include <boost/beast/core/detail/work_guard.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
+#include <boost/asio/associated_immediate_executor.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/handler_invoke_hook.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/core/empty_value.hpp>
@@ -29,6 +31,7 @@
 
 namespace boost {
 namespace beast {
+
 
 /** Base class to assist writing composed operations.
 
@@ -207,7 +210,25 @@ public:
                 >::type;
 #endif
 
-private:
+    /** The type of the immediate executor associated with this object.
+
+    If a class derived from @ref boost::beast::async_base is a completion
+    handler, then the associated immediage executor of the derived class will
+    be this type.
+*/
+    using immediate_executor_type =
+#if BOOST_BEAST_DOXYGEN
+        __implementation_defined__;
+#else
+        typename
+        net::associated_immediate_executor<
+            Handler,
+            typename detail::select_work_guard_t<Executor1>::executor_type
+                >::type;
+#endif
+
+
+  private:
 
     virtual
     void
@@ -309,15 +330,31 @@ public:
             h_, wg1_.get_executor());
     }
 
-    /** The type of cancellation_slot associated with this object.
+    /** Returns the immediate executor associated with this handler.
+        If the handler has none it returns asios default immediate
+        executor based on the executor of the object.
 
-        If a class derived from @ref async_base is a completion
-        handler, then the associated cancellation_slot of the
-        derived class will be this type.
-
-        The default type is a filtering cancellation slot,
-        that only allows terminal cancellation.
+        If a class derived from @ref boost::beast::async_base is a completion
+        handler, then the object returned from this function will be used
+        as the associated immediate executor of the derived class.
     */
+    immediate_executor_type
+    get_immediate_executor() const noexcept
+    {
+        return net::get_associated_immediate_executor(
+            h_, wg1_.get_executor());
+    }
+
+
+  /** The type of cancellation_slot associated with this object.
+
+      If a class derived from @ref async_base is a completion
+      handler, then the associated cancellation_slot of the
+      derived class will be this type.
+
+      The default type is a filtering cancellation slot,
+      that only allows terminal cancellation.
+  */
     using cancellation_slot_type =
             beast::detail::filtering_cancellation_slot<net::associated_cancellation_slot_t<Handler>>;
 
@@ -373,7 +410,9 @@ public:
         is invoked.
 
         @param is_continuation If this value is `false`, then the
-        handler will be submitted to the executor using `net::post`.
+        handler will be submitted to the to the immediate executor using
+        `net::dispatch`. If the handler has no immediate executor,
+        this will submit to the executor via `net::post`.
         Otherwise the handler will be invoked as if by calling
         @ref boost::beast::async_base::complete_now.
 
@@ -388,14 +427,12 @@ public:
         this->before_invoke_hook();
         if(! is_continuation)
         {
-            auto const ex = get_executor();
-            net::post(
-                wg1_.get_executor(),
-                net::bind_executor(
-                  ex,
-                  beast::bind_front_handler(
-                      std::move(h_),
-                      std::forward<Args>(args)...)));
+            auto const ex = this->get_immediate_executor();
+            net::dispatch(
+                ex,
+                beast::bind_front_handler(
+                    std::move(h_),
+                    std::forward<Args>(args)...));
             wg1_.reset();
         }
         else

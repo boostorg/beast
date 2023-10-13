@@ -931,11 +931,13 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Example
         @code
         ws.async_handshake("localhost", "/",
@@ -1013,11 +1015,13 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Example
         @code
         response_type res;
@@ -1354,11 +1358,13 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @see
         @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
@@ -1421,11 +1427,13 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @see
         @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
@@ -1486,11 +1494,13 @@ public:
             error_code const& ec    // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @see
         @li <a href="https://tools.ietf.org/html/rfc6455#section-4.2">Websocket Opening Handshake Server Requirements (RFC6455)</a>
     */
@@ -1622,11 +1632,13 @@ public:
             error_code const& ec     // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
          @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -1741,11 +1753,13 @@ public:
             error_code const& ec     // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -1864,11 +1878,13 @@ public:
             error_code const& ec     // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -2040,11 +2056,13 @@ public:
             std::size_t bytes_written   // Number of bytes appended to buffer
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -2234,11 +2252,13 @@ public:
             std::size_t bytes_written   // Number of bytes appended to buffer
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -2439,11 +2459,13 @@ public:
             std::size_t bytes_written   // Number of bytes written to the buffers
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
 
         @par Per-Operation Cancellation
 
@@ -2578,11 +2600,13 @@ public:
                                             // this will be less than the buffer_size.
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -2717,11 +2741,13 @@ public:
                                             // this will be less than the buffer_size.
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following

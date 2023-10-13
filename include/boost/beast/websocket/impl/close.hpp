@@ -18,7 +18,7 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/post.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/throw_exception.hpp>
 #include <memory>
 
@@ -106,7 +106,8 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_close"));
 
-                    net::post(sp->stream().get_executor(), std::move(*this));
+                    const auto ex = this->get_immediate_executor();
+                    net::dispatch(ex, std::move(*this));
                 }
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
             }
@@ -167,7 +168,8 @@ public:
                         __FILE__, __LINE__,
                         "websocket::async_close"));
 
-                    net::post(sp->stream().get_executor(), std::move(*this));
+                    const auto ex = this->get_immediate_executor();
+                    net::dispatch(ex, std::move(*this));
                 }
                 BOOST_ASSERT(impl.rd_block.is_locked(this));
                 if(impl.check_stop_now(ec))

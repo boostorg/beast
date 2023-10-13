@@ -928,10 +928,13 @@ public:
             error_code ec         // Result of operation
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
 
         @par Per-Operation Cancellation
 
@@ -993,10 +996,13 @@ public:
             typename Protocol::endpoint const& endpoint
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
 
         @par Per-Operation Cancellation
 
@@ -1079,11 +1085,13 @@ public:
             typename Protocol::endpoint const& endpoint
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Example
         The following connect condition function object can be used to output
         information about the individual connection attempts:
@@ -1173,11 +1181,13 @@ public:
             Iterator iterator
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -1244,11 +1254,13 @@ public:
             Iterator iterator
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -1377,11 +1389,13 @@ public:
             std::size_t bytes_transferred   // Number of bytes read.
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @note The `async_read_some` operation may not receive all of the requested
         number of bytes. Consider using the function `net::async_read` if you need
         to ensure that the requested amount of data is read before the asynchronous
@@ -1511,11 +1525,13 @@ public:
             std::size_t bytes_transferred   // Number of bytes written.
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.
         @note The `async_write_some` operation may not transmit all of the requested
         number of bytes. Consider using the function `net::async_write` if you need
         to ensure that the requested amount of data is sent before the asynchronous

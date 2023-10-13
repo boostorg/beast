@@ -256,11 +256,13 @@ public:
             std::size_t bytes_transferred // number of bytes transferred
         );
         @endcode        
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-    */
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.    */
     template<
         class MutableBufferSequence,
         BOOST_BEAST_ASYNC_TPARAM2 ReadHandler =
@@ -335,11 +337,13 @@ public:
             std::size_t bytes_transferred // number of bytes transferred
         );
         @endcode
-        Regardless of whether the asynchronous operation completes
-        immediately or not, the handler will not be invoked from within
-        this function. Invocation of the handler will be performed in a
-        manner equivalent to using `net::post`.
-    */
+        If the handler has an associated immediate executor,
+        an immediate completion will be dispatched to it.
+        Otherwise, the handler will not be invoked from within
+        this function. Invocation of the handler will be performed
+        by dispatching to the immediate executor. If no
+        immediate executor is specified, this is equivalent
+        to using `net::post`.    */
     template<
         class ConstBufferSequence,
         BOOST_BEAST_ASYNC_TPARAM2 WriteHandler =

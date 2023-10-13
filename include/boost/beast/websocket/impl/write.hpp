@@ -199,7 +199,8 @@ operator()(
                         "websocket::async_write_some"
                     ));
 
-                net::post(sp->stream().get_executor(), std::move(*this));
+                const auto ex = this->get_immediate_executor();
+                net::dispatch(ex, std::move(*this));
             }
             BOOST_ASSERT(impl.wr_block.is_locked(this));
         }
