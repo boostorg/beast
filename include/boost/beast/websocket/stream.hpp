@@ -2683,6 +2683,10 @@ public:
         the @ref binary (or @ref text) option. The actual payload sent
         may be transformed as per the WebSocket protocol settings.
 
+        This function always writes a complete WebSocket frame (not WebSocket
+        message) upon successful completion, so it is well defined to perform
+        ping, pong, and close operations after this operation completes.
+
         @param fin `true` if this is the last part of the message.
 
         @param buffers The buffers containing the message part to send.
@@ -2719,6 +2723,10 @@ public:
         will be set to text or binary based on the current setting of
         the @ref binary (or @ref text) option. The actual payload sent
         may be transformed as per the WebSocket protocol settings.
+
+        This function always writes a complete WebSocket frame (not WebSocket
+        message) upon successful completion, so it is well defined to perform
+        ping, pong, and close operations in parallel to this operation.
 
         @param fin `true` if this is the last part of the message.
 
