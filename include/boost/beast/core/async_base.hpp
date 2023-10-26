@@ -20,9 +20,7 @@
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/associated_immediate_executor.hpp>
 #include <boost/asio/bind_executor.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/core/exchange.hpp>
@@ -63,11 +61,7 @@ namespace beast {
         shall be maintained until either the final handler is invoked, or the
         operation base is destroyed, whichever comes first.
 
-    @li Calls to the legacy customization points
-        `asio_handler_invoke`,
-        `asio_handler_allocate`,
-        `asio_handler_deallocate`, and
-        `asio_handler_is_continuation`,
+    @li Calls to the legacy customization point `asio_handler_is_continuation`
         which use argument-dependent lookup, will be forwarded to the
         legacy customization points associated with the handler.
 
@@ -506,13 +500,6 @@ public:
         shall be maintained until either the final handler is invoked, or the
         operation base is destroyed, whichever comes first.
 
-    @li Calls to the legacy customization points
-        `asio_handler_invoke`,
-        `asio_handler_allocate`,
-        `asio_handler_deallocate`, and
-        `asio_handler_is_continuation`,
-        which use argument-dependent lookup, will be forwarded to the
-        legacy customization points associated with the handler.
 
     Data members of composed operations implemented as completion handlers
     do not have stable addresses, as the composed operation object is move

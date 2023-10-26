@@ -43,8 +43,6 @@
 
 [/ Networking Identifiers ]
 
-[def __asio_handler_allocate__  [@boost:/doc/html/boost_asio/reference/asio_handler_allocate.html `asio_handler_allocate`]]
-[def __asio_handler_invoke__    [@boost:/doc/html/boost_asio/reference/asio_handler_invoke.html `asio_handler_invoke`]]
 [def __basic_stream_socket__    [@boost:/doc/html/boost_asio/reference/basic_stream_socket.html `basic_stream_socket`]]
 [def __const_buffer__           [@boost:/doc/html/boost_asio/reference/const_buffer.html `const_buffer`]]
 [def __deduced__                [@boost:/doc/html/boost_asio/reference/asynchronous_operations.html#boost_asio.reference.asynchronous_operations.automatic_deduction_of_initiating_function_return_type ['DEDUCED]]]

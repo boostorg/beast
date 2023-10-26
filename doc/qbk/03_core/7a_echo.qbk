@@ -34,7 +34,7 @@ The implementation strategy is to make the composed object meet the
 requirements of a completion handler by being movable, and by making it
 invocable so it can be used as a continuation for the asynchronous operations
 it launches. Rather than using `std::bind` or `boost::bind`, which destroys
-the type information and therefore breaks the allocation and invocation hooks,
+the type information and therefore breaks the associators,
 we will simply pass `std::move(*this)` as the completion handler parameter for
 any operations that we initiate. For the move to work correctly, care must be
 taken to ensure that no access to data members are made after the move takes
