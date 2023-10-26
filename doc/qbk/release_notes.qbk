@@ -196,7 +196,7 @@
 * The API to Asio has undergone changes. Please refer to the Asio release notes for details.
 
 * Beast has been updated to track and respect developer choices in the use of Asio. In particular:
- * Define `BOOST_ASIO_NO_DEPRECATED` to disallow deprecated invocation and allocation hooks.
+ * Define `BOOST_ASIO_NO_DEPRECATED` to disallow deprecated invocation hooks.
  * Define `BOOST_ASIO_NO_TS_EXECUTORS` to ensure that executors conform to the
    [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0443r11.html Standard Executors] proposal.
  * Define `BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT` to select

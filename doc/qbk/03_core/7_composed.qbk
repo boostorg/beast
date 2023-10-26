@@ -50,8 +50,8 @@ composed operations:
     This class is designed to be used as a base class when authoring
     composed asynchronous operations expressed as an intermediate
     completion handler. This eliminates the need for the extensive
-    boilerplate to propagate the associated executor, associated
-    allocator, and legacy completion handler hooks.
+    boilerplate to propagate the associated executor and the associated
+    allocator.
 ]]
 [[
     [link beast.ref.boost__beast__allocate_stable `allocate_stable`]

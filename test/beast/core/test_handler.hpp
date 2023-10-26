@@ -14,9 +14,7 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_executor.hpp>
-#include <boost/asio/handler_alloc_hook.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
-#include <boost/asio/handler_invoke_hook.hpp>
 
 namespace boost {
 namespace beast {
@@ -130,33 +128,6 @@ struct legacy_handler
 #if !defined(BOOST_ASIO_NO_DEPRECATED)
         {
             bool hook_invoked = false;
-            bool lambda_invoked = false;
-            auto h = f(legacy_handler{hook_invoked});
-            using net::asio_handler_invoke;
-            asio_handler_invoke(
-                [&lambda_invoked]
-                {
-                    lambda_invoked =true;
-                }, &h);
-            BEAST_EXPECT(hook_invoked);
-            BEAST_EXPECT(lambda_invoked);
-        }
-        {
-            bool hook_invoked = false;
-            auto h = f(legacy_handler{hook_invoked});
-            using net::asio_handler_allocate;
-            asio_handler_allocate(0, &h);
-            BEAST_EXPECT(hook_invoked);
-        }
-        {
-            bool hook_invoked = false;
-            auto h = f(legacy_handler{hook_invoked});
-            using net::asio_handler_deallocate;
-            asio_handler_deallocate(nullptr, 0, &h);
-            BEAST_EXPECT(hook_invoked);
-        }
-        {
-            bool hook_invoked = false;
             auto h = f(legacy_handler{hook_invoked});
             using net::asio_handler_is_continuation;
             asio_handler_is_continuation(&h);
@@ -167,35 +138,6 @@ struct legacy_handler
 #endif // !defined(BOOST_ASIO_NO_DEPRECATED)
     }
 };
-
-template<class Function>
-void
-asio_handler_invoke(
-    Function&& f,
-    legacy_handler* p)
-{
-    p->hook_invoked = true;
-    f();
-}
-
-inline
-void*
-asio_handler_allocate(
-    std::size_t,
-    legacy_handler* p)
-{
-    p->hook_invoked = true;
-    return nullptr;
-}
-
-inline
-void
-asio_handler_deallocate(
-    void*, std::size_t,
-    legacy_handler* p)
-{
-    p->hook_invoked = true;
-}
 
 inline
 bool

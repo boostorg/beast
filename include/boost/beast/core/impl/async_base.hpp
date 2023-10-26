@@ -50,48 +50,6 @@ struct allocate_stable_state final
 
 } // detail
 
-template<
-    class Handler,
-    class Executor1,
-    class Allocator,
-    class Function>
-boost::asio::asio_handler_invoke_is_deprecated
-asio_handler_invoke(
-    Function&& f,
-    async_base<Handler, Executor1, Allocator>* p)
-{
-    using boost::asio::asio_handler_invoke;
-    return asio_handler_invoke(f,
-        p->get_legacy_handler_pointer());
-}
-
-template<
-    class Handler,
-    class Executor1,
-    class Allocator>
-boost::asio::asio_handler_allocate_is_deprecated
-asio_handler_allocate(
-    std::size_t size,
-    async_base<Handler, Executor1, Allocator>* p)
-{
-    using boost::asio::asio_handler_allocate;
-    return asio_handler_allocate(size,
-        p->get_legacy_handler_pointer());
-}
-
-template<
-    class Handler,
-    class Executor1,
-    class Allocator>
-boost::asio::asio_handler_deallocate_is_deprecated
-asio_handler_deallocate(
-    void* mem, std::size_t size,
-    async_base<Handler, Executor1, Allocator>* p)
-{
-    using boost::asio::asio_handler_deallocate;
-    return asio_handler_deallocate(mem, size,
-        p->get_legacy_handler_pointer());
-}
 
 template<
     class Handler,

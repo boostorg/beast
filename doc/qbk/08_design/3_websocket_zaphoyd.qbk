@@ -118,7 +118,7 @@ access. In contrast, Beast does not use mutexes anywhere in its
 implementation. Instead, it follows the Asio pattern. Calls to
 asynchronous initiation functions use the same method to invoke
 intermediate handlers as the method used to invoke the final handler,
-through the __asio_handler_invoke__ mechanism.
+through the associated executor mechanism.
 
 The only requirement in Beast is that calls to asynchronous initiation
 functions are made from the same implicit or explicit strand. For
@@ -131,14 +131,6 @@ costs associated with mutexes are incurred.
         [[@https://github.com/vinniefalco/Beast/blob/6c8b4b2f8dde72b01507e4ac7fde4ffea57ebc99/include/beast/websocket/impl/read_frame_op.ipp#L118 Beast]]
         [[@https://github.com/zaphoyd/websocketpp/blob/378437aecdcb1dfe62096ffd5d944bf1f640ccc3/websocketpp/transport/iostream/connection.hpp#L706 websocketpp]]
     ][
-        [```
-            template <class Function>
-            friend
-            void asio_handler_invoke(Function&& f, read_frame_op* op)
-            {
-                return boost_asio_handler_invoke_helpers::invoke(f, op->d_->h);
-            }
-        ```]
         [```
             mutex_type m_read_mutex;
         ```]
@@ -156,9 +148,9 @@ Boost.Asio. They are function objects which can be copied or moved but
 most importantly they are not type erased. The compiler can see
 through the type directly to the implementation, permitting
 optimization. Furthermore, Beast follows the Asio rules for treatment
-of handlers. It respects any allocation, continuation, or invocation
-customizations associated with the handler through the use of argument
-dependent lookup overloads of functions such as `asio_handler_allocate`.
+of handlers. It respects any allocation, executors, cancellations
+associated with the handler through the use of argument
+dependent lookup overloads of functions such as `bind_allocaotr`.
 
 The Beast completion handler is provided at the call site. For each
 call to an asynchronous initiation function, it is guaranteed that
