@@ -13,6 +13,7 @@
 #include "stream_tests.hpp"
 
 #include <boost/beast/_experimental/unit_test/suite.hpp>
+#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/string.hpp>

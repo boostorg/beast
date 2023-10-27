@@ -22,6 +22,7 @@
 #include <boost/asio/error.hpp>
 #include <boost/asio/compose.hpp>
 #include <boost/asio/coroutine.hpp>
+#include <boost/asio/prepend.hpp>
 
 namespace boost {
 namespace beast {
@@ -249,9 +250,7 @@ public:
                         asio::get_associated_immediate_executor(
                             self, s_.get_executor());
 
-                    net::dispatch(
-                        ex,
-                        beast::bind_front_handler(std::move(self), ec));
+                    net::dispatch(ex, net::prepend(std::move(self), ec));
                 }
             }
             self.complete(ec, bytes_transferred_);

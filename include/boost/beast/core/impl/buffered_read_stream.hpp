@@ -11,12 +11,12 @@
 #define BOOST_BEAST_IMPL_BUFFERED_READ_STREAM_HPP
 
 #include <boost/beast/core/async_base.hpp>
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/read_size.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
 #include <boost/asio/dispatch.hpp>
+#include <boost/asio/prepend.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace boost {
@@ -84,8 +84,7 @@ public:
                 const auto ex = this->get_immediate_executor();
                 return net::dispatch(
                     ex,
-                    beast::bind_front_handler(
-                        std::move(*this), ec, 0));
+                    net::prepend(std::move(*this), ec, 0));
             }
         case 1:
             // upcall
