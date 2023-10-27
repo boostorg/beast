@@ -11,7 +11,6 @@
 #define BOOST_BEAST_WEBSOCKET_IMPL_PING_HPP
 
 #include <boost/beast/core/async_base.hpp>
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/beast/websocket/detail/frame.hpp>

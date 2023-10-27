@@ -10,7 +10,6 @@
 #ifndef BOOST_BEAST_DETAIL_IMPL_READ_HPP
 #define BOOST_BEAST_DETAIL_IMPL_READ_HPP
 
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/read_size.hpp>

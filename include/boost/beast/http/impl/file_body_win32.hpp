@@ -13,7 +13,6 @@
 #if BOOST_BEAST_USE_WIN32_FILE
 
 #include <boost/beast/core/async_base.hpp>
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>

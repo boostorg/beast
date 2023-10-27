@@ -11,7 +11,6 @@
 #define BOOST_BEAST_CORE_ASYNC_BASE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/async_base.hpp>
 #include <boost/beast/core/detail/filtering_cancellation_slot.hpp>
@@ -24,6 +23,7 @@
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/post.hpp>
+#include <boost/asio/prepend.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/core/empty_value.hpp>
 #include <utility>
@@ -425,9 +425,7 @@ public:
             auto const ex = this->get_immediate_executor();
             net::dispatch(
                 ex,
-                beast::bind_front_handler(
-                    std::move(h_),
-                    std::forward<Args>(args)...));
+                net::prepend(std::move(h_), std::forward<Args>(args)...));
             wg1_.reset();
         }
         else
