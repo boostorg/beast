@@ -1,15 +1,23 @@
+Version 350:
+
+* Allocation and invocation hooks are removed
+* `detail::bind_default_executor` helper is removed
+* Improved documentation for `websocket::stream::async_write_some`
+
+--------------------------------------------------------------------------------
+
 Version 349:
 
-* Added support for `immediate_executor`. (#2672)
-* Replaced `BOOST_ASIO_INITFN_RESULT_TYPE` with `BOOST_ASIO_INITFN_AUTO_RES`. (#2669)
-* Updated license info for `work_guard`. (#2664)
-* Corrected handler requirements of ping/pong. (#2663)
-* Improved Drone caching. (#2655)
-* `server-flex-awaitable` example now resets parser. (#2660)
-* Updated openssl version to 1.1.1.2100 for x86. (#2659)
-* Set minimum gcc version to 5.0. (#2658)
-* Introduced self-hosted GitHub actions runners. (#2656)
-* Minor documentation fixes and updates.
+* Added support for `immediate_executor`
+* `BOOST_ASIO_INITFN_AUTO_RES` replaces `BOOST_ASIO_INITFN_RESULT_TYPE`
+* Updated license info for `work_guard`
+* Corrected handler requirements of ping/pong
+* Improved Drone caching
+* `server-flex-awaitable` example now resets parser
+* OpenSSL 1.1.1.2100 or later is required for x86
+* GCC 5.0 or later is required
+* Introduced self-hosted GitHub actions runners
+* Minor documentation fixes and updates
 
 --------------------------------------------------------------------------------
 
