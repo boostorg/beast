@@ -11,6 +11,26 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.84]
+
+[*API Changes]
+
+* Remove deprecated allocation and invocation hooks
+
+[*Features]
+
+* Support for `immediate_executor`
+
+[*Fixes]
+
+* [issue 2727] Replaced `BOOST_ASIO_INITFN_RESULT_TYPE` with `BOOST_ASIO_INITFN_AUTO_RES`
+* [issue 2715] `server-flex-awaitable` example resets parser
+
+[*Documentation]
+
+* [issue 2713] Corrected the `websocket::stream::async_ping/pong` handler requirement
+* [issue 2755] Update documentation for `websocket::stream::async_write_some`
+
 [heading Boost 1.83]
 
 [*Fixes]
