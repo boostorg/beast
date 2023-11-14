@@ -297,7 +297,7 @@ public:
             // This can occur even if an existing async_read is in progress.
             // In this specific case, we will complete the async op with no error
             // in order to prevent assertions and/or internal corruption of the basic_stream
-            this->complete(false, error_code(), 0);
+            this->complete(false, error_code(), std::size_t{0});
         }
         else
         {
