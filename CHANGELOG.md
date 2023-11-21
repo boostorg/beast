@@ -1,3 +1,9 @@
+Version 351:
+
+* Use the explicit type std::size_t when completing transfer_op
+
+--------------------------------------------------------------------------------
+
 Version 350:
 
 * Allocation and invocation hooks are removed
