@@ -23,6 +23,7 @@
 
 [*Fixes]
 
+* [issue 2766] Use the explicit type std::size_t when completing transfer_op
 * [issue 2727] Replaced `BOOST_ASIO_INITFN_RESULT_TYPE` with `BOOST_ASIO_INITFN_AUTO_RES`
 * [issue 2715] `server-flex-awaitable` example resets parser
 
