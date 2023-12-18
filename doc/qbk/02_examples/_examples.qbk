@@ -53,7 +53,7 @@ used to evaluate robustness. All asynchronous clients support timeouts.
         [[path_link example/http/client/body/json_body.hpp example/http/client/body/json_client.cpp]]
 ][
         [HTTP client for all methods (synchronous)]
-        [[path_link example/http/client/methods/http_client_methods.hpp example/http/client/methods/http_client_methods.cpp]]
+        [[path_link example/http/client/methods/http_client_methods.cpp example/http/client/methods/http_client_methods.cpp]]
 ]]
 
 These WebSocket clients connect to a
