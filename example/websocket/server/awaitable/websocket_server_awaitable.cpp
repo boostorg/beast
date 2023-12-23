@@ -76,11 +76,18 @@ do_session(stream ws)
             co_await ws.async_write(buffer.data());
 
         }
-        catch(boost::system::system_error & se)
+        catch (const boost::system::system_error& se)
         {
-            if (se.code() != websocket::error::closed)
-                throw;
-
+            if (se.code() == beast::websocket::error::closed || se.code() == boost::asio::error::operation_aborted)
+            {
+                std::cout << "Connection closed by client." << std::endl;
+                co_return;
+            }
+            else
+            {
+                std::cerr << "Error: " << se.what() << std::endl;
+                co_return;
+            }
         }
 }
 
@@ -111,12 +118,15 @@ do_listen(
                 do_session(stream(co_await acceptor.async_accept())),
                 [](std::exception_ptr e)
                 {
-                    try
+                    if (e)
                     {
-                        std::rethrow_exception(e);
-                    }
-                    catch (std::exception &e) {
-                        std::cerr << "Error in session: " << e.what() << "\n";
+                        try
+                        {
+                            std::rethrow_exception(e);
+                        }
+                        catch (std::exception &e) {
+                            std::cerr << "Error in session: " << e.what() << "\n";
+                        }
                     }
                 });
 }
