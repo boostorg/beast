@@ -63,8 +63,10 @@ do_session(stream ws)
     // Accept the websocket handshake
     co_await ws.async_accept();
 
-    for(;;)
-        try {
+    try
+    {
+        for(;;)
+        {
             // This buffer will hold the incoming message
             beast::flat_buffer buffer;
 
@@ -74,21 +76,13 @@ do_session(stream ws)
             // Echo the message back
             ws.text(ws.got_text());
             co_await ws.async_write(buffer.data());
-
         }
-        catch (const boost::system::system_error& se)
-        {
-            if (se.code() == beast::websocket::error::closed || se.code() == boost::asio::error::operation_aborted)
-            {
-                std::cout << "Connection closed by client." << std::endl;
-                co_return;
-            }
-            else
-            {
-                std::cerr << "Error: " << se.what() << std::endl;
-                co_return;
-            }
-        }
+    }
+    catch(const boost::system::system_error & se)
+    {
+        if (se.code() != websocket::error::closed)
+            throw;
+    }
 }
 
 //------------------------------------------------------------------------------
