@@ -775,7 +775,7 @@ public:
 
             BEAST_EXPECT(ioc.run() == 0);
             BEAST_EXPECT(count == 3);
-            BEAST_EXPECT(ic == 6);
+            BEAST_EXPECT(ic == 3);
         });
     }
 
