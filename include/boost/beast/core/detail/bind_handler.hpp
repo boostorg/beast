@@ -12,9 +12,7 @@
 
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/detail/tuple.hpp>
-#include <boost/asio/associated_allocator.hpp>
-#include <boost/asio/associated_cancellation_slot.hpp>
-#include <boost/asio/associated_executor.hpp>
+#include <boost/asio/associator.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/mp11/integer_sequence.hpp>
@@ -42,14 +40,9 @@ class bind_wrapper
     Handler h_;
     args_type args_;
 
-    template<class T, class Executor>
-    friend struct net::associated_executor;
-
-    template<class T, class Allocator>
-    friend struct net::associated_allocator;
-
-    template<class T, class CancellationSlot>
-    friend struct net::associated_cancellation_slot;
+    template <template <typename, typename> class Associator,
+        typename T, typename DefaultCandidate>
+    friend struct net::associator;
 
     template<class Arg, class Vals>
     static
@@ -186,15 +179,9 @@ class bind_front_wrapper
     Handler h_;
     detail::tuple<Args...> args_;
 
-    template<class T, class Executor>
-    friend struct net::associated_executor;
-
-    template<class T, class Allocator>
-    friend struct net::associated_allocator;
-
-    template<class T, class CancellationSlot>
-    friend struct net::associated_cancellation_slot;
-
+    template <template <typename, typename> class Associator,
+        typename T, typename DefaultCandidate>
+    friend struct net::associator;
 
     template<std::size_t... I, class... Ts>
     void
@@ -264,111 +251,45 @@ public:
 namespace boost {
 namespace asio {
 
-template<class Handler, class... Args, class Executor>
-struct associated_executor<
-    beast::detail::bind_wrapper<Handler, Args...>, Executor>
+template <template <typename, typename> class Associator,
+    typename Handler, typename... Args, typename DefaultCandidate>
+struct associator<Associator,
+    beast::detail::bind_wrapper<Handler, Args...>, DefaultCandidate>
+    : Associator<Handler, DefaultCandidate>
 {
-    using type = typename
-        associated_executor<Handler, Executor>::type;
-
-    static
-    type
-    get(beast::detail::bind_wrapper<Handler, Args...> const& op,
-        Executor const& ex = Executor{}) noexcept
+    static typename Associator<Handler, DefaultCandidate>::type get(
+        const beast::detail::bind_wrapper<Handler, Args...>& h) noexcept
     {
-        return associated_executor<
-            Handler, Executor>::get(op.h_, ex);
+        return Associator<Handler, DefaultCandidate>::get(h.h_);
+    }
+
+    static auto get(const beast::detail::bind_wrapper<Handler, Args...>& h,
+        const DefaultCandidate& c) noexcept
+    -> decltype(Associator<Handler, DefaultCandidate>::get(h.h_, c))
+    {
+    return Associator<Handler, DefaultCandidate>::get(h.h_, c);
     }
 };
 
-template<class Handler, class... Args, class Executor>
-struct associated_executor<
-    beast::detail::bind_front_wrapper<Handler, Args...>, Executor>
+template <template <typename, typename> class Associator,
+    typename Handler, typename... Args, typename DefaultCandidate>
+struct associator<Associator,
+    beast::detail::bind_front_wrapper<Handler, Args...>, DefaultCandidate>
+    : Associator<Handler, DefaultCandidate>
 {
-    using type = typename
-        associated_executor<Handler, Executor>::type;
-
-    static
-    type
-    get(beast::detail::bind_front_wrapper<Handler, Args...> const& op,
-        Executor const& ex = Executor{}) noexcept
+    static typename Associator<Handler, DefaultCandidate>::type get(
+        const beast::detail::bind_front_wrapper<Handler, Args...>& h) noexcept
     {
-        return associated_executor<
-            Handler, Executor>::get(op.h_, ex);
+        return Associator<Handler, DefaultCandidate>::get(h.h_);
+    }
+
+    static auto get(const beast::detail::bind_front_wrapper<Handler, Args...>& h,
+        const DefaultCandidate& c) noexcept
+    -> decltype(Associator<Handler, DefaultCandidate>::get(h.h_, c))
+    {
+        return Associator<Handler, DefaultCandidate>::get(h.h_, c);
     }
 };
-
-//
-
-template<class Handler, class... Args, class Allocator>
-struct associated_allocator<
-    beast::detail::bind_wrapper<Handler, Args...>, Allocator>
-{
-    using type = typename
-        associated_allocator<Handler, Allocator>::type;
-
-    static
-    type
-    get(beast::detail::bind_wrapper<Handler, Args...> const& op,
-        Allocator const& alloc = Allocator{}) noexcept
-    {
-        return associated_allocator<
-            Handler, Allocator>::get(op.h_, alloc);
-    }
-};
-
-template<class Handler, class... Args, class Allocator>
-struct associated_allocator<
-    beast::detail::bind_front_wrapper<Handler, Args...>, Allocator>
-{
-    using type = typename
-        associated_allocator<Handler, Allocator>::type;
-
-    static
-    type
-    get(beast::detail::bind_front_wrapper<Handler, Args...> const& op,
-        Allocator const& alloc = Allocator{}) noexcept
-    {
-        return associated_allocator<
-            Handler, Allocator>::get(op.h_, alloc);
-    }
-};
-
-template<class Handler, class... Args, class CancellationSlot>
-struct associated_cancellation_slot<
-    beast::detail::bind_wrapper<Handler, Args...>, CancellationSlot>
-{
-    using type = typename
-        associated_cancellation_slot<Handler>::type;
-
-    static
-    type
-    get(beast::detail::bind_wrapper<Handler, Args...> const& op,
-        CancellationSlot const& slot = CancellationSlot{}) noexcept
-    {
-        return associated_cancellation_slot<
-            Handler, CancellationSlot>::get(op.h_, slot);
-    }
-};
-
-template<class Handler, class... Args, class CancellationSlot>
-struct associated_cancellation_slot<
-    beast::detail::bind_front_wrapper<Handler, Args...>, CancellationSlot>
-{
-    using type = typename
-        associated_cancellation_slot<Handler>::type;
-
-    static
-    type
-    get(beast::detail::bind_front_wrapper<Handler, Args...> const& op,
-        CancellationSlot const& slot = CancellationSlot{}) noexcept
-    {
-        return associated_cancellation_slot<
-            Handler, CancellationSlot>::get(op.h_, slot);
-    }
-};
-
-
 
 } // asio
 } // boost

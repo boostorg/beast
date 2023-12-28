@@ -15,6 +15,7 @@
 #include <boost/beast/core/detail/service_base.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
 #include <boost/asio/any_io_executor.hpp>
+#include <boost/asio/associated_cancellation_slot.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/post.hpp>
 #include <mutex>

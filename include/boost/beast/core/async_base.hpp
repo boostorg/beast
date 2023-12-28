@@ -17,6 +17,7 @@
 #include <boost/beast/core/detail/filtering_cancellation_slot.hpp>
 #include <boost/beast/core/detail/work_guard.hpp>
 #include <boost/asio/associated_allocator.hpp>
+#include <boost/asio/associated_cancellation_slot.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/associated_immediate_executor.hpp>
 #include <boost/asio/bind_executor.hpp>
