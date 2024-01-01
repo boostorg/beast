@@ -28,6 +28,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <string>
 #include <thread>
 #include <vector>
@@ -328,7 +329,7 @@ class http_session : public std::enable_shared_from_this<http_session>
     std::shared_ptr<std::string const> doc_root_;
 
     static constexpr std::size_t queue_limit = 8; // max responses
-    std::vector<http::message_generator> response_queue_;
+    std::queue<http::message_generator> response_queue_;
 
     // The parser is stored in an optional container so we can
     // construct it from scratch it at the beginning of each new message.
@@ -344,7 +345,6 @@ public:
     {
         static_assert(queue_limit > 0,
                       "queue limit must be positive");
-        response_queue_.reserve(queue_limit);
     }
 
     // Start the session
@@ -420,42 +420,30 @@ private:
     queue_write(http::message_generator response)
     {
         // Allocate and store the work
-        response_queue_.push_back(std::move(response));
+        response_queue_.push(std::move(response));
 
-        // If there was no previous work, start the write
-        // loop
+        // If there was no previous work, start the write loop
         if (response_queue_.size() == 1)
             do_write();
     }
 
     // Called to start/continue the write-loop. Should not be called when
     // write_loop is already active.
-    //
-    // Returns `true` if the caller may initiate a new read
-    bool
+    void
     do_write()
     {
-        bool const was_full =
-            response_queue_.size() == queue_limit;
-
         if(! response_queue_.empty())
         {
-            http::message_generator msg =
-                std::move(response_queue_.front());
-            response_queue_.erase(response_queue_.begin());
-
-            bool keep_alive = msg.keep_alive();
+            bool keep_alive = response_queue_.front().keep_alive();
 
             beast::async_write(
                 stream_,
-                std::move(msg),
+                std::move(response_queue_.front()),
                 beast::bind_front_handler(
                     &http_session::on_write,
                     shared_from_this(),
                     keep_alive));
         }
-
-        return was_full;
     }
 
     void
@@ -476,12 +464,13 @@ private:
             return do_close();
         }
 
-        // Inform the queue that a write completed
-        if(do_write())
-        {
-            // Read another request
+        // Resume the read if it has been paused
+        if(response_queue_.size() == queue_limit)
             do_read();
-        }
+
+        response_queue_.pop();
+
+        do_write();
     }
 
     void
