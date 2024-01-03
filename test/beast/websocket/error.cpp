@@ -35,6 +35,9 @@ public:
         BEAST_EXPECT(ec.category().name() != nullptr);
         BEAST_EXPECT(! ec.message().empty());
         BEAST_EXPECT(ec == c);
+
+        BEAST_EXPECT(ec.message(nullptr, 0) != nullptr);
+        BEAST_EXPECT(make_error_condition(c).message(nullptr, 0) != nullptr);
     }
 
     void run() override

@@ -29,8 +29,8 @@ public:
     }
 
     BOOST_BEAST_DECL
-    std::string
-    message(int ev) const override
+    char const*
+    message(int ev, char*, std::size_t) const noexcept override
     {
         switch(static_cast<error>(ev))
         {
@@ -38,6 +38,13 @@ public:
         case error::test_failure: return
             "An automatic unit test failure occurred";
         }
+    }
+
+    BOOST_BEAST_DECL
+    std::string
+    message(int ev) const override
+    {
+        return message(ev, nullptr, 0);
     }
 
     BOOST_BEAST_DECL
