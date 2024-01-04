@@ -201,8 +201,8 @@ a set of Visual Studio project files using these commands:
 cd libs/beast
 mkdir bin
 cd bin
-cmake ..                                    # for 32-bit Windows builds, or
-cmake -G"Visual Studio 15 2017 Win64" ..    # for 64-bit Windows builds (VS2017)
+cmake -G "Visual Studio 17 2022" -A Win32 ..  # for 32-bit Windows builds, or
+cmake -G "Visual Studio 17 2022" -A x64 ..    # for 64-bit Windows builds
 ```
 
 The files in the repository are laid out thusly:
