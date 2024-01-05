@@ -19,7 +19,7 @@
 namespace boost {
 namespace beast {
 
-/** A dynamic buffer using a fixed size internal buffer.
+/** A dynamic buffer using a fixed size internal buffer using no memory allocations.
 
     A dynamic buffer encapsulates memory storage that may be
     automatically resized as required, where the memory is
@@ -37,7 +37,7 @@ namespace beast {
 
     @li Buffer sequences representing the readable and writable
     bytes, returned by @ref data and @ref prepare, will have
-    length one.
+    a type of net::const_buffer or net::mutable_buffer.
 
     @li Ownership of the underlying storage belongs to the
     derived class.
@@ -245,11 +245,11 @@ private:
 
 //------------------------------------------------------------------------------
 
-/** A <em>DynamicBuffer</em> with a fixed size internal buffer.
+/** A <em>DynamicBuffer</em> with a fixed size internal buffer using no memory allocations.
 
-    Buffer sequences returned by @ref data and @ref prepare
-    will always be of length one.
-    This implements a dynamic buffer using no memory allocations.
+    Buffer sequences representing the readable and writable
+    bytes, returned by @ref data and @ref prepare, will have
+    a type of net::const_buffer or net::mutable_buffer.
 
     @tparam N The number of bytes in the internal buffer.
 
