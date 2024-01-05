@@ -852,6 +852,14 @@ public:
         req.body() = "Hello, world!";
         req.prepare_payload();
         @endcode
+
+        @note This function is not necessary to call in
+        the following situations:
+        
+        @li The request doesn't contain a body, such as
+        in a GET or HEAD request.
+
+        @li The Content-Length and Transfer-Encoding are set manually.
     */
     void
     prepare_payload()
