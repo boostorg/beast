@@ -855,7 +855,7 @@ public:
 
         @note This function is not necessary to call in
         the following situations:
-        
+
         @li The request doesn't contain a body, such as
         in a GET or HEAD request.
 
