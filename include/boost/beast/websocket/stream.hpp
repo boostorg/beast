@@ -1639,7 +1639,8 @@ public:
         by dispatching to the immediate executor. If no
         immediate executor is specified, this is equivalent
         to using `net::post`.
-         @par Per-Operation Cancellation
+
+        @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
         net::cancellation_type values:
@@ -1649,6 +1650,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         @note `terminal` cancellation will may close the underlying socket.
@@ -1760,6 +1762,7 @@ public:
         by dispatching to the immediate executor. If no
         immediate executor is specified, this is equivalent
         to using `net::post`.
+
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -1770,6 +1773,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         `terminal` cancellation leaves the stream in an undefined state,
@@ -1885,6 +1889,7 @@ public:
         by dispatching to the immediate executor. If no
         immediate executor is specified, this is equivalent
         to using `net::post`.
+
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -1895,6 +1900,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         `terminal` cancellation leaves the stream in an undefined state,
@@ -2063,6 +2069,7 @@ public:
         by dispatching to the immediate executor. If no
         immediate executor is specified, this is equivalent
         to using `net::post`.
+
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -2073,6 +2080,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         `terminal` cancellation leaves the stream in an undefined state,
@@ -2259,6 +2267,7 @@ public:
         by dispatching to the immediate executor. If no
         immediate executor is specified, this is equivalent
         to using `net::post`.
+
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -2269,6 +2278,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         `terminal` cancellation leaves the stream in an undefined state,
@@ -2388,6 +2398,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         `terminal` cancellation leaves the stream in an undefined state,
@@ -2477,6 +2488,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         `terminal` cancellation leaves the stream in an undefined state,
@@ -2607,6 +2619,7 @@ public:
         by dispatching to the immediate executor. If no
         immediate executor is specified, this is equivalent
         to using `net::post`.
+
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -2617,6 +2630,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         `terminal` cancellation leaves the stream in an undefined state,
@@ -2756,6 +2770,7 @@ public:
         by dispatching to the immediate executor. If no
         immediate executor is specified, this is equivalent
         to using `net::post`.
+
         @par Per-Operation Cancellation
 
         This asynchronous operation supports cancellation for the following
@@ -2766,6 +2781,7 @@ public:
 
         `total` cancellation succeeds if the operation is suspended due to ongoing
         control operations such as a ping/pong.
+
         `terminal` cancellation succeeds when supported by the underlying stream.
 
         `terminal` cancellation leaves the stream in an undefined state,
