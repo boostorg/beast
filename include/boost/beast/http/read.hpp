@@ -209,10 +209,9 @@ read_some(
 
     @li @c net::cancellation_type::terminal
 
-    if the `stream` also supports terminal cancellation.
-
-    `terminal` cancellation leaves the stream in an undefined state,
-    so that only closing it is guaranteed to succeed.
+    if the `stream` also supports terminal cancellation, `terminal`
+    cancellation leaves the stream in an undefined state, so that only
+    closing it is guaranteed to succeed.
 
 */
 template<
@@ -420,10 +419,9 @@ read_header(
 
     @li @c net::cancellation_type::terminal
 
-    if the `stream` also supports terminal cancellation.
-
-    `terminal` cancellation leaves the stream in an undefined state,
-    so that only closing it is guaranteed to succeed.
+    if the `stream` also supports terminal cancellation, `terminal`
+    cancellation leaves the stream in an undefined state, so that only
+    closing it is guaranteed to succeed.
 
 */
 template<
@@ -631,10 +629,9 @@ read(
 
     @li @c net::cancellation_type::terminal
 
-    if the `stream` also supports terminal cancellation.
-
-    `terminal` cancellation leaves the stream in an undefined state,
-    so that only closing it is guaranteed to succeed.
+    if the `stream` also supports terminal cancellation, `terminal`
+    cancellation leaves the stream in an undefined state, so that only
+    closing it is guaranteed to succeed.
 
 */
 template<
@@ -851,10 +848,9 @@ read(
 
     @li @c net::cancellation_type::terminal
 
-    if the `stream` also supports terminal cancellation.
-
-    `terminal` cancellation leaves the stream in an undefined state,
-    so that only closing it is guaranteed to succeed.
+    if the `stream` also supports terminal cancellation, `terminal`
+    cancellation leaves the stream in an undefined state, so that only
+    closing it is guaranteed to succeed.
 
 */
 template<
