@@ -1,3 +1,16 @@
+Version 352:
+
+* Fixed paragraph separation issue in the documentation
+* Improved documentation for `http::message::prepare_payload()`
+* Strengthened the buffer contract on `flat_buffer` and `flat_static_buffer`
+* Added a non-allocating overload for the error category message function
+* Replaced internal uses of `beast::bind_front_handler` with `asio::prepend`
+* Specialized `asio::associator` for `bind_wrapper` and `bind_front_wrapper`
+* Fixed an infinite loop bug in `websocker_server_awaitable.cpp`
+* Fixed the write loop in advanced server examples
+
+--------------------------------------------------------------------------------
+
 Version 351:
 
 * Use the explicit type std::size_t when completing transfer_op
