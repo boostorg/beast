@@ -21,23 +21,22 @@ void test_deferred_for_websocket(
     beast::http::request<beast::http::empty_body> & req,
     websocket::response_type & res)
 {
-  stream.async_accept(asio::deferred);
-  stream.async_accept(asio::const_buffer(), asio::deferred);
-  stream.async_accept(req, asio::deferred);
-  stream.async_close(websocket::close_code::bad_payload, asio::deferred);
+  (void)stream.async_accept(asio::deferred);
+  (void)stream.async_accept(asio::const_buffer(), asio::deferred);
+  (void)stream.async_accept(req, asio::deferred);
+  (void)stream.async_close(websocket::close_code::bad_payload, asio::deferred);
 
-  stream.async_handshake("", "/", asio::deferred);
-  stream.async_handshake(res, "", "/", asio::deferred);
+  (void)stream.async_handshake("", "/", asio::deferred);
+  (void)stream.async_handshake(res, "", "/", asio::deferred);
 
-  stream.async_ping(websocket::ping_data{}, asio::deferred);
-  stream.async_pong(websocket::ping_data{}, asio::deferred);
+  (void)stream.async_ping(websocket::ping_data{}, asio::deferred);
+  (void)stream.async_pong(websocket::ping_data{}, asio::deferred);
 
-  stream.async_read(buf, asio::deferred);
-  stream.async_read_some(buf.data(), asio::deferred);
+  (void)stream.async_read(buf, asio::deferred);
+  (void)stream.async_read_some(buf.data(), asio::deferred);
 
-  stream.async_write(buf.cdata(), asio::deferred);
-  stream.async_write_some(true, buf.cdata(), asio::deferred);
-
+  (void)stream.async_write(buf.cdata(), asio::deferred);
+  (void)stream.async_write_some(true, buf.cdata(), asio::deferred);
 }
 
 #endif
