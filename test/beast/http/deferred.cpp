@@ -22,15 +22,15 @@ void test_deferred_for_http(
     http::serializer<true, http::empty_body> & ser,
     http::message<false, http::empty_body> & msg)
 {
-  http::async_read(stream, buf, parser, asio::deferred);
-  http::async_read(stream, buf, msg, asio::deferred);
-  http::async_read_some(stream, buf, parser, asio::deferred);
-  http::async_read_header(stream, buf, parser, asio::deferred);
+  (void)http::async_read(stream, buf, parser, asio::deferred);
+  (void)http::async_read(stream, buf, msg, asio::deferred);
+  (void)http::async_read_some(stream, buf, parser, asio::deferred);
+  (void)http::async_read_header(stream, buf, parser, asio::deferred);
 
-  http::async_write(stream, ser, asio::deferred);
-  http::async_write(stream, msg, asio::deferred);
-  http::async_write_header(stream, ser, asio::deferred);
-  http::async_write_some(stream, ser, asio::deferred);
+  (void)http::async_write(stream, ser, asio::deferred);
+  (void)http::async_write(stream, msg, asio::deferred);
+  (void)http::async_write_header(stream, ser, asio::deferred);
+  (void)http::async_write_some(stream, ser, asio::deferred);
 }
 
 #endif
