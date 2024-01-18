@@ -450,7 +450,7 @@ public:
         return impl_->policy();
     }
 
-    /** Set the timeout for the next logical operation.
+    /** Set the timeout for subsequent logical operations.
 
         This sets either the read timer, the write timer, or
         both timers to expire after the specified amount of time
@@ -473,7 +473,7 @@ public:
     expires_after(
         net::steady_timer::duration expiry_time);
 
-    /** Set the timeout for the next logical operation.
+    /** Set the timeout for subsequent logical operations.
 
         This sets either the read timer, the write timer, or both
         timers to expire at the specified time point. If a timer
@@ -495,7 +495,7 @@ public:
     void
     expires_at(net::steady_timer::time_point expiry_time);
 
-    /// Disable the timeout for the next logical operation.
+    /// Disable the timeout for subsequent logical operations.
     void
     expires_never();
 
