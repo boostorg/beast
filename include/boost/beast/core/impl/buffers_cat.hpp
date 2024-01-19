@@ -52,11 +52,8 @@ public:
 
 #if defined(_MSC_VER) && ! defined(__clang__)
 # define BOOST_BEAST_UNREACHABLE() __assume(false)
-# define BOOST_BEAST_UNREACHABLE_RETURN(v) return v
 #else
 # define BOOST_BEAST_UNREACHABLE() __builtin_unreachable()
-# define BOOST_BEAST_UNREACHABLE_RETURN(v) \
-    do { __builtin_unreachable(); return v; } while(false)
 #endif
 
 #ifdef BOOST_BEAST_TESTS
@@ -67,12 +64,24 @@ public:
         BOOST_BEAST_UNREACHABLE(); \
     }
 
+#define BOOST_BEAST_LOGIC_ERROR_RETURN(s, v) \
+    { \
+        BOOST_THROW_EXCEPTION(std::logic_error((s))); \
+        return v; \
+    }
+
 #else
 
 #define BOOST_BEAST_LOGIC_ERROR(s) \
     { \
         BOOST_ASSERT_MSG(false, s); \
         BOOST_BEAST_UNREACHABLE(); \
+    }
+
+#define BOOST_BEAST_LOGIC_ERROR_RETURN(s, v) \
+    { \
+        BOOST_ASSERT_MSG(false, s); \
+        return v; \
     }
 
 #endif
@@ -85,11 +94,11 @@ struct buffers_cat_view_iterator_base
     {
         char unused = 0; // make g++8 happy
 
-        BOOST_NORETURN net::mutable_buffer
+        net::mutable_buffer
         operator*() const
         {
-            BOOST_BEAST_LOGIC_ERROR(
-                    "Dereferencing a one-past-the-end iterator");
+            BOOST_BEAST_LOGIC_ERROR_RETURN(
+                    "Dereferencing a one-past-the-end iterator", {});
         }
 
         operator bool() const noexcept
@@ -173,11 +182,11 @@ private:
     {
         const_iterator const& self;
 
-        BOOST_NORETURN reference
+        reference
         operator()(mp11::mp_size_t<0>)
         {
-            BOOST_BEAST_LOGIC_ERROR(
-                "Dereferencing a default-constructed iterator");
+            BOOST_BEAST_LOGIC_ERROR_RETURN(
+                "Dereferencing a default-constructed iterator", {});
         }
 
         template<class I>
