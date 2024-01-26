@@ -29,6 +29,11 @@ namespace websocket {
     `net::ssl::stream`, callers are responsible for
     providing a suitable overload of this function.
 
+    @note
+
+    This function serves as a customization point and is not intended
+    to be called directly.
+
     @param role The role of the local endpoint
 
     @param socket The socket to tear down.
@@ -64,6 +69,11 @@ teardown(
     `net::ip::tcp::socket` or any `net::ssl::stream`,
     callers are responsible for providing a suitable overload
     of this function.
+
+    @note
+
+    This function serves as a customization point and is not intended
+    to be called directly.
 
     @param role The role of the local endpoint
 
@@ -122,6 +132,11 @@ namespace websocket {
     `net::ssl::stream`, callers are responsible for
     providing a suitable overload of this function.
 
+    @note
+
+    This function serves as a customization point and is not intended
+    to be called directly.
+
     @param role The role of the local endpoint
 
     @param socket The socket to tear down.
@@ -145,6 +160,11 @@ teardown(
     `net::ip::tcp::socket` or any `net::ssl::stream`,
     callers are responsible for providing a suitable overload
     of this function.
+
+    @note
+
+    This function serves as a customization point and is not intended
+    to be called directly.
 
     @param role The role of the local endpoint
 
