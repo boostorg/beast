@@ -90,27 +90,27 @@ protected:
     BOOST_STATIC_ASSERT(minMatch == 3);
 
     // end of block literal code
-    static std::uint16_t constexpr END_BLOCK = 256;
+    static std::uint16_t constexpr end_block = 256;
 
     // repeat previous bit length 3-6 times (2 bits of repeat count)
-    static std::uint8_t constexpr REP_3_6 = 16;
+    static std::uint8_t constexpr rep_3_6 = 16;
 
     // repeat a zero length 3-10 times  (3 bits of repeat count)
-    static std::uint8_t constexpr REPZ_3_10 = 17;
+    static std::uint8_t constexpr repz_3_10 = 17;
 
     // repeat a zero length 11-138 times  (7 bits of repeat count)
-    static std::uint8_t constexpr REPZ_11_138 = 18;
+    static std::uint8_t constexpr repz_11_138 = 18;
 
     // The three kinds of block type
-    static std::uint8_t constexpr STORED_BLOCK = 0;
-    static std::uint8_t constexpr STATIC_TREES = 1;
-    static std::uint8_t constexpr DYN_TREES    = 2;
+    static std::uint8_t constexpr stored_block = 0;
+    static std::uint8_t constexpr static_trees = 1;
+    static std::uint8_t constexpr dyn_trees    = 2;
 
     // Maximum value for memLevel in deflateInit2
     static std::uint8_t constexpr max_mem_level = 9;
 
     // Default memLevel
-    static std::uint8_t constexpr DEF_MEM_LEVEL = max_mem_level;
+    static std::uint8_t constexpr def_mem_level = max_mem_level;
 
     /*  Note: the deflate() code requires max_lazy >= minMatch and max_chain >= 4
         For deflate_fast() (levels <= 3) good is ignored and lazy has a different
@@ -118,7 +118,7 @@ protected:
     */
 
     // maximum heap size
-    static std::uint16_t constexpr HEAP_SIZE = 2 * lCodes + 1;
+    static std::uint16_t constexpr heap_size = 2 * lCodes + 1;
 
     // size of bit buffer in bi_buf
     static std::uint8_t constexpr Buf_size = 16;
@@ -229,12 +229,12 @@ protected:
     // VFALCO This might not be needed, e.g. for zip/gzip
     enum StreamStatus
     {
-        EXTRA_STATE = 69,
-        NAME_STATE = 73,
-        COMMENT_STATE = 91,
-        HCRC_STATE = 103,
-        BUSY_STATE = 113,
-        FINISH_STATE = 666
+        extra_state = 69,
+        name_state = 73,
+        comment_state = 91,
+        hcrc_state = 103,
+        busy_state = 113,
+        finish_state = 666
     };
 
     /* A std::uint16_t is an index in the character window. We use short instead of int to
@@ -343,7 +343,7 @@ protected:
     int nice_match_;                // Stop searching when current match exceeds this
 
     ct_data dyn_ltree_[
-        HEAP_SIZE];                 // literal and length tree
+        heap_size];                 // literal and length tree
     ct_data dyn_dtree_[
         2*dCodes+1];                // distance tree
     ct_data bl_tree_[

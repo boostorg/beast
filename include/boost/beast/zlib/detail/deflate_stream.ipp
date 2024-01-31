@@ -364,7 +364,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
         BOOST_THROW_EXCEPTION(std::invalid_argument{"invalid input"});
 
     if(zs.next_out == nullptr ||
-        (status_ == FINISH_STATE && flush != Flush::finish))
+        (status_ == finish_state && flush != Flush::finish))
     {
         BOOST_BEAST_ASSIGN_EC(ec, error::stream_error);
         return;
@@ -411,7 +411,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
     }
 
     // User must not provide more input after the first FINISH:
-    if(status_ == FINISH_STATE && zs.avail_in != 0)
+    if(status_ == finish_state && zs.avail_in != 0)
     {
         BOOST_BEAST_ASSIGN_EC(ec, error::need_buffers);
         return;
@@ -420,7 +420,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
     /* Start a new block or continue the current one.
      */
     if(zs.avail_in != 0 || lookahead_ != 0 ||
-        (flush != Flush::none && status_ != FINISH_STATE))
+        (flush != Flush::none && status_ != finish_state))
     {
         block_state bstate;
 
@@ -441,7 +441,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
 
         if(bstate == finish_started || bstate == finish_done)
         {
-            status_ = FINISH_STATE;
+            status_ = finish_state;
         }
         if(bstate == need_more || bstate == finish_started)
         {
@@ -681,7 +681,7 @@ init()
     pending_ = 0;
     pending_out_ = pending_buf_;
 
-    status_ = BUSY_STATE;
+    status_ = busy_state;
     last_flush_ = Flush::none;
 
     tr_init();
@@ -729,7 +729,7 @@ init_block()
         dyn_dtree_[n].fc = 0;
     for(int n = 0; n < blCodes; n++)
         bl_tree_[n].fc = 0;
-    dyn_ltree_[END_BLOCK].fc = 1;
+    dyn_ltree_[end_block].fc = 1;
     opt_len_ = 0L;
     static_len_ = 0L;
     sym_next_ = 0;
@@ -815,7 +815,7 @@ gen_bitlen(tree_desc *desc)
      */
     tree[heap_[heap_max_]].dl = 0; // root of the heap
 
-    for(h = heap_max_+1; h < HEAP_SIZE; h++) {
+    for(h = heap_max_+1; h < heap_size; h++) {
         n = heap_[h];
         bits = tree[tree[n].dl].dl + 1;
         if(bits > max_length) bits = max_length, overflow++;
@@ -899,7 +899,7 @@ build_tree(tree_desc *desc)
      * heap[0] is not used.
      */
     heap_len_ = 0;
-    heap_max_ = HEAP_SIZE;
+    heap_max_ = heap_size;
 
     for(n = 0; n < elems; n++)
     {
@@ -1010,15 +1010,15 @@ scan_tree(
         else if(curlen != 0)
         {
             if(curlen != prevlen) bl_tree_[curlen].fc++;
-                bl_tree_[REP_3_6].fc++;
+                bl_tree_[rep_3_6].fc++;
         }
         else if(count <= 10)
         {
-            bl_tree_[REPZ_3_10].fc++;
+            bl_tree_[repz_3_10].fc++;
         }
         else
         {
-            bl_tree_[REPZ_11_138].fc++;
+            bl_tree_[repz_11_138].fc++;
         }
         count = 0;
         prevlen = curlen;
@@ -1088,17 +1088,17 @@ send_tree(
                 count--;
             }
             BOOST_ASSERT(count >= 3 && count <= 6);
-            send_code(REP_3_6, bl_tree_);
+            send_code(rep_3_6, bl_tree_);
             send_bits(count-3, 2);
         }
         else if(count <= 10)
         {
-            send_code(REPZ_3_10, bl_tree_);
+            send_code(repz_3_10, bl_tree_);
             send_bits(count-3, 3);
         }
         else
         {
-            send_code(REPZ_11_138, bl_tree_);
+            send_code(repz_11_138, bl_tree_);
             send_bits(count-11, 7);
         }
         count = 0;
@@ -1234,7 +1234,7 @@ compress_block(
         while(sx < sym_next_);
     }
 
-    send_code(END_BLOCK, ltree);
+    send_code(end_block, ltree);
 }
 
 /*  Check if the data type is TEXT or BINARY, using the following algorithm:
@@ -1366,8 +1366,8 @@ void
 deflate_stream::
 tr_align()
 {
-    send_bits(STATIC_TREES<<1, 3);
-    send_code(END_BLOCK, lut_.ltree);
+    send_bits(static_trees<<1, 3);
+    send_code(end_block, lut_.ltree);
     bi_flush();
 }
 
@@ -1389,7 +1389,7 @@ tr_stored_block(
     std::uint32_t stored_len,   // length of input block
     int last)                   // one if this is the last block for a file
 {
-    send_bits((STORED_BLOCK<<1)+last, 3);       // send block type
+    send_bits((stored_block<<1)+last, 3);       // send block type
     copy_block(buf, (unsigned)stored_len, 1);   // with header
 }
 
@@ -1497,12 +1497,12 @@ tr_flush_block(
     else if(strategy_ == Strategy::fixed || static_lenb == opt_lenb)
     {
 #endif
-        send_bits((STATIC_TREES<<1)+last, 3);
+        send_bits((static_trees<<1)+last, 3);
         compress_block(lut_.ltree, lut_.dtree);
     }
     else
     {
-        send_bits((DYN_TREES<<1)+last, 3);
+        send_bits((dyn_trees<<1)+last, 3);
         send_all_trees(l_desc_.max_code+1, d_desc_.max_code+1,
                        max_blindex+1);
         compress_block((const ct_data *)dyn_ltree_,
