@@ -79,7 +79,7 @@ public:
     */
     deflate_stream()
     {
-        reset(6, 15, DEF_MEM_LEVEL, Strategy::normal);
+        reset(6, 15, def_mem_level, Strategy::normal);
     }
 
     /** Reset the stream and compression settings.
