@@ -26,6 +26,7 @@ int_to_status(unsigned v)
     case status::continue_:
     case status::switching_protocols:
     case status::processing:
+    case status::early_hints:
         BOOST_FALLTHROUGH;
 
     // 2xx
@@ -75,13 +76,12 @@ int_to_status(unsigned v)
     case status::unprocessable_entity:
     case status::locked:
     case status::failed_dependency:
+    case status::too_early:
     case status::upgrade_required:
     case status::precondition_required:
     case status::too_many_requests:
     case status::request_header_fields_too_large:
-    case status::connection_closed_without_response:
     case status::unavailable_for_legal_reasons:
-    case status::client_closed_request:
         BOOST_FALLTHROUGH;
 
     // 5xx
@@ -96,7 +96,6 @@ int_to_status(unsigned v)
     case status::loop_detected:
     case status::not_extended:
     case status::network_authentication_required:
-    case status::network_connect_timeout_error:
         return static_cast<status>(v);
 
     default:
@@ -136,6 +135,7 @@ obsolete_reason(status v)
     case status::continue_:                             return "Continue";
     case status::switching_protocols:                   return "Switching Protocols";
     case status::processing:                            return "Processing";
+    case status::early_hints:                           return "Early Hints";
 
     // 2xx
     case status::ok:                                    return "OK";
@@ -182,13 +182,12 @@ obsolete_reason(status v)
     case status::unprocessable_entity:                  return "Unprocessable Entity";
     case status::locked:                                return "Locked";
     case status::failed_dependency:                     return "Failed Dependency";
+    case status::too_early:                             return "Too Early";
     case status::upgrade_required:                      return "Upgrade Required";
     case status::precondition_required:                 return "Precondition Required";
     case status::too_many_requests:                     return "Too Many Requests";
     case status::request_header_fields_too_large:       return "Request Header Fields Too Large";
-    case status::connection_closed_without_response:    return "Connection Closed Without Response";
     case status::unavailable_for_legal_reasons:         return "Unavailable For Legal Reasons";
-    case status::client_closed_request:                 return "Client Closed Request";
     // 5xx
     case status::internal_server_error:                 return "Internal Server Error";
     case status::not_implemented:                       return "Not Implemented";
@@ -201,7 +200,6 @@ obsolete_reason(status v)
     case status::loop_detected:                         return "Loop Detected";
     case status::not_extended:                          return "Not Extended";
     case status::network_authentication_required:       return "Network Authentication Required";
-    case status::network_connect_timeout_error:         return "Network Connect Timeout Error";
 
     default:
         break;
