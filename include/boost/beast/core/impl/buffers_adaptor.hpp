@@ -44,6 +44,7 @@ public:
         net::const_buffer>::type;
 
     struct iterator;
+    using const_iterator = iterator;
 
     // construct from two iterators plus optionally subrange definition
     subrange(
