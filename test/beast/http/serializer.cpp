@@ -11,6 +11,7 @@
 #include <boost/beast/http/serializer.hpp>
 
 #include <boost/beast/core/buffer_traits.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 
@@ -85,6 +86,7 @@ public:
 
     struct lambda
     {
+        std::string msg;
         std::size_t size;
 
         template<class ConstBufferSequence>
@@ -92,6 +94,7 @@ public:
         operator()(error_code&,
             ConstBufferSequence const& buffers)
         {
+            msg.append(buffers_to_string(buffers));
             size = buffer_bytes(buffers);
         }
     };
@@ -117,9 +120,60 @@ public:
     }
 
     void
+    test_move_constructor()
+    {
+        using serializer_t = serializer<false, string_body>;
+        response<string_body> m;
+        m.version(10);
+        m.result(status::ok);
+        m.set(field::server, "test");
+        m.set(field::content_length, "5");
+        m.body() = "******************************";
+        std::unique_ptr<serializer_t> sr{new serializer_t{m}};
+        sr->limit(1);
+
+        lambda visit;
+        error_code ec;
+        // Setting the limit to 1 necessitates multiple steps for the serializer to complete
+        for(;;)
+        {
+            // Each time we use a newly move-constructed serializer
+            sr.reset(new serializer_t{*sr});
+
+            sr->next(ec, visit);
+            sr->consume(visit.size);
+            if(sr->is_done())
+                break;
+        }
+
+        BEAST_EXPECT(sr->limit() == 1);
+        BEAST_EXPECT(visit.msg ==
+            "HTTP/1.0 200 OK\r\n"
+            "Server: test\r\n"
+            "Content-Length: 5\r\n"
+            "\r\n"
+            "******************************");
+    }
+
+    void
+    testIssue2221()
+    {
+        response<string_body> res;
+        serializer<false, string_body> sr1{res};
+
+        lambda visit;
+        error_code ec;
+        sr1.next(ec, visit);
+
+        auto sr2 = std::move(sr1);
+    }
+
+    void
     run() override
     {
         testWriteLimit();
+        test_move_constructor();
+        testIssue2221();
     }
 };
 

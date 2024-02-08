@@ -190,7 +190,7 @@ private:
 
 public:
     /// Constructor
-    serializer(serializer&&) = default;
+    serializer(serializer&&);
 
     /// Constructor
     serializer(serializer const&) = default;

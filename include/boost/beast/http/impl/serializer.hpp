@@ -58,6 +58,23 @@ do_visit(error_code& ec, Visit& visit)
 template<
     bool isRequest, class Body, class Fields>
 serializer<isRequest, Body, Fields>::
+serializer(serializer&& other)
+    : m_(other.m_)
+    , wr_(std::move(other.wr_))
+    , fwr_(std::move(other.fwr_))
+    , v_(std::move(other.v_))
+    , pv_() // Will be initialized before next use in do_visit function
+    , limit_(other.limit_)
+    , s_(other.s_)
+    , split_(other.split_)
+    , header_done_(other.header_done_)
+    , more_(other.more_)
+{
+}
+
+template<
+    bool isRequest, class Body, class Fields>
+serializer<isRequest, Body, Fields>::
 serializer(value_type& m)
     : m_(m)
     , wr_(m_.base(), m_.body())
