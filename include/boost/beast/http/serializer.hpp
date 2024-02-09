@@ -43,6 +43,14 @@ namespace http {
     the chunk buffer sequence types @ref chunk_body, @ref chunk_crlf,
     @ref chunk_header, and @ref chunk_last.
 
+    @note
+
+    Moving or copying the serializer after the first call to
+    @ref serializer::next results in undefined behavior. Try to heap-allocate
+    the serializer object if you need to move the serializer between multiple
+    async operations (for example, between a call to `async_write_header` and
+    `async_write`).
+
     @tparam isRequest `true` if the message is a request.
 
     @tparam Body The body type of the message.
@@ -189,10 +197,26 @@ private:
     bool more_ = false;
 
 public:
-    /// Constructor
+    /** Move Constructor
+        @note
+
+        Moving or copying the serializer after the first call to
+        @ref serializer::next results in undefined behavior. Try to heap-allocate
+        the serializer object if you need to move the serializer between multiple
+        async operations (for example, between a call to `async_write_header` and
+        `async_write`).
+    */
     serializer(serializer&&) = default;
 
-    /// Constructor
+    /** Copy Constructor
+        @note
+
+        Moving or copying the serializer after the first call to
+        @ref serializer::next results in undefined behavior. Try to heap-allocate
+        the serializer object if you need to move the serializer between multiple
+        async operations (for example, between a call to `async_write_header` and
+        `async_write`).
+    */
     serializer(serializer const&) = default;
 
     /// Assignment
