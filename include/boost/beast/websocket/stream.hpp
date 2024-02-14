@@ -398,6 +398,11 @@ public:
 
         @throws invalid_argument if `deflateSupported == false`, and either
         `client_enable` or `server_enable` is `true`.
+
+        @note
+
+        These settings should be configured before performing the WebSocket
+        handshake.
     */
     void
     set_option(permessage_deflate const& o);
