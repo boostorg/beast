@@ -11,12 +11,7 @@
 #define BOOST_BEAST_STRING_TYPE_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-
 #include <boost/core/detail/string_view.hpp>
-#if defined(BOOST_BEAST_USE_STD_STRING_VIEW)
-#include <boost/config/pragma_message.hpp>
-BOOST_PRAGMA_MESSAGE("BOOST_BEAST_USE_STD_STRING_VIEW is deprecated, use BOOST_NO_CXX17_HDR_STRING_VIEW instead");
-#endif
 
 namespace boost {
 namespace beast {
