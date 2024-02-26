@@ -151,7 +151,7 @@ support timeouts.
         [[path_link example/websocket/server/stackless/websocket_server_stackless.cpp websocket_server_stackless.cpp]]
         [[path_link example/websocket/server/stackless-ssl/websocket_server_stackless_ssl.cpp websocket_server_stackless_ssl.cpp]]
 ][
-        [HTTP, C++ 20 coroutine]
+        [WebSocket, C++ 20 coroutine]
         [[path_link example/websocket/server/awaitable/websocket_server_awaitable.cpp websocket_server_awaitable.cpp]]
         []
 ][
