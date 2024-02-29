@@ -38,9 +38,12 @@ variant beast_coverage
     <linkflags>"--coverage"
   ;
 
+feature.feature boost.beast.valgrind : on : optional propagated composite ;
+feature.compose <boost.beast.valgrind>on : <define>BOOST_USE_VALGRIND ;
+
 variant beast_valgrind
   : release
-  : <valgrind>on # Boost.Context uses this property
+  : <boost.beast.valgrind>on
   ;
 
 variant beast_ubasan
