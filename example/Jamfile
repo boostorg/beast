@@ -8,7 +8,7 @@
 #
 
 import testing ;
-import ../../config/checks/config : requires ;
+import config : requires ;
 
 project /boost/beast/example
     : requirements
@@ -22,6 +22,7 @@ project /boost/beast/example
     ]
     <library>/boost/beast//lib-asio/<link>static
     <boost.beast.separate-compilation>on:<library>/boost/beast//lib-beast/<link>static
+    <include>..
     ;
 
 build-project advanced ;

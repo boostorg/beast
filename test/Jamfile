@@ -8,16 +8,15 @@
 #
 
 import testing ;
-import ../../config/checks/config : requires ;
+import config : requires ;
 
 lib lib-test
     : lib_test.cpp
     : requirements
     <link>static
-    $(defines)
+    <include>..
     : usage-requirements
-    <include>./extras/include
-    $(defines)
+    <include>extras/include
     ;
 
 project /boost/beast/test
@@ -30,7 +29,8 @@ project /boost/beast/test
         cxx11_template_aliases
         cxx11_variadic_templates
     ]
-    <include>./extern
+    <include>..
+    <include>extern
     <define>BOOST_BEAST_TESTS
     <target-os>darwin:<define>Z_HAVE_UNISTD_H=1
     <library>/boost/beast//lib-asio/<link>static
