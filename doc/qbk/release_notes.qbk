@@ -11,6 +11,34 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.85]
+
+[*API Changes]
+
+* [issue 2811] The status code list has been updated to conform with the IANA registry
+
+[*Fixes]
+
+* [issue 2803] Unreachable code warning in `buffers_cat.hpp`
+* [issue 2778] Connection error handling in `websocker_server_awaitable` example
+* [issue 2739] Concurrent calls to `async_write` in advanced server examples
+* [issue 2810] zlib name conflicts with minizip
+* [issue 2818] host string should be updated after `SSL_set_tlsext_host_name()`
+
+[*Improvements]
+
+* [issue 2782] `asio::associator` is specialized for `bind_wrapper` and `bind_front_wrapper`
+* [issue 2646] Add non-allocating overload for error category message function
+
+[*Documentation]
+
+* [issue 2789] Specifies when calling `http::message::prepare_payload()` is optional
+* [issue 2799] Operations affected by `basic_stream::expires_after()`
+* [issue 2808] `teardown()` and `async_teardown()` are customization points
+* [issue 2814] Moving or copying `http::serializer` after first usage is undefined behaviour
+* [issue 2817] `websocket::permessage_deflate` should be configured before performing the WebSocket handshake
+* [issue 2816] `bytes_transferred` in http reads operations reports the number of bytes consumed by the HTTP parser
+
 [heading Boost 1.84]
 
 [*API Changes]
