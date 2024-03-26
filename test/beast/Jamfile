@@ -10,7 +10,7 @@
 alias run-tests :
     [ compile core.cpp ]
     [ compile http.cpp ]
-    [ compile ssl.cpp ]
+    [ compile ssl.cpp /boost/beast//lib-asio-ssl ]
     [ compile version.cpp ]
     [ compile websocket.cpp ]
     [ compile zlib.cpp ]
