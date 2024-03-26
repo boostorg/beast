@@ -252,22 +252,6 @@ jobs:
           ./bootstrap.sh
           ./b2 -d0 headers
 
-      - name: Macos 11 specific
-        if: matrix.os == 'macos-11'
-        run: |
-          echo "macos - set up homebrew openssl"
-          cat > ~/user-config.jam <<EOF
-          import os ;
-          local OPENSSL_ROOT = [ os.environ OPENSSL_ROOT ] ;
-          project
-            : requirements
-              <include>/usr/local/opt/openssl/include
-              <variant>debug:<library-path>/usr/local/opt/openssl/lib
-              <target-os>windows<variant>debug:<library-path>/usr/local/opt/openssl/debug/lib
-              <variant>release:<library-path>/usr/local/opt/openssl/lib
-            ;
-          EOF
-
       - name: Create user-config.jam
         if: matrix.compiler
         run: |
@@ -404,19 +388,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup OpenSSL
-        env:
-          OPENSSL_ROOT: "C:\\OpenSSL"
         shell: cmd
         run: |
-          echo Install choco
-          powershell -Command iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
           if "${{matrix.addrmd}}" == "64" (
-            choco install --no-progress -y openssl --x64
+            choco install --no-progress -y openssl --x64 --version=3.1.1
           )
           if "${{matrix.addrmd}}" == "32" (
             ; as of 17.08.23 openssl 3 doesn't support x86
             set openssl_install_dir="C:\\Program Files (x86)\\OpenSSL-Win32"
-            choco install --no-progress -y openssl --forcex86 --version 1.1.1.2100
+            choco install --no-progress -y openssl --forcex86 --version=1.1.1.2100
           )
 
           if "${{matrix.addrmd}}" == "64" (
@@ -426,7 +406,7 @@ jobs:
             set openssl_install_dir="C:\\Program Files\\OpenSSL-Win64"
             )
           )
-          mklink /D %OPENSSL_ROOT% %openssl_install_dir%
+          mklink /D C:\OpenSSL %openssl_install_dir%
           refreshenv
           set
 
@@ -449,19 +429,15 @@ jobs:
           xcopy /s /e /q %GITHUB_WORKSPACE% libs\%LIBRARY%\
           git submodule update --init tools/boostdep
           python tools/boostdep/depinst/depinst.py --git_args "--jobs 3" %LIBRARY%
-          copy libs\%LIBRARY%\tools\user-config.jam %USERPROFILE%\user-config.jam
-          set OPENSSL_ROOT=C:\OpenSSL
+          echo using openssl : : ^<include^>"C:/OpenSSL/include" ^<search^>"C:/OpenSSL/lib" ^<ssl-name^>libssl ^<crypto-name^>libcrypto : ^<address-model^>${{matrix.addrmd}} ; >> %USERPROFILE%\user-config.jam
           cmd /c bootstrap
           b2 -d0 headers
 
       - name: Run tests
         shell: bash
-        env:
-          OPENSSL_ROOT: "C:/OpenSSL"
         run: |
           echo "current directory: $(pwd)"
           cd ../boost-root
-          export OPENSSL_ROOT="C:/OpenSSL"
           if [[ "${{matrix.supported}}" != "true" ]] ; then
             echo "This configuration is not supported because ${{matrix.supported}}"
             exit 0
