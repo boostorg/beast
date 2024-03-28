@@ -12,7 +12,7 @@ mklink /D "C:\OpenSSL" "C:\Program Files\OpenSSL-Win64"
 SET OPENSSL_ROOT=C:\OpenSSL
 SET BOOST_BRANCH=develop
 IF "%DRONE_BRANCH%" == "master" SET BOOST_BRANCH=master
-cp tools\user-config.jam %USERPROFILE%\user-config.jam
+echo using openssl : : ^<include^>"C:/OpenSSL/include" ^<search^>"C:/OpenSSL/lib" ^<ssl-name^>libssl ^<crypto-name^>libcrypto : ^<address-model^>64 ; >> %USERPROFILE%\user-config.jam
 cd ..
 SET GET_BOOST=!DRONE_BUILD_DIR!\tools\get-boost.sh
 bash -c "$GET_BOOST $DRONE_BRANCH $DRONE_BUILD_DIR"
