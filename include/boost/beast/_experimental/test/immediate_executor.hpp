@@ -25,7 +25,7 @@ class immediate_executor
   public:
     immediate_executor(std::size_t & count) noexcept : count_(count) {}
 
-    asio::execution_context &query(asio::execution::context_t) const
+    asio::execution_context &query(asio::execution::context_t) const noexcept
     {
         BOOST_ASSERT(false);
         return *static_cast<asio::execution_context*>(nullptr);
@@ -64,8 +64,52 @@ class immediate_executor
     }
 };
 
-}
-}
-}
+} // test
+} // beast
+
+namespace asio
+{
+namespace traits
+{
+template<typename F>
+struct execute_member<beast::test::immediate_executor, F>
+{
+    static constexpr bool is_valid    = true;
+    static constexpr bool is_noexcept = false;
+    typedef void result_type;
+};
+
+template<>
+struct equality_comparable<beast::test::immediate_executor>
+{
+    static constexpr bool is_valid    = true;
+    static constexpr bool is_noexcept = true;
+};
+
+template<>
+struct query_member<beast::test::immediate_executor, execution::context_t>
+{
+    static constexpr bool is_valid    = true;
+    static constexpr bool is_noexcept = true;
+    typedef execution_context& result_type;
+};
+
+template<typename Property>
+struct query_static_constexpr_member<
+    beast::test::immediate_executor,
+    Property,
+    typename enable_if<std::is_convertible<Property, execution::blocking_t>::value>::type>
+{
+    static constexpr bool is_valid    = true;
+    static constexpr bool is_noexcept = true;
+    typedef execution::blocking_t::never_t result_type;
+    static constexpr result_type value() noexcept
+    {
+        return result_type();
+    }
+};
+} // traits
+} // asio
+} // boost
 
 #endif //BOOST_BEAST_TEST_IMMEDIATE_EXECUTOR_HPP
