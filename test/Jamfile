@@ -30,7 +30,6 @@ project /boost/beast/test
         cxx11_template_aliases
         cxx11_variadic_templates
     ]
-    <include>./extern
     <define>BOOST_BEAST_TESTS
     <target-os>darwin:<define>Z_HAVE_UNISTD_H=1
     <library>/boost/beast//lib-asio/<link>static
@@ -41,15 +40,11 @@ project /boost/beast/test
     <address-sanitizer>norecover:<define>BOOST_USE_ASAN=1
   ;
 
-path-constant ZLIB_SOURCES :
+lib lib-zlib :
     extern/zlib-1.2.12/adler32.c
     extern/zlib-1.2.12/compress.c
     extern/zlib-1.2.12/crc32.c
     extern/zlib-1.2.12/deflate.c
-   #extern/zlib-1.2.12/gzclose.c
-   #extern/zlib-1.2.12/gzlib.c
-   #extern/zlib-1.2.12/gzread.c
-   #extern/zlib-1.2.12/gzwrite.c
     extern/zlib-1.2.12/infback.c
     extern/zlib-1.2.12/inffast.c
     extern/zlib-1.2.12/inflate.c
@@ -57,6 +52,11 @@ path-constant ZLIB_SOURCES :
     extern/zlib-1.2.12/trees.c
     extern/zlib-1.2.12/uncompr.c
     extern/zlib-1.2.12/zutil.c
+    : requirements
+    <warnings>off
+    <link>static
+    : usage-requirements
+    <include>./extern
     ;
 
 alias run-tests :
