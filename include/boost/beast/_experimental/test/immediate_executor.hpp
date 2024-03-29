@@ -52,13 +52,13 @@ class immediate_executor
     }
 
     bool
-    operator==(immediate_executor const &other) const noexcept
+    operator==(immediate_executor const &) const noexcept
     {
         return true;
     }
 
     bool
-    operator!=(immediate_executor const &other) const noexcept
+    operator!=(immediate_executor const &) const noexcept
     {
         return false;
     }
