@@ -9,6 +9,7 @@
 #define BOOST_BEAST_TEST_IMMEDIATE_EXECUTOR_HPP
 
 #include <boost/asio/any_io_executor.hpp>
+#include <boost/asio/execution_context.hpp>
 
 namespace boost
 {
@@ -21,14 +22,16 @@ namespace test
 
 class immediate_executor
 {
+    asio::execution_context* context_ = nullptr;
     std::size_t &count_;
+
   public:
     immediate_executor(std::size_t & count) noexcept : count_(count) {}
 
     asio::execution_context &query(asio::execution::context_t) const noexcept
     {
         BOOST_ASSERT(false);
-        return *static_cast<asio::execution_context*>(nullptr);
+        return *context_;
     }
 
     constexpr static asio::execution::blocking_t
