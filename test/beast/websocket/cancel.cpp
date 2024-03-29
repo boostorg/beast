@@ -32,7 +32,7 @@ struct async_all_server_op : boost::asio::coroutine
     async_all_server_op(stream<asio::ip::tcp::socket> & ws) : ws(ws) {}
 
     template<typename Self>
-    void operator()(Self && self, error_code ec = {}, std::size_t sz = 0)
+    void operator()(Self && self, error_code ec = {}, std::size_t = 0)
     {
         if (ec)
             return self.complete(ec);
@@ -81,7 +81,7 @@ struct async_all_client_op : boost::asio::coroutine
     std::shared_ptr<impl_t> impl{std::make_shared<impl_t>()};
 
     template<typename Self>
-    void operator()(Self && self, error_code ec = {}, std::size_t sz = 0)
+    void operator()(Self && self, error_code ec = {}, std::size_t = 0)
     {
         if (ec)
             return self.complete(ec);
