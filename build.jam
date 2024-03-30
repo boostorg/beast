@@ -9,27 +9,27 @@ import feature ;
 project /boost/beast
     : common-requirements
         <include>include
-        <source>/boost/asio//boost_asio
-        <source>/boost/assert//boost_assert
-        <source>/boost/bind//boost_bind
-        <source>/boost/config//boost_config
-        <source>/boost/container//boost_container
-        <source>/boost/container_hash//boost_container_hash
-        <source>/boost/core//boost_core
-        <source>/boost/endian//boost_endian
-        <source>/boost/intrusive//boost_intrusive
-        <source>/boost/logic//boost_logic
-        <source>/boost/mp11//boost_mp11
-        <source>/boost/optional//boost_optional
-        <source>/boost/preprocessor//boost_preprocessor
-        <source>/boost/smart_ptr//boost_smart_ptr
-        <source>/boost/static_assert//boost_static_assert
-        <source>/boost/static_string//boost_static_string
-        <source>/boost/system//boost_system
-        <source>/boost/throw_exception//boost_throw_exception
-        <source>/boost/type_index//boost_type_index
-        <source>/boost/type_traits//boost_type_traits
-        <source>/boost/winapi//boost_winapi
+        <library>/boost/asio//boost_asio
+        <library>/boost/assert//boost_assert
+        <library>/boost/bind//boost_bind
+        <library>/boost/config//boost_config
+        <library>/boost/container//boost_container
+        <library>/boost/container_hash//boost_container_hash
+        <library>/boost/core//boost_core
+        <library>/boost/endian//boost_endian
+        <library>/boost/intrusive//boost_intrusive
+        <library>/boost/logic//boost_logic
+        <library>/boost/mp11//boost_mp11
+        <library>/boost/optional//boost_optional
+        <library>/boost/preprocessor//boost_preprocessor
+        <library>/boost/smart_ptr//boost_smart_ptr
+        <library>/boost/static_assert//boost_static_assert
+        <library>/boost/static_string//boost_static_string
+        <library>/boost/system//boost_system
+        <library>/boost/throw_exception//boost_throw_exception
+        <library>/boost/type_index//boost_type_index
+        <library>/boost/type_traits//boost_type_traits
+        <library>/boost/winapi//boost_winapi
     ;
 
 explicit
