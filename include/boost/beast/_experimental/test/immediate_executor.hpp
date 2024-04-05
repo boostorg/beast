@@ -70,6 +70,7 @@ class immediate_executor
 } // test
 } // beast
 
+#if ! BOOST_BEAST_DOXYGEN
 namespace asio
 {
 namespace traits
@@ -113,6 +114,8 @@ struct query_static_constexpr_member<
 };
 } // traits
 } // asio
+#endif
+
 } // boost
 
 #endif //BOOST_BEAST_TEST_IMMEDIATE_EXECUTOR_HPP
