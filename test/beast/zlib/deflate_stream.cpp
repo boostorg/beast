@@ -76,11 +76,11 @@ class deflate_stream_test : public beast::unit_test::suite
         }
 
         virtual std::size_t avail_in() const noexcept override  { return zs.avail_in; }
-        virtual void avail_in(std::size_t n) noexcept override { zs.avail_in = n; }
+        virtual void avail_in(std::size_t n) noexcept override { zs.avail_in = static_cast<uInt>(n); }
         virtual void const* next_in() const noexcept override { return zs.next_in; }
         virtual void next_in(const void* ptr) noexcept override { zs.next_in = const_cast<Bytef*>(static_cast<const Bytef*>(ptr)); }
         virtual std::size_t avail_out() const noexcept override { return zs.avail_out; }
-        virtual void avail_out(std::size_t n_out) noexcept override { zs.avail_out = n_out; }
+        virtual void avail_out(std::size_t n_out) noexcept override { zs.avail_out = static_cast<uInt>(n_out); }
         virtual void* next_out() const noexcept override { return zs.next_out; }
         virtual void next_out(void* ptr) noexcept override { zs.next_out = (Bytef*)ptr; }
         virtual std::size_t total_out() const noexcept override { return zs.total_out; }

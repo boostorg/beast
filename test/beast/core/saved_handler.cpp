@@ -46,7 +46,7 @@ public:
         }
 
         void
-        operator()(system::error_code ec_ = {})
+        operator()(system::error_code = {})
         {
             failed_ = false;
         }
