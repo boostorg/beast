@@ -17,10 +17,7 @@ if [ os.on-windows ]
         openssl-root = "C:/OpenSSL" ;
     }
 }
-if $(openssl-root)
-{
-    using openssl : : <search>$(openssl-root)/lib <include>$(openssl-root)/include ;
-}
+using openssl : : <search>$(openssl-root)/lib <include>$(openssl-root)/include ;
 
 project
     : source-location ../test
