@@ -4,6 +4,7 @@
 # http://www.boost.org/LICENSE_1_0.txt)
 
 import ac ;
+import-search /boost/config/checks ;
 import config : requires ;
 import os ;
 import path ;

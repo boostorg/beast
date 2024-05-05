@@ -8,6 +8,7 @@
 #
 
 import testing ;
+import-search /boost/config/checks ;
 import config : requires ;
 
 project /boost/beast/example
