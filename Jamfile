@@ -26,11 +26,9 @@ lib mswsock ; # NT
 lib ipv6 ; # HPUX
 lib network ; # HAIKU
 
-feature.feature boost.beast.allow-deprecated : on off : propagated composite ;
-feature.compose <boost.beast.allow-deprecated>on : <define>BOOST_BEAST_ALLOW_DEPRECATED ;
+feature.feature boost.beast.allow-deprecated : on off : propagated ;
 
-feature.feature boost.beast.separate-compilation : on off : propagated composite ;
-feature.compose <boost.beast.separate-compilation>on : <define>BOOST_BEAST_SEPARATE_COMPILATION ;
+feature.feature boost.beast.separate-compilation : on off : propagated ;
 
 variant beast_coverage
   : debug
@@ -95,6 +93,8 @@ local defines =
     <target-os>hpux:<library>ipv6
     <target-os>qnxnto:<library>socket
     <target-os>haiku:<library>network
+    <boost.beast.allow-deprecated>on:<define>BOOST_BEAST_ALLOW_DEPRECATED
+    <boost.beast.separate-compilation>on:<define>BOOST_BEAST_SEPARATE_COMPILATION
     ;
 
 lib lib-asio
