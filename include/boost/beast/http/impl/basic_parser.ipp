@@ -701,9 +701,12 @@ parse_chunk_header(char const*& p0,
     }
     else
     {
-        BOOST_ASSERT(n >= 5);
+        BOOST_ASSERT(n >= 3);
         if(f_ & flagExpectCRLF)
+        {
+            BOOST_ASSERT(n >= 5);
             BOOST_VERIFY(parse_crlf(p));
+        }
         std::uint64_t size;
         BOOST_VERIFY(parse_hex(p, size));
         eol = find_eol(p, pend, ec);
