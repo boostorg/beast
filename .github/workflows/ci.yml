@@ -333,20 +333,20 @@ jobs:
             os: windows-2019
             cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
             supported: true
-          # - description: msvc-14.3-cxx14-win32
-          #   toolset: msvc-14.3
-          #   cxxstd: "14"
-          #   addrmd: 32
-          #   os: windows-2022
-          #   cxxflags: ""
-          #   supported: true
-          # - description: msvc-14.3-cxx17-win32
-          #   toolset: msvc-14.3
-          #   cxxstd: "17"
-          #   addrmd: 32
-          #   os: windows-2022
-          #   cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
-          #   supported: true
+          - description: msvc-14.3-cxx14-win32
+            toolset: msvc-14.3
+            cxxstd: "14"
+            addrmd: 32
+            os: windows-2022
+            cxxflags: ""
+            supported: true
+          - description: msvc-14.3-cxx17-win32
+            toolset: msvc-14.3
+            cxxstd: "17"
+            addrmd: 32
+            os: windows-2022
+            cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
+            supported: true
           - description: msvc-14.3-cxx20-win32
             toolset: msvc-14.3
             cxxstd: "20"
@@ -354,20 +354,20 @@ jobs:
             os: windows-2022
             cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
             supported: true
-          # - description: msvc-14.3-cxx14-win64
-          #   toolset: msvc-14.3
-          #   cxxstd: "14"
-          #   addrmd: 64
-          #   os: windows-2022
-          #   cxxflags: ""
-          #   supported: true
-          # - description: msvc-14.3-cxx17-win64
-          #   toolset: msvc-14.3
-          #   cxxstd: "17"
-          #   addrmd: 64
-          #   os: windows-2022
-          #   cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
-          #   supported: true
+          - description: msvc-14.3-cxx14-win64
+            toolset: msvc-14.3
+            cxxstd: "14"
+            addrmd: 64
+            os: windows-2022
+            cxxflags: ""
+            supported: true
+          - description: msvc-14.3-cxx17-win64
+            toolset: msvc-14.3
+            cxxstd: "17"
+            addrmd: 64
+            os: windows-2022
+            cxxflags: "cxxflags=-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1"
+            supported: true
           - description: msvc-14.3-cxx20-win64
             toolset: msvc-14.3
             cxxstd: "20"
