@@ -49,20 +49,15 @@ call-if : boost-library beast
     : install boost_beast boost_beast_asio boost_beast_asio_ssl
     ;
 
-feature.feature boost.beast.allow-deprecated : on off : propagated composite ;
-feature.compose <boost.beast.allow-deprecated>on : <define>BOOST_BEAST_ALLOW_DEPRECATED ;
-
-feature.feature boost.beast.separate-compilation : on off : propagated composite ;
-feature.compose <boost.beast.separate-compilation>on : <define>BOOST_BEAST_SEPARATE_COMPILATION ;
+feature.feature boost.beast.allow-deprecated : on off : propagated ;
+feature.feature boost.beast.separate-compilation : on off : propagated ;
+feature.feature boost.beast.valgrind : on off : optional propagated ;
 
 variant beast_coverage
     : debug
     : <cxxflags>"-msse4.2 --coverage"
         <linkflags>"--coverage"
     ;
-
-feature.feature boost.beast.valgrind : on : optional propagated composite ;
-feature.compose <boost.beast.valgrind>on : <define>BOOST_USE_VALGRIND ;
 
 variant beast_valgrind
     : release

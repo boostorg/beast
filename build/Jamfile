@@ -60,6 +60,9 @@ project
         <target-os>hpux:<library>ipv6
         <target-os>qnxnto:<library>socket
         <target-os>haiku:<library>network
+        <boost.beast.valgrind>on:<define>BOOST_USE_VALGRIND
+        <boost.beast.allow-deprecated>on:<define>BOOST_BEAST_ALLOW_DEPRECATED
+        <boost.beast.separate-compilation>on:<define>BOOST_BEAST_SEPARATE_COMPILATION
     ;
 
 explicit

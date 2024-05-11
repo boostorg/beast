@@ -416,6 +416,42 @@ public:
     }
 
     void
+    testIssue2861()
+    {
+        // Partial parsing of the final chunk when
+        // the final chunk is the only chunk in the body.
+        error_code ec;
+        flat_buffer b;
+        response_parser<string_body> p;
+
+        ostream(b) <<
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n";
+
+        auto used = p.put(b.data(), ec);
+        b.consume(used);
+        BEAST_EXPECT(! ec);
+        BEAST_EXPECT(! p.is_done());
+
+        ostream(b) << "0\r\n"; // needs an extra CRLF
+        used = p.put(b.data(), ec);
+        BEAST_EXPECT(used == 0);
+        BEAST_EXPECT(ec == error::need_more);
+
+        ostream(b) << "\r";
+        used = p.put(b.data(), ec);
+        BEAST_EXPECT(used == 0);
+        BEAST_EXPECT(ec == error::need_more);
+
+        ostream(b) << "\n";
+        used = p.put(b.data(), ec);
+        BEAST_EXPECT(used == 5);
+        BEAST_EXPECT(!ec);
+        BEAST_EXPECT(p.is_done());
+    }
+
+    void
     run() override
     {
         testParse();
@@ -425,6 +461,7 @@ public:
         testIssue818();
         testIssue1187();
         testIssue1880();
+        testIssue2861();
     }
 };
 
