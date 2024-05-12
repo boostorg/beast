@@ -235,11 +235,11 @@ public:
         @param context The `io_context` object that the stream will use to
         dispatch handlers for any asynchronous operations.
     */
-    template <typename ExecutionContext>
-    explicit basic_stream(ExecutionContext& context,
-        typename std::enable_if<
-            std::is_convertible<ExecutionContext&, net::execution_context&>::value
-        >::type* = 0)
+    template <class ExecutionContext,
+        class = typename std::enable_if<
+            std::is_convertible<ExecutionContext&, net::execution_context&>::value>::type>
+    explicit
+    basic_stream(ExecutionContext& context)
     : basic_stream(context.get_executor())
     {
     }
