@@ -313,6 +313,26 @@ public:
     {
         BOOST_ASIO_CORO_REENTER(*this)
         {
+            // apply the timeout manually, otherwise
+            // behavior varies across platforms.
+            if(state().timer.expiry() <= now())
+            {
+                BOOST_ASIO_CORO_YIELD
+                {
+                    BOOST_ASIO_HANDLER_LOCATION((
+                        __FILE__, __LINE__,
+                        (isRead ? "basic_stream::async_read_some"
+                            : "basic_stream::async_write_some")));
+
+                    net::dispatch(this->get_immediate_executor(),
+                        net::prepend(std::move(*this), ec, 0));
+                }
+
+                impl_->close();
+                BOOST_BEAST_ASSIGN_EC(ec, beast::error::timeout);
+                goto upcall;
+            }
+
             // handle empty buffers
             if(detail::buffers_empty(b_))
             {
@@ -325,13 +345,6 @@ public:
                             : "basic_stream::async_write_some")));
 
                     async_perform(0, is_read{});
-                }
-                // apply the timeout manually, otherwise
-                // behavior varies across platforms.
-                if(state().timer.expiry() <= clock_type::now())
-                {
-                    impl_->close();
-                    BOOST_BEAST_ASSIGN_EC(ec, beast::error::timeout);
                 }
                 goto upcall;
             }
