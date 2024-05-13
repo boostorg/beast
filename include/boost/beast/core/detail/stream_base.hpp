@@ -132,6 +132,11 @@ struct stream_base
         return (time_point::max)();
     }
 
+    static time_point now() noexcept
+    {
+        return clock_type::now();
+    }
+
     static std::size_t constexpr no_limit =
         (std::numeric_limits<std::size_t>::max)();
 };
