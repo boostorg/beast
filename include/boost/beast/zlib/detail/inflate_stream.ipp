@@ -138,7 +138,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         case TYPE:
             if(flush == Flush::block || flush == Flush::trees)
                 return done();
-            // fall through
+            BOOST_FALLTHROUGH;
 
         case TYPEDO:
         {
