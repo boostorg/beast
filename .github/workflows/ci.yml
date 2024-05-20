@@ -66,6 +66,16 @@ jobs:
             os: ubuntu-22.04
             install: g++-11
             supported: true
+          - toolset: gcc-12
+            cxxstd: "11,14,17,20,2b"
+            os: ubuntu-22.04
+            install: g++-12
+            supported: true
+          - toolset: gcc-13
+            cxxstd: "11,14,17,20,2b"
+            os: ubuntu-24.04
+            install: g++-13
+            supported: true
 # clang 3.5 not supported
 # It can't compile the websocket stream code
           - toolset: clang
@@ -168,26 +178,46 @@ jobs:
             cxxstd: "11,14,17,20"
             os: ubuntu-22.04
             supported: true
+          - toolset: clang
+            install: clang-15
+            compiler: clang++-15
+            cxxstd: "11,14,17,20,2b"
+            os: ubuntu-22.04
+            supported: true
+          - toolset: clang
+            install: clang-16
+            compiler: clang++-16
+            cxxstd: "11,14,17,20,2b"
+            os: ubuntu-24.04
+            supported: true
+          - toolset: clang
+            install: clang-17
+            compiler: clang++-17
+            cxxstd: "11,14,17,20,2b"
+            os: ubuntu-24.04
+            supported: true
+          - toolset: clang
+            install: clang-18
+            compiler: clang++-18
+            cxxstd: "11,14,17,20,2b"
+            os: ubuntu-24.04
+            supported: true
 # macos
-          - description: macos-cxx11
-            toolset: clang
-            cxxstd: "11"
+          - toolset: clang
             os: macos-11
+            cxxstd: "11,14,17,2a"
             supported: true
-          - description: macos-cxx14
-            toolset: clang
-            cxxstd: "14"
-            os: macos-11
+          - toolset: clang
+            os: macos-12
+            cxxstd: "11,14,17,20,2b"
             supported: true
-          - description: macos-cxx17
-            toolset: clang
-            cxxstd: "17"
-            os: macos-11
+          - toolset: clang
+            os: macos-13
+            cxxstd: "11,14,17,20,2b"
             supported: true
-          - description: macos-cxx2a
-            toolset: clang
-            cxxstd: "2a"
-            os: macos-11
+          - toolset: clang
+            os: macos-14
+            cxxstd: "11,14,17,20,2b"
             supported: true
 
     needs: [runner-selection]
