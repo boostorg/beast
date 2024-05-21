@@ -147,7 +147,7 @@ jobs:
             cxxstd: "11,14,17,2a"
             os: ubuntu-22.04
             container: ubuntu:18.04
-            supported: "Causes segfault on GHA CI, not on official image"
+            supported: true
           - toolset: clang
             install: clang-10
             compiler: clang++-10
@@ -203,10 +203,6 @@ jobs:
             os: ubuntu-24.04
             supported: true
 # macos
-          - toolset: clang
-            os: macos-11
-            cxxstd: "11,14,17,2a"
-            supported: true
           - toolset: clang
             os: macos-12
             cxxstd: "11,14,17,20,2b"
