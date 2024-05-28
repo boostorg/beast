@@ -96,6 +96,7 @@ effect:
 [include 5_buffers.qbk]
 [include 6_files.qbk]
 [include 7_composed.qbk]
+[include 9_ssl-tls-shutdown.qbk]
 [endsect]
 
 [section:config Configuration]

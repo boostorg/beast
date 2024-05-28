@@ -17,6 +17,8 @@ namespace boost { namespace asio { namespace ssl { } } }
 //[snippet_core_1a
 
 #include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/ssl.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <iostream>
@@ -82,5 +84,64 @@ void write_string(SyncWriteStream& stream, string_view s)
 }
 
 //]
+
+void ssl_tls_shutdown()
+{
+    net::io_context ioc;
+    net::ssl::context ctx(net::ssl::context::tlsv12);
+    ssl_stream<tcp_stream> stream(ioc, ctx);
+    flat_buffer buffer;
+    http::response<http::dynamic_body> res;
+    auto log = [](error_code){};
+
+    {
+//[snippet_core_4
+// Receive the HTTP response
+http::read(stream, buffer, res);
+
+// Gracefully shutdown the SSL/TLS connection
+error_code ec;
+stream.shutdown(ec);
+// Non-compliant servers don't participate in the SSL/TLS shutdown process and
+// close the underlying transport layer. This causes the shutdown operation to
+// complete with a `stream_truncated` error. One might decide not to log such
+// errors as there are many non-compliant servers in the wild.
+if(ec != net::ssl::error::stream_truncated)
+    log(ec);
+//]
+    }
+
+    {
+//[snippet_core_5
+// Use an HTTP response parser to have more control
+http::response_parser<http::dynamic_body> parser;
+
+error_code ec;
+// Receive the HTTP response until the end or until an error occurs
+http::read(stream, buffer, parser, ec);
+
+// Try to manually commit the EOF, the resulting message body would be
+// vulnerable to truncation attacks.
+if(parser.need_eof() && ec == net::ssl::error::stream_truncated)
+    parser.put_eof(ec); // Override the error_code
+
+if(ec)
+    throw system_error{ec};
+
+// Access the HTTP response inside the parser
+std::cout << parser.get() << std::endl;
+
+
+// Gracefully shutdown the SSL/TLS connection
+stream.shutdown(ec); // Override the error_code
+// Non-compliant servers don't participate in the SSL/TLS shutdown process and
+// close the underlying transport layer. This causes the shutdown operation to
+// complete with a `stream_truncated` error. One might decide not to log such
+// errors as there are many non-compliant servers in the wild.
+if(ec != net::ssl::error::stream_truncated)
+    log(ec);
+//]
+    }
+}
 
 } // doc_core_snippets
