@@ -80,7 +80,7 @@ setup_stream(websocket::stream<NextLayer>& ws)
 //------------------------------------------------------------------------------
 
 void
-do_sync_session(websocket::stream<beast::tcp_stream>& ws)
+do_sync_session(websocket::stream<beast::tcp_stream> ws)
 {
     beast::error_code ec;
 
@@ -129,10 +129,10 @@ do_sync_listen(
         if(ec)
             return fail(ec, "accept");
 
-        std::thread(std::bind(
-            &do_sync_session,
-            websocket::stream<beast::tcp_stream>(
-                std::move(socket)))).detach();
+        std::thread{
+            do_sync_session,
+            websocket::stream<beast::tcp_stream>(std::move(socket))
+            }.detach();
     }
 }
 
@@ -441,13 +441,11 @@ int main(int argc, char* argv[])
     net::io_context ioc{threads};
 
     // Create sync port
-    std::thread(beast::bind_front_handler(
-        &do_sync_listen,
+    std::thread{
+        do_sync_listen,
         std::ref(ioc),
-        tcp::endpoint{
-            address,
-            static_cast<unsigned short>(port + 0u)}
-                )).detach();
+        tcp::endpoint{address, static_cast<unsigned short>(port + 0u)}
+        }.detach();
 
     // Create async port
     std::make_shared<async_listener>(
