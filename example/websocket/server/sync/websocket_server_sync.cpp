@@ -108,9 +108,9 @@ int main(int argc, char* argv[])
             acceptor.accept(socket);
 
             // Launch the session, transferring ownership of the socket
-            std::thread(
-                &do_session,
-                std::move(socket)).detach();
+            std::thread{
+                do_session,
+                std::move(socket)}.detach();
         }
     }
     catch (const std::exception& e)
