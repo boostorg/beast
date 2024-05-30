@@ -1,0 +1,69 @@
+[/
+    Copyright (c) 2024 Mohammad Nejati
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section SSL/TLS Shutdown]
+[block'''<?dbhtml stop-chunking?>''']
+
+A secure SSL/TLS connection requires a proper shutdown process to securely
+indicate the [@https://en.wikipedia.org/wiki/End-of-file ['EOF]] condition.
+This process prevents a type of attack known as a
+[@https://en.wikipedia.org/wiki/Transport_Layer_Security#Truncation_attack ['truncation attack]]
+in which an attacker can close the underlying transport layer and control
+the length of the last message in the SSL/TLS connection. A shutdown process
+consists of exchanging `close_notify` message between two parties. In __Asio__
+these steps happen by calling `shutdown()` or `async_shutdown()` on
+`ssl::stream` object.
+
+[/-----------------------------------------------------------------------------]
+
+[section error::stream_truncated]
+
+There are SSL/TLS implementations that don't perform a proper shutdown process
+and simply close the underlying transport layer instead. As a result, the EOF
+condition in these applications is not cryptographically secure and should not
+be relied upon. However, there are scenarios where an HTTPS client or server
+doesn't need EOF for determining the end of the last message:
+
+* The HTTP message has a `Content-Length` header, and the body is fully
+  received (a known body length).
+
+* The HTTP message uses chunked transfer encoding, and the final chunk is
+  received.
+
+* The HTTP message doesn't contain a body, such as any response with a 1xx
+  (Informational), 204 (No Content), or 304 (Not Modified) status code.
+
+In such scenarios, `http::read` or `http::async_read` operations succeed as
+they don't need EOF to complete. However, the next operation on the stream
+would fail with an
+[@boost:/doc/html/boost_asio/reference/ssl__error__stream_errors.html `net::ssl::error::stream_truncated`]
+error.
+
+For example, let's assume we are using Beast for communicating with an HTTPS
+server that doesn't perform a proper SSL/TLS shutdown:
+
+[snippet_core_4]
+
+[/-----------------------------------------------------------------------------]
+
+[heading Non-Compliant Peers and Unknown Body Length]
+
+This is a rare case and indeed a security issue when HTTPS servers don't
+perform a proper SSL/TLS shutdown procedure and send an HTTP response message
+that relies on EOF to determine the end of the body. This is a security concern
+because without an SSL/TLS shutdown procedure, the EOF is not cryptographically
+secure, leaving the message body vulnerable to truncation attacks.
+
+The following is an example that can read an HTTP response from such a server:
+
+[snippet_core_5]
+
+[endsect]
+
+[endsect]
