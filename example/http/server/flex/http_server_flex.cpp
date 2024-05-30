@@ -17,14 +17,13 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/dispatch.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -393,7 +392,7 @@ class ssl_session
     : public session<ssl_session>
     , public std::enable_shared_from_this<ssl_session>
 {
-    beast::ssl_stream<beast::tcp_stream> stream_;
+    ssl::stream<beast::tcp_stream> stream_;
 
 public:
     // Create the session
@@ -410,7 +409,7 @@ public:
     }
 
     // Called by the base class
-    beast::ssl_stream<beast::tcp_stream>&
+    ssl::stream<beast::tcp_stream>&
     stream()
     {
         return stream_;

@@ -16,16 +16,15 @@
 #include "example/common/server_certificate.hpp"
 
 #include <boost/beast/core.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/asio/detached.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/ssl.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
-#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -49,8 +48,7 @@ fail(beast::error_code ec, char const* what)
 // Echoes back all received WebSocket messages
 void
 do_session(
-    websocket::stream<
-        beast::ssl_stream<beast::tcp_stream>>& ws,
+    websocket::stream<ssl::stream<beast::tcp_stream>>& ws,
     net::yield_context yield)
 {
     beast::error_code ec;
@@ -153,7 +151,7 @@ do_listen(
                 acceptor.get_executor(),
                 std::bind(
                     &do_session,
-                    websocket::stream<beast::ssl_stream<
+                    websocket::stream<ssl::stream<
                         beast::tcp_stream>>(std::move(socket), ctx),
                     std::placeholders::_1),
                     // we ignore the result of the session,
