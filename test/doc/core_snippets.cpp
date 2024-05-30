@@ -7,18 +7,10 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-// prevent ssl.hpp from actually being included,
-// otherwise we would need OpenSSL on AppVeyor
-#ifndef BOOST_ASIO_SSL_HPP
-#define BOOST_ASIO_SSL_HPP
-namespace boost { namespace asio { namespace ssl { } } }
-#endif
-
 //[snippet_core_1a
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <iostream>
@@ -89,7 +81,7 @@ void ssl_tls_shutdown()
 {
     net::io_context ioc;
     net::ssl::context ctx(net::ssl::context::tlsv12);
-    ssl_stream<tcp_stream> stream(ioc, ctx);
+    net::ssl::stream<tcp_stream> stream(ioc, ctx);
     flat_buffer buffer;
     http::response<http::dynamic_body> res;
     auto log = [](error_code){};
