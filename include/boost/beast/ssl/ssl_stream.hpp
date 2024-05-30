@@ -24,7 +24,7 @@
 namespace boost {
 namespace beast {
 
-/** Provides stream-oriented functionality using OpenSSL
+/** (Deprecated: Use asio::ssl::stream instead.) Provides stream-oriented functionality using OpenSSL
 */
 template<class NextLayer>
 struct ssl_stream : net::ssl::stream<NextLayer>
