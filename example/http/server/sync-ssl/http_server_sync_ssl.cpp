@@ -213,7 +213,7 @@ fail(beast::error_code ec, char const* what)
 // Handles an HTTP server connection
 void
 do_session(
-    tcp::socket socket,
+    tcp::socket& socket,
     ssl::context& ctx,
     std::shared_ptr<std::string const> const& doc_root)
 {
@@ -308,11 +308,11 @@ int main(int argc, char* argv[])
             acceptor.accept(socket);
 
             // Launch the session, transferring ownership of the socket
-            std::thread{
-                do_session,
+            std::thread{std::bind(
+                &do_session,
                 std::move(socket),
                 std::ref(ctx),
-                doc_root}.detach();
+                doc_root)}.detach();
         }
     }
     catch (const std::exception& e)
