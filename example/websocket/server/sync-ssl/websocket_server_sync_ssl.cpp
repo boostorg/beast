@@ -123,10 +123,10 @@ int main(int argc, char* argv[])
             acceptor.accept(socket);
 
             // Launch the session, transferring ownership of the socket
-            std::thread{
-                do_session,
+            std::thread(
+                &do_session,
                 std::move(socket),
-                std::ref(ctx)}.detach();
+                std::ref(ctx)).detach();
         }
     }
     catch (const std::exception& e)
