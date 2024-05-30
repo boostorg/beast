@@ -18,7 +18,6 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl/ssl_stream.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/spawn.hpp>
@@ -311,8 +310,7 @@ https_get (std::string const& host, std::string const& target, error_code& ec)
     boost::asio::spawn(ioc,
     [&](boost::asio::yield_context yield)
     {
-        // We use the Beast ssl_stream wrapped around a beast tcp_stream.
-        ssl_stream<tcp_stream> stream(ioc, ctx);
+        net::ssl::stream<tcp_stream> stream(ioc, ctx);
 
         // The resolver will be used to look up the IP addresses for the host name
         net::ip::tcp::resolver resolver(ioc);
