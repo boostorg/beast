@@ -73,13 +73,6 @@ facilities for authoring and working with layered streams:
     contexts in an extensible fashion.
 ]]
 [[
-    [link beast.ref.boost__beast__flat_stream `flat_stream`]
-][
-    A flat stream operates as a transparent stream which helps to work around
-    a limitation of `net::ssl::stream`. It is used in the implementation
-    of [link beast.ref.boost__beast__ssl_stream `ssl_stream`].
-]]
-[[
     [link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
 ][
     Returns the lowest layer in a stack of stream layers by recursively
@@ -104,13 +97,6 @@ facilities for authoring and working with layered streams:
     a type representing a stack of stream layers. This is the type
     of reference returned by
     [link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
-]]
-[[
-    [link beast.ref.boost__beast__ssl_stream `ssl_stream`]
-][
-    The SSL stream is a drop-in replacement for `net::ssl::stream` which
-    allows for move-construction and move-assignment, and also implements
-    a work-around for a performance limitation in the original SSL stream.
 ]]
 ]
 
