@@ -17,18 +17,18 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/beast/websocket/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/optional.hpp>
 #include <algorithm>
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <queue>
@@ -391,21 +391,18 @@ class ssl_websocket_session
     : public websocket_session<ssl_websocket_session>
     , public std::enable_shared_from_this<ssl_websocket_session>
 {
-    websocket::stream<
-        beast::ssl_stream<beast::tcp_stream>> ws_;
+    websocket::stream<ssl::stream<beast::tcp_stream>> ws_;
 
 public:
     // Create the ssl_websocket_session
     explicit
-    ssl_websocket_session(
-        beast::ssl_stream<beast::tcp_stream>&& stream)
+    ssl_websocket_session(ssl::stream<beast::tcp_stream>&& stream)
         : ws_(std::move(stream))
     {
     }
 
     // Called by the base class
-    websocket::stream<
-        beast::ssl_stream<beast::tcp_stream>>&
+    websocket::stream<ssl::stream<beast::tcp_stream>>&
     ws()
     {
         return ws_;
@@ -427,7 +424,7 @@ make_websocket_session(
 template<class Body, class Allocator>
 void
 make_websocket_session(
-    beast::ssl_stream<beast::tcp_stream> stream,
+    ssl::stream<beast::tcp_stream> stream,
     http::request<Body, http::basic_fields<Allocator>> req)
 {
     std::make_shared<ssl_websocket_session>(
@@ -650,7 +647,7 @@ class ssl_http_session
     : public http_session<ssl_http_session>
     , public std::enable_shared_from_this<ssl_http_session>
 {
-    beast::ssl_stream<beast::tcp_stream> stream_;
+    ssl::stream<beast::tcp_stream> stream_;
 
 public:
     // Create the http_session
@@ -684,14 +681,14 @@ public:
     }
 
     // Called by the base class
-    beast::ssl_stream<beast::tcp_stream>&
+    ssl::stream<beast::tcp_stream>&
     stream()
     {
         return stream_;
     }
 
     // Called by the base class
-    beast::ssl_stream<beast::tcp_stream>
+    ssl::stream<beast::tcp_stream>
     release_stream()
     {
         return std::move(stream_);

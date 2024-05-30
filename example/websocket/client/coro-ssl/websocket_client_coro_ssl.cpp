@@ -16,10 +16,10 @@
 #include "example/common/root_certificates.hpp"
 
 #include <boost/beast/core.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/ssl.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -55,8 +55,7 @@ do_session(
 
     // These objects perform our I/O
     tcp::resolver resolver(ioc);
-    websocket::stream<
-        beast::ssl_stream<beast::tcp_stream>> ws(ioc, ctx);
+    websocket::stream<ssl::stream<beast::tcp_stream>> ws(ioc, ctx);
 
     // Look up the domain name
     auto const results = resolver.async_resolve(host, port, yield[ec]);

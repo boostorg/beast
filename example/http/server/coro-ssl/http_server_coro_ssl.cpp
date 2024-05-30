@@ -17,10 +17,10 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/detached.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
 #include <cstdlib>
@@ -235,7 +235,7 @@ fail(beast::error_code ec, char const* what)
 // Handles an HTTP server connection
 void
 do_session(
-    beast::ssl_stream<beast::tcp_stream>& stream,
+    ssl::stream<beast::tcp_stream>& stream,
     std::shared_ptr<std::string const> const& doc_root,
     net::yield_context yield)
 {
@@ -342,7 +342,7 @@ do_listen(
                 acceptor.get_executor(),
                 std::bind(
                     &do_session,
-                    beast::ssl_stream<beast::tcp_stream>(
+                    ssl::stream<beast::tcp_stream>(
                         std::move(socket), ctx),
                     doc_root,
                     std::placeholders::_1),

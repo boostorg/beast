@@ -15,18 +15,17 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/as_tuple.hpp>
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/asio/use_awaitable.hpp>
 
 #if defined(BOOST_ASIO_HAS_CO_AWAIT)
 
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <string>
 #include "example/common/root_certificates.hpp"
@@ -58,7 +57,7 @@ do_session(
     using tcp_stream = typename beast::tcp_stream::rebind_executor<executor_with_default>::other;
 
     // We construct the ssl stream from the already rebound tcp_stream.
-    beast::ssl_stream<tcp_stream> stream{
+    ssl::stream<tcp_stream> stream{
         net::use_awaitable.as_default_on(beast::tcp_stream(co_await net::this_coro::executor)),
         ctx};
 
