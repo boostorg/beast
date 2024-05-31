@@ -473,9 +473,8 @@ public:
             {
                 if(se.code() == test::error::test_failure)
                     throw;
-                BEAST_EXPECTS(se.code().category() ==
-                    make_error_code(static_cast<
-                        zlib::error>(0)).category(),
+                auto const ec = make_error_code(static_cast<zlib::error>(0));
+                BEAST_EXPECTS(se.code().category() == ec.category(),
                     se.code().message());
             }
             catch(...)
