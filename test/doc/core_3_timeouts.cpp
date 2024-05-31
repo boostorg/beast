@@ -601,8 +601,6 @@ core_3_timeouts_snippets2()
 
 } // (anon)
 
-template class basic_stream<net::ip::tcp, net::any_io_executor, rate_gauge>;
-
 struct core_3_timeouts_test
     : public beast::unit_test::suite
 {
