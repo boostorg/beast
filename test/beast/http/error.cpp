@@ -38,7 +38,7 @@ public:
         BEAST_EXPECT(cat.equivalent(ec,
             static_cast<std::underlying_type<error>::type>(ev)));
 
-        BEAST_EXPECT(ec.message(nullptr, 0) != nullptr);
+        BEAST_EXPECT(ec.message() != "");
     }
 
     void
