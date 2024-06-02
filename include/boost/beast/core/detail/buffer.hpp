@@ -65,7 +65,7 @@ dynamic_buffer_prepare(
         ec = {};
         return result;
     }
-    catch(std::length_error const&)
+    catch(std::exception const&)
     {
         BOOST_BEAST_ASSIGN_EC(ec, ev);
     }
