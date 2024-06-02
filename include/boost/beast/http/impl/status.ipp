@@ -72,6 +72,7 @@ int_to_status(unsigned v)
     case status::unsupported_media_type:
     case status::range_not_satisfiable:
     case status::expectation_failed:
+    case status::i_am_a_teapot:
     case status::misdirected_request:
     case status::unprocessable_entity:
     case status::locked:
@@ -178,6 +179,7 @@ obsolete_reason(status v)
     case status::unsupported_media_type:                return "Unsupported Media Type";
     case status::range_not_satisfiable:                 return "Range Not Satisfiable";
     case status::expectation_failed:                    return "Expectation Failed";
+    case status::i_am_a_teapot:                         return "I'm a teapot";
     case status::misdirected_request:                   return "Misdirected Request";
     case status::unprocessable_entity:                  return "Unprocessable Entity";
     case status::locked:                                return "Locked";
