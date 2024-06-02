@@ -72,6 +72,7 @@ public:
         check(status::unsupported_media_type                ,415, status_class::client_error);
         check(status::range_not_satisfiable                 ,416, status_class::client_error);
         check(status::expectation_failed                    ,417, status_class::client_error);
+        check(status::i_am_a_teapot                         ,418, status_class::client_error);
         check(status::misdirected_request                   ,421, status_class::client_error);
         check(status::unprocessable_entity                  ,422, status_class::client_error);
         check(status::locked                                ,423, status_class::client_error);
@@ -143,6 +144,7 @@ public:
         good(status::unsupported_media_type);
         good(status::range_not_satisfiable);
         good(status::expectation_failed);
+        good(status::i_am_a_teapot);
         good(status::misdirected_request);
         good(status::unprocessable_entity);
         good(status::locked);

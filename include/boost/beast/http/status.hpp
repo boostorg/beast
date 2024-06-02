@@ -80,6 +80,7 @@ enum class status : unsigned
     unsupported_media_type              = 415,
     range_not_satisfiable               = 416,
     expectation_failed                  = 417,
+    i_am_a_teapot                       = 418,
     misdirected_request                 = 421,
     unprocessable_entity                = 422,
     locked                              = 423,
