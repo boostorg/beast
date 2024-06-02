@@ -23,8 +23,9 @@ public:
     void check(char const* name, error ev)
     {
         auto const ec = make_error_code(ev);
-        auto const& cat = make_error_code(
-            static_cast<zlib::error>(0)).category();
+        auto const ec_zlib = make_error_code(
+            static_cast<zlib::error>(0));
+        auto const& cat = ec_zlib.category();
         BEAST_EXPECT(std::string{ec.category().name()} == name);
         BEAST_EXPECT(! ec.message().empty());
         BEAST_EXPECT(
@@ -36,7 +37,7 @@ public:
         BEAST_EXPECT(cat.equivalent(ec,
             static_cast<std::underlying_type<error>::type>(ev)));
 
-        BEAST_EXPECT(ec.message(nullptr, 0) != nullptr);
+        BEAST_EXPECT(ec.message() != "");
     }
 
     void run() override

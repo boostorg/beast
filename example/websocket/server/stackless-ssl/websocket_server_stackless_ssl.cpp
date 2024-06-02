@@ -16,12 +16,12 @@
 #include "example/common/server_certificate.hpp"
 
 #include <boost/beast/core.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/strand.hpp>
 #include <boost/asio/dispatch.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/asio/strand.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -52,7 +52,7 @@ class session
     : public boost::asio::coroutine
     , public std::enable_shared_from_this<session>
 {
-    websocket::stream<beast::ssl_stream<beast::tcp_stream>> ws_;
+    websocket::stream<ssl::stream<beast::tcp_stream>> ws_;
     beast::flat_buffer buffer_;
 
 public:

@@ -17,14 +17,13 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/dispatch.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 #include <algorithm>
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -236,7 +235,7 @@ fail(beast::error_code ec, char const* what)
 // Handles an HTTP server connection
 class session : public std::enable_shared_from_this<session>
 {
-    beast::ssl_stream<beast::tcp_stream> stream_;
+    ssl::stream<beast::tcp_stream> stream_;
     beast::flat_buffer buffer_;
     std::shared_ptr<std::string const> doc_root_;
     http::request<http::string_body> req_;

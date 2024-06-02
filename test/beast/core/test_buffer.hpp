@@ -22,6 +22,10 @@
 #include <string>
 #include <type_traits>
 
+#if defined(BOOST_GCC) && BOOST_GCC >= 130000
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
+
 namespace boost {
 namespace beast {
 

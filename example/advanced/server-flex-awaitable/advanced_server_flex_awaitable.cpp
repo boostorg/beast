@@ -17,26 +17,26 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/beast/websocket/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/as_tuple.hpp>
 #include <boost/asio/awaitable.hpp>
-#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/bind_cancellation_slot.hpp>
+#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/deferred.hpp>
 #include <boost/asio/detached.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/experimental/parallel_group.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/optional.hpp>
 #include <algorithm>
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -438,21 +438,18 @@ class ssl_websocket_session
     : public websocket_session<ssl_websocket_session>
     , public std::enable_shared_from_this<ssl_websocket_session>
 {
-    websocket::stream<
-        beast::ssl_stream<beast::tcp_stream>> ws_;
+    websocket::stream<ssl::stream<beast::tcp_stream>> ws_;
 
 public:
     // Create the ssl_websocket_session
     explicit
-    ssl_websocket_session(
-        beast::ssl_stream<beast::tcp_stream>&& stream)
+    ssl_websocket_session(ssl::stream<beast::tcp_stream>&& stream)
         : ws_(std::move(stream))
     {
     }
 
     // Called by the base class
-    websocket::stream<
-        beast::ssl_stream<beast::tcp_stream>>&
+    websocket::stream<ssl::stream<beast::tcp_stream>>&
     ws()
     {
         return ws_;
@@ -474,7 +471,7 @@ make_websocket_session(
 template<class Body, class Allocator>
 void
 make_websocket_session(
-    beast::ssl_stream<beast::tcp_stream> stream,
+    ssl::stream<beast::tcp_stream> stream,
     http::request<Body, http::basic_fields<Allocator>> req)
 {
     std::make_shared<ssl_websocket_session>(
@@ -697,7 +694,7 @@ class ssl_http_session
     : public http_session<ssl_http_session>
     , public std::enable_shared_from_this<ssl_http_session>
 {
-    beast::ssl_stream<beast::tcp_stream> stream_;
+    ssl::stream<beast::tcp_stream> stream_;
 
 public:
     // Create the http_session
@@ -731,14 +728,14 @@ public:
     }
 
     // Called by the base class
-    beast::ssl_stream<beast::tcp_stream>&
+    ssl::stream<beast::tcp_stream>&
     stream()
     {
         return stream_;
     }
 
     // Called by the base class
-    beast::ssl_stream<beast::tcp_stream>
+    ssl::stream<beast::tcp_stream>
     release_stream()
     {
         return std::move(stream_);
@@ -869,7 +866,7 @@ net::awaitable<void, executor_type> do_eof(Stream & stream)
 
 template<typename Stream>
 BOOST_ASIO_NODISCARD net::awaitable<void, executor_type>
-do_eof(beast::ssl_stream<Stream> & stream)
+do_eof(ssl::stream<Stream> & stream)
 {
     co_await stream.async_shutdown();
 }
@@ -1023,7 +1020,7 @@ detect_session(typename beast::tcp_stream::rebind_executor<executor_with_default
     if(result)
     {
         using stream_type = typename beast::tcp_stream::rebind_executor<executor_with_default>::other;
-        beast::ssl_stream<stream_type> ssl_stream{std::move(stream), ctx};
+        ssl::stream<stream_type> ssl_stream{std::move(stream), ctx};
         auto [ec, bytes_used] = co_await ssl_stream.async_handshake(net::ssl::stream_base::server, buffer.data());
 
         if(ec)

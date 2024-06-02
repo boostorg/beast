@@ -17,15 +17,13 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/system_executor.hpp>
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <memory>
-#include <string>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -46,7 +44,7 @@ fail(beast::error_code ec, char const* what)
 class session : public std::enable_shared_from_this<session>
 {
     tcp::resolver resolver_;
-    beast::ssl_stream<beast::tcp_stream> stream_;
+    ssl::stream<beast::tcp_stream> stream_;
     beast::flat_buffer buffer_; // (Must persist between reads)
     http::request<http::empty_body> req_;
     http::response<http::string_body> res_;

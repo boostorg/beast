@@ -16,12 +16,11 @@
 #include "example/common/root_certificates.hpp"
 
 #include <boost/beast/core.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
+#include <boost/asio/ssl.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -62,13 +61,13 @@ int main(int argc, char** argv)
 
         // These objects perform our I/O
         tcp::resolver resolver{ioc};
-        websocket::stream<beast::ssl_stream<tcp::socket>> ws{ioc, ctx};
+        websocket::stream<ssl::stream<tcp::socket>> ws{ioc, ctx};
 
         // Look up the domain name
         auto const results = resolver.resolve(host, port);
 
         // Make the connection on the IP address we get from a lookup
-        auto ep = net::connect(get_lowest_layer(ws), results);
+        auto ep = net::connect(beast::get_lowest_layer(ws), results);
 
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if(! SSL_set_tlsext_host_name(ws.next_layer().native_handle(), host.c_str()))

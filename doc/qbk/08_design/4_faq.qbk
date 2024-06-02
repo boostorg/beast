@@ -267,9 +267,7 @@ about Beast and other HTTP libraries that have gone through formal review.
     (for example, a `boost::asio::ip::tcp::socket` or a
     `boost::asio::ssl::stream`). You establish your TLS connection using the
     interface on `ssl::stream` like shown in all of the Asio examples, then
-    construct your `websocket::stream` around it. It works perfectly fine;
-    Beast comes with an `ssl_stream` wrapper in the example directory which
-    allows the SSL stream to be moved, overcoming an Asio limitation.
+    construct your `websocket::stream` around it.
 
     The WebSocket implementation [*does] provide support for shutting down
     the TLS connection through the use of the ADL compile-time virtual functions

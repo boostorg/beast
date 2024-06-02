@@ -17,9 +17,9 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/config.hpp>
 #include <cstdlib>
@@ -220,7 +220,7 @@ do_session(
     beast::error_code ec;
 
     // Construct the stream around the socket
-    beast::ssl_stream<tcp::socket&> stream{socket, ctx};
+    ssl::stream<tcp::socket&> stream{socket, ctx};
 
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::server, ec);
