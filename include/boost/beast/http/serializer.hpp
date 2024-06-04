@@ -248,7 +248,7 @@ public:
 
     /// Returns the serialized buffer size limit
     std::size_t
-    limit()
+    limit() const
     {
         return limit_;
     }
@@ -274,7 +274,7 @@ public:
     /** Returns `true` if we will pause after writing the complete header.
     */
     bool
-    split()
+    split() const
     {
         return split_;
     }
@@ -298,7 +298,7 @@ public:
         serialized header octets have been retrieved.
     */
     bool
-    is_header_done()
+    is_header_done() const
     {
         return header_done_;
     }
