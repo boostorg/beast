@@ -300,7 +300,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
         if(initial_size == 0)
             return 1; // buffer is full
         return this->read_size_hint_pmd(
-            initial_size, rd_done, rd_remain, rd_fh);
+            initial_size, rd_done, rd_msg_max, rd_remain, rd_fh);
     }
 
     template<class DynamicBuffer>
@@ -886,6 +886,9 @@ parse_fh(
                 return false;
             }
         }
+        // The final size of a deflated frame is unknown. In certain cases,
+        // post-inflation, it might shrink and become <= rd_msg_max.
+        // Therefore, we will verify the size during the inflation process.
         if(! this->rd_deflated())
         {
             if(rd_msg_max && beast::detail::sum_exceeds(
