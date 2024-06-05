@@ -311,8 +311,9 @@ struct impl_base<true>
     read_size_hint_pmd(
         std::size_t initial_size,
         bool rd_done,
+        std::uint64_t rd_msg_max,
         std::uint64_t rd_remain,
-        detail::frame_header const& rd_fh) const
+        frame_header const& rd_fh) const
     {
         using beast::detail::clamp;
         std::size_t result;
@@ -339,6 +340,9 @@ struct impl_base<true>
             initial_size, clamp(rd_remain));
     done:
         BOOST_ASSERT(result != 0);
+        // Ensure offered size does not exceed rd_msg_max
+        if(rd_msg_max)
+            result = clamp(result, rd_msg_max);
         return result;
     }
 };
@@ -461,6 +465,7 @@ struct impl_base<false>
     read_size_hint_pmd(
         std::size_t initial_size,
         bool rd_done,
+        std::uint64_t rd_msg_max,
         std::uint64_t rd_remain,
         frame_header const& rd_fh) const
     {
@@ -485,6 +490,9 @@ struct impl_base<false>
                 initial_size, clamp(rd_remain));
         }
         BOOST_ASSERT(result != 0);
+        // Ensure offered size does not exceed rd_msg_max
+        if(rd_msg_max)
+            result = clamp(result, rd_msg_max);
         return result;
     }
 };
