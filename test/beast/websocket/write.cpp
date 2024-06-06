@@ -806,6 +806,34 @@ public:
         BEAST_EXPECT(n1 < n0 + s.size());
     }
 
+    void
+    testIssue2880()
+    {
+        for(auto fragment : {false, true})
+        {
+            net::io_context ioc;
+            stream<test::stream> wsc{ioc};
+            stream<test::stream> wss{ioc};
+            wsc.next_layer().connect(wss.next_layer());
+            wsc.async_handshake(
+                "localhost", "/", [](error_code){});
+            wss.async_accept([](error_code){});
+            ioc.run();
+            ioc.restart();
+            // limit the write size to be less than the header buffer
+            wsc.next_layer().write_size(3);
+            if(fragment)
+                wsc.write_buffer_bytes(8);
+            wsc.async_write(sbuf("*********"),
+                [&](error_code ec, std::size_t n)
+                {
+                    BEAST_EXPECTS(ec, ec.message());
+                    BEAST_EXPECT(n == 0);
+                });
+            wsc.next_layer().close();
+            ioc.run();
+        }
+    }
 
 #if BOOST_ASIO_HAS_CO_AWAIT
     void testAwaitableCompiles(
@@ -835,6 +863,7 @@ public:
         testIssue227();
         testIssue300();
         testIssue1666();
+        testIssue2880();
 #if BOOST_ASIO_HAS_CO_AWAIT
         boost::ignore_unused(&write_test::testAwaitableCompiles);
 #endif
