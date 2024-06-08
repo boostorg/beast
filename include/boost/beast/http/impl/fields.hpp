@@ -23,8 +23,6 @@
 #include <boost/beast/http/chunk_encode.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/throw_exception.hpp>
-#include <stdexcept>
-#include <string>
 
 namespace boost {
 namespace beast {
@@ -434,15 +432,12 @@ template<class Allocator>
 auto
 basic_fields<Allocator>::
 operator=(basic_fields&& other) noexcept(
-    alloc_traits::propagate_on_container_move_assignment::value)
-      -> basic_fields&
+    pocma::value && std::is_nothrow_move_assignable<Allocator>::value)
+    -> basic_fields&
 {
-    static_assert(is_nothrow_move_assignable<Allocator>::value,
-        "Allocator must be noexcept assignable.");
     if(this == &other)
         return *this;
-    move_assign(other, std::integral_constant<bool,
-        alloc_traits:: propagate_on_container_move_assignment::value>{});
+    move_assign(other, pocma{});
     return *this;
 }
 
@@ -452,8 +447,7 @@ basic_fields<Allocator>::
 operator=(basic_fields const& other) ->
     basic_fields&
 {
-    copy_assign(other, std::integral_constant<bool,
-        alloc_traits::propagate_on_container_copy_assignment::value>{});
+    copy_assign(other, pocca{});
     return *this;
 }
 
@@ -653,8 +647,7 @@ void
 basic_fields<Allocator>::
 swap(basic_fields<Allocator>& other)
 {
-    swap(other, std::integral_constant<bool,
-        alloc_traits::propagate_on_container_swap::value>{});
+    swap(other, pocs{});
 }
 
 template<class Allocator>
@@ -1124,13 +1117,13 @@ basic_fields<Allocator>::
 move_assign(basic_fields& other, std::true_type)
 {
     clear_all();
+    this->get() = std::move(other.get());
     set_ = std::move(other.set_);
     list_ = std::move(other.list_);
     method_ = other.method_;
     target_or_reason_ = other.target_or_reason_;
     other.method_ = {};
     other.target_or_reason_ = {};
-    this->get() = other.get();
 }
 
 template<class Allocator>
