@@ -62,10 +62,10 @@ struct test_buffers_generator
         if (!buffer_bytes(cur_)) {
             if (iterations_) {
                 cur_ = const_buffers_type(
-                    underlying_buffer_sequence{
+                    underlying_buffer_sequence{{
                         net::buffer("abcde", iterations_),
                         net::buffer("12345", iterations_),
-                    });
+                    }});
                 iterations_ -= 1;
             }
             if(emulate_error_ && iterations_ == 3)

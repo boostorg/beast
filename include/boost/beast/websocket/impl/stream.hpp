@@ -133,7 +133,7 @@ read_size_hint(
     std::size_t initial_size) const
 {
     return impl_->read_size_hint_pmd(
-        initial_size, impl_->rd_done,
+        initial_size, impl_->rd_done, impl_->rd_msg_max,
         impl_->rd_remain, impl_->rd_fh);
 }
 

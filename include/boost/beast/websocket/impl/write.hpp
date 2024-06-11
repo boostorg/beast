@@ -346,8 +346,8 @@ operator()(
                         beast::detail::bind_continuation(std::move(*this)));
             }
             // VFALCO What about consuming the buffer on error?
-            bytes_transferred_ +=
-                bytes_transferred - impl.wr_fb.size();
+            if(bytes_transferred > impl.wr_fb.size())
+                bytes_transferred_ += bytes_transferred - impl.wr_fb.size();
             if(impl.check_stop_now(ec))
                 goto upcall;
             while(remain_ > 0)
@@ -431,7 +431,10 @@ operator()(
                             ),
                             beast::detail::bind_continuation(std::move(*this)));
                 }
-                n = bytes_transferred - impl.wr_fb.size();
+                if(bytes_transferred > impl.wr_fb.size())
+                    n = bytes_transferred - impl.wr_fb.size();
+                else
+                    n = 0;
                 bytes_transferred_ += n;
                 if(impl.check_stop_now(ec))
                     goto upcall;

@@ -204,6 +204,15 @@ private:
     using alloc_traits =
         beast::detail::allocator_traits<rebind_type>;
 
+    using pocma = typename
+        alloc_traits::propagate_on_container_move_assignment;
+
+    using pocca = typename
+        alloc_traits::propagate_on_container_copy_assignment;
+
+    using pocs = typename
+        alloc_traits::propagate_on_container_swap;
+
     using size_type = typename
         beast::detail::allocator_traits<Allocator>::size_type;
 
@@ -265,7 +274,7 @@ public:
         as if constructed using the same allocator.
     */
     basic_fields& operator=(basic_fields&&) noexcept(
-        alloc_traits::propagate_on_container_move_assignment::value);
+        pocma::value && std::is_nothrow_move_assignable<Allocator>::value);
 
     /// Copy assignment.
     basic_fields& operator=(basic_fields const&);

@@ -144,11 +144,11 @@ snippets()
             // an array of protocols supported by this server
             // in descending order of preference
             static const std::array<string_view, 3>
-                supported = {
+                supported = {{
                 "v3.my.chat",
                 "v2.my.chat",
                 "v1.my.chat"
-            };
+            }};
 
             std::string result;
 
