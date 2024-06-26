@@ -905,6 +905,7 @@ template<class Protocol, class Executor, class RatePolicy>
 template<
     class EndpointSequence,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, typename Protocol::endpoint)) RangeConnectHandler,
+    class,
     class>
 BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(RangeConnectHandler,void(error_code, typename Protocol::endpoint))
 basic_stream<Protocol, Executor, RatePolicy>::
@@ -927,6 +928,7 @@ template<
     class EndpointSequence,
     class ConnectCondition,
     BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, typename Protocol::endpoint)) RangeConnectHandler,
+    class,
     class>
 BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(RangeConnectHandler,void (error_code, typename Protocol::endpoint))
 basic_stream<Protocol, Executor, RatePolicy>::
@@ -948,7 +950,8 @@ async_connect(
 template<class Protocol, class Executor, class RatePolicy>
 template<
     class Iterator,
-    BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, Iterator)) IteratorConnectHandler>
+    BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, Iterator)) IteratorConnectHandler,
+    class>
 BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(
@@ -969,7 +972,8 @@ template<class Protocol, class Executor, class RatePolicy>
 template<
     class Iterator,
     class ConnectCondition,
-    BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, Iterator)) IteratorConnectHandler>
+    BOOST_ASIO_COMPLETION_TOKEN_FOR(void(error_code, Iterator)) IteratorConnectHandler,
+    class>
 BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(IteratorConnectHandler,void (error_code, Iterator))
 basic_stream<Protocol, Executor, RatePolicy>::
 async_connect(

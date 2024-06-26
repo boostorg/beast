@@ -603,7 +603,11 @@ template<
 BOOST_BEAST_ASYNC_RESULT1(AcceptHandler)
 stream<NextLayer, deflateSupported>::
 async_accept(
-    AcceptHandler&& handler)
+    AcceptHandler&& handler,
+    typename std::enable_if<
+        ! net::is_const_buffer_sequence<
+        AcceptHandler>::value>::type*
+)
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
@@ -627,6 +631,9 @@ stream<NextLayer, deflateSupported>::
 async_accept(
     ConstBufferSequence const& buffers,
     AcceptHandler&& handler,
+    typename std::enable_if<
+        net::is_const_buffer_sequence<
+        ConstBufferSequence>::value>::type*,
     typename std::enable_if<
         ! http::detail::is_header<
         ConstBufferSequence>::value>::type*

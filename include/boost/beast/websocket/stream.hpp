@@ -1381,7 +1381,13 @@ public:
     async_accept(
         AcceptHandler&& handler =
             net::default_completion_token_t<
-                executor_type>{});
+                executor_type>{}
+#ifndef BOOST_BEAST_DOXYGEN
+        , typename std::enable_if<
+            ! net::is_const_buffer_sequence<
+            AcceptHandler>::value>::type* = nullptr
+#endif
+    );
 
     /** Perform the WebSocket handshake asynchronously in the server role.
 
@@ -1454,6 +1460,9 @@ public:
             net::default_completion_token_t<
                 executor_type>{}
 #ifndef BOOST_BEAST_DOXYGEN
+        , typename std::enable_if<
+            net::is_const_buffer_sequence<
+            ConstBufferSequence>::value>::type* = 0
         , typename std::enable_if<
             ! http::detail::is_header<
             ConstBufferSequence>::value>::type* = 0
