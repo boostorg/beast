@@ -1026,6 +1026,10 @@ public:
         ,class = typename std::enable_if<
             net::is_endpoint_sequence<
                 EndpointSequence>::value>::type
+        ,class = typename std::enable_if<
+            !net::is_connect_condition<RangeConnectHandler,
+                decltype(std::declval<const EndpointSequence&>().begin())>::value
+        >::type
     #endif
     >
     BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(
@@ -1132,6 +1136,10 @@ public:
         ,class = typename std::enable_if<
             net::is_endpoint_sequence<
                 EndpointSequence>::value>::type
+        ,class = typename std::enable_if<
+            net::is_connect_condition<ConnectCondition,
+                decltype(std::declval<const EndpointSequence&>().begin())>::value
+        >::type
     #endif
     >
     BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(
@@ -1204,7 +1212,13 @@ public:
         BOOST_ASIO_COMPLETION_TOKEN_FOR(
             void(error_code, Iterator))
             IteratorConnectHandler =
-                net::default_completion_token_t<executor_type>>
+                net::default_completion_token_t<executor_type>
+    #if ! BOOST_BEAST_DOXYGEN
+        ,class = typename std::enable_if<
+            !net::is_connect_condition<IteratorConnectHandler, Iterator>::value
+        >::type
+    #endif
+    >
     BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(
         IteratorConnectHandler,
         void(error_code, Iterator))
@@ -1278,7 +1292,13 @@ public:
         BOOST_ASIO_COMPLETION_TOKEN_FOR(
             void(error_code, Iterator))
             IteratorConnectHandler =
-                net::default_completion_token_t<executor_type>>
+                net::default_completion_token_t<executor_type>
+    #if ! BOOST_BEAST_DOXYGEN
+        ,class = typename std::enable_if<
+            net::is_connect_condition<ConnectCondition, Iterator>::value
+        >::type
+    #endif
+    >
     BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(
         IteratorConnectHandler,
         void(error_code, Iterator))
