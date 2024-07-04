@@ -116,17 +116,26 @@ public:
     }
 };
 
+template <typename AsyncReadStream>
 struct run_read_msg_op
 {
+    AsyncReadStream* stream;
+
+    using executor_type = typename AsyncReadStream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return stream->get_executor();
+    }
+
     template<
         class ReadHandler,
-        class AsyncReadStream,
         class DynamicBuffer,
         bool isRequest, class Body, class Allocator>
     void
     operator()(
         ReadHandler&& h,
-        AsyncReadStream* s,
         DynamicBuffer* b,
         message<isRequest, Body,
             basic_fields<Allocator>>* m)
@@ -145,7 +154,7 @@ struct run_read_msg_op
             DynamicBuffer,
             isRequest, Body, Allocator,
             typename std::decay<ReadHandler>::type>(
-                std::forward<ReadHandler>(h), *s, *b, *m);
+                std::forward<ReadHandler>(h), *stream, *b, *m);
     }
 };
 
@@ -710,8 +719,8 @@ async_read(
     return net::async_initiate<
         ReadHandler,
         void(error_code, std::size_t)>(
-            detail::run_read_msg_op{},
-                handler, &stream, &buffer, &msg);
+            detail::run_read_msg_op<AsyncReadStream>{&stream},
+                handler, &buffer, &msg);
 }
 
 } // http
