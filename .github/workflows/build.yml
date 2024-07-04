@@ -221,24 +221,26 @@ jobs:
     container: ${{ matrix.container }}
 
     steps:
-      - name: Check if running in container
-        if: matrix.container != ''
-        run: echo "GHA_CONTAINER=${{ matrix.container }}" >> $GITHUB_ENV
-      - name: If running in container, upgrade packages
+      - name: Setup container environment
         if: matrix.container != ''
         run: |
-            apt-get -o Acquire::Retries=3 update && DEBIAN_FRONTEND=noninteractive apt-get -y install tzdata && apt-get -o Acquire::Retries=3 install -y sudo software-properties-common wget curl apt-transport-https make apt-file sudo unzip libssl-dev build-essential autotools-dev autoconf automake g++ libc++-helpers python ruby cpio gcc-multilib g++-multilib pkgconf python3 ccache libpython-dev locales
-            sudo apt-add-repository ppa:git-core/ppa
-            sudo apt-get -o Acquire::Retries=3 update && apt-get -o Acquire::Retries=3 -y install git
-            python_version=$(python3 -c 'import sys; print("{0.major}.{0.minor}".format(sys.version_info))')
-            if [[ ${python_version} =~ ^3\.[0-5]$ ]]; then
-                 true
-            else
-                apt-get install -y python3-distutils
-            fi
-            sudo wget https://bootstrap.pypa.io/pip/$python_version/get-pip.py
-            sudo python3 get-pip.py
-            sudo /usr/local/bin/pip install cmake
+          apt-get -o Acquire::Retries=3 update && DEBIAN_FRONTEND=noninteractive apt-get -y install tzdata && apt-get -o Acquire::Retries=3 install -y sudo software-properties-common wget curl apt-transport-https make apt-file sudo unzip libssl-dev build-essential autotools-dev autoconf automake g++ libc++-helpers python ruby cpio gcc-multilib g++-multilib pkgconf python3 ccache libpython-dev locales
+          sudo apt-add-repository ppa:git-core/ppa
+          sudo apt-get -o Acquire::Retries=3 update && apt-get -o Acquire::Retries=3 -y install git
+          python_version=$(python3 -c 'import sys; print("{0.major}.{0.minor}".format(sys.version_info))')
+          if [[ ${python_version} =~ ^3\.[0-5]$ ]]; then
+                true
+          else
+              apt-get install -y python3-distutils
+          fi
+          sudo wget https://bootstrap.pypa.io/pip/$python_version/get-pip.py
+          sudo python3 get-pip.py
+          sudo /usr/local/bin/pip install cmake
+
+          if [[ "${{matrix.container}}" == "ubuntu:16.04" ]] || [[ "${{matrix.container}}" == "ubuntu:18.04" ]]; then
+            echo "ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true" >> $GITHUB_ENV
+          fi
+
       - uses: actions/checkout@v3
 
       - name: Install packages
