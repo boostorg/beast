@@ -188,10 +188,19 @@ template<class NextLayer, bool deflateSupported>
 struct stream<NextLayer, deflateSupported>::
     run_handshake_op
 {
+    boost::shared_ptr<impl_type> const& self;
+
+    using executor_type = typename stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return self->stream().get_executor();
+    }
+
     template<class HandshakeHandler>
     void operator()(
         HandshakeHandler&& h,
-        boost::shared_ptr<impl_type> const& sp,
         request_type&& req,
         detail::sec_ws_key_type key,
         response_type* res_p)
@@ -208,7 +217,7 @@ struct stream<NextLayer, deflateSupported>::
         handshake_op<
             typename std::decay<HandshakeHandler>::type>(
                 std::forward<HandshakeHandler>(h),
-                    sp, std::move(req), key, res_p);
+                    self, std::move(req), key, res_p);
     }
 };
 
@@ -311,9 +320,8 @@ async_handshake(
     return net::async_initiate<
         HandshakeHandler,
         void(error_code)>(
-            run_handshake_op{},
+            run_handshake_op{impl_},
             handler,
-            impl_,
             std::move(req),
             key,
             nullptr);
@@ -338,9 +346,8 @@ async_handshake(
     return net::async_initiate<
         HandshakeHandler,
         void(error_code)>(
-            run_handshake_op{},
+            run_handshake_op{impl_},
             handler,
-            impl_,
             std::move(req),
             key,
             &res);

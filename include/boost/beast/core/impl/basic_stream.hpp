@@ -606,11 +606,20 @@ public:
 
 struct run_read_op
 {
+    basic_stream* self;
+
+    using executor_type = typename basic_stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return self->get_executor();
+    }
+
     template<class ReadHandler, class Buffers>
     void
     operator()(
         ReadHandler&& h,
-        basic_stream* s,
         Buffers const& b)
     {
         // If you get an error on the following line it means
@@ -626,17 +635,26 @@ struct run_read_op
             true,
             Buffers,
             typename std::decay<ReadHandler>::type>(
-                std::forward<ReadHandler>(h), *s, b);
+                std::forward<ReadHandler>(h), *self, b);
     }
 };
 
 struct run_write_op
 {
+    basic_stream* self;
+
+    using executor_type = typename basic_stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return self->get_executor();
+    }
+
     template<class WriteHandler, class Buffers>
     void
     operator()(
         WriteHandler&& h,
-        basic_stream* s,
         Buffers const& b)
     {
         // If you get an error on the following line it means
@@ -652,17 +670,26 @@ struct run_write_op
             false,
             Buffers,
             typename std::decay<WriteHandler>::type>(
-                std::forward<WriteHandler>(h), *s, b);
+                std::forward<WriteHandler>(h), *self, b);
     }
 };
 
 struct run_connect_op
 {
+    basic_stream* self;
+
+    using executor_type = typename basic_stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return self->get_executor();
+    }
+
     template<class ConnectHandler>
     void
     operator()(
         ConnectHandler&& h,
-        basic_stream* s,
         endpoint_type const& ep)
     {
         // If you get an error on the following line it means
@@ -675,12 +702,22 @@ struct run_connect_op
             "ConnectHandler type requirements not met");
 
         connect_op<typename std::decay<ConnectHandler>::type>(
-            std::forward<ConnectHandler>(h), *s, ep);
+            std::forward<ConnectHandler>(h), *self, ep);
     }
 };
 
 struct run_connect_range_op
 {
+    basic_stream* self;
+
+    using executor_type = typename basic_stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return self->get_executor();
+    }
+
     template<
         class RangeConnectHandler,
         class EndpointSequence,
@@ -688,7 +725,6 @@ struct run_connect_range_op
     void
     operator()(
         RangeConnectHandler&& h,
-        basic_stream* s,
         EndpointSequence const& eps,
         Condition const& cond)
     {
@@ -702,12 +738,22 @@ struct run_connect_range_op
             "RangeConnectHandler type requirements not met");
 
         connect_op<typename std::decay<RangeConnectHandler>::type>(
-            std::forward<RangeConnectHandler>(h), *s, eps, cond);
+            std::forward<RangeConnectHandler>(h), *self, eps, cond);
     }
 };
 
 struct run_connect_iter_op
 {
+    basic_stream* self;
+
+    using executor_type = typename basic_stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return self->get_executor();
+    }
+
     template<
         class IteratorConnectHandler,
         class Iterator,
@@ -715,7 +761,6 @@ struct run_connect_iter_op
     void
     operator()(
         IteratorConnectHandler&& h,
-        basic_stream* s,
         Iterator begin, Iterator end,
         Condition const& cond)
     {
@@ -729,7 +774,7 @@ struct run_connect_iter_op
             "IteratorConnectHandler type requirements not met");
 
         connect_op<typename std::decay<IteratorConnectHandler>::type>(
-            std::forward<IteratorConnectHandler>(h), *s, begin, end, cond);
+            std::forward<IteratorConnectHandler>(h), *self, begin, end, cond);
     }
 };
 
@@ -895,9 +940,8 @@ async_connect(
     return net::async_initiate<
         ConnectHandler,
         void(error_code)>(
-            typename ops::run_connect_op{},
+            typename ops::run_connect_op{this},
             handler,
-            this,
             ep);
 }
 
@@ -916,9 +960,8 @@ async_connect(
     return net::async_initiate<
         RangeConnectHandler,
         void(error_code, typename Protocol::endpoint)>(
-            typename ops::run_connect_range_op{},
+            typename ops::run_connect_range_op{this},
             handler,
-            this,
             endpoints,
             detail::any_endpoint{});
 }
@@ -940,9 +983,8 @@ async_connect(
     return net::async_initiate<
         RangeConnectHandler,
         void(error_code, typename Protocol::endpoint)>(
-            typename ops::run_connect_range_op{},
+            typename ops::run_connect_range_op{this},
             handler,
-            this,
             endpoints,
             connect_condition);
 }
@@ -961,9 +1003,8 @@ async_connect(
     return net::async_initiate<
         IteratorConnectHandler,
         void(error_code, Iterator)>(
-            typename ops::run_connect_iter_op{},
+            typename ops::run_connect_iter_op{this},
             handler,
-            this,
             begin, end,
             detail::any_endpoint{});
 }
@@ -984,9 +1025,8 @@ async_connect(
     return net::async_initiate<
         IteratorConnectHandler,
         void(error_code, Iterator)>(
-            typename ops::run_connect_iter_op{},
+            typename ops::run_connect_iter_op{this},
             handler,
-            this,
             begin, end,
             connect_condition);
 }
@@ -1007,9 +1047,8 @@ async_read_some(
     return net::async_initiate<
         ReadHandler,
         void(error_code, std::size_t)>(
-            typename ops::run_read_op{},
+            typename ops::run_read_op{this},
             handler,
-            this,
             buffers);
 }
 
@@ -1027,9 +1066,8 @@ async_write_some(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            typename ops::run_write_op{},
+            typename ops::run_write_op{this},
             handler,
-            this,
             buffers);
 }
 

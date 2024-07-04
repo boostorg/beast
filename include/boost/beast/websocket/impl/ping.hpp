@@ -245,11 +245,20 @@ template<class NextLayer, bool deflateSupported>
 struct stream<NextLayer, deflateSupported>::
     run_ping_op
 {
+    boost::shared_ptr<impl_type> const& self;
+
+    using executor_type = typename stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return self->stream().get_executor();
+    }
+
     template<class WriteHandler>
     void
     operator()(
         WriteHandler&& h,
-        boost::shared_ptr<impl_type> const& sp,
         detail::opcode op,
         ping_data const& p)
     {
@@ -265,7 +274,7 @@ struct stream<NextLayer, deflateSupported>::
         ping_op<
             typename std::decay<WriteHandler>::type>(
                 std::forward<WriteHandler>(h),
-                sp,
+                self,
                 op,
                 p);
     }
@@ -336,9 +345,8 @@ async_ping(ping_data const& payload, PingHandler&& handler)
     return net::async_initiate<
         PingHandler,
         void(error_code)>(
-            run_ping_op{},
+            run_ping_op{impl_},
             handler,
-            impl_,
             detail::opcode::ping,
             payload);
 }
@@ -354,9 +362,8 @@ async_pong(ping_data const& payload, PongHandler&& handler)
     return net::async_initiate<
         PongHandler,
         void(error_code)>(
-            run_ping_op{},
+            run_ping_op{impl_},
             handler,
-            impl_,
             detail::opcode::pong,
             payload);
 }

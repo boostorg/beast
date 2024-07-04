@@ -27,7 +27,27 @@ namespace boost {
 namespace beast {
 namespace test {
 
-//------------------------------------------------------------------------------
+namespace detail
+{
+template<class To>
+struct extract_executor_op
+{
+    To operator()(net::any_io_executor& ex) const
+    {
+        assert(ex.template target<To>());
+        return *ex.template target<To>();
+    }
+};
+
+template<>
+struct extract_executor_op<net::any_io_executor>
+{
+    net::any_io_executor operator()(net::any_io_executor& ex) const
+    {
+        return ex;
+    }
+};
+} // detail
 
 template<class Executor>
 template<class Handler, class Buffers>
@@ -163,13 +183,22 @@ public:
 template<class Executor>
 struct basic_stream<Executor>::run_read_op
 {
+    boost::shared_ptr<detail::stream_state> const& in;
+
+    using executor_type = typename basic_stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return detail::extract_executor_op<Executor>()(in->exec);
+    }
+
     template<
         class ReadHandler,
         class MutableBufferSequence>
     void
     operator()(
         ReadHandler&& h,
-        boost::shared_ptr<detail::stream_state> const& in,
         MutableBufferSequence const& buffers)
     {
         // If you get an error on the following line it means
@@ -197,13 +226,22 @@ struct basic_stream<Executor>::run_read_op
 template<class Executor>
 struct basic_stream<Executor>::run_write_op
 {
+    boost::shared_ptr<detail::stream_state> const& in_;
+
+    using executor_type = typename basic_stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return detail::extract_executor_op<Executor>()(in_->exec);
+    }
+
     template<
         class WriteHandler,
         class ConstBufferSequence>
     void
     operator()(
         WriteHandler&& h,
-        boost::shared_ptr<detail::stream_state> in_,
         boost::weak_ptr<detail::stream_state> out_,
         ConstBufferSequence const& buffers)
     {
@@ -336,9 +374,8 @@ async_read_some(
     return net::async_initiate<
         ReadHandler,
         void(error_code, std::size_t)>(
-            run_read_op{},
+            run_read_op{in_},
             handler,
-            in_,
             buffers);
 }
 
@@ -420,9 +457,8 @@ async_write_some(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            run_write_op{},
+            run_write_op{in_},
             handler,
-            in_,
             out_,
             buffers);
 }
@@ -465,28 +501,6 @@ connect(stream& to, Arg1&& arg1, ArgN&&... argn)
         std::forward<ArgN>(argn)...};
     from.connect(to);
     return from;
-}
-
-namespace detail
-{
-template<class To>
-struct extract_executor_op
-{
-    To operator()(net::any_io_executor& ex) const
-    {
-        assert(ex.template target<To>());
-        return *ex.template target<To>();
-    }
-};
-
-template<>
-struct extract_executor_op<net::any_io_executor>
-{
-    net::any_io_executor operator()(net::any_io_executor& ex) const
-    {
-        return ex;
-    }
-};
 }
 
 template<class Executor>
