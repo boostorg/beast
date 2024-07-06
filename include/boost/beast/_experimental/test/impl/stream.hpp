@@ -13,12 +13,11 @@
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/service_base.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
-#include <boost/asio/associated_cancellation_slot.hpp>
 #include <boost/asio/any_io_executor.hpp>
+#include <boost/asio/append.hpp>
 #include <boost/asio/associated_cancellation_slot.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/post.hpp>
-#include <boost/asio/prepend.hpp>
 #include <mutex>
 #include <stdexcept>
 #include <vector>
@@ -134,11 +133,11 @@ class basic_stream<Executor>::read_op : public detail::stream_read_op_base
 
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
             net::dispatch(wg2_,
-                net::prepend(std::move(h_), ec, bytes_transferred));
+                net::append(std::move(h_), ec, bytes_transferred));
             wg2_ = net::any_io_executor(); // probably unnecessary
 #else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
             net::dispatch(wg2_.get_executor(),
-                net::prepend(std::move(h_), ec, bytes_transferred));
+                net::append(std::move(h_), ec, bytes_transferred));
             wg2_.reset();
 #endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
         }
@@ -171,10 +170,10 @@ public:
     operator()(error_code ec) override
     {
 #if defined(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
-        net::post(wg1_.get_executor(), net::prepend(std::move(fn_), ec));
+        net::post(wg1_.get_executor(), net::append(std::move(fn_), ec));
         wg1_.reset();
 #else
-        net::post(wg1_, net::prepend(std::move(fn_), ec));
+        net::post(wg1_, net::append(std::move(fn_), ec));
         wg1_ = net::any_io_executor(); // probably unnecessary
 #endif
     }
@@ -257,7 +256,7 @@ struct basic_stream<Executor>::run_write_op
         ++in_->nwrite;
         auto const upcall = [&](error_code ec, std::size_t n)
         {
-            net::post(in_->exec, net::prepend(std::move(h), ec, n));
+            net::post(in_->exec, net::append(std::move(h), ec, n));
         };
 
         // test failure
@@ -477,7 +476,7 @@ async_teardown(
         s.in_->fc->fail(ec))
         return net::post(
             s.get_executor(),
-            net::prepend(std::move(handler), ec));
+            net::append(std::move(handler), ec));
     s.close();
     if( s.in_->fc &&
         s.in_->fc->fail(ec))
@@ -487,7 +486,7 @@ async_teardown(
     else
         ec = {};
 
-    net::post(s.get_executor(), net::prepend(std::move(handler), ec));
+    net::post(s.get_executor(), net::append(std::move(handler), ec));
 }
 
 //------------------------------------------------------------------------------

@@ -19,10 +19,10 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/read.hpp>
-#include <boost/asio/error.hpp>
+#include <boost/asio/append.hpp>
 #include <boost/asio/compose.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/prepend.hpp>
+#include <boost/asio/error.hpp>
 
 namespace boost {
 namespace beast {
@@ -259,7 +259,7 @@ public:
                         asio::get_associated_immediate_executor(
                             self, s_.get_executor());
 
-                    net::dispatch(ex, net::prepend(std::move(self), ec));
+                    net::dispatch(ex, net::append(std::move(self), ec));
                 }
             }
             self.complete(ec, bytes_transferred_);

@@ -15,15 +15,15 @@
 #include <boost/beast/core/detail/async_base.hpp>
 #include <boost/beast/core/detail/filtering_cancellation_slot.hpp>
 #include <boost/beast/core/detail/work_guard.hpp>
+#include <boost/asio/append.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_cancellation_slot.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/associated_immediate_executor.hpp>
 #include <boost/asio/bind_executor.hpp>
-#include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/dispatch.hpp>
+#include <boost/asio/handler_continuation_hook.hpp>
 #include <boost/asio/post.hpp>
-#include <boost/asio/prepend.hpp>
 #include <boost/core/exchange.hpp>
 #include <boost/core/empty_value.hpp>
 #include <utility>
@@ -425,7 +425,7 @@ public:
             auto const ex = this->get_immediate_executor();
             net::dispatch(
                 ex,
-                net::prepend(std::move(h_), std::forward<Args>(args)...));
+                net::append(std::move(h_), std::forward<Args>(args)...));
             wg1_.reset();
         }
         else

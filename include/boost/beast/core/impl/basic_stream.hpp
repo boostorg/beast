@@ -14,6 +14,7 @@
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/websocket/teardown.hpp>
+#include <boost/asio/append.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
@@ -325,7 +326,7 @@ public:
                             : "basic_stream::async_write_some")));
 
                     net::dispatch(this->get_immediate_executor(),
-                        net::prepend(std::move(*this), ec, 0));
+                        net::append(std::move(*this), ec, 0));
                 }
 
                 impl_->close();
