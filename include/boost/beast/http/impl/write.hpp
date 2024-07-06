@@ -16,10 +16,10 @@
 #include <boost/beast/core/make_printable.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
+#include <boost/asio/append.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/asio/prepend.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <ostream>
@@ -103,7 +103,7 @@ public:
                     "http::async_write_some"));
 
                 const auto ex = asio::get_associated_immediate_executor(*this, s_.get_executor());
-                return net::dispatch(ex, net::prepend(std::move(*this), ec, 0));
+                return net::dispatch(ex, net::append(std::move(*this), ec, 0));
             }
             if(f.invoked)
             {
@@ -119,7 +119,7 @@ public:
             "http::async_write_some"));
 
         const auto ex = this->get_immediate_executor();
-        return net::dispatch(ex, net::prepend(std::move(*this), ec, 0));
+        return net::dispatch(ex, net::append(std::move(*this), ec, 0));
     }
 
     void

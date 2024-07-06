@@ -14,9 +14,9 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/bind_continuation.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
+#include <boost/asio/append.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/dispatch.hpp>
-#include <boost/asio/prepend.hpp>
 #include <memory>
 
 namespace boost {
@@ -129,7 +129,7 @@ public:
                         ));
 
                     const auto ex = this->get_immediate_executor();
-                    net::dispatch(ex, net::prepend(std::move(*this), ec));
+                    net::dispatch(ex, net::append(std::move(*this), ec));
                 }
             }
             {
