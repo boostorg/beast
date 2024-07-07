@@ -2,6 +2,10 @@ name: build
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{format('{0}:{1}:{2}', github.repository, github.workflow, github.ref)}}
+  cancel-in-progress: true
+
 env:
   UBSAN_OPTIONS: print_stacktrace=1
 
