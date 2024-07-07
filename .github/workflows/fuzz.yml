@@ -7,6 +7,11 @@ on:
   schedule:
     - cron: "25 00 * * *"
 
+concurrency:
+  group: ${{format('{0}:{1}:{2}', github.repository, github.workflow, github.ref)}}
+  cancel-in-progress: true
+
+
 jobs:
   fuzz:
     runs-on: ubuntu-24.04
