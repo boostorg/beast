@@ -498,7 +498,9 @@ listen(
 
     while(!cs.cancelled())
     {
-        auto [ec, socket] = co_await acceptor.async_accept(net::as_tuple);
+        auto socket_executor = net::make_strand(executor.get_inner_executor());
+        auto [ec, socket] =
+            co_await acceptor.async_accept(socket_executor, net::as_tuple);
 
         if(ec == net::error::operation_aborted)
             co_return;
@@ -507,7 +509,7 @@ listen(
             throw boost::system::system_error{ ec };
 
         net::co_spawn(
-            net::make_strand(executor.get_inner_executor()),
+            std::move(socket_executor),
             detect_session(stream_type{ std::move(socket) }, ctx, doc_root),
             task_group.adapt(
                 [](std::exception_ptr e)
