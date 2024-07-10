@@ -40,8 +40,8 @@ class bind_wrapper
     Handler h_;
     args_type args_;
 
-    template <template <typename, typename> class Associator,
-        typename T, typename DefaultCandidate>
+    template <template <typename, typename> class,
+        typename, typename, typename>
     friend struct net::associator;
 
     template<class Arg, class Vals>
@@ -179,8 +179,8 @@ class bind_front_wrapper
     Handler h_;
     detail::tuple<Args...> args_;
 
-    template <template <typename, typename> class Associator,
-        typename T, typename DefaultCandidate>
+    template <template <typename, typename> class,
+        typename, typename, typename>
     friend struct net::associator;
 
     template<std::size_t... I, class... Ts>
