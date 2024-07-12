@@ -19,10 +19,10 @@
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/read.hpp>
-#include <boost/asio/error.hpp>
+#include <boost/asio/append.hpp>
 #include <boost/asio/compose.hpp>
 #include <boost/asio/coroutine.hpp>
-#include <boost/asio/prepend.hpp>
+#include <boost/asio/error.hpp>
 
 namespace boost {
 namespace beast {
@@ -116,17 +116,26 @@ public:
     }
 };
 
+template <typename AsyncReadStream>
 struct run_read_msg_op
 {
+    AsyncReadStream* stream;
+
+    using executor_type = typename AsyncReadStream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return stream->get_executor();
+    }
+
     template<
         class ReadHandler,
-        class AsyncReadStream,
         class DynamicBuffer,
         bool isRequest, class Body, class Allocator>
     void
     operator()(
         ReadHandler&& h,
-        AsyncReadStream* s,
         DynamicBuffer* b,
         message<isRequest, Body,
             basic_fields<Allocator>>* m)
@@ -145,7 +154,7 @@ struct run_read_msg_op
             DynamicBuffer,
             isRequest, Body, Allocator,
             typename std::decay<ReadHandler>::type>(
-                std::forward<ReadHandler>(h), *s, *b, *m);
+                std::forward<ReadHandler>(h), *stream, *b, *m);
     }
 };
 
@@ -250,7 +259,7 @@ public:
                         asio::get_associated_immediate_executor(
                             self, s_.get_executor());
 
-                    net::dispatch(ex, net::prepend(std::move(self), ec));
+                    net::dispatch(ex, net::append(std::move(self), ec));
                 }
             }
             self.complete(ec, bytes_transferred_);
@@ -710,8 +719,8 @@ async_read(
     return net::async_initiate<
         ReadHandler,
         void(error_code, std::size_t)>(
-            detail::run_read_msg_op{},
-                handler, &stream, &buffer, &msg);
+            detail::run_read_msg_op<AsyncReadStream>{&stream},
+                handler, &buffer, &msg);
 }
 
 } // http

@@ -16,10 +16,10 @@
 #include <boost/beast/core/make_printable.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
+#include <boost/asio/append.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/asio/prepend.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <ostream>
@@ -103,7 +103,7 @@ public:
                     "http::async_write_some"));
 
                 const auto ex = asio::get_associated_immediate_executor(*this, s_.get_executor());
-                return net::dispatch(ex, net::prepend(std::move(*this), ec, 0));
+                return net::dispatch(ex, net::append(std::move(*this), ec, 0));
             }
             if(f.invoked)
             {
@@ -119,7 +119,7 @@ public:
             "http::async_write_some"));
 
         const auto ex = this->get_immediate_executor();
-        return net::dispatch(ex, net::prepend(std::move(*this), ec, 0));
+        return net::dispatch(ex, net::append(std::move(*this), ec, 0));
     }
 
     void
@@ -299,16 +299,25 @@ public:
     }
 };
 
+template <typename AsyncWriteStream>
 struct run_write_some_op
 {
+    AsyncWriteStream* stream;
+
+    using executor_type = typename AsyncWriteStream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return stream->get_executor();
+    }
+
     template<
         class WriteHandler,
-        class Stream,
         bool isRequest, class Body, class Fields>
     void
     operator()(
         WriteHandler&& h,
-        Stream* s,
         serializer<isRequest, Body, Fields>* sr)
     {
         // If you get an error on the following line it means
@@ -322,23 +331,32 @@ struct run_write_some_op
 
         write_some_op<
             typename std::decay<WriteHandler>::type,
-            Stream,
+            AsyncWriteStream,
             isRequest, Body, Fields>(
-                std::forward<WriteHandler>(h), *s, *sr);
+                std::forward<WriteHandler>(h), *stream, *sr);
     }
 };
 
+template <typename AsyncWriteStream>
 struct run_write_op
 {
+    AsyncWriteStream* stream;
+
+    using executor_type = typename AsyncWriteStream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return stream->get_executor();
+    }
+
     template<
         class WriteHandler,
-        class Stream,
         class Predicate,
         bool isRequest, class Body, class Fields>
     void
     operator()(
         WriteHandler&& h,
-        Stream* s,
         Predicate const&,
         serializer<isRequest, Body, Fields>* sr)
     {
@@ -353,24 +371,33 @@ struct run_write_op
 
         write_op<
             typename std::decay<WriteHandler>::type,
-            Stream,
+            AsyncWriteStream,
             Predicate,
             isRequest, Body, Fields>(
-                std::forward<WriteHandler>(h), *s, *sr);
+                std::forward<WriteHandler>(h), *stream, *sr);
     }
 };
 
+template <typename AsyncWriteStream>
 struct run_write_msg_op
 {
+    AsyncWriteStream* stream;
+
+    using executor_type = typename AsyncWriteStream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return stream->get_executor();
+    }
+
     template<
         class WriteHandler,
-        class Stream,
         bool isRequest, class Body, class Fields,
         class... Args>
     void
     operator()(
         WriteHandler&& h,
-        Stream* s,
         message<isRequest, Body, Fields>* m,
         std::false_type,
         Args&&... args)
@@ -386,21 +413,19 @@ struct run_write_msg_op
 
         write_msg_op<
             typename std::decay<WriteHandler>::type,
-            Stream,
+            AsyncWriteStream,
             isRequest, Body, Fields>(
-                std::forward<WriteHandler>(h), *s, *m,
+                std::forward<WriteHandler>(h), *stream, *m,
                 std::forward<Args>(args)...);
     }
 
     template<
         class WriteHandler,
-        class Stream,
         bool isRequest, class Body, class Fields,
         class... Args>
     void
     operator()(
         WriteHandler&& h,
-        Stream* s,
         message<isRequest, Body, Fields> const* m,
         std::true_type,
         Args&&... args)
@@ -416,9 +441,9 @@ struct run_write_msg_op
 
         write_msg_op<
             typename std::decay<WriteHandler>::type,
-            Stream,
+            AsyncWriteStream,
             isRequest, Body, Fields>(
-                std::forward<WriteHandler>(h), *s, *m,
+                std::forward<WriteHandler>(h), *stream, *m,
                 std::forward<Args>(args)...);
     }
 };
@@ -513,9 +538,8 @@ async_write_some_impl(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            run_write_some_op{},
+            run_write_some_op<AsyncWriteStream>{&stream},
             handler,
-            &stream,
             &sr);
 }
 
@@ -666,9 +690,8 @@ async_write_header(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            detail::run_write_op{},
+            detail::run_write_op<AsyncWriteStream>{&stream},
             handler,
-            &stream,
             detail::serializer_is_header_done{},
             &sr);
 }
@@ -739,9 +762,8 @@ async_write(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            detail::run_write_op{},
+            detail::run_write_op<AsyncWriteStream>{&stream},
             handler,
-            &stream,
             detail::serializer_is_done{},
             &sr);
 }
@@ -860,9 +882,8 @@ async_write(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            detail::run_write_msg_op{},
+            detail::run_write_msg_op<AsyncWriteStream>{&stream},
             handler,
-            &stream,
             &msg,
             std::false_type{});
 }
@@ -889,9 +910,8 @@ async_write(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            detail::run_write_msg_op{},
+            detail::run_write_msg_op<AsyncWriteStream>{&stream},
             handler,
-            &stream,
             &msg,
             std::true_type{});
 }

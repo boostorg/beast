@@ -1,3 +1,14 @@
+Version 355:
+
+* awaitable examples are simplified
+* server-flex-awaitable example demonstrates an explicit, graceful shutdown
+* Add fuzzing targets
+* Fix overloads that are ambiguous when using default completion tokens
+* Fix misplaced static_assert in `http::basic_fields` move-assignment operator
+* Fix narrowing conversion in `read_size_hint_db()`
+
+--------------------------------------------------------------------------------
+
 Version 354:
 
 * `ssl_stream` and `flat_stream` are deprecated (Use `net::ssl::stream` instead)

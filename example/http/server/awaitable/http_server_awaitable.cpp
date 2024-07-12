@@ -13,14 +13,15 @@
 //
 //------------------------------------------------------------------------------
 
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/awaitable.hpp>
-#include <boost/asio/co_spawn.hpp>
-#include <boost/asio/use_awaitable.hpp>
 #include <boost/config.hpp>
+
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -31,13 +32,9 @@
 
 #if defined(BOOST_ASIO_HAS_CO_AWAIT)
 
-namespace beast = boost::beast;         // from <boost/beast.hpp>
-namespace http = beast::http;           // from <boost/beast/http.hpp>
-namespace net = boost::asio;            // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
-
-using tcp_stream = typename beast::tcp_stream::rebind_executor<
-        net::use_awaitable_t<>::executor_with_default<net::any_io_executor>>::other;
+namespace beast = boost::beast;
+namespace http  = beast::http;
+namespace net   = boost::asio;
 
 // Return a reasonable mime type based on the extension of a file.
 beast::string_view
@@ -206,146 +203,123 @@ handle_request(
     return res;
 }
 
-//------------------------------------------------------------------------------
-
-
 // Handles an HTTP server connection
 net::awaitable<void>
 do_session(
-    tcp_stream stream,
+    beast::tcp_stream stream,
     std::shared_ptr<std::string const> doc_root)
 {
     // This buffer is required to persist across reads
     beast::flat_buffer buffer;
 
-    // This lambda is used to send messages
-    try
+    for(;;)
     {
-        for(;;)
+        // Set the timeout.
+        stream.expires_after(std::chrono::seconds(30));
+
+        // Read a request
+        http::request<http::string_body> req;
+        co_await http::async_read(stream, buffer, req);
+
+        // Handle the request
+        http::message_generator msg = handle_request(*doc_root, std::move(req));
+
+        // Determine if we should close the connection
+        bool keep_alive = msg.keep_alive();
+
+        // Send the response
+        co_await beast::async_write(stream, std::move(msg));
+
+        if(!keep_alive)
         {
-            // Set the timeout.
-            stream.expires_after(std::chrono::seconds(30));
-
-            // Read a request
-            http::request<http::string_body> req;
-            co_await http::async_read(stream, buffer, req);
-
-            // Handle the request
-            http::message_generator msg =
-                handle_request(*doc_root, std::move(req));
-
-            // Determine if we should close the connection
-            bool keep_alive = msg.keep_alive();
-
-            // Send the response
-            co_await beast::async_write(stream, std::move(msg), net::use_awaitable);
-
-            if(! keep_alive)
-            {
-                // This means we should close the connection, usually because
-                // the response indicated the "Connection: close" semantic.
-                break;
-            }
+            // This means we should close the connection, usually because
+            // the response indicated the "Connection: close" semantic.
+            break;
         }
-    }
-    catch (boost::system::system_error & se)
-    {
-        if (se.code() != http::error::end_of_stream )
-            throw ;
     }
 
     // Send a TCP shutdown
-    beast::error_code ec;
-    stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+    stream.socket().shutdown(net::ip::tcp::socket::shutdown_send);
 
     // At this point the connection is closed gracefully
     // we ignore the error because the client might have
     // dropped the connection already.
 }
 
-//------------------------------------------------------------------------------
-
 // Accepts incoming connections and launches the sessions
 net::awaitable<void>
-do_listen(
-    tcp::endpoint endpoint,
-    std::shared_ptr<std::string const> doc_root)
+do_listen(net::ip::tcp::endpoint endpoint, std::shared_ptr<std::string const> doc_root)
 {
-    // Open the acceptor
-    auto acceptor = net::use_awaitable.as_default_on(tcp::acceptor(co_await net::this_coro::executor));
-    acceptor.open(endpoint.protocol());
-
-    // Allow address reuse
-    acceptor.set_option(net::socket_base::reuse_address(true));
-
-    // Bind to the server address
-    acceptor.bind(endpoint);
-
-    // Start listening for connections
-    acceptor.listen(net::socket_base::max_listen_connections);
+    auto executor = co_await net::this_coro::executor;
+    auto acceptor = net::ip::tcp::acceptor{ executor, endpoint };
 
     for(;;)
-        boost::asio::co_spawn(
-            acceptor.get_executor(),
-                do_session(tcp_stream(co_await acceptor.async_accept()), doc_root),
-                [](std::exception_ptr e)
+    {
+        net::co_spawn(
+            executor,
+            do_session(
+                beast::tcp_stream{ co_await acceptor.async_accept() },
+                doc_root),
+            [](std::exception_ptr e)
+            {
+                if(e)
                 {
-                    if (e)
-                        try
-                        {
-                            std::rethrow_exception(e);
-                        }
-                        catch (std::exception &e) {
-                            std::cerr << "Error in session: " << e.what() << "\n";
-                        }
-                });
-
+                    try
+                    {
+                        std::rethrow_exception(e);
+                    }
+                    catch(std::exception const& e)
+                    {
+                        std::cerr << "Error in session: " << e.what() << "\n";
+                    }
+                }
+            });
+    }
 }
 
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Check command line arguments.
-    if (argc != 5)
+    if(argc != 5)
     {
-        std::cerr <<
-            "Usage: http-server-awaitable <address> <port> <doc_root> <threads>\n" <<
-            "Example:\n" <<
-            "    http-server-awaitable 0.0.0.0 8080 . 1\n";
+        std::cerr << "Usage: http-server-awaitable <address> <port> <doc_root> <threads>\n"
+                    << "Example:\n"
+                    << "    http-server-awaitable 0.0.0.0 8080 . 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = net::ip::make_address(argv[1]);
-    auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
+    auto const address  = net::ip::make_address(argv[1]);
+    auto const port     = static_cast<unsigned short>(std::atoi(argv[2]));
     auto const doc_root = std::make_shared<std::string>(argv[3]);
-    auto const threads = std::max<int>(1, std::atoi(argv[4]));
+    auto const threads  = std::max<int>(1, std::atoi(argv[4]));
 
     // The io_context is required for all I/O
-    net::io_context ioc{threads};
+    net::io_context ioc{ threads };
 
     // Spawn a listening port
-    boost::asio::co_spawn(ioc,
-                          do_listen(tcp::endpoint{address, port}, doc_root),
-                          [](std::exception_ptr e)
-                          {
-                              if (e)
-                                  try
-                                  {
-                                      std::rethrow_exception(e);
-                                  }
-                                  catch(std::exception & e)
-                                  {
-                                      std::cerr << "Error in acceptor: " << e.what() << "\n";
-                                  }
-                          });
+    net::co_spawn(
+        ioc,
+        do_listen(net::ip::tcp::endpoint{ address, port }, doc_root),
+        [](std::exception_ptr e)
+        {
+            if(e)
+            {
+                try
+                {
+                    std::rethrow_exception(e);
+                }
+                catch(std::exception const& e)
+                {
+                    std::cerr << "Error: " << e.what() << std::endl;
+                }
+            }
+        });
 
     // Run the I/O service on the requested number of threads
     std::vector<std::thread> v;
     v.reserve(threads - 1);
     for(auto i = threads - 1; i > 0; --i)
-        v.emplace_back(
-        [&ioc]
-        {
-            ioc.run();
-        });
+        v.emplace_back([&ioc] { ioc.run(); });
     ioc.run();
 
     return EXIT_SUCCESS;
@@ -353,10 +327,11 @@ int main(int argc, char* argv[])
 
 #else
 
-int main(int, char * [])
+int
+main(int, char*[])
 {
     std::printf("awaitables require C++20\n");
-    return 1;
+    return EXIT_FAILURE;
 }
 
 #endif

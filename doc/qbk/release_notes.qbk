@@ -11,6 +11,40 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.86]
+
+[*API Changes]
+
+* [issue 2878] Added HTTP status code 418 `I'm a teapot`
+
+[*Fixes]
+
+* [issue 2879] Narrowing conversion in `read_size_hint_db()`
+* [issue 2893] Overloads that are ambiguous when using default completion tokens
+* [issue 2517] Misplaced static_assert in `http::basic_fields` move-assignment operator
+* [issue 2880] Underflow of `bytes_transferred` in WebSocket partial write operations
+* [issue 2879] `websocket::stream::read_size_hint()` does not exceed `read_message_max`
+* [issue 2877] Various warnings in tests
+* [issue 2872] Error handling in SSL shutdown operations in examples
+* [issue 2869] Annotate fallthrough case in zlib
+* [issue 2866] Handling of expired timers in `basic_stream::ops::transfer_op`
+* [issue 2864] Ambiguity in `test::basic_stream` constructor overloads
+* [issue 2861] Partial parsing of the final chunk in `http::parser`
+
+[*Improvements]
+
+* [issue 2897] Graceful shutdown in `server_flex_awaitable` example
+* [issue 2897] Simplified awaitable examples
+* [issue 2888] Added fuzzing targets
+* [issue 2875] Removed superfluous uses of `std::bind` in some examples
+* [issue 2875] `ssl_stream` does not use `flat_stream`
+
+[*Documentation]
+
+* [issue 2875] `ssl_stream` and `flat_stream` marked as deprecated
+* [issue 2875] `net::ssl::stream` is canonical in snippets and examples
+* [issue 2872] Added `SSL/TLS Shutdown Procedure` section
+
 [heading Boost 1.85]
 
 [*API Changes]

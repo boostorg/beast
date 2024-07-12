@@ -559,13 +559,22 @@ template<class NextLayer, bool deflateSupported>
 struct stream<NextLayer, deflateSupported>::
     run_write_some_op
 {
+    boost::shared_ptr<impl_type> const& self;
+
+    using executor_type = typename stream::executor_type;
+
+    executor_type
+    get_executor() const noexcept
+    {
+        return self->stream().get_executor();
+    }
+
     template<
         class WriteHandler,
         class ConstBufferSequence>
     void
     operator()(
         WriteHandler&& h,
-        boost::shared_ptr<impl_type> const& sp,
         bool fin,
         ConstBufferSequence const& b)
     {
@@ -582,7 +591,7 @@ struct stream<NextLayer, deflateSupported>::
             typename std::decay<WriteHandler>::type,
             ConstBufferSequence>(
                 std::forward<WriteHandler>(h),
-                sp,
+                self,
                 fin,
                 b);
     }
@@ -836,9 +845,8 @@ async_write_some(bool fin,
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            run_write_some_op{},
+            run_write_some_op{impl_},
             handler,
-            impl_,
             fin,
             bs);
 }
@@ -892,9 +900,8 @@ async_write(
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
-            run_write_some_op{},
+            run_write_some_op{impl_},
             handler,
-            impl_,
             true,
             bs);
 }

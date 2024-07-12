@@ -1,0 +1,69 @@
+name: fuzz
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 00 * * *"
+
+concurrency:
+  group: ${{format('{0}:{1}:{2}', github.repository, github.workflow, github.ref)}}
+  cancel-in-progress: true
+
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang
+
+      - name: Setup Boost
+        run: |
+          echo GITHUB_REPOSITORY: $GITHUB_REPOSITORY
+          LIBRARY=${GITHUB_REPOSITORY#*/}
+          echo LIBRARY: $LIBRARY
+          echo "LIBRARY=$LIBRARY" >> $GITHUB_ENV
+          echo GITHUB_BASE_REF: $GITHUB_BASE_REF
+          echo GITHUB_REF: $GITHUB_REF
+          REF=${GITHUB_BASE_REF:-$GITHUB_REF}
+          REF=${REF#refs/heads/}
+          echo REF: $REF
+          BOOST_BRANCH=develop && [ "$REF" == "master" ] && BOOST_BRANCH=master || true
+          echo BOOST_BRANCH: $BOOST_BRANCH
+          cd ..
+          git clone -b $BOOST_BRANCH --depth 1 https://github.com/boostorg/boost.git boost-root
+          cd boost-root
+          cp -r $GITHUB_WORKSPACE/* libs/$LIBRARY
+          git submodule update --init tools/boostdep
+          python3 tools/boostdep/depinst/depinst.py $LIBRARY
+          ./bootstrap.sh
+          ./b2
+  
+      - name: Fuzz corpus
+        uses: actions/cache@v3.3.1
+        id: cache-corpus
+        with:
+          path: ${{ github.workspace }}/corpus.tar
+          key: corpus-${{ github.run_id }}
+          enableCrossOsArchive: true
+          restore-keys: |
+            corpus-
+
+      - name: Run fuzzer
+        run: |
+          cd ../boost-root/libs/beast
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_COMPILER=clang \
+            -DBeast_BUILD_TESTS=ON \
+            -DBeast_BUILD_FUZZERS=ON \
+            -DBOOST_BEAST_FUZZER_CORPUS_PATH=${{ github.workspace }}/corpus.tar ..
+          make boost_beast_fuzz_all

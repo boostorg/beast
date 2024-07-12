@@ -1,5 +1,6 @@
 //
 // Copyright (c) 2022 Klemens D. Morgenstern (klemens dot morgenstern at gmx dot net)
+// Copyright (c) 2024 Mohammad Nejati
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,50 +16,31 @@
 
 #include "example/common/server_certificate.hpp"
 
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/websocket.hpp>
-#include <boost/beast/websocket/ssl.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/as_tuple.hpp>
-#include <boost/asio/awaitable.hpp>
-#include <boost/asio/bind_cancellation_slot.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/co_spawn.hpp>
-#include <boost/asio/deferred.hpp>
-#include <boost/asio/detached.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/experimental/parallel_group.hpp>
-#include <boost/asio/signal_set.hpp>
+#include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/make_unique.hpp>
-#include <boost/asio/use_awaitable.hpp>
-#include <boost/optional.hpp>
+#include <boost/beast.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/scope/scope_exit.hpp>
+
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <list>
-#include <memory>
-#include <queue>
 #include <string>
 #include <thread>
 #include <vector>
 
 #if defined(BOOST_ASIO_HAS_CO_AWAIT)
 
+namespace beast     = boost::beast;
+namespace http      = beast::http;
+namespace websocket = beast::websocket;
+namespace net       = boost::asio;
+namespace ssl       = boost::asio::ssl;
 
-namespace beast = boost::beast;                 // from <boost/beast.hpp>
-namespace http = beast::http;                   // from <boost/beast/http.hpp>
-namespace websocket = beast::websocket;         // from <boost/beast/websocket.hpp>
-namespace net = boost::asio;                    // from <boost/asio.hpp>
-namespace ssl = boost::asio::ssl;               // from <boost/asio/ssl.hpp>
-using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-
-using executor_type = net::io_context::executor_type;
-using executor_with_default = net::as_tuple_t<net::use_awaitable_t<executor_type>>::executor_with_default<executor_type>;
-
-
+using executor_type = net::strand<net::io_context::executor_type>;
+using stream_type   = typename beast::tcp_stream::rebind_executor<executor_type>::other;
+using acceptor_type = typename net::ip::tcp::acceptor::rebind_executor<executor_type>::other;
 
 // Return a reasonable mime type based on the extension of a file.
 beast::string_view
@@ -227,943 +209,417 @@ handle_request(
     return res;
 }
 
-//------------------------------------------------------------------------------
-
-// Report a failure
-void
-fail(beast::error_code ec, char const* what)
+/** A thread-safe task group that tracks child tasks, allows emitting
+    cancellation signals to them, and waiting for their completion.
+*/
+class task_group
 {
-    // ssl::error::stream_truncated, also known as an SSL "short read",
-    // indicates the peer closed the connection without performing the
-    // required closing handshake (for example, Google does this to
-    // improve performance). Generally this can be a security issue,
-    // but if your communication protocol is self-terminated (as
-    // it is with both HTTP and WebSocket) then you may simply
-    // ignore the lack of close_notify.
-    //
-    // https://github.com/boostorg/beast/issues/38
-    //
-    // https://security.stackexchange.com/questions/91435/how-to-handle-a-malicious-ssl-tls-shutdown
-    //
-    // When a short read would cut off the end of an HTTP message,
-    // Beast returns the error beast::http::error::partial_message.
-    // Therefore, if we see a short read here, it has occurred
-    // after the message has been completed, so it is safe to ignore it.
-
-    if(ec == net::ssl::error::stream_truncated)
-        return;
-
-    std::cerr << what << ": " << ec.message() << "\n";
-}
-
-// A simple helper for cancellation_slot
-struct cancellation_signals
-{
-    std::list<net::cancellation_signal> sigs;
-    std::mutex mtx;
-    void emit(net::cancellation_type ct = net::cancellation_type::all)
-    {
-        std::lock_guard<std::mutex> _(mtx);
-
-        for (auto & sig : sigs)
-            sig.emit(ct);
-    }
-
-    net::cancellation_slot slot()
-    {
-        std::lock_guard<std::mutex> _(mtx);
-
-        auto itr = std::find_if(sigs.begin(), sigs.end(),
-                             [](net::cancellation_signal & sig)
-                             {
-                                return !sig.slot().has_handler();
-                             });
-
-        if (itr != sigs.end())
-            return itr->slot();
-        else
-            return sigs.emplace_back().slot();
-    }
-};
-
-//------------------------------------------------------------------------------
-
-// Echoes back all received WebSocket messages.
-// This uses the Curiously Recurring Template Pattern so that
-// the same code works with both SSL streams and regular sockets.
-template<class Derived>
-class websocket_session
-{
-    // Access the derived class, this is part of
-    // the Curiously Recurring Template Pattern idiom.
-    Derived&
-    derived()
-    {
-        return static_cast<Derived&>(*this);
-    }
-
-    beast::flat_buffer buffer_;
-
-    // Start the asynchronous operation
-    template<class Body, class Allocator>
-    void
-    do_accept(http::request<Body, http::basic_fields<Allocator>> req)
-    {
-        // Set suggested timeout settings for the websocket
-        derived().ws().set_option(
-            websocket::stream_base::timeout::suggested(
-                beast::role_type::server));
-
-        // Set a decorator to change the Server of the handshake
-        derived().ws().set_option(
-            websocket::stream_base::decorator(
-            [](websocket::response_type& res)
-            {
-                res.set(http::field::server,
-                    std::string(BOOST_BEAST_VERSION_STRING) +
-                        " advanced-server-flex");
-            }));
-
-        // Accept the websocket handshake
-        derived().ws().async_accept(
-            req,
-            beast::bind_front_handler(
-                &websocket_session::on_accept,
-                derived().shared_from_this()));
-    }
-
-private:
-    void
-    on_accept(beast::error_code ec)
-    {
-        if(ec)
-            return fail(ec, "accept");
-
-        // Read a message
-        do_read();
-    }
-
-    void
-    do_read()
-    {
-        // Read a message into our buffer
-        derived().ws().async_read(
-            buffer_,
-            beast::bind_front_handler(
-                &websocket_session::on_read,
-                derived().shared_from_this()));
-    }
-
-    void
-    on_read(
-        beast::error_code ec,
-        std::size_t bytes_transferred)
-    {
-        boost::ignore_unused(bytes_transferred);
-
-        // This indicates that the websocket_session was closed
-        if(ec == websocket::error::closed)
-            return;
-
-        if(ec)
-            return fail(ec, "read");
-
-        // Echo the message
-        derived().ws().text(derived().ws().got_text());
-        derived().ws().async_write(
-            buffer_.data(),
-            beast::bind_front_handler(
-                &websocket_session::on_write,
-                derived().shared_from_this()));
-    }
-
-    void
-    on_write(
-        beast::error_code ec,
-        std::size_t bytes_transferred)
-    {
-        boost::ignore_unused(bytes_transferred);
-
-        if(ec)
-            return fail(ec, "write");
-
-        // Clear the buffer
-        buffer_.consume(buffer_.size());
-
-        // Do another read
-        do_read();
-    }
+    std::mutex mtx_;
+    net::steady_timer cv_;
+    std::list<net::cancellation_signal> css_;
 
 public:
-    // Start the asynchronous operation
-    template<class Body, class Allocator>
+    task_group(net::any_io_executor exec)
+        : cv_{ std::move(exec), net::steady_timer::time_point::max() }
+    {
+    }
+
+    task_group(task_group const&) = delete;
+    task_group(task_group&&)      = delete;
+
+    /** Adds a cancellation slot and a wrapper object that will remove the child
+        task from the list when it completes.
+
+        @param completion_token The completion token that will be adapted.
+
+        @par Thread Safety
+        @e Distinct @e objects: Safe.@n
+        @e Shared @e objects: Safe.
+    */
+    template<typename CompletionToken>
+    auto
+    adapt(CompletionToken&& completion_token)
+    {
+        auto lg = std::lock_guard{ mtx_ };
+        auto cs = css_.emplace(css_.end());
+
+        return net::bind_cancellation_slot(
+            cs->slot(),
+            net::consign(
+                std::forward<CompletionToken>(completion_token),
+                boost::scope::make_scope_exit(
+                    [this, cs]()
+                    {
+                        auto lg = std::lock_guard{ mtx_ };
+                        if(css_.erase(cs) == css_.end())
+                            cv_.cancel();
+                    })));
+    }
+
+    /** Emits the signal to all child tasks and invokes the slot's
+        handler, if any.
+
+        @param type The completion type that will be emitted to child tasks.
+
+        @par Thread Safety
+        @e Distinct @e objects: Safe.@n
+        @e Shared @e objects: Safe.
+    */
     void
-    run(http::request<Body, http::basic_fields<Allocator>> req)
+    emit(net::cancellation_type type)
     {
-        // Accept the WebSocket upgrade request
-        do_accept(std::move(req));
-    }
-};
-
-//------------------------------------------------------------------------------
-
-// Handles a plain WebSocket connection
-class plain_websocket_session
-    : public websocket_session<plain_websocket_session>
-    , public std::enable_shared_from_this<plain_websocket_session>
-{
-    websocket::stream<beast::tcp_stream> ws_;
-
-public:
-    // Create the session
-    explicit
-    plain_websocket_session(
-        beast::tcp_stream&& stream)
-        : ws_(std::move(stream))
-    {
+        auto lg = std::lock_guard{ mtx_ };
+        for(auto& cs : css_)
+            cs.emit(type);
     }
 
-    // Called by the base class
-    websocket::stream<beast::tcp_stream>&
-    ws()
+    /** Starts an asynchronous wait on the task_group.
+
+        The completion handler will be called when:
+
+        @li All the child tasks completed.
+        @li The operation was cancelled.
+
+        @param completion_token The completion token that will be used to
+        produce a completion handler. The function signature of the completion
+        handler must be:
+        @code
+        void handler(
+            boost::system::error_code const& error  // result of operation
+        );
+        @endcode
+
+        @par Thread Safety
+        @e Distinct @e objects: Safe.@n
+        @e Shared @e objects: Safe.
+    */
+    template<
+        typename CompletionToken =
+            net::default_completion_token_t<net::any_io_executor>>
+    auto
+    async_wait(
+        CompletionToken&& completion_token =
+            net::default_completion_token_t<net::any_io_executor>{})
     {
-        return ws_;
-    }
-};
-
-//------------------------------------------------------------------------------
-
-// Handles an SSL WebSocket connection
-class ssl_websocket_session
-    : public websocket_session<ssl_websocket_session>
-    , public std::enable_shared_from_this<ssl_websocket_session>
-{
-    websocket::stream<ssl::stream<beast::tcp_stream>> ws_;
-
-public:
-    // Create the ssl_websocket_session
-    explicit
-    ssl_websocket_session(ssl::stream<beast::tcp_stream>&& stream)
-        : ws_(std::move(stream))
-    {
-    }
-
-    // Called by the base class
-    websocket::stream<ssl::stream<beast::tcp_stream>>&
-    ws()
-    {
-        return ws_;
-    }
-};
-
-//------------------------------------------------------------------------------
-
-template<class Body, class Allocator>
-void
-make_websocket_session(
-    beast::tcp_stream stream,
-    http::request<Body, http::basic_fields<Allocator>> req)
-{
-    std::make_shared<plain_websocket_session>(
-        std::move(stream))->run(std::move(req));
-}
-
-template<class Body, class Allocator>
-void
-make_websocket_session(
-    ssl::stream<beast::tcp_stream> stream,
-    http::request<Body, http::basic_fields<Allocator>> req)
-{
-    std::make_shared<ssl_websocket_session>(
-        std::move(stream))->run(std::move(req));
-}
-
-//------------------------------------------------------------------------------
-
-// Handles an HTTP server connection.
-// This uses the Curiously Recurring Template Pattern so that
-// the same code works with both SSL streams and regular sockets.
-template<class Derived>
-class http_session
-{
-    std::shared_ptr<std::string const> doc_root_;
-
-    // Access the derived class, this is part of
-    // the Curiously Recurring Template Pattern idiom.
-    Derived&
-    derived()
-    {
-        return static_cast<Derived&>(*this);
-    }
-
-    static constexpr std::size_t queue_limit = 8; // max responses
-    std::queue<http::message_generator> response_queue_;
-
-    // The parser is stored in an optional container so we can
-    // construct it from scratch it at the beginning of each new message.
-    boost::optional<http::request_parser<http::string_body>> parser_;
-
-protected:
-    beast::flat_buffer buffer_;
-
-public:
-    // Construct the session
-    http_session(
-        beast::flat_buffer buffer,
-        std::shared_ptr<std::string const> const& doc_root)
-        : doc_root_(doc_root)
-        , buffer_(std::move(buffer))
-    {
-    }
-
-    void
-    do_read()
-    {
-        // Construct a new parser for each message
-        parser_.emplace();
-
-        // Apply a reasonable limit to the allowed size
-        // of the body in bytes to prevent abuse.
-        parser_->body_limit(10000);
-
-        // Set the timeout.
-        beast::get_lowest_layer(
-            derived().stream()).expires_after(std::chrono::seconds(30));
-
-        // Read a request using the parser-oriented interface
-        http::async_read(
-            derived().stream(),
-            buffer_,
-            *parser_,
-            beast::bind_front_handler(
-                &http_session::on_read,
-                derived().shared_from_this()));
-    }
-
-    void
-    on_read(beast::error_code ec, std::size_t bytes_transferred)
-    {
-        boost::ignore_unused(bytes_transferred);
-
-        // This means they closed the connection
-        if(ec == http::error::end_of_stream)
-            return derived().do_eof();
-
-        if(ec)
-            return fail(ec, "read");
-
-        // See if it is a WebSocket Upgrade
-        if(websocket::is_upgrade(parser_->get()))
-        {
-            // Disable the timeout.
-            // The websocket::stream uses its own timeout settings.
-            beast::get_lowest_layer(derived().stream()).expires_never();
-
-            // Create a websocket session, transferring ownership
-            // of both the socket and the HTTP request.
-            return make_websocket_session(
-                derived().release_stream(),
-                parser_->release());
-        }
-
-        // Send the response
-        queue_write(handle_request(*doc_root_, parser_->release()));
-
-        // If we aren't at the queue limit, try to pipeline another request
-        if (response_queue_.size() < queue_limit)
-            do_read();
-    }
-
-    void
-    queue_write(http::message_generator response)
-    {
-        // Allocate and store the work
-        response_queue_.push(std::move(response));
-
-        // If there was no previous work, start the write loop
-        if (response_queue_.size() == 1)
-            do_write();
-    }
-
-    // Called to start/continue the write-loop. Should not be called when
-    // write_loop is already active.
-    void
-    do_write()
-    {
-        if(! response_queue_.empty())
-        {
-            bool keep_alive = response_queue_.front().keep_alive();
-
-            beast::async_write(
-                derived().stream(),
-                std::move(response_queue_.front()),
-                beast::bind_front_handler(
-                    &http_session::on_write,
-                    derived().shared_from_this(),
-                    keep_alive));
-        }
-    }
-
-    void
-    on_write(
-        bool keep_alive,
-        beast::error_code ec,
-        std::size_t bytes_transferred)
-    {
-        boost::ignore_unused(bytes_transferred);
-
-        if(ec)
-            return fail(ec, "write");
-
-        if(! keep_alive)
-        {
-            // This means we should close the connection, usually because
-            // the response indicated the "Connection: close" semantic.
-            return derived().do_eof();
-        }
-
-        // Resume the read if it has been paused
-        if(response_queue_.size() == queue_limit)
-            do_read();
-
-        response_queue_.pop();
-
-        do_write();
-    }
-};
-
-//------------------------------------------------------------------------------
-
-// Handles a plain HTTP connection
-class plain_http_session
-    : public http_session<plain_http_session>
-    , public std::enable_shared_from_this<plain_http_session>
-{
-    beast::tcp_stream stream_;
-
-public:
-    // Create the session
-    plain_http_session(
-        beast::tcp_stream&& stream,
-        beast::flat_buffer&& buffer,
-        std::shared_ptr<std::string const> const& doc_root)
-        : http_session<plain_http_session>(
-            std::move(buffer),
-            doc_root)
-        , stream_(std::move(stream))
-    {
-    }
-
-    // Start the session
-    void
-    run()
-    {
-        this->do_read();
-    }
-
-    // Called by the base class
-    beast::tcp_stream&
-    stream()
-    {
-        return stream_;
-    }
-
-    // Called by the base class
-    beast::tcp_stream
-    release_stream()
-    {
-        return std::move(stream_);
-    }
-
-    // Called by the base class
-    void
-    do_eof()
-    {
-        // Send a TCP shutdown
-        beast::error_code ec;
-        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
-
-        // At this point the connection is closed gracefully
-    }
-};
-
-//------------------------------------------------------------------------------
-
-// Handles an SSL HTTP connection
-class ssl_http_session
-    : public http_session<ssl_http_session>
-    , public std::enable_shared_from_this<ssl_http_session>
-{
-    ssl::stream<beast::tcp_stream> stream_;
-
-public:
-    // Create the http_session
-    ssl_http_session(
-        beast::tcp_stream&& stream,
-        ssl::context& ctx,
-        beast::flat_buffer&& buffer,
-        std::shared_ptr<std::string const> const& doc_root)
-        : http_session<ssl_http_session>(
-            std::move(buffer),
-            doc_root)
-        , stream_(std::move(stream), ctx)
-    {
-    }
-
-    // Start the session
-    void
-    run()
-    {
-        // Set the timeout.
-        beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
-
-        // Perform the SSL handshake
-        // Note, this is the buffered version of the handshake.
-        stream_.async_handshake(
-            ssl::stream_base::server,
-            buffer_.data(),
-            beast::bind_front_handler(
-                &ssl_http_session::on_handshake,
-                shared_from_this()));
-    }
-
-    // Called by the base class
-    ssl::stream<beast::tcp_stream>&
-    stream()
-    {
-        return stream_;
-    }
-
-    // Called by the base class
-    ssl::stream<beast::tcp_stream>
-    release_stream()
-    {
-        return std::move(stream_);
-    }
-
-    // Called by the base class
-    void
-    do_eof()
-    {
-        // Set the timeout.
-        beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
-
-        // Perform the SSL shutdown
-        stream_.async_shutdown(
-            beast::bind_front_handler(
-                &ssl_http_session::on_shutdown,
-                shared_from_this()));
-    }
-
-private:
-    void
-    on_handshake(
-        beast::error_code ec,
-        std::size_t bytes_used)
-    {
-        if(ec)
-            return fail(ec, "handshake");
-
-        // Consume the portion of the buffer used by the handshake
-        buffer_.consume(bytes_used);
-
-        do_read();
-    }
-
-    void
-    on_shutdown(beast::error_code ec)
-    {
-        if(ec)
-            return fail(ec, "shutdown");
-
-        // At this point the connection is closed gracefully
-    }
-};
-
-//------------------------------------------------------------------------------
-
-// Detects SSL handshakes
-class detect_session : public std::enable_shared_from_this<detect_session>
-{
-    beast::tcp_stream stream_;
-    ssl::context& ctx_;
-    std::shared_ptr<std::string const> doc_root_;
-    beast::flat_buffer buffer_;
-
-public:
-    explicit
-    detect_session(
-        tcp::socket&& socket,
-        ssl::context& ctx,
-        std::shared_ptr<std::string const> const& doc_root)
-        : stream_(std::move(socket))
-        , ctx_(ctx)
-        , doc_root_(doc_root)
-    {
-    }
-
-    // Launch the detector
-    void
-    run()
-    {
-        // We need to be executing within a strand to perform async operations
-        // on the I/O objects in this session. Although not strictly necessary
-        // for single-threaded contexts, this example code is written to be
-        // thread-safe by default.
-        net::dispatch(
-            stream_.get_executor(),
-            beast::bind_front_handler(
-                &detect_session::on_run,
-                this->shared_from_this()));
-    }
-
-    void
-    on_run()
-    {
-        // Set the timeout.
-        stream_.expires_after(std::chrono::seconds(30));
-
-        beast::async_detect_ssl(
-            stream_,
-            buffer_,
-            beast::bind_front_handler(
-                &detect_session::on_detect,
-                this->shared_from_this()));
-    }
-
-    void
-    on_detect(beast::error_code ec, bool result)
-    {
-        if(ec)
-            return fail(ec, "detect");
-
-        if(result)
-        {
-            // Launch SSL session
-            std::make_shared<ssl_http_session>(
-                std::move(stream_),
-                ctx_,
-                std::move(buffer_),
-                doc_root_)->run();
-            return;
-        }
-
-        // Launch plain session
-        std::make_shared<plain_http_session>(
-            std::move(stream_),
-            std::move(buffer_),
-            doc_root_)->run();
+        return net::
+            async_compose<CompletionToken, void(boost::system::error_code)>(
+                [this, scheduled = false](
+                    auto&& self, boost::system::error_code ec = {}) mutable
+                {
+                    if(!scheduled)
+                        self.reset_cancellation_state(
+                            net::enable_total_cancellation());
+
+                    if(!self.cancelled() && ec == net::error::operation_aborted)
+                        ec = {};
+
+                    {
+                        auto lg = std::lock_guard{ mtx_ };
+
+                        if(!css_.empty() && !ec)
+                        {
+                            scheduled = true;
+                            return cv_.async_wait(std::move(self));
+                        }
+                    }
+
+                    if(!std::exchange(scheduled, true))
+                        return net::post(net::append(std::move(self), ec));
+
+                    self.complete(ec);
+                },
+                completion_token,
+                cv_);
     }
 };
 
 template<typename Stream>
-net::awaitable<void, executor_type> do_eof(Stream & stream)
+net::awaitable<void, executor_type>
+run_websocket_session(
+    Stream& stream,
+    beast::flat_buffer& buffer,
+    http::request<http::string_body> req,
+    beast::string_view doc_root)
 {
-    beast::error_code ec;
-    stream.socket().shutdown(tcp::socket::shutdown_send, ec);
-    co_return ;
-}
-
-template<typename Stream>
-BOOST_ASIO_NODISCARD net::awaitable<void, executor_type>
-do_eof(ssl::stream<Stream> & stream)
-{
-    co_await stream.async_shutdown();
-}
-
-
-template<typename Stream, typename Body, typename Allocator>
-BOOST_ASIO_NODISCARD net::awaitable<void, executor_type>
-run_websocket_session(Stream & stream,
-                      beast::flat_buffer & buffer,
-                      http::request<Body, http::basic_fields<Allocator>> req,
-                      const std::shared_ptr<std::string const> & doc_root)
-{
-    beast::websocket::stream<Stream&> ws{stream};
+    auto cs = co_await net::this_coro::cancellation_state;
+    auto ws = websocket::stream<Stream&>{ stream };
 
     // Set suggested timeout settings for the websocket
     ws.set_option(
-            websocket::stream_base::timeout::suggested(
-                    beast::role_type::server));
+        websocket::stream_base::timeout::suggested(beast::role_type::server));
 
     // Set a decorator to change the Server of the handshake
-    ws.set_option(
-            websocket::stream_base::decorator(
-                    [](websocket::response_type& res)
-                    {
-                        res.set(http::field::server,
-                                std::string(BOOST_BEAST_VERSION_STRING) +
-                            " advanced-server-flex");
-                    }));
+    ws.set_option(websocket::stream_base::decorator(
+        [](websocket::response_type& res)
+        {
+            res.set(
+                http::field::server,
+                std::string(BOOST_BEAST_VERSION_STRING) +
+                    " advanced-server-flex");
+        }));
 
     // Accept the websocket handshake
-    auto [ec] = co_await ws.async_accept(req);
-    if (ec)
-        co_return fail(ec, "accept");
+    co_await ws.async_accept(req);
 
-    while (true)
+    while(!cs.cancelled())
     {
-
-
         // Read a message
-        std::size_t bytes_transferred = 0u;
-        std::tie(ec, bytes_transferred) = co_await ws.async_read(buffer);
+        auto [ec, _] = co_await ws.async_read(buffer, net::as_tuple);
 
-        // This indicates that the websocket_session was closed
-        if (ec == websocket::error::closed)
+        if(ec == websocket::error::closed || ec == ssl::error::stream_truncated)
             co_return;
-        if (ec)
-            co_return fail(ec, "read");
 
+        if(ec)
+            throw boost::system::system_error{ ec };
+
+        // Echo the message back
         ws.text(ws.got_text());
-        std::tie(ec, bytes_transferred) = co_await ws.async_write(buffer.data());
-
-        if (ec)
-            co_return fail(ec, "write");
+        co_await ws.async_write(buffer.data());
 
         // Clear the buffer
         buffer.consume(buffer.size());
     }
+
+    // A cancellation has been requested, gracefully close the session.
+    auto [ec] = co_await ws.async_close(
+        websocket::close_code::service_restart, net::as_tuple);
+
+    if(ec && ec != ssl::error::stream_truncated)
+        throw boost::system::system_error{ ec };
 }
 
-
 template<typename Stream>
-BOOST_ASIO_NODISCARD net::awaitable<void, executor_type>
-run_session(Stream & stream, beast::flat_buffer & buffer, const std::shared_ptr<std::string const> & doc_root)
+net::awaitable<void, executor_type>
+run_session(
+    Stream& stream,
+    beast::flat_buffer& buffer,
+    beast::string_view doc_root)
 {
-    // a new parser must be used for every message
-    // so we use an optional to reconstruct it every time.
-    std::optional<http::request_parser<http::string_body>> parser;
-    parser.emplace();
-    // Apply a reasonable limit to the allowed size
-    // of the body in bytes to prevent abuse.
-    parser->body_limit(10000);
+    auto cs = co_await net::this_coro::cancellation_state;
 
-    auto [ec, bytes_transferred] = co_await http::async_read(stream, buffer, *parser);
-
-    if(ec == http::error::end_of_stream)
-        co_await do_eof(stream);
-
-    if(ec)
-        co_return fail(ec, "read");
-
-    // this can be
-    // while ((co_await net::this_coro::cancellation_state).cancelled() == net::cancellation_type::none)
-    // on most compilers
-    for (auto cs = co_await net::this_coro::cancellation_state;
-         cs.cancelled() == net::cancellation_type::none;
-         cs = co_await net::this_coro::cancellation_state)
+    while(!cs.cancelled())
     {
-        if(websocket::is_upgrade(parser->get()))
+        http::request_parser<http::string_body> parser;
+        parser.body_limit(10000);
+
+        auto [ec, _] =
+            co_await http::async_read(stream, buffer, parser, net::as_tuple);
+
+        if(ec == http::error::end_of_stream)
+            co_return;
+
+        if(websocket::is_upgrade(parser.get()))
         {
-            // Disable the timeout.
             // The websocket::stream uses its own timeout settings.
             beast::get_lowest_layer(stream).expires_never();
 
-            co_await run_websocket_session(stream, buffer, parser->release(), doc_root);
-            co_return ;
+            co_await run_websocket_session(
+                stream, buffer, parser.release(), doc_root);
+
+            co_return;
         }
 
-        // we follow a different strategy then the other example: instead of queue responses,
-        // we always to one read & write in parallel.
-
-        auto res = handle_request(*doc_root, parser->release());
-        if (!res.keep_alive())
+        auto res = handle_request(doc_root, parser.release());
+        if(!res.keep_alive())
         {
-            http::message_generator msg{std::move(res)};
-            auto [ec, sz] = co_await beast::async_write(stream, std::move(msg));
-            if (ec)
-                fail(ec, "write");
-            co_return ;
+            co_await beast::async_write(stream, std::move(res));
+            co_return;
         }
 
-        // we must use a new parser for every async_read
-        parser.reset();
-        parser.emplace();
-        parser->body_limit(10000);
-
-        http::message_generator msg{std::move(res)};
-
-        auto [_, ec_r, sz_r, ec_w, sz_w ] =
-                co_await net::experimental::make_parallel_group(
-                    http::async_read(stream, buffer, *parser, net::deferred),
-                    beast::async_write(stream, std::move(msg), net::deferred))
-                        .async_wait(net::experimental::wait_for_all(),
-                                    net::as_tuple(net::use_awaitable_t<executor_type>{}));
-
-        if (ec_r)
-            co_return fail(ec_r, "read");
-
-        if (ec_w)
-            co_return fail(ec_w, "write");
-
+        co_await beast::async_write(stream, std::move(res));
     }
-
-
 }
 
-BOOST_ASIO_NODISCARD net::awaitable<void, executor_type>
-detect_session(typename beast::tcp_stream::rebind_executor<executor_with_default>::other stream,
-               net::ssl::context & ctx,
-               std::shared_ptr<std::string const> doc_root)
+net::awaitable<void, executor_type>
+detect_session(
+    stream_type stream,
+    ssl::context& ctx,
+    beast::string_view doc_root)
 {
     beast::flat_buffer buffer;
 
-    // Set the timeout.
+    // Allow total cancellation to change the cancellation state of this
+    // coroutine, but only allow terminal cancellation to propagate to async
+    // operations. This setting will be inherited by all child coroutines.
+    co_await net::this_coro::reset_cancellation_state(
+        net::enable_total_cancellation(), net::enable_terminal_cancellation());
+
+    // We want to be able to continue performing new async operations, such as
+    // cleanups, even after the coroutine is cancelled. This setting will be
+    // inherited by all child coroutines.
+    co_await net::this_coro::throw_if_cancelled(false);
+
     stream.expires_after(std::chrono::seconds(30));
-    // on_run
-    auto [ec, result] = co_await beast::async_detect_ssl(stream, buffer);
-    // on_detect
-    if (ec)
-        co_return fail(ec, "detect");
 
-    if(result)
+    if(co_await beast::async_detect_ssl(stream, buffer))
     {
-        using stream_type = typename beast::tcp_stream::rebind_executor<executor_with_default>::other;
-        ssl::stream<stream_type> ssl_stream{std::move(stream), ctx};
-        auto [ec, bytes_used] = co_await ssl_stream.async_handshake(net::ssl::stream_base::server, buffer.data());
+        ssl::stream<stream_type> ssl_stream{ std::move(stream), ctx };
 
-        if(ec)
-            co_return fail(ec, "handshake");
+        auto bytes_transferred = co_await ssl_stream.async_handshake(
+            ssl::stream_base::server, buffer.data());
 
-        buffer.consume(bytes_used);
+        buffer.consume(bytes_transferred);
+
         co_await run_session(ssl_stream, buffer, doc_root);
+
+        if(!ssl_stream.lowest_layer().is_open())
+            co_return;
+
+        // Gracefully close the stream
+        auto [ec] = co_await ssl_stream.async_shutdown(net::as_tuple);
+        if(ec && ec != ssl::error::stream_truncated)
+            throw boost::system::system_error{ ec };
     }
     else
+    {
         co_await run_session(stream, buffer, doc_root);
 
+        if(!stream.socket().is_open())
+            co_return;
 
+        stream.socket().shutdown(net::ip::tcp::socket::shutdown_send);
+    }
 }
 
-bool init_listener(typename tcp::acceptor::rebind_executor<executor_with_default>::other & acceptor,
-                   const tcp::endpoint &endpoint)
+net::awaitable<void, executor_type>
+listen(
+    task_group& task_group,
+    ssl::context& ctx,
+    net::ip::tcp::endpoint endpoint,
+    beast::string_view doc_root)
 {
-    beast::error_code ec;
-    // Open the acceptor
-    acceptor.open(endpoint.protocol(), ec);
-    if(ec)
-    {
-        fail(ec, "open");
-        return false;
-    }
+    auto cs       = co_await net::this_coro::cancellation_state;
+    auto executor = co_await net::this_coro::executor;
+    auto acceptor = acceptor_type{ executor, endpoint };
 
-    // Allow address reuse
-    acceptor.set_option(net::socket_base::reuse_address(true), ec);
-    if(ec)
-    {
-        fail(ec, "set_option");
-        return false;
-    }
+    // Allow total cancellation to propagate to async operations.
+    co_await net::this_coro::reset_cancellation_state(
+        net::enable_total_cancellation());
 
-    // Bind to the server address
-    acceptor.bind(endpoint, ec);
-    if(ec)
+    while(!cs.cancelled())
     {
-        fail(ec, "bind");
-        return false;
-    }
+        auto socket_executor = net::make_strand(executor.get_inner_executor());
+        auto [ec, socket] =
+            co_await acceptor.async_accept(socket_executor, net::as_tuple);
 
-    // Start listening for connections
-    acceptor.listen(
-            net::socket_base::max_listen_connections, ec);
-    if(ec)
-    {
-        fail(ec, "listen");
-        return false;
-    }
-    return true;
+        if(ec == net::error::operation_aborted)
+            co_return;
 
+        if(ec)
+            throw boost::system::system_error{ ec };
+
+        net::co_spawn(
+            std::move(socket_executor),
+            detect_session(stream_type{ std::move(socket) }, ctx, doc_root),
+            task_group.adapt(
+                [](std::exception_ptr e)
+                {
+                    if(e)
+                    {
+                        try
+                        {
+                            std::rethrow_exception(e);
+                        }
+                        catch(std::exception& e)
+                        {
+                            std::cerr << "Error in session: " << e.what() << "\n";
+                        }
+                    }
+                }));
+    }
 }
 
-// Accepts incoming connections and launches the sessions.
-BOOST_ASIO_NODISCARD net::awaitable<void, executor_type>
-            listen(ssl::context& ctx,
-                   tcp::endpoint endpoint,
-                   std::shared_ptr<std::string const> doc_root,
-                   cancellation_signals & sig)
+net::awaitable<void, executor_type>
+handle_signals(task_group& task_group)
 {
-    typename tcp::acceptor::rebind_executor<executor_with_default>::other acceptor{co_await net::this_coro::executor};
-    if (!init_listener(acceptor, endpoint))
-        co_return;
+    auto executor   = co_await net::this_coro::executor;
+    auto signal_set = net::signal_set{ executor, SIGINT, SIGTERM };
 
-    while ((co_await net::this_coro::cancellation_state).cancelled() == net::cancellation_type::none)
+    auto sig = co_await signal_set.async_wait();
+
+    if(sig == SIGINT)
     {
-        auto [ec, sock] = co_await acceptor.async_accept();
-        const auto exec = sock.get_executor();
-        using stream_type = typename beast::tcp_stream::rebind_executor<executor_with_default>::other;
-        if (!ec)
-            // We dont't need a strand, since the awaitable is an implicit strand.
-            net::co_spawn(exec,
-                          detect_session(stream_type(std::move(sock)), ctx, doc_root),
-                          net::bind_cancellation_slot(sig.slot(), net::detached));
+        std::cout << "Gracefully cancelling child tasks...\n";
+        task_group.emit(net::cancellation_type::total);
+
+        // Wait a limited time for child tasks to gracefully cancell
+        auto [ec] = co_await task_group.async_wait(
+            net::as_tuple(net::cancel_after(std::chrono::seconds{ 10 })));
+
+        if(ec == net::error::operation_aborted) // Timeout occurred
+        {
+            std::cout << "Sending a terminal cancellation signal...\n";
+            task_group.emit(net::cancellation_type::terminal);
+            co_await task_group.async_wait();
+        }
+
+        std::cout << "Child tasks completed.\n";
+    }
+    else // SIGTERM
+    {
+        executor.get_inner_executor().context().stop();
     }
 }
 
-//------------------------------------------------------------------------------
-
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Check command line arguments.
-    if (argc != 5)
+    if(argc != 5)
     {
-        std::cerr <<
-            "Usage: advanced-server-flex-awaitable <address> <port> <doc_root> <threads>\n" <<
-            "Example:\n" <<
-            "    advanced-server-flex-awaitable 0.0.0.0 8080 . 1\n";
+        std::cerr << "Usage: advanced-server-flex-awaitable <address> <port> <doc_root> <threads>\n"
+                  << "Example:\n"
+                  << "    advanced-server-flex-awaitable 0.0.0.0 8080 . 1\n";
         return EXIT_FAILURE;
     }
-    auto const address = net::ip::make_address(argv[1]);
-    auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-    auto const doc_root = std::make_shared<std::string>(argv[3]);
-    auto const threads = std::max<int>(1, std::atoi(argv[4]));
+    auto const address  = net::ip::make_address(argv[1]);
+    auto const port     = static_cast<unsigned short>(std::atoi(argv[2]));
+    auto const endpoint = net::ip::tcp::endpoint{ address, port };
+    auto const doc_root = beast::string_view{ argv[3] };
+    auto const threads  = std::max<int>(1, std::atoi(argv[4]));
 
     // The io_context is required for all I/O
-    net::io_context ioc{threads};
+    net::io_context ioc{ threads };
 
     // The SSL context is required, and holds certificates
-    ssl::context ctx{ssl::context::tlsv12};
+    ssl::context ctx{ ssl::context::tlsv12 };
 
     // This holds the self-signed certificate used by the server
     load_server_certificate(ctx);
 
-    // Cancellation-signal for SIGINT
-    cancellation_signals cancellation;
+    // Track coroutines
+    task_group task_group{ ioc.get_executor() };
 
-    // Create and launch a listening routine
+    // Create and launch a listening coroutine
     net::co_spawn(
-            ioc,
-            listen(ctx, tcp::endpoint{address, port}, doc_root, cancellation),
-            net::bind_cancellation_slot(cancellation.slot(), net::detached));
-
-
-    // Capture SIGINT and SIGTERM to perform a clean shutdown
-    net::signal_set signals(ioc, SIGINT, SIGTERM);
-    signals.async_wait(
-        [&](beast::error_code const&, int sig)
-        {
-            if (sig == SIGINT)
-                cancellation.emit(net::cancellation_type::all);
-            else
+        net::make_strand(ioc),
+        listen(task_group, ctx, endpoint, doc_root),
+        task_group.adapt(
+            [](std::exception_ptr e)
             {
-                // Stop the `io_context`. This will cause `run()`
-                // to return immediately, eventually destroying the
-                // `io_context` and all of the sockets in it.
-                ioc.stop();
-            }
-        });
+                if(e)
+                {
+                    try
+                    {
+                        std::rethrow_exception(e);
+                    }
+                    catch(std::exception& e)
+                    {
+                        std::cerr << "Error in listener: " << e.what() << "\n";
+                    }
+                }
+            }));
+
+    // Create and launch a signal handler coroutine
+    net::co_spawn(
+        net::make_strand(ioc), handle_signals(task_group), net::detached);
 
     // Run the I/O service on the requested number of threads
     std::vector<std::thread> v;
     v.reserve(threads - 1);
     for(auto i = threads - 1; i > 0; --i)
-        v.emplace_back(
-        [&ioc]
-        {
-            ioc.run();
-        });
+        v.emplace_back([&ioc] { ioc.run(); });
     ioc.run();
-
-    // (If we get here, it means we got a SIGINT or SIGTERM)
 
     // Block until all the threads exit
     for(auto& t : v)
@@ -1172,13 +628,13 @@ int main(int argc, char* argv[])
     return EXIT_SUCCESS;
 }
 
-
 #else
 
-int main(int, char * [])
+int
+main(int, char*[])
 {
     std::printf("awaitables require C++20\n");
-    return 1;
+    return EXIT_FAILURE;
 }
 
 #endif
