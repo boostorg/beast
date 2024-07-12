@@ -26,16 +26,10 @@
 #include <boost/asio/use_awaitable.hpp>
 #endif
 
-#if BOOST_WORKAROUND(BOOST_GCC, < 80200)
-#define BOOST_BEAST_SYMBOL_HIDDEN __attribute__ ((visibility("hidden")))
-#else
-#define BOOST_BEAST_SYMBOL_HIDDEN
-#endif
-
 namespace boost {
 namespace beast {
 
-class BOOST_BEAST_SYMBOL_HIDDEN buffered_read_stream_test
+class buffered_read_stream_test
     : public unit_test::suite
     , public test::enable_yield_to
 {
