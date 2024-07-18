@@ -19,6 +19,12 @@
 #include <thread>
 #include <vector>
 
+#if BOOST_WORKAROUND(BOOST_GCC, < 80200)
+#define BOOST_BEAST_SYMBOL_HIDDEN __attribute__ ((visibility("hidden")))
+#else
+#define BOOST_BEAST_SYMBOL_HIDDEN
+#endif
+
 namespace boost {
 namespace beast {
 namespace test {
@@ -29,7 +35,7 @@ namespace test {
     functions inside coroutines. This is handy for testing
     asynchronous asio code.
 */
-class enable_yield_to
+class BOOST_BEAST_SYMBOL_HIDDEN enable_yield_to
 {
 protected:
     net::io_context ioc_;
