@@ -7,30 +7,32 @@ require-b2 5.2 ;
 
 import feature ;
 
+constant boost_dependencies :
+    /boost/asio//boost_asio
+    /boost/assert//boost_assert
+    /boost/bind//boost_bind
+    /boost/config//boost_config
+    /boost/container//boost_container
+    /boost/container_hash//boost_container_hash
+    /boost/core//boost_core
+    /boost/endian//boost_endian
+    /boost/intrusive//boost_intrusive
+    /boost/logic//boost_logic
+    /boost/mp11//boost_mp11
+    /boost/optional//boost_optional
+    /boost/preprocessor//boost_preprocessor
+    /boost/smart_ptr//boost_smart_ptr
+    /boost/static_assert//boost_static_assert
+    /boost/static_string//boost_static_string
+    /boost/system//boost_system
+    /boost/throw_exception//boost_throw_exception
+    /boost/type_index//boost_type_index
+    /boost/type_traits//boost_type_traits
+    /boost/winapi//boost_winapi ;
+
 project /boost/beast
     : common-requirements
         <include>include
-        <library>/boost/asio//boost_asio
-        <library>/boost/assert//boost_assert
-        <library>/boost/bind//boost_bind
-        <library>/boost/config//boost_config
-        <library>/boost/container//boost_container
-        <library>/boost/container_hash//boost_container_hash
-        <library>/boost/core//boost_core
-        <library>/boost/endian//boost_endian
-        <library>/boost/intrusive//boost_intrusive
-        <library>/boost/logic//boost_logic
-        <library>/boost/mp11//boost_mp11
-        <library>/boost/optional//boost_optional
-        <library>/boost/preprocessor//boost_preprocessor
-        <library>/boost/smart_ptr//boost_smart_ptr
-        <library>/boost/static_assert//boost_static_assert
-        <library>/boost/static_string//boost_static_string
-        <library>/boost/system//boost_system
-        <library>/boost/throw_exception//boost_throw_exception
-        <library>/boost/type_index//boost_type_index
-        <library>/boost/type_traits//boost_type_traits
-        <library>/boost/winapi//boost_winapi
     ;
 
 explicit
@@ -69,3 +71,4 @@ variant beast_ubasan
         <linkflags>"-fsanitize=address,undefined"
         <define>BOOST_USE_ASAN=1
     ;
+

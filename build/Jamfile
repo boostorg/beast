@@ -23,6 +23,7 @@ using openssl : : <search>$(openssl-root)/lib <include>$(openssl-root)/include ;
 project
     : source-location ../test
     : common-requirements
+        <library>$(boost_dependencies)
         [ requires
         cxx11_constexpr
         cxx11_decltype
