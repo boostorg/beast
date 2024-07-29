@@ -136,6 +136,61 @@ public:
             }
             ts.close();
         });
+
+        // handshake, deflate, supported
+        doStreamLoop([&](test::stream &ts)
+        {
+            echo_server es{log};
+            ws_type ws{ts};
+            ws.next_layer().connect(es.stream());
+            response_type res;
+            try
+            {
+                websocket::permessage_deflate option{};
+                option.client_enable = true;
+                option.client_max_window_bits = 14;
+                ws.set_option(option);
+
+                w.handshake(ws, res, "localhost", "/");
+
+                websocket::permessage_deflate_status status;
+                ws.get_status(status);
+                BEAST_EXPECT(status.active);
+                BEAST_EXPECT(9 == status.server_window_bits);
+                BEAST_EXPECT(14 == status.client_window_bits);
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+            ts.close(); 
+        });
+
+        // handshake, deflate, not supported
+        doStreamLoop([&](test::stream &ts)
+        {
+            echo_server es{log};
+            ws_type_t<false> ws{ts};
+            ws.next_layer().connect(es.stream());
+            response_type res;
+            try
+            {
+                w.handshake(ws, res, "localhost", "/");
+
+                websocket::permessage_deflate_status status;
+                ws.get_status(status);
+                BEAST_EXPECT(!status.active);
+                BEAST_EXPECT(0 == status.server_window_bits);
+                BEAST_EXPECT(0 == status.client_window_bits);
+            }
+            catch(...)
+            {
+                ts.close();
+                throw;
+            }
+            ts.close();
+        });
     }
 
     void

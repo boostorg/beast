@@ -345,6 +345,12 @@ struct impl_base<true>
             result = clamp(result, rd_msg_max);
         return result;
     }
+
+    void
+    get_config_pmd(detail::pmd_offer &pmd)
+    {
+        pmd = pmd_config_;
+    }
 };
 
 //------------------------------------------------------------------------------
@@ -494,6 +500,12 @@ struct impl_base<false>
         if(rd_msg_max)
             result = clamp(result, rd_msg_max);
         return result;
+    }
+
+    void
+    get_config_pmd(detail::pmd_offer &pmd)
+    {
+        pmd = {};
     }
 };
 
