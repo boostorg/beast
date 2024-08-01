@@ -56,7 +56,7 @@ namespace http {
 
     @param sr The serializer to use.
 
-    @return The number of bytes written to the stream.
+    @return The number of bytes read from the body.
 
     @throws system_error Thrown on failure.
 
@@ -100,7 +100,7 @@ write_some(
 
     @param ec Set to indicate what error occurred, if any.
 
-    @return The number of bytes written to the stream.
+    @return The number of bytes read from the body.
 
     @see async_write_some, serializer
 */
@@ -332,7 +332,6 @@ async_write_header(
             executor_type<AsyncWriteStream>>{});
 
 //------------------------------------------------------------------------------
-
 /** Write a complete message to a stream using a serializer.
 
     This function is used to write a complete message to a stream using
@@ -351,7 +350,7 @@ async_write_header(
 
     @param sr The serializer to use.
 
-    @return The number of bytes written to the stream.
+    @return The number of bytes read from the body.
 
     @throws system_error Thrown on failure.
 
@@ -385,7 +384,7 @@ write(
 
     @param ec Set to the error, if any occurred.
 
-    @return The number of bytes written to the stream.
+    @return The number of bytes read from the body.
 
     @see serializer
 */
@@ -428,7 +427,7 @@ write(
     @code
     void handler(
         error_code const& error,        // result of operation
-        std::size_t bytes_transferred   // the number of bytes written to the stream
+        std::size_t bytes_transferred   // the number of bytes consumed from the body
     );
     @endcode
     If the handler has an associated immediate executor,
@@ -487,7 +486,7 @@ async_write(
 
     @param msg The message to write.
 
-    @return The number of bytes written to the stream.
+    @return The number of bytes read from the body.
 
     @throws system_error Thrown on failure.
 
@@ -528,7 +527,7 @@ write(
 
     @param msg The message to write.
 
-    @return The number of bytes written to the stream.
+    @return The number of bytes read from the body.
 
     @throws system_error Thrown on failure.
 
@@ -571,7 +570,7 @@ write(
 
     @param ec Set to the error, if any occurred.
 
-    @return The number of bytes written to the stream.
+    @return The number of bytes consumed from the body.
 
     @see message
 */
@@ -613,7 +612,7 @@ write(
 
     @param ec Set to the error, if any occurred.
 
-    @return The number of bytes written to the stream.
+    @return The number of bytes consumed from the body.
 
     @see message
 */
@@ -665,7 +664,7 @@ write(
     @code
     void handler(
         error_code const& error,        // result of operation
-        std::size_t bytes_transferred   // the number of bytes written to the stream
+        std::size_t bytes_transferred   // the number of bytes consumed from the body
     );
     @endcode
     If the handler has an associated immediate executor,
@@ -739,7 +738,7 @@ async_write(
     @code
     void handler(
         error_code const& error,        // result of operation
-        std::size_t bytes_transferred   // the number of bytes written to the stream
+        std::size_t bytes_transferred   // the number of bytes read from the body
     );
     @endcode
     If the handler has an associated immediate executor,
