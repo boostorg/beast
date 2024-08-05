@@ -190,13 +190,15 @@ public:
     write_op(
         Handler_&& h,
         Stream& s,
-        serializer<isRequest, Body, Fields>& sr)
+        serializer<isRequest, Body, Fields>& sr,
+        bool split)
         : async_base<
             Handler, beast::executor_type<Stream>>(
                 std::forward<Handler_>(h), s.get_executor())
         , s_(s)
         , sr_(sr)
     {
+        sr.split(split);
         (*this)();
     }
 
@@ -358,7 +360,8 @@ struct run_write_op
     operator()(
         WriteHandler&& h,
         Predicate const&,
-        serializer<isRequest, Body, Fields>* sr)
+        serializer<isRequest, Body, Fields>* sr,
+        bool split)
     {
         // If you get an error on the following line it means
         // that your handler does not meet the documented type
@@ -374,7 +377,7 @@ struct run_write_op
             AsyncWriteStream,
             Predicate,
             isRequest, Body, Fields>(
-                std::forward<WriteHandler>(h), *stream, *sr);
+                std::forward<WriteHandler>(h), *stream, *sr, split);
     }
 };
 
@@ -686,14 +689,14 @@ async_write_header(
         "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter type requirements not met");
-    sr.split(true);
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
             detail::run_write_op<AsyncWriteStream>{&stream},
             handler,
             detail::serializer_is_header_done{},
-            &sr);
+            &sr,
+            true);
 }
 
 //------------------------------------------------------------------------------
@@ -758,14 +761,14 @@ async_write(
         "Body type requirements not met");
     static_assert(is_body_writer<Body>::value,
         "BodyWriter type requirements not met");
-    sr.split(false);
     return net::async_initiate<
         WriteHandler,
         void(error_code, std::size_t)>(
             detail::run_write_op<AsyncWriteStream>{&stream},
             handler,
             detail::serializer_is_done{},
-            &sr);
+            &sr,
+            false);
 }
 
 //------------------------------------------------------------------------------
