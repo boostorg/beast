@@ -296,6 +296,7 @@ public:
         , d_(decorator)
     {
         auto& impl = *sp;
+        impl.reset();
         error_code ec;
         auto const mb =
             beast::detail::dynamic_buffer_prepare(
@@ -629,7 +630,6 @@ async_accept(
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
-    impl_->reset();
     return net::async_initiate<
         AcceptHandler,
         void(error_code)>(
@@ -661,7 +661,6 @@ async_accept(
     static_assert(net::is_const_buffer_sequence<
         ConstBufferSequence>::value,
             "ConstBufferSequence type requirements not met");
-    impl_->reset();
     return net::async_initiate<
         AcceptHandler,
         void(error_code)>(
@@ -683,7 +682,6 @@ async_accept(
 {
     static_assert(is_async_stream<next_layer_type>::value,
         "AsyncStream type requirements not met");
-    impl_->reset();
     return net::async_initiate<
         AcceptHandler,
         void(error_code)>(
