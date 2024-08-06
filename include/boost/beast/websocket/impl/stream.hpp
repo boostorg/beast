@@ -175,6 +175,18 @@ get_option(timeout& opt)
     opt = impl_->timeout_opt;
 }
 
+template <class NextLayer, bool deflateSupported>
+void
+stream<NextLayer, deflateSupported>::
+get_status(permessage_deflate_status &status) const noexcept
+{
+    detail::pmd_offer pmd;
+    impl_->get_config_pmd(pmd);
+    status.active               = pmd.accept;
+    status.client_window_bits   = pmd.client_max_window_bits;
+    status.server_window_bits   = pmd.server_max_window_bits;
+}
+
 template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::

@@ -38,6 +38,25 @@
 namespace boost {
 namespace beast {
 namespace websocket {
+/** permessage-deflate extension status.
+
+    These settings indicate the status of the permessage-deflate
+    extension, showing if it is active and the window bits in use.
+
+    Objects of this type are used with
+    @ref beast::websocket::stream::get_status.
+*/
+struct permessage_deflate_status
+{
+    /// `true` if the permessage-deflate extension is active
+    bool active = false;
+
+    /// The number of window bits used by the client
+    int client_window_bits = 0;
+
+    /// The number of window bits used by the server
+    int server_window_bits = 0;
+};
 
 /** The type of received control frame.
 
@@ -410,6 +429,24 @@ public:
     /// Get the permessage-deflate extension options
     void
     get_option(permessage_deflate& o);
+
+    /** Get the status of the permessage-deflate extension.
+
+        Used to check the status of the permessage-deflate extension after
+        the WebSocket handshake.
+
+        @param status A reference to a `permessage_deflate_status` object
+        where the status will be stored.
+
+        @par Example
+        Checking the status of the permessage-deflate extension:
+        @code
+            permessage_deflate_status status;
+            ws.get_status(status);
+        @endcode
+    */
+    void
+    get_status(permessage_deflate_status &status) const noexcept;
 
     /** Set the automatic fragmentation option.
 
