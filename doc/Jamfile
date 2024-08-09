@@ -10,7 +10,8 @@ project beast/doc ;
 
 import boostbook ;
 import type ;
-import ../../../tools/docca/docca.jam ;
+import-search /boost/docca ;
+import docca ;
 
 
 if ! [ type.registered IPP ]
