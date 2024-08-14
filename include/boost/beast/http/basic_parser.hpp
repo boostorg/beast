@@ -300,7 +300,7 @@ public:
     void
     body_limit(boost::optional<std::uint64_t> v)
     {
-        body_limit_ = v;
+        body_limit_ = std::move(v);
     }
 
     /** Set a limit on the total size of the header.
