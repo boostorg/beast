@@ -61,6 +61,8 @@ public:
         case error::multiple_content_length: return "multiple Content-Length";
         case error::stale_parser: return "stale parser";
         case error::short_read: return "unexpected eof in body";
+        case error::header_field_name_too_large: return "header field name too large";
+        case error::header_field_value_too_large: return "header field value too large";
 
         default:
             return "beast.http error";

@@ -164,7 +164,13 @@ enum class error
         unexpected end-of-file condition is encountered while trying
         to read from the file.
     */
-    short_read
+    short_read,
+
+    /// Header field name exceeds @ref basic_fields::max_name_size.
+    header_field_name_too_large,
+
+    /// Header field value exceeds @ref basic_fields::max_value_size.
+    header_field_value_too_large
 };
 
 } // http

@@ -10,9 +10,10 @@
 #ifndef BOOST_BEAST_HTTP_FIELDS_HPP
 #define BOOST_BEAST_HTTP_FIELDS_HPP
 
-#include <boost/beast/core/detail/config.hpp>
-#include <boost/beast/core/string.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
+#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/core/string.hpp>
 #include <boost/beast/http/field.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/core/empty_value.hpp>
@@ -218,6 +219,14 @@ private:
 
 
 public:
+    /// Maximum field name size
+    static std::size_t constexpr max_name_size =
+        (std::numeric_limits<std::uint16_t>::max)() - 2;
+
+    /// Maximum field value size
+    static std::size_t constexpr max_value_size =
+        (std::numeric_limits<std::uint16_t>::max)() - 2;
+
     /// Destructor
     ~basic_fields();
 
@@ -434,13 +443,15 @@ public:
 
         @param name The field name.
 
-        @param value The value of the field, as a @ref boost::beast::string_view
+        @param value The field value.
+
+        @throws boost::system::system_error Thrown if an error occurs:
+            @li If the size of @c value exceeds @ref max_value_size, the
+            error code will be @ref error::header_field_value_too_large.
     */
     void
-    insert(field name, string_view const& value);
+    insert(field name, string_view value);
 
-    /* Set a field from a null pointer (deleted).
-    */
     void
     insert(field, std::nullptr_t) = delete;
 
@@ -453,13 +464,17 @@ public:
 
         @param name The field name. It is interpreted as a case-insensitive string.
 
-        @param value The value of the field, as a @ref boost::beast::string_view
+        @param value The field value.
+
+        @throws boost::system::system_error Thrown if an error occurs:
+            @li If the size of @c name exceeds @ref max_name_size, the
+            error code will be @ref error::header_field_name_too_large.
+            @li If the size of @c value exceeds @ref max_value_size, the
+            error code will be @ref error::header_field_value_too_large.
     */
     void
-    insert(string_view name, string_view const& value);
+    insert(string_view name, string_view value);
 
-    /* Insert a field from a null pointer (deleted).
-    */
     void
     insert(string_view, std::nullptr_t) = delete;
 
@@ -477,14 +492,49 @@ public:
         must be equal to `to_string(name)` using a case-insensitive
         comparison, otherwise the behavior is undefined.
 
-        @param value The value of the field, as a @ref boost::beast::string_view
+        @param value The field value.
+
+        @throws boost::system::system_error Thrown if an error occurs:
+            @li If the size of @c name_string exceeds @ref max_name_size,
+            the error code will be @ref error::header_field_name_too_large.
+            @li If the size of @c value exceeds @ref max_value_size, the
+            error code will be @ref error::header_field_value_too_large.
     */
     void
     insert(field name, string_view name_string,
-           string_view const& value);
+        string_view value);
 
     void
     insert(field, string_view, std::nullptr_t) = delete;
+
+    /** Insert a field.
+
+        If one or more fields with the same name already exist,
+        the new field will be inserted after the last field with
+        the matching name, in serialization order.
+        The value can be an empty string.
+
+        @param name The field name.
+
+        @param name_string The literal text corresponding to the
+        field name. If `name != field::unknown`, then this value
+        must be equal to `to_string(name)` using a case-insensitive
+        comparison, otherwise the behavior is undefined.
+
+        @param value The field value.
+
+        @param ec Set to indicate what error occurred:
+            @li If the size of @c name_string exceeds @ref max_name_size,
+            the error code will be @ref error::header_field_name_too_large.
+            @li If the size of @c value exceeds @ref max_value_size, the
+            error code will be @ref error::header_field_value_too_large.
+    */
+    void
+    insert(field name, string_view name_string,
+        string_view value, error_code& ec);
+
+    void
+    insert(field, string_view, std::nullptr_t, error_code& ec) = delete;
 
     /** Set a field value, removing any other instances of that field.
 
@@ -493,13 +543,14 @@ public:
 
         @param name The field name.
 
-        @param value The value of the field, as a @ref boost::beast::string_view
+        @param value The field value.
 
-        @return The field value.
-
+        @throws boost::system::system_error Thrown if an error occurs:
+            @li If the size of @c value exceeds @ref max_value_size, the
+            error code will be @ref error::header_field_value_too_large.
     */
     void
-    set(field name, string_view const& value);
+    set(field name, string_view value);
 
     void
     set(field, std::nullptr_t) = delete;
@@ -511,15 +562,21 @@ public:
 
         @param name The field name. It is interpreted as a case-insensitive string.
 
-        @param value The value of the field, as a @ref boost::beast::string_view
+        @param value The field value.
+
+        @throws boost::system::system_error Thrown if an error occurs:
+            @li If the size of @c name exceeds @ref max_name_size, the
+            error code will be @ref error::header_field_name_too_large.
+            @li If the size of @c value exceeds @ref max_value_size, the
+            error code will be @ref error::header_field_value_too_large.
     */
     void
-    set(string_view name, string_view const& value);
+    set(string_view name, string_view value);
 
     void
     set(string_view, std::nullptr_t) = delete;
 
-        /** Remove a field.
+    /** Remove a field.
 
         References and iterators to the erased elements are
         invalidated. Other references and iterators are not
@@ -744,9 +801,21 @@ private:
     template<class OtherAlloc>
     friend class basic_fields;
 
+    element*
+    try_create_new_element(
+        field name,
+        string_view sname,
+        string_view value,
+        error_code& ec);
+
     element&
-    new_element(field name,
-        string_view sname, string_view value);
+    new_element(
+        field name,
+        string_view sname,
+        string_view value);
+
+    void
+    insert_element(element& e);
 
     void
     delete_element(element& e);
