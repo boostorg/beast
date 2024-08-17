@@ -430,9 +430,9 @@ private:
         field name,
         string_view name_string,
         string_view value,
-        error_code&) override
+        error_code& ec) override
     {
-        m_.insert(name, name_string, value);
+        m_.insert(name, name_string, value, ec);
     }
 
     void
