@@ -642,23 +642,28 @@ private:
         error_code& ec);
 
     void
-    maybe_need_more(
-        char const* p, std::size_t n,
-            error_code& ec);
-
-    void
-    parse_start_line(
+    inner_parse_start_line(
         char const*& p, char const* last,
             error_code& ec, std::true_type);
 
     void
-    parse_start_line(
+    inner_parse_start_line(
         char const*& p, char const* last,
             error_code& ec, std::false_type);
 
     void
-    parse_fields(
+    parse_start_line(
+        char const*& p, std::size_t n,
+            error_code& ec);
+
+    void
+    inner_parse_fields(
         char const*& p, char const* last,
+            error_code& ec);
+
+    void
+    parse_fields(
+        char const*& p, std::size_t n,
             error_code& ec);
 
     void

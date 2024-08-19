@@ -111,65 +111,23 @@ loop:
         BOOST_FALLTHROUGH;
 
     case state::start_line:
-    {
-        maybe_need_more(p, n, ec);
+        parse_start_line(p, n, ec);
         if(ec)
             goto done;
-        parse_start_line(p, p + (std::min<std::size_t>)(
-            header_limit_, n), ec, is_request{});
-        if(ec)
-        {
-            if(ec == error::need_more)
-            {
-                if(n >= header_limit_)
-                {
-                    BOOST_BEAST_ASSIGN_EC(ec, error::header_limit);
-                    goto done;
-                }
-                if(p + 3 <= p1)
-                    skip_ = static_cast<
-                        std::size_t>(p1 - p - 3);
-            }
-            goto done;
-        }
         BOOST_ASSERT(! is_done());
         n = static_cast<std::size_t>(p1 - p);
-        if(p >= p1)
-        {
-            BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
-            goto done;
-        }
         BOOST_FALLTHROUGH;
-    }
 
     case state::fields:
-        maybe_need_more(p, n, ec);
+        parse_fields(p, n, ec);
         if(ec)
             goto done;
-        parse_fields(p, p + (std::min<std::size_t>)(
-            header_limit_, n), ec);
-        if(ec)
-        {
-            if(ec == error::need_more)
-            {
-                if(n >= header_limit_)
-                {
-                    BOOST_BEAST_ASSIGN_EC(ec, error::header_limit);
-                    goto done;
-                }
-                if(p + 3 <= p1)
-                    skip_ = static_cast<
-                        std::size_t>(p1 - p - 3);
-            }
-            goto done;
-        }
         finish_header(ec, is_request{});
         if(ec)
             goto done;
         break;
 
     case state::body0:
-        BOOST_ASSERT(! skip_);
         this->on_body_init_impl(content_length(), ec);
         if(ec)
             goto done;
@@ -177,14 +135,12 @@ loop:
         BOOST_FALLTHROUGH;
 
     case state::body:
-        BOOST_ASSERT(! skip_);
         parse_body(p, n, ec);
         if(ec)
             goto done;
         break;
 
     case state::body_to_eof0:
-        BOOST_ASSERT(! skip_);
         this->on_body_init_impl(content_length(), ec);
         if(ec)
             goto done;
@@ -192,7 +148,6 @@ loop:
         BOOST_FALLTHROUGH;
 
     case state::body_to_eof:
-        BOOST_ASSERT(! skip_);
         parse_body_to_eof(p, n, ec);
         if(ec)
             goto done;
@@ -262,39 +217,7 @@ put_eof(error_code& ec)
 template<bool isRequest>
 void
 basic_parser<isRequest>::
-maybe_need_more(
-    char const* p, std::size_t n,
-        error_code& ec)
-{
-    if(skip_ == 0)
-        return;
-    if( n > header_limit_)
-        n = header_limit_;
-    if(n < skip_ + 4)
-    {
-        BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
-        return;
-    }
-    auto const term =
-        find_eom(p + skip_, p + n);
-    if(! term)
-    {
-        skip_ = n - 3;
-        if(skip_ + 4 > header_limit_)
-        {
-            BOOST_BEAST_ASSIGN_EC(ec, error::header_limit);
-            return;
-        }
-        BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
-        return;
-    }
-    skip_ = 0;
-}
-
-template<bool isRequest>
-void
-basic_parser<isRequest>::
-parse_start_line(
+inner_parse_start_line(
     char const*& in, char const* last,
     error_code& ec, std::true_type)
 {
@@ -351,7 +274,7 @@ parse_start_line(
 template<bool isRequest>
 void
 basic_parser<isRequest>::
-parse_start_line(
+inner_parse_start_line(
     char const*& in, char const* last,
     error_code& ec, std::false_type)
 {
@@ -409,7 +332,24 @@ parse_start_line(
 template<bool isRequest>
 void
 basic_parser<isRequest>::
-parse_fields(char const*& in,
+parse_start_line(
+    char const*& in, std::size_t n, error_code& ec)
+{
+    auto const p0 = in;
+
+    inner_parse_start_line(in, in + (std::min<std::size_t>)
+        (n, header_limit_), ec, is_request{});
+    if(ec == error::need_more && n >= header_limit_)
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::header_limit);
+    }
+    header_limit_ -= static_cast<std::uint32_t>(in - p0);
+}
+
+template<bool isRequest>
+void
+basic_parser<isRequest>::
+inner_parse_fields(char const*& in,
     char const* last, error_code& ec)
 {
     string_view name;
@@ -445,6 +385,22 @@ parse_fields(char const*& in,
             return;
         in = p;
     }
+}
+
+template<bool isRequest>
+void
+basic_parser<isRequest>::
+parse_fields(char const*& in, std::size_t n, error_code& ec)
+{
+    auto const p0 = in;
+
+    inner_parse_fields(in, in + (std::min<std::size_t>)
+        (n, header_limit_), ec);
+    if(ec == error::need_more && n >= header_limit_)
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::header_limit);
+    }
+    header_limit_ -= static_cast<std::uint32_t>(in - p0);
 }
 
 template<bool isRequest>
@@ -736,7 +692,7 @@ parse_chunk_header(char const*& p0,
     if(ec)
         return;
     p = eol;
-    parse_fields(p, eom, ec);
+    parse_fields(p, static_cast<std::size_t>(eom - p), ec);
     if(ec)
         return;
     BOOST_ASSERT(p == eom);
