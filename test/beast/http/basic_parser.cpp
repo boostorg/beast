@@ -846,6 +846,22 @@ public:
         {
             multi_buffer b;
             ostream(b) <<
+                "POST / HTTP/1.1\r\n";
+            error_code ec;
+            test_parser<true> p;
+            p.header_limit(18);
+            p.eager(true);
+            b.consume(p.put(b.data(), ec));
+            BEAST_EXPECTS(ec == error::need_more, ec.message());
+            ostream(b) <<
+                "field: value\r\n";
+            b.consume(p.put(b.data(), ec));
+            BEAST_EXPECT(! p.is_done());
+            BEAST_EXPECTS(ec == error::header_limit, ec.message());
+        }
+        {
+            multi_buffer b;
+            ostream(b) <<
                 "POST / HTTP/1.1\r\n"
                 "Content-Length: 2\r\n"
                 "\r\n"
