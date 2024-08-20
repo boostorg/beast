@@ -470,7 +470,8 @@ public:
 
         ostream(b) << "0\r\n"; // needs an extra CRLF
         used = p.put(b.data(), ec);
-        BEAST_EXPECT(used == 0);
+        BEAST_EXPECT(used == 3);
+        b.consume(used);
         BEAST_EXPECT(ec == error::need_more);
 
         ostream(b) << "\r";
@@ -480,7 +481,7 @@ public:
 
         ostream(b) << "\n";
         used = p.put(b.data(), ec);
-        BEAST_EXPECT(used == 5);
+        BEAST_EXPECT(used == 2);
         BEAST_EXPECT(!ec);
         BEAST_EXPECT(p.is_done());
     }
