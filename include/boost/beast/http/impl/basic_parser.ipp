@@ -174,11 +174,9 @@ loop:
         parse_fields(p, n, ec);
         if(ec)
             goto done;
-        this->on_finish_impl(ec);
-        if(ec)
-            goto done;
         state_ = state::complete;
-        break;
+        this->on_finish_impl(ec);
+        goto done;
 
     case state::chunk_body:
         parse_chunk_body(p, n, ec);
@@ -221,11 +219,9 @@ put_eof(error_code& ec)
         ec = {};
         return;
     }
+    state_ = state::complete;
     ec = {};
     this->on_finish_impl(ec);
-    if(ec)
-        return;
-    state_ = state::complete;
 }
 
 template<bool isRequest>
@@ -464,11 +460,7 @@ finish_header(error_code& ec, std::true_type)
     if(ec)
         return;
     if(state_ == state::complete)
-    {
         this->on_finish_impl(ec);
-        if(ec)
-            return;
-    }
 }
 
 template<bool isRequest>
@@ -525,11 +517,7 @@ finish_header(error_code& ec, std::false_type)
     if(ec)
         return;
     if(state_ == state::complete)
-    {
         this->on_finish_impl(ec);
-        if(ec)
-            return;
-    }
 }
 
 template<bool isRequest>
@@ -547,10 +535,8 @@ parse_body(char const*& p,
         return;
     if(len_ > 0)
         return;
-    this->on_finish_impl(ec);
-    if(ec)
-        return;
     state_ = state::complete;
+    this->on_finish_impl(ec);
 }
 
 template<bool isRequest>

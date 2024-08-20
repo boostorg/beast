@@ -365,6 +365,18 @@ public:
     {
         parsegrind<test_parser<true>>(
             "GET / HTTP/1.1\r\n"
+            "\r\n",
+            [&](test_parser<true> const& p)
+            {
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 0);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 0);
+                BEAST_EXPECT(p.got_on_chunk     == 0);
+                BEAST_EXPECT(p.got_on_complete  == 1);
+            });
+        parsegrind<test_parser<true>>(
+            "GET / HTTP/1.1\r\n"
             "User-Agent: test\r\n"
             "Content-Length: 1\r\n"
             "\r\n"
@@ -375,6 +387,18 @@ public:
                 BEAST_EXPECT(p.got_on_field     == 2);
                 BEAST_EXPECT(p.got_on_header    == 1);
                 BEAST_EXPECT(p.got_on_body      == 1);
+                BEAST_EXPECT(p.got_on_chunk     == 0);
+                BEAST_EXPECT(p.got_on_complete  == 1);
+            });
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 100 Continue\r\n"
+            "\r\n",
+            [&](test_parser<false> const& p)
+            {
+                BEAST_EXPECT(p.got_on_begin     == 1);
+                BEAST_EXPECT(p.got_on_field     == 0);
+                BEAST_EXPECT(p.got_on_header    == 1);
+                BEAST_EXPECT(p.got_on_body      == 0);
                 BEAST_EXPECT(p.got_on_chunk     == 0);
                 BEAST_EXPECT(p.got_on_complete  == 1);
             });
