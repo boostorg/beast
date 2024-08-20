@@ -44,6 +44,7 @@ struct basic_parser_base
         chunk_header0,
         chunk_header,
         chunk_body,
+        trailer_fields,
         complete
     };
 
@@ -107,11 +108,6 @@ struct basic_parser_base
     find_eol(
         char const* it, char const* last,
             error_code& ec);
-
-    BOOST_BEAST_DECL
-    static
-    char const*
-    find_eom(char const* p, char const* last);
 
     //--------------------------------------------------------------------------
 

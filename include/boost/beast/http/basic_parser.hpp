@@ -110,7 +110,6 @@ class basic_parser
     static unsigned constexpr flagContentLength         = 1<< 10;
     static unsigned constexpr flagChunked               = 1<< 11;
     static unsigned constexpr flagUpgrade               = 1<< 12;
-    static unsigned constexpr flagFinalChunk            = 1<< 13;
 
     static constexpr
     std::uint64_t

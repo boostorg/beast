@@ -201,40 +201,6 @@ parse_hex(char const*& it, std::uint64_t& v)
     return true;
 }
 
-char const*
-basic_parser_base::
-find_eom(char const* p, char const* last)
-{
-    for(;;)
-    {
-        if(p + 4 > last)
-            return nullptr;
-        if(p[3] != '\n')
-        {
-            if(p[3] == '\r')
-                ++p;
-            else
-                p += 4;
-        }
-        else if(p[2] != '\r')
-        {
-            p += 4;
-        }
-        else if(p[1] != '\n')
-        {
-            p += 2;
-        }
-        else if(p[0] != '\r')
-        {
-            p += 2;
-        }
-        else
-        {
-            return p + 4;
-        }
-    }
-}
-
 //--------------------------------------------------------------------------
 
 char const*
