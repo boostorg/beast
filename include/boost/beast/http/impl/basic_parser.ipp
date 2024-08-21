@@ -164,7 +164,6 @@ loop:
         parse_chunk_header(p, n, ec);
         if(ec)
             goto done;
-        BOOST_ASSERT(! skip_);
         if(state_ != state::trailer_fields)
             break;
         n = static_cast<std::size_t>(p1 - p);
@@ -584,7 +583,7 @@ parse_chunk_header(char const*& in,
     auto p = in;
     auto const pend = p + n;
 
-    if(n < skip_ + 2)
+    if(n < 2)
     {
         BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
         return;
@@ -601,17 +600,14 @@ parse_chunk_header(char const*& in,
         }
     }
 
-    auto const eol = find_eol(p + skip_, pend, ec);
+    auto const eol = find_eol(p, pend, ec);
     if(ec)
         return;
     if(! eol)
     {
         BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
-        if(p != pend)
-            skip_ = pend - p - 1;
         return;
     }
-    skip_ = static_cast<std::size_t>(eol - p - 2);
 
     std::uint64_t size;
     if(! parse_hex(p, size))
@@ -644,7 +640,6 @@ parse_chunk_header(char const*& in,
         return;
 
     len_ = size;
-    skip_ = 0;
     in = eol;
     f_ |= flagExpectCRLF;
     if(size != 0)
