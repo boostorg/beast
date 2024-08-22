@@ -72,6 +72,9 @@ public:
 
         check("beast.http", error::stale_parser);
         check("beast.http", error::short_read);
+
+        check("beast.http", error::header_field_name_too_large);
+        check("beast.http", error::header_field_value_too_large);
     }
 };
 

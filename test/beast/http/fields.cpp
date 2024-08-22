@@ -445,6 +445,33 @@ public:
             BEAST_EXPECT(std::next(rng.first, 1)->value() == "4");
             BEAST_EXPECT(std::next(rng.first, 2)->value() == "6");
         }
+
+        // max field name and max field value
+        {
+            fields f;
+            error_code ec;
+            auto fit_name  = std::string(fields::max_name_size,      'a');
+            auto big_name  = std::string(fields::max_name_size + 1,  'a');
+            auto fit_value = std::string(fields::max_value_size,     'a');
+            auto big_value = std::string(fields::max_value_size + 1, 'a');
+
+            f.insert(fit_name, fit_value);
+            f.set(fit_name, fit_value);
+
+            f.insert(field::age, big_name, "", ec);
+            BEAST_EXPECT(ec == error::header_field_name_too_large);
+            f.insert(field::age, "", big_value, ec);
+            BEAST_EXPECT(ec == error::header_field_value_too_large);
+
+            BEAST_THROWS(f.insert(field::age, big_value),     boost::system::system_error);
+            BEAST_THROWS(f.insert(field::age, big_name, ""),  boost::system::system_error);
+            BEAST_THROWS(f.insert(field::age, "", big_value), boost::system::system_error);
+            BEAST_THROWS(f.insert(big_name, ""),              boost::system::system_error);
+            BEAST_THROWS(f.insert("", big_value),             boost::system::system_error);
+            BEAST_THROWS(f.set(field::age, big_value),        boost::system::system_error);
+            BEAST_THROWS(f.set(big_name, ""),                 boost::system::system_error);
+            BEAST_THROWS(f.set("", big_value),                boost::system::system_error);
+        }
     }
 
     struct sized_body

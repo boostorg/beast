@@ -537,7 +537,7 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-insert(field name, string_view const& value)
+insert(field name, string_view value)
 {
     BOOST_ASSERT(name != field::unknown);
     insert(name, to_string(name), value);
@@ -546,58 +546,52 @@ insert(field name, string_view const& value)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-insert(string_view sname, string_view const& value)
+insert(string_view sname, string_view value)
 {
-    auto const name =
-        string_to_field(sname);
-    insert(name, sname, value);
+    insert(
+        string_to_field(sname), sname, value);
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+insert(
+    field name,
+    string_view sname,
+    string_view value,
+    error_code& ec)
+{
+    ec = {};
+    auto* e = try_create_new_element(name, sname, value, ec);
+    if(ec.failed())
+        return;
+    insert_element(*e);
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
 insert(field name,
-    string_view sname, string_view const& value)
+    string_view sname, string_view value)
 {
-    auto& e = new_element(name, sname,
-        static_cast<string_view>(value));
-    auto const before =
-        set_.upper_bound(sname, key_compare{});
-    if(before == set_.begin())
-    {
-        BOOST_ASSERT(count(sname) == 0);
-        set_.insert_before(before, e);
-        list_.push_back(e);
-        return;
-    }
-    auto const last = std::prev(before);
-    // VFALCO is it worth comparing `field name` first?
-    if(! beast::iequals(sname, last->name_string()))
-    {
-        BOOST_ASSERT(count(sname) == 0);
-        set_.insert_before(before, e);
-        list_.push_back(e);
-        return;
-    }
-    // keep duplicate fields together in the list
-    set_.insert_before(before, e);
-    list_.insert(++list_.iterator_to(*last), e);
+    insert_element(
+        new_element(name, sname, value));
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set(field name, string_view const& value)
+set(field name, string_view value)
 {
     BOOST_ASSERT(name != field::unknown);
-    set_element(new_element(name, to_string(name),
-        static_cast<string_view>(value)));
+    set_element(
+        new_element(name, to_string(name), value));
 }
 
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set(string_view sname, string_view const& value)
+set(string_view sname, string_view value)
 {
     set_element(new_element(
         string_to_field(sname), sname, value));
@@ -953,18 +947,22 @@ set_keep_alive_impl(
 template<class Allocator>
 auto
 basic_fields<Allocator>::
-new_element(field name,
-    string_view sname, string_view value) ->
-        element&
+try_create_new_element(
+    field name,
+    string_view sname,
+    string_view value,
+    error_code& ec) -> element*
 {
-    if(sname.size() + 2 >
-            (std::numeric_limits<off_t>::max)())
-        BOOST_THROW_EXCEPTION(std::length_error{
-            "field name too large"});
-    if(value.size() + 2 >
-            (std::numeric_limits<off_t>::max)())
-        BOOST_THROW_EXCEPTION(std::length_error{
-            "field value too large"});
+    if(sname.size() > max_name_size)
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::header_field_name_too_large);
+        return nullptr;
+    }
+    if(value.size() > max_value_size)
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::header_field_value_too_large);
+        return nullptr;
+    }
     value = detail::trim(value);
     std::uint16_t const off =
         static_cast<off_t>(sname.size() + 2);
@@ -974,7 +972,50 @@ new_element(field name,
     auto const p = alloc_traits::allocate(a,
         (sizeof(element) + off + len + 2 + sizeof(align_type) - 1) /
             sizeof(align_type));
-    return *(::new(p) element(name, sname, value));
+    return ::new(p) element(name, sname, value);
+}
+
+template<class Allocator>
+auto
+basic_fields<Allocator>::
+new_element(
+    field name,
+    string_view sname,
+    string_view value) -> element&
+{
+    error_code ec;
+    auto* e = try_create_new_element(name, sname, value, ec);
+    if(ec.failed())
+        BOOST_THROW_EXCEPTION(system_error{ec});
+    return *e;
+}
+
+template<class Allocator>
+void
+basic_fields<Allocator>::
+insert_element(element& e)
+{
+    auto const before =
+        set_.upper_bound(e.name_string(), key_compare{});
+    if(before == set_.begin())
+    {
+        BOOST_ASSERT(count(e.name_string()) == 0);
+        set_.insert_before(before, e);
+        list_.push_back(e);
+        return;
+    }
+    auto const last = std::prev(before);
+    // VFALCO is it worth comparing `field name` first?
+    if(! beast::iequals(e.name_string(), last->name_string()))
+    {
+        BOOST_ASSERT(count(e.name_string()) == 0);
+        set_.insert_before(before, e);
+        list_.push_back(e);
+        return;
+    }
+    // keep duplicate fields together in the list
+    set_.insert_before(before, e);
+    list_.insert(++list_.iterator_to(*last), e);
 }
 
 template<class Allocator>
