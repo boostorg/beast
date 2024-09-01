@@ -8,17 +8,8 @@
 #
 
 import testing ;
-import ../../config/checks/config : requires ;
-
-lib lib-test
-    : lib_test.cpp
-    : requirements
-    <link>static
-    $(defines)
-    : usage-requirements
-    <include>./extras/include
-    $(defines)
-    ;
+import-search /boost/config/checks ;
+import config : requires ;
 
 project /boost/beast/test
     : requirements
@@ -34,11 +25,20 @@ project /boost/beast/test
     <target-os>darwin:<define>Z_HAVE_UNISTD_H=1
     <library>/boost/beast//lib-asio/<link>static
     <boost.beast.separate-compilation>on:<library>/boost/beast//lib-beast/<link>static
-    <library>/boost/filesystem//boost_filesystem
-    <library>/boost/context//boost_context
+    <library>/boost/filesystem//boost_filesystem/<link>static
+    <library>/boost/context//boost_context/<link>static
     <address-sanitizer>norecover:<context-impl>ucontext
     <address-sanitizer>norecover:<define>BOOST_USE_ASAN=1
+    <include>..
   ;
+
+lib lib-test
+    : lib_test.cpp
+    : requirements
+    <link>static
+    : usage-requirements
+    <include>extras/include
+    ;
 
 lib lib-zlib :
     extern/zlib-1.2.12/adler32.c

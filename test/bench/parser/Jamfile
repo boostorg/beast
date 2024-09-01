@@ -7,10 +7,11 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+project : requirements <library>/boost/beast/test//lib-test ;
+
 run
     nodejs_parser.cpp
     bench_parser.cpp
-    /boost/beast/test//lib-test
     : : : :
     bench-parser ;
 
