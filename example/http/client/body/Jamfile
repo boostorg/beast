@@ -11,5 +11,5 @@ exe json_client : json_client.cpp
     :
     <variant>coverage:<build>no
     <variant>ubasan:<build>no
-    <use>/boost/json//boost_json
+    <use>/boost/json//boost_json/<link>static
     ;
