@@ -58,6 +58,7 @@ jobs:
       - name: Run fuzzer
         run: |
           cd ../boost-root/libs/beast
+          mkdir build
           cd build
           cmake \
             -DCMAKE_CXX_COMPILER=clang++ \
