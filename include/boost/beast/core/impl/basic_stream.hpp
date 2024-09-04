@@ -325,8 +325,8 @@ public:
                         (isRead ? "basic_stream::async_read_some"
                             : "basic_stream::async_write_some")));
 
-                    net::dispatch(this->get_immediate_executor(),
-                        net::append(std::move(*this), ec, 0));
+                    const auto ex = this->get_immediate_executor();
+                    net::dispatch(ex, net::append(std::move(*this), ec, 0));
                 }
 
                 impl_->close();
