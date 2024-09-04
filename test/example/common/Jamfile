@@ -19,7 +19,7 @@ local SOURCES =
 local RUN_TESTS ;
 
 local libs =
-    /boost/beast//lib-asio-ssl
+    /boost/beast/test//lib-asio-ssl
     /boost/beast/test//lib-test
     ;
 

@@ -11,7 +11,7 @@ import ac ;
 
 project
     : requirements
-        [ ac.check-library /boost/beast//lib-asio-ssl : <library>/boost/beast//lib-asio-ssl/<link>static : <build>no ]
+        [ ac.check-library /boost/beast/test//lib-asio-ssl : <library>/boost/beast/test//lib-asio-ssl/<link>static : <build>no ]
     ;
 
 exe http-client-sync-ssl :
