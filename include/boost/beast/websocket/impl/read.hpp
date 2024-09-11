@@ -471,7 +471,6 @@ public:
                         bytes_written_ += bytes_transferred;
                         impl.rd_size += bytes_transferred;
                         impl.rd_buf.consume(bytes_transferred);
-                        cont = true;
                     }
                     else
                     {
