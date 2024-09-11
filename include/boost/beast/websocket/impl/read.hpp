@@ -471,6 +471,7 @@ public:
                         bytes_written_ += bytes_transferred;
                         impl.rd_size += bytes_transferred;
                         impl.rd_buf.consume(bytes_transferred);
+                        cont = true;
                     }
                     else
                     {
@@ -514,8 +515,12 @@ public:
                     }
                 }
                 BOOST_ASSERT( ! impl.rd_done );
-                if( impl.rd_remain == 0 && impl.rd_fh.fin )
+                if (impl.rd_remain == 0 && impl.rd_fh.fin) {
                     impl.rd_done = true;
+                }
+                else {
+                    cont = true;
+                }
             }
             else
             {
