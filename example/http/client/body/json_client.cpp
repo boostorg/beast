@@ -11,7 +11,7 @@ namespace http = beast::http;   // from <boost/beast/http.hpp>
 namespace net = boost::asio;    // from <boost/asio.hpp>
 using tcp = net::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-int main(int argc, char ** argv)
+int main(int, char **)
 {
     // Our test endpoint for testing the json
     const auto host = "postman-echo.com";
