@@ -32,8 +32,9 @@ struct json_body
     {
         using const_buffers_type = boost::asio::const_buffer;
         template<bool isRequest, class Fields>
-        writer(boost::beast::http::header<isRequest, Fields> const& h, 
-               value_type const& body)
+        writer(
+            boost::beast::http::header<isRequest, Fields> const&,
+            value_type const& body)
         {
             // The serializer holds a pointer to the value, so all we need to do is to reset it.
             serializer.reset(&body);
@@ -65,7 +66,9 @@ struct json_body
     struct reader
     {
         template<bool isRequest, class Fields>
-        reader(boost::beast::http::header<isRequest, Fields>& h, value_type& body)
+        reader(
+            boost::beast::http::header<isRequest, Fields>&,
+            value_type& body)
             : body(body)
         {
         }
