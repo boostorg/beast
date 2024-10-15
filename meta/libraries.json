@@ -10,7 +10,8 @@
         "IO"
     ],
     "maintainers": [
-        "Vinnie Falco <vinnie.falco@gmail.com>"
+        "Vinnie Falco <vinnie.falco@gmail.com>",
+        "Mohammad Nejati <ashtumashtum -at- gmail.com>"
     ],
     "cxxstd": "11"
 }
