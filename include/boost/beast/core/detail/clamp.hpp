@@ -19,7 +19,6 @@ namespace beast {
 namespace detail {
 
 template<class UInt>
-static
 std::size_t
 clamp(UInt x)
 {
@@ -29,7 +28,6 @@ clamp(UInt x)
 }
 
 template<class UInt>
-static
 std::size_t
 clamp(UInt x, std::size_t limit)
 {
