@@ -10,8 +10,10 @@
 #ifndef BOOST_BEAST_HTTP_SPAN_BODY_HPP
 #define BOOST_BEAST_HTTP_SPAN_BODY_HPP
 
-#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/http/span_body_fwd.hpp>
+
 #include <boost/beast/core/buffer_traits.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/span.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/message.hpp>

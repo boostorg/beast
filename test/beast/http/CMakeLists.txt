@@ -16,31 +16,43 @@ add_executable (tests-beast-http
     ${EXTRAS_FILES}
     Jamfile
     any_completion_handler.cpp
-    message_fuzz.hpp
-    test_parser.hpp
+    basic_dynamic_body_fwd.cpp
     basic_dynamic_body.cpp
+    basic_file_body_fwd.cpp
     basic_file_body.cpp
     basic_parser.cpp
+    buffer_body_fwd.cpp
     buffer_body.cpp
     chunk_encode.cpp
     deferred.cpp
+    dynamic_body_fwd.cpp
     dynamic_body.cpp
+    empty_body_fwd.cpp
     empty_body.cpp
     error.cpp
-    field.cpp
     field_compiles.cpp
+    field.cpp
+    fields_fwd.cpp
     fields.cpp
+    file_body_fwd.cpp
     file_body.cpp
+    message_fwd.cpp
+    message_generator_fwd.cpp
     message_generator.cpp
     message.cpp
+    parser_fwd.cpp
     parser.cpp
     read.cpp
     rfc7230.cpp
+    serializer_fwd.cpp
     serializer.cpp
+    span_body_fwd.cpp
     span_body.cpp
     status.cpp
+    string_body_fwd.cpp
     string_body.cpp
     type_traits.cpp
+    vector_body_fwd.cpp
     vector_body.cpp
     verb.cpp
     write.cpp

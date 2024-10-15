@@ -10,14 +10,16 @@
 #ifndef BOOST_BEAST_HTTP_SERIALIZER_HPP
 #define BOOST_BEAST_HTTP_SERIALIZER_HPP
 
-#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/http/serializer_fwd.hpp>
+
 #include <boost/beast/core/buffers_cat.hpp>
 #include <boost/beast/core/buffers_prefix.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
-#include <boost/beast/core/string.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/variant.hpp>
-#include <boost/beast/http/message.hpp>
+#include <boost/beast/core/string.hpp>
 #include <boost/beast/http/chunk_encode.hpp>
+#include <boost/beast/http/message.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 
@@ -57,10 +59,11 @@ namespace http {
 
     @tparam Fields The type of fields in the message.
 */
-template<
-    bool isRequest,
-    class Body,
-    class Fields = fields>
+#if BOOST_BEAST_DOXYGEN
+template<bool isRequest, class Body, class Fields = fields>
+#else
+template<bool isRequest, class Body, class Fields>
+#endif
 class serializer
 {
 public:
@@ -377,6 +380,7 @@ public:
     }
 };
 
+#if BOOST_BEAST_DOXYGEN
 /// A serializer for HTTP/1 requests
 template<class Body, class Fields = fields>
 using request_serializer = serializer<true, Body, Fields>;
@@ -384,6 +388,7 @@ using request_serializer = serializer<true, Body, Fields>;
 /// A serializer for HTTP/1 responses
 template<class Body, class Fields = fields>
 using response_serializer = serializer<false, Body, Fields>;
+#endif
 
 } // http
 } // beast

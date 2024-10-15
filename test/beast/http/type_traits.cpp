@@ -11,6 +11,7 @@
 #include <boost/beast/http/type_traits.hpp>
 
 #include <boost/beast/http/empty_body.hpp>
+#include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/buffers_cat.hpp>

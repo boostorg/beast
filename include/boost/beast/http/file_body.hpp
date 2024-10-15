@@ -10,21 +10,22 @@
 #ifndef BOOST_BEAST_HTTP_FILE_BODY_HPP
 #define BOOST_BEAST_HTTP_FILE_BODY_HPP
 
+#include <boost/beast/http/file_body_fwd.hpp>
+
 #include <boost/beast/core/file.hpp>
 #include <boost/beast/http/basic_file_body.hpp>
 #include <boost/assert.hpp>
 #include <boost/optional.hpp>
-#include <algorithm>
 #include <cstdio>
-#include <cstdint>
-#include <utility>
 
 namespace boost {
 namespace beast {
 namespace http {
 
+#if BOOST_BEAST_DOXYGEN
 /// A message body represented by a file on the filesystem.
 using file_body = basic_file_body<file>;
+#endif
 
 } // http
 } // beast

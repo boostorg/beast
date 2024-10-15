@@ -11,22 +11,14 @@
 #define BOOST_BEAST_HTTP_DETAIL_TYPE_TRAITS_HPP
 
 #include <boost/beast/core/detail/type_traits.hpp>
+#include <boost/beast/http/message_fwd.hpp>
+#include <boost/beast/http/parser_fwd.hpp>
 #include <boost/optional.hpp>
 #include <cstdint>
 
 namespace boost {
 namespace beast {
 namespace http {
-
-template<bool isRequest, class Fields>
-class header;
-
-template<bool, class, class>
-class message;
-
-template<bool isRequest, class Body, class Fields>
-class parser;
-
 namespace detail {
 
 template<class T>
