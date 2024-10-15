@@ -10,6 +10,8 @@
 #ifndef BOOST_BEAST_HTTP_FIELDS_HPP
 #define BOOST_BEAST_HTTP_FIELDS_HPP
 
+#include <boost/beast/http/fields_fwd.hpp>
+
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/error.hpp>
@@ -20,11 +22,9 @@
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
 #include <boost/optional.hpp>
-#include <algorithm>
 #include <cctype>
 #include <cstring>
 #include <memory>
-#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -864,8 +864,10 @@ private:
     string_view target_or_reason_;
 };
 
+#if BOOST_BEAST_DOXYGEN
 /// A typical HTTP header fields container
 using fields = basic_fields<std::allocator<char>>;
+#endif
 
 } // http
 } // beast

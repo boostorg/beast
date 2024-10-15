@@ -10,6 +10,8 @@
 #ifndef BOOST_BEAST_HTTP_DYNAMIC_BODY_HPP
 #define BOOST_BEAST_HTTP_DYNAMIC_BODY_HPP
 
+#include <boost/beast/http/dynamic_body_fwd.hpp>
+
 #include <boost/beast/core/multi_buffer.hpp>
 #include <boost/beast/http/basic_dynamic_body.hpp>
 
@@ -17,11 +19,13 @@ namespace boost {
 namespace beast {
 namespace http {
 
+#if BOOST_BEAST_DOXYGEN
 /** A dynamic message body represented by a @ref multi_buffer
 
     Meets the requirements of <em>Body</em>.
 */
 using dynamic_body = basic_dynamic_body<multi_buffer>;
+#endif
 
 } // http
 } // beast

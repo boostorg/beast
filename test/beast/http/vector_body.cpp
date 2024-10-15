@@ -9,6 +9,9 @@
 
 // Test that header file is self-contained.
 #include <boost/beast/http/vector_body.hpp>
+
+#include <boost/beast/http/type_traits.hpp>
+
 #include <cstddef>
 
 namespace boost {

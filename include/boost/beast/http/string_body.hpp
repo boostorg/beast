@@ -10,18 +10,17 @@
 #ifndef BOOST_BEAST_HTTP_STRING_BODY_HPP
 #define BOOST_BEAST_HTTP_STRING_BODY_HPP
 
-#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/http/string_body_fwd.hpp>
+
 #include <boost/beast/core/buffer_traits.hpp>
-#include <boost/beast/http/error.hpp>
-#include <boost/beast/http/message.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
+#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/http/error.hpp>
+#include <boost/beast/http/message.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/optional.hpp>
 #include <cstdint>
-#include <limits>
-#include <memory>
-#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -35,10 +34,17 @@ namespace http {
     for holding message payloads. Messages using this body type
     may be serialized and parsed.
 */
+#if BOOST_BEAST_DOXYGEN
 template<
     class CharT,
     class Traits = std::char_traits<CharT>,
     class Allocator = std::allocator<CharT>>
+#else
+template<
+    class CharT,
+    class Traits,
+    class Allocator>
+#endif
 struct basic_string_body
 {
 private:
@@ -176,8 +182,10 @@ public:
 #endif
 };
 
+#if BOOST_BEAST_DOXYGEN
 /// A <em>Body</em> using `std::string`
 using string_body = basic_string_body<char>;
+#endif
 
 } // http
 } // beast

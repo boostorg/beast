@@ -9,6 +9,8 @@
 #ifndef BOOST_BEAST_HTTP_MESSAGE_GENERATOR_HPP
 #define BOOST_BEAST_HTTP_MESSAGE_GENERATOR_HPP
 
+#include <boost/beast/http/message_generator_fwd.hpp>
+
 #include <boost/beast/core/span.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/serializer.hpp>

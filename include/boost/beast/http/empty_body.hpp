@@ -10,6 +10,8 @@
 #ifndef BOOST_BEAST_HTTP_EMPTY_BODY_HPP
 #define BOOST_BEAST_HTTP_EMPTY_BODY_HPP
 
+#include <boost/beast/http/empty_body_fwd.hpp>
+
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/message.hpp>

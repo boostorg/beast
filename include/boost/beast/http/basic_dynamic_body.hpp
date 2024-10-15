@@ -10,10 +10,12 @@
 #ifndef BOOST_BEAST_HTTP_BASIC_DYNAMIC_BODY_HPP
 #define BOOST_BEAST_HTTP_BASIC_DYNAMIC_BODY_HPP
 
-#include <boost/beast/core/detail/config.hpp>
+#include <boost/beast/http/basic_dynamic_body_fwd.hpp>
+
 #include <boost/beast/core/buffer_traits.hpp>
 #include <boost/beast/core/detail/buffer.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/http/error.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/optional.hpp>
