@@ -7,11 +7,17 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+#include <boost/config.hpp>
+
+#ifdef BOOST_MSVC
+#pragma warning(push)
+#pragma warning(disable: 4702) // unreachable code
+#endif
+
 // Test that header file is self-contained.
 #include <boost/beast/core/saved_handler.hpp>
 #include <boost/asio/bind_cancellation_slot.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
-#include <stdexcept>
 
 namespace boost {
 namespace beast {
@@ -220,3 +226,7 @@ BEAST_DEFINE_TESTSUITE(beast,core,saved_handler);
 
 } // beast
 } // boost
+
+#ifdef BOOST_MSVC
+#pragma warning(pop)
+#endif
