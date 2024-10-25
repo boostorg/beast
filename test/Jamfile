@@ -118,6 +118,8 @@ variant beast_ubasan
     ;
 
 project /boost/beast/test
+    : default-build
+    <warnings>extra
     : requirements
     [ requires
         cxx11_constexpr
@@ -128,6 +130,7 @@ project /boost/beast/test
         cxx11_variadic_templates
     ]
     <define>BOOST_BEAST_TESTS
+    <threading>multi
     <target-os>darwin:<define>Z_HAVE_UNISTD_H=1
     <library>/boost/beast/test//lib-asio/<link>static
     <boost.beast.separate-compilation>on:<library>/boost/beast/test//lib-beast/<link>static
