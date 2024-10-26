@@ -61,6 +61,8 @@ snippets()
                     assert(bytes_transferred == 13);
                 else
                     std::cerr << "Error: " << ec.message() << "\n";
+
+                (void)bytes_transferred;
             });
         // meanwhile, the operation is outstanding and execution continues from here
     //]
