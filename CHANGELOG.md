@@ -1,3 +1,22 @@
+Version 356:
+
+* Added `error_code` overload for `basic_fields::insert()`
+* Added overload for `websocket::stream::get_status` to query permessage-deflate status
+* Fixed use-after-move in calls to `net::dispatch` within `http::basic_stream`, which caused `bad_executor` exceptions on timeouts
+* Removed mutating operations in initiating functions
+* Fixed cancellation handling in `teardown_tcp_op`
+* Set `state_` in `basic_parser` before calling `on_finish_impl`
+* Removed static specifier from `clamp` functions
+* Addressed `-Wattributes` warnings in tests
+* Addressed unreachable code warning in tests
+* Added forward declaration headers for types in `beast::http` namespace
+* Enabled `http::parser` to use `basic_fields::insert()` with `error_code` overload
+* Applied `header_limit_` in `http::basic_parser` to trailer headers
+* Improved `http::basic_parser` to return `http::error::header_limit` earlier
+* Added support for modular boost build structure
+
+--------------------------------------------------------------------------------
+
 Version 355:
 
 * awaitable examples are simplified
