@@ -11,6 +11,31 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.87]
+
+[*API Changes]
+
+* [issue 2920] Added `error_code` overload for `basic_fields::insert()`
+* [issue 2911] Added overload for `websocket::stream::get_status` to query permessage-deflate status
+
+[*Fixes]
+
+* [issue 2926] Fixed use-after-move in calls to `net::dispatch` within `http::basic_stream`, which caused `bad_executor` exceptions on timeouts
+* [issue 2915] Removed mutating operations in initiating functions
+* [issue 2915] Fixed cancellation handling in `teardown_tcp_op`
+* [issue 2920] Set `state_` in `basic_parser` before calling `on_finish_impl`
+* [issue 2939] Removed static specifier from `clamp` functions
+* [issue 2903] Addressed `-Wattributes` warnings in tests
+* [issue 2944] Addressed unreachable code warning in tests
+
+[*Improvements]
+
+* [issue 2940] Added forward declaration headers for types in `beast::http` namespace
+* [issue 2920] Enabled `http::parser` to use `basic_fields::insert()` with `error_code` overload
+* [issue 2920] Applied `header_limit_` in `http::basic_parser` to trailer headers
+* [issue 2920] Improved `http::basic_parser` to return `http::error::header_limit` earlier
+* [issue 2905] Added support for modular boost build structure
+
 [heading Boost 1.86]
 
 [*API Changes]
