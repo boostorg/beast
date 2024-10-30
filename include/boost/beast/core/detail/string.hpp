@@ -23,7 +23,7 @@ namespace string_literals {
 
 inline
 string_view
-operator"" _sv(char const* p, std::size_t n)
+operator""_sv(char const* p, std::size_t n)
 {
     return string_view{p, n};
 }
