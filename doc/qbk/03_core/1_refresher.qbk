@@ -235,7 +235,7 @@ customized by the caller, a completion handler defaults to using
 
 The function 
 [@boost:/doc/html/boost_asio/reference/bind_allocator.html `net::bind_allocator`]
-can be used when he caller wants to assign a custom allocator to the operation.
+can be used when the caller wants to assign a custom allocator to the operation.
 
 
 A completion token's associated cancellation_slot can be used to cancel single 
