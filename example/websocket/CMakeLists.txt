@@ -7,5 +7,5 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_subdirectory (client)
-add_subdirectory (server)
+add_subdirectory(client)
+add_subdirectory(server)

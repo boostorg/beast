@@ -7,8 +7,10 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_subdirectory (advanced)
-add_subdirectory (http)
-add_subdirectory (websocket)
+find_package(OpenSSL)
 
-add_subdirectory (echo-op)
+add_subdirectory(advanced)
+add_subdirectory(http)
+add_subdirectory(websocket)
+
+add_subdirectory(echo-op)
