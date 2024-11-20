@@ -7,14 +7,14 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_subdirectory (async)
-add_subdirectory (awaitable)
-add_subdirectory (coro)
-add_subdirectory (sync)
+add_subdirectory(async)
+add_subdirectory(awaitable)
+add_subdirectory(coro)
+add_subdirectory(sync)
 
 if (OPENSSL_FOUND)
-    add_subdirectory (async-ssl)
-    add_subdirectory (async-ssl-system-executor)
-    add_subdirectory (coro-ssl)
-    add_subdirectory (sync-ssl)
-endif()
+    add_subdirectory(async-ssl)
+    add_subdirectory(async-ssl-system-executor)
+    add_subdirectory(coro-ssl)
+    add_subdirectory(sync-ssl)
+endif ()

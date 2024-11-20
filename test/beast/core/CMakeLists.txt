@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+# Copyright (c) 2024 Mohammad Nejati
 #
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
 # file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,11 +8,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-GroupSources (include/boost/beast beast)
-GroupSources (test/beast/core "/")
-
-add_executable (tests-beast-core
-    ${BOOST_BEAST_FILES}
+add_executable(tests-beast-core
     Jamfile
     test_buffer.hpp
     file_test.hpp
@@ -64,21 +61,11 @@ add_executable (tests-beast-core
     static_string.cpp
     stream_traits.cpp
     string.cpp
-    tcp_stream.cpp
-)
+    tcp_stream.cpp)
 
 target_link_libraries(tests-beast-core
-    lib-asio
-    lib-asio-ssl
-    lib-beast
     lib-test
-    )
+    Boost::filesystem)
 
-set_property(TARGET tests-beast-core PROPERTY FOLDER "tests")
-
-#
-# Individual tests
-#
-#build_individual_tests(tests-beast-core
-#        EXCLUDE _detail_static_const close_socket zlib make_strand prepare_buffers
-#        LIBS lib-asio lib-asio-ssl lib-beast lib-test)
+set_target_properties(tests-beast-core
+    PROPERTIES FOLDER "tests")

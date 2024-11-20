@@ -198,11 +198,9 @@ CMake may be used to generate a very nice Visual Studio solution and
 a set of Visual Studio project files using these commands:
 
 ```
-cd libs/beast
-mkdir bin
-cd bin
-cmake -G "Visual Studio 17 2022" -A Win32 ..  # for 32-bit Windows builds, or
-cmake -G "Visual Studio 17 2022" -A x64 ..    # for 64-bit Windows builds
+cmake -G "Visual Studio 17 2022" -A win32 -B bin -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="C:/boost/libs/beast/cmake/toolchains/msvc.cmake"
+
+cmake -G "Visual Studio 17 2022" -A x64 -B bin64 -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="C:/boost/libs/beast/cmake/toolchains/msvc.cmake"
 ```
 
 The files in the repository are laid out thusly:
