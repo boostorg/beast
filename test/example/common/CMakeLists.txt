@@ -27,3 +27,6 @@ target_link_libraries(tests-example-common
 
 set_target_properties(tests-example-common
     PROPERTIES FOLDER "tests")
+
+add_test(NAME tests-example-common COMMAND tests-example-common)
+add_dependencies(tests tests-example-common)

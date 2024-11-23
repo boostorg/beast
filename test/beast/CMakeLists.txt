@@ -42,3 +42,6 @@ target_link_libraries(tests-beast
 
 set_target_properties(tests-beast
     PROPERTIES FOLDER "tests")
+
+add_test(NAME tests-beast COMMAND tests-beast)
+add_dependencies(tests tests-beast)

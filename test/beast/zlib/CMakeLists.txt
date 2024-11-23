@@ -31,3 +31,6 @@ target_link_libraries(tests-beast-zlib
 
 set_target_properties(tests-beast-zlib
     PROPERTIES FOLDER "tests")
+
+add_test(NAME tests-beast-zlib COMMAND tests-beast-zlib)
+add_dependencies(tests tests-beast-zlib)

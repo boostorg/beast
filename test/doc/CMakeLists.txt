@@ -23,3 +23,6 @@ target_link_libraries(tests-doc
 
 set_target_properties(tests-doc
     PROPERTIES FOLDER "tests")
+
+add_test(NAME tests-doc COMMAND tests-doc)
+add_dependencies(tests tests-doc)
