@@ -19,7 +19,8 @@ if(NOT TARGET tests)
     set_property(TARGET tests PROPERTY FOLDER Dependencies)
 endif()
 
-find_package(OpenSSL)
+find_package(Threads REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # lib-asio
 add_library(lib-asio STATIC lib_asio.cpp)
@@ -31,7 +32,7 @@ target_compile_definitions(lib-asio PUBLIC
     BOOST_ASIO_DISABLE_BOOST_BIND
     BOOST_ASIO_DISABLE_BOOST_DATE_TIME
     BOOST_ASIO_DISABLE_BOOST_REGEX)
-target_link_libraries(lib-asio PUBLIC Boost::asio)
+target_link_libraries(lib-asio PUBLIC Boost::asio Threads::Threads)
 set_target_properties(lib-asio PROPERTIES FOLDER "static-libs")
 
 # lib-asio-ssl
