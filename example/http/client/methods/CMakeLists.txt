@@ -12,6 +12,10 @@ add_executable(http-client-methods
     Jamfile
     http_client_methods.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_client_methods.cpp)
+
 target_link_libraries(http-client-methods PRIVATE Boost::beast)
 
 set_target_properties(http-client-methods

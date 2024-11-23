@@ -12,6 +12,7 @@ find_package(OpenSSL)
 
 # lib-asio
 add_library(lib-asio STATIC lib_asio.cpp)
+source_group("" FILES lib_asio.cpp)
 target_compile_definitions(lib-asio PUBLIC
     BOOST_ASIO_SEPARATE_COMPILATION
     BOOST_ASIO_NO_DEPRECATED
@@ -24,12 +25,14 @@ set_target_properties(lib-asio PROPERTIES FOLDER "static-libs")
 
 # lib-asio-ssl
 add_library(lib-asio-ssl STATIC lib_asio_ssl.cpp)
+source_group("" FILES lib_asio_ssl.cpp)
 target_link_libraries(lib-asio-ssl PUBLIC lib-asio)
 target_link_libraries(lib-asio-ssl PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 set_target_properties(lib-asio-ssl PROPERTIES FOLDER "static-libs")
 
 # lib-beast
 add_library(lib-beast STATIC lib_beast.cpp)
+source_group("" FILES lib_beast.cpp)
 target_compile_definitions(lib-beast PUBLIC BOOST_BEAST_SEPARATE_COMPILATION)
 target_link_libraries(lib-beast PUBLIC Boost::beast lib-asio)
 set_target_properties(lib-beast PROPERTIES FOLDER "static-libs")
@@ -58,6 +61,7 @@ set_target_properties(lib-zlib PROPERTIES FOLDER "static-libs")
 
 # lib-test
 add_library(lib-test STATIC lib_test.cpp)
+source_group("" FILES lib_test.cpp)
 target_include_directories(lib-test PUBLIC extras/include)
 target_link_libraries(lib-test PUBLIC lib-beast)
 set_target_properties(lib-test PROPERTIES FOLDER "static-libs")

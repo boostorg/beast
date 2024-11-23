@@ -8,7 +8,14 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable (tests-beast-zlib
+add_executable(tests-beast-zlib
+    Jamfile
+    error.cpp
+    deflate_stream.cpp
+    inflate_stream.cpp
+    zlib.cpp)
+
+source_group("" FILES
     Jamfile
     error.cpp
     deflate_stream.cpp

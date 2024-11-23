@@ -11,6 +11,10 @@ add_executable (tests-beast-ssl
     Jamfile
     ssl_stream.cpp)
 
+source_group("" FILES
+    Jamfile
+    ssl_stream.cpp)
+
 target_link_libraries(tests-beast-ssl
     lib-asio-ssl
     lib-test)

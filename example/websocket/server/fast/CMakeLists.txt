@@ -12,6 +12,10 @@ add_executable(websocket-server-fast
     Jamfile
     websocket_server_fast.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_server_fast.cpp)
+
 target_link_libraries(websocket-server-fast PRIVATE Boost::beast)
 
 set_target_properties(websocket-server-fast

@@ -12,6 +12,10 @@ add_executable(websocket-server-stackless
     Jamfile
     websocket_server_stackless.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_server_stackless.cpp)
+
 target_link_libraries(websocket-server-stackless PRIVATE Boost::beast)
 
 set_target_properties(websocket-server-stackless

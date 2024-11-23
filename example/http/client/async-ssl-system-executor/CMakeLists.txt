@@ -12,6 +12,10 @@ add_executable(http-client-async-ssl-system-executor
     Jamfile
     http_client_async_ssl_system_executor.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_client_async_ssl_system_executor.cpp)
+
 target_include_directories(http-client-async-ssl-system-executor
     PRIVATE ${PROJECT_SOURCE_DIR})
 

@@ -12,6 +12,10 @@ add_executable(websocket-server-sync-ssl
     Jamfile
     websocket_server_sync_ssl.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_server_sync_ssl.cpp)
+
 target_include_directories(websocket-server-sync-ssl
     PRIVATE ${PROJECT_SOURCE_DIR})
 

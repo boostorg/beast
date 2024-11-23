@@ -13,6 +13,11 @@ add_executable(http-crawl
     http_crawl.cpp
     urls_large_data.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_crawl.cpp
+    urls_large_data.cpp)
+
 target_link_libraries(http-crawl PRIVATE Boost::beast)
 
 set_target_properties(http-crawl

@@ -12,6 +12,10 @@ add_executable(http-server-stackless-ssl
     Jamfile
     http_server_stackless_ssl.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_server_stackless_ssl.cpp)
+
 target_include_directories(http-server-stackless-ssl
     PRIVATE ${PROJECT_SOURCE_DIR})
 

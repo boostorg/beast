@@ -12,6 +12,10 @@ add_executable(websocket-server-async-ssl
     Jamfile
     websocket_server_async_ssl.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_server_async_ssl.cpp)
+
 target_include_directories(websocket-server-async-ssl
     PRIVATE ${PROJECT_SOURCE_DIR})
 

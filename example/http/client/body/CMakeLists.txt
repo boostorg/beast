@@ -12,6 +12,10 @@ add_executable(http-client-json
     Jamfile
     json_client.cpp)
 
+source_group("" FILES
+    Jamfile
+    json_client.cpp)
+
 target_link_libraries(http-client-json PRIVATE Boost::beast Boost::json)
 
 set_target_properties(http-client-json

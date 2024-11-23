@@ -12,6 +12,10 @@ add_executable(websocket-server-sync
     Jamfile
     websocket_server_sync.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_server_sync.cpp)
+
 target_link_libraries(websocket-server-sync PRIVATE Boost::beast)
 
 set_target_properties(websocket-server-sync

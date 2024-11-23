@@ -12,6 +12,10 @@ add_executable(http-client-coro
     Jamfile
     http_client_coro.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_client_coro.cpp)
+
 target_link_libraries(http-client-coro PRIVATE Boost::beast)
 
 set_target_properties(http-client-coro

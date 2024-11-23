@@ -12,6 +12,10 @@ add_executable(http-server-sync-ssl
     Jamfile
     http_server_sync_ssl.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_server_sync_ssl.cpp)
+
 target_include_directories(http-server-sync-ssl
     PRIVATE ${PROJECT_SOURCE_DIR})
 

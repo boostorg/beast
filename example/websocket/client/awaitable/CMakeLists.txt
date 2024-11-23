@@ -12,6 +12,10 @@ add_executable(websocket-client-awaitable
     Jamfile
     websocket_client_awaitable.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_client_awaitable.cpp)
+
 target_link_libraries(websocket-client-awaitable PRIVATE Boost::beast)
 
 set_target_properties(websocket-client-awaitable

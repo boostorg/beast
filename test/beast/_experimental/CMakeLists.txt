@@ -15,7 +15,15 @@ add_executable(tests-beast-_experimental
     icy_stream.cpp
     stream.cpp)
 
+source_group("" FILES
+    Jamfile
+    _test_detail_stream_state.cpp
+    error.cpp
+    icy_stream.cpp
+    stream.cpp)
+
 target_link_libraries(tests-beast-_experimental
+    lib-asio-ssl
     lib-test)
 
 set_target_properties(tests-beast-_experimental

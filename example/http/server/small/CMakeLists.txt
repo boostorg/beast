@@ -12,6 +12,10 @@ add_executable(http-server-small
     Jamfile
     http_server_small.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_server_small.cpp)
+
 target_link_libraries(http-server-small PRIVATE Boost::beast)
 
 set_target_properties(http-server-small

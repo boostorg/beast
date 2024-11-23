@@ -12,6 +12,10 @@ add_executable(bench-utf8-checker
     Jamfile
     bench_utf8_checker.cpp)
 
+source_group("" FILES
+    Jamfile
+    bench_utf8_checker.cpp)
+
 target_link_libraries(bench-utf8-checker
     lib-test)
 

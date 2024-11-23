@@ -23,6 +23,21 @@ add_executable(websocket-chat-multi
     websocket_session.cpp
     websocket_session.hpp)
 
+source_group("" FILES
+    beast.hpp
+    chat_client.html
+    http_session.cpp
+    http_session.hpp
+    Jamfile
+    listener.cpp
+    listener.hpp
+    main.cpp
+    net.hpp
+    shared_state.cpp
+    shared_state.hpp
+    websocket_session.cpp
+    websocket_session.hpp)
+
 target_link_libraries(websocket-chat-multi PRIVATE Boost::beast)
 
 set_target_properties(websocket-chat-multi

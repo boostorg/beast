@@ -12,6 +12,10 @@ add_executable(echo-op
     Jamfile
     echo_op.cpp)
 
+source_group("" FILES
+    Jamfile
+    echo_op.cpp)
+
 target_link_libraries(echo-op PRIVATE Boost::beast)
 
 set_target_properties(echo-op

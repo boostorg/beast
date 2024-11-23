@@ -12,6 +12,10 @@ add_executable(bench-buffers
     Jamfile
     bench_buffers.cpp)
 
+source_group("" FILES
+    Jamfile
+    bench_buffers.cpp)
+
 target_link_libraries(bench-buffers
     lib-test)
 

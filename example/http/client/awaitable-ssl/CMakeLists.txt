@@ -12,6 +12,10 @@ add_executable(http-client-awaitable-ssl
     Jamfile
     http_client_awaitable_ssl.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_client_awaitable_ssl.cpp)
+
 target_include_directories(http-client-awaitable-ssl
     PRIVATE ${PROJECT_SOURCE_DIR})
 

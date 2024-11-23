@@ -12,6 +12,10 @@ add_executable(http-server-stackless
     Jamfile
     http_server_stackless.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_server_stackless.cpp)
+
 target_link_libraries(http-server-stackless PRIVATE Boost::beast)
 
 set_target_properties(http-server-stackless
