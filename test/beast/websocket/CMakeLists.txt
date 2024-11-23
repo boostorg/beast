@@ -20,3 +20,6 @@ target_link_libraries(tests-beast-websocket
 
 set_target_properties(tests-beast-websocket
     PROPERTIES FOLDER "tests")
+
+add_test(NAME tests-beast-websocket COMMAND tests-beast-websocket)
+add_dependencies(tests tests-beast-websocket)

@@ -21,3 +21,6 @@ target_link_libraries(tests-beast-ssl
 
 set_target_properties(tests-beast-ssl
     PROPERTIES FOLDER "tests")
+
+add_test(NAME tests-beast-ssl COMMAND tests-beast-ssl)
+add_dependencies(tests tests-beast-ssl)

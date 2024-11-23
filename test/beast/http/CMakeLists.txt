@@ -20,3 +20,6 @@ target_link_libraries(tests-beast-http
 
 set_target_properties(tests-beast-http
     PROPERTIES FOLDER "tests")
+
+add_test(NAME tests-beast-http COMMAND tests-beast-http)
+add_dependencies(tests tests-beast-http)

@@ -8,6 +8,17 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+if(BOOST_BEAST_IS_ROOT)
+    set(EXCLUDE_TESTS_FROM_ALL)
+else()
+    set(EXCLUDE_TESTS_FROM_ALL EXCLUDE_FROM_ALL)
+endif()
+
+if(NOT TARGET tests)
+    add_custom_target(tests ${EXCLUDE_TESTS_FROM_ALL})
+    set_property(TARGET tests PROPERTY FOLDER Dependencies)
+endif()
+
 find_package(OpenSSL)
 
 # lib-asio

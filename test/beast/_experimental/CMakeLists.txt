@@ -28,3 +28,6 @@ target_link_libraries(tests-beast-_experimental
 
 set_target_properties(tests-beast-_experimental
     PROPERTIES FOLDER "tests")
+
+add_test(NAME tests-beast-_experimental COMMAND tests-beast-_experimental)
+add_dependencies(tests tests-beast-_experimental)
