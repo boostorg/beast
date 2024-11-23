@@ -8,7 +8,12 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable (tests-example-common
+add_executable(tests-example-common
+    Jamfile
+    root_certificates.cpp
+    server_certificate.cpp)
+
+source_group("" FILES
     Jamfile
     root_certificates.cpp
     server_certificate.cpp)

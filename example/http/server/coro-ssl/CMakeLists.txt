@@ -12,6 +12,10 @@ add_executable(http-server-coro-ssl
     Jamfile
     http_server_coro_ssl.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_server_coro_ssl.cpp)
+
 target_include_directories(http-server-coro-ssl
     PRIVATE ${PROJECT_SOURCE_DIR})
 

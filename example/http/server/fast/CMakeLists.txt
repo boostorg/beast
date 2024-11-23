@@ -12,6 +12,10 @@ add_executable(http-server-fast
     Jamfile
     http_server_fast.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_server_fast.cpp)
+
 target_link_libraries(http-server-fast PRIVATE Boost::beast)
 
 set_target_properties(http-server-fast

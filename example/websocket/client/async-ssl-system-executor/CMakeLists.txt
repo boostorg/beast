@@ -12,6 +12,10 @@ add_executable(websocket-client-async-ssl-system-executor
     Jamfile
     websocket_client_async_ssl_system_executor.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_client_async_ssl_system_executor.cpp)
+
 target_include_directories(websocket-client-async-ssl-system-executor
     PRIVATE ${PROJECT_SOURCE_DIR})
 

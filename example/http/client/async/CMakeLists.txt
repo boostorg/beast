@@ -12,6 +12,10 @@ add_executable(http-client-async
     Jamfile
     http_client_async.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_client_async.cpp)
+
 target_link_libraries(http-client-async PRIVATE Boost::beast)
 
 set_target_properties(http-client-async

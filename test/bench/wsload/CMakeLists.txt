@@ -12,6 +12,10 @@ add_executable(bench-wsload
     Jamfile
     wsload.cpp)
 
+source_group("" FILES
+    Jamfile
+    wsload.cpp)
+
 target_link_libraries(bench-wsload
     lib-beast)
 

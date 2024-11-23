@@ -71,6 +71,7 @@ function(add_boost_beast_fuzzer NAME)
     # Fuzzer executable
     set(SOURCE_FILES ${ARGN})
     add_executable(fuzzer_${NAME} ${SOURCE_FILES})
+    source_group("" FILES ${SOURCE_FILES})
     target_link_libraries(fuzzer_${NAME} PRIVATE lib-beast)
     target_compile_options(fuzzer_${NAME} PRIVATE -g -O2 -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=undefined)
     target_link_libraries(fuzzer_${NAME} PRIVATE -fsanitize=fuzzer,address,undefined)

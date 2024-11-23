@@ -27,6 +27,15 @@ add_executable(tests-beast
     websocket.cpp
     zlib.cpp)
 
+source_group("" FILES
+    Jamfile
+    core.cpp
+    http.cpp
+    ssl.cpp
+    version.cpp
+    websocket.cpp
+    zlib.cpp)
+
 target_link_libraries(tests-beast
     lib-asio-ssl
     lib-test)

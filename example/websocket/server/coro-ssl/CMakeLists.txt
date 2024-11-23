@@ -12,6 +12,10 @@ add_executable(websocket-server-coro-ssl
     Jamfile
     websocket_server_coro_ssl.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_server_coro_ssl.cpp)
+
 target_include_directories(websocket-server-coro-ssl
     PRIVATE ${PROJECT_SOURCE_DIR})
 

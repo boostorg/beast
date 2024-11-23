@@ -12,6 +12,10 @@ add_executable(websocket-server-stackless-ssl
     Jamfile
     websocket_server_stackless_ssl.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_server_stackless_ssl.cpp)
+
 target_include_directories(websocket-server-stackless-ssl
     PRIVATE ${PROJECT_SOURCE_DIR})
 

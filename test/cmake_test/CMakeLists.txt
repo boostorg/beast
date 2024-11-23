@@ -86,6 +86,7 @@ else()
 endif()
 
 add_executable(main main.cpp)
+source_group("" FILES main.cpp)
 target_link_libraries(main Boost::beast)
 
 enable_testing()

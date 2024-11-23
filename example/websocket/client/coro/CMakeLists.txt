@@ -12,6 +12,10 @@ add_executable(websocket-client-coro
     Jamfile
     websocket_client_coro.cpp)
 
+source_group("" FILES
+    Jamfile
+    websocket_client_coro.cpp)
+
 target_link_libraries(websocket-client-coro PRIVATE Boost::beast)
 
 set_target_properties(websocket-client-coro

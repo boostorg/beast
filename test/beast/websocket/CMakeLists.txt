@@ -8,36 +8,11 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable (tests-beast-websocket
-    Jamfile
-    _detail_decorator.cpp
-    _detail_prng.cpp
-    _detail_impl_base.cpp
-    test.hpp
-    _detail_prng.cpp
-    any_completion_handler.cpp
-    accept.cpp
-    cancel.cpp
-    close.cpp
-    deferred.cpp
-    error.cpp
-    frame.cpp
-    handshake.cpp
-    option.cpp
-    ping.cpp
-    read1.cpp
-    read2.cpp
-    read3.cpp
-    rfc6455.cpp
-    ssl.cpp
-    stream.cpp
-    stream_base.cpp
-    stream_explicit.cpp
-    stream_fwd.cpp
-    teardown.cpp
-    timer.cpp
-    utf8_checker.cpp
-    write.cpp)
+file(GLOB_RECURSE PFILES CONFIGURE_DEPENDS Jamfile *.cpp *.hpp)
+
+add_executable(tests-beast-websocket ${PFILES})
+
+source_group("" FILES ${PFILES})
 
 target_link_libraries(tests-beast-websocket
     lib-asio-ssl

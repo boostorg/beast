@@ -8,7 +8,12 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable (bench-zlib
+add_executable(bench-zlib
+    Jamfile
+    deflate_stream.cpp
+    inflate_stream.cpp)
+
+source_group("" FILES
     Jamfile
     deflate_stream.cpp
     inflate_stream.cpp)

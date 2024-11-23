@@ -12,6 +12,10 @@ add_executable(http-server-flex
     Jamfile
     http_server_flex.cpp)
 
+source_group("" FILES
+    Jamfile
+    http_server_flex.cpp)
+
 target_include_directories(http-server-flex
     PRIVATE ${PROJECT_SOURCE_DIR})
 

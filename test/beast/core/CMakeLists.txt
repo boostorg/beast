@@ -8,60 +8,11 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable(tests-beast-core
-    Jamfile
-    test_buffer.hpp
-    file_test.hpp
-    stream_tests.hpp
-    test_handler.hpp
-    _detail_base64.cpp
-    _detail_bind_continuation.cpp
-    _detail_buffer.cpp
-    _detail_clamp.cpp
-    _detail_get_io_context.cpp
-    _detail_is_invocable.cpp
-    _detail_read.cpp
-    _detail_sha1.cpp
-    _detail_tuple.cpp
-    _detail_variant.cpp
-    _detail_varint.cpp
-    async_base.cpp
-    basic_stream.cpp
-    bind_handler.cpp
-    buffer_ref.cpp
-    buffer_traits.cpp
-    buffered_read_stream.cpp
-    buffers_adaptor.cpp
-    buffers_cat.cpp
-    buffers_generator.cpp
-    buffers_prefix.cpp
-    buffers_range.cpp
-    buffers_suffix.cpp
-    buffers_to_string.cpp
-    detect_ssl.cpp
-    error.cpp
-    file.cpp
-    file_base.cpp
-    file_posix.cpp
-    file_stdio.cpp
-    file_win32.cpp
-    filtering_cancellation_slot.cpp
-    flat_buffer.cpp
-    flat_static_buffer.cpp
-    flat_stream.cpp
-    make_printable.cpp
-    multi_buffer.cpp
-    ostream.cpp
-    rate_policy.cpp
-    read_size.cpp
-    role.cpp
-    saved_handler.cpp
-    span.cpp
-    static_buffer.cpp
-    static_string.cpp
-    stream_traits.cpp
-    string.cpp
-    tcp_stream.cpp)
+file(GLOB_RECURSE PFILES CONFIGURE_DEPENDS Jamfile *.cpp *.hpp)
+
+add_executable(tests-beast-core ${PFILES})
+
+source_group("" FILES ${PFILES})
 
 target_link_libraries(tests-beast-core
     lib-test

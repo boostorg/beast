@@ -14,6 +14,12 @@ add_executable(bench-parser
     nodejs_parser.cpp
     bench_parser.cpp)
 
+source_group("" FILES
+    Jamfile
+    nodejs_parser.hpp
+    nodejs_parser.cpp
+    bench_parser.cpp)
+
 target_include_directories(bench-parser
     PRIVATE ${PROJECT_SOURCE_DIR})
 
