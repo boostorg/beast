@@ -45,7 +45,10 @@ set_target_properties(lib-asio-ssl PROPERTIES FOLDER "static-libs")
 # lib-beast
 add_library(lib-beast STATIC lib_beast.cpp)
 source_group("" FILES lib_beast.cpp)
-target_compile_definitions(lib-beast PUBLIC BOOST_BEAST_SEPARATE_COMPILATION)
+target_compile_definitions(lib-beast PUBLIC
+    BOOST_BEAST_SEPARATE_COMPILATION
+    BOOST_BEAST_ALLOW_DEPRECATED
+    BOOST_BEAST_TESTS)
 target_link_libraries(lib-beast PUBLIC Boost::beast lib-asio)
 set_target_properties(lib-beast PROPERTIES FOLDER "static-libs")
 
