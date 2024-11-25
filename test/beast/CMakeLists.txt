@@ -8,9 +8,6 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_definitions(-DBOOST_BEAST_ALLOW_DEPRECATED)
-add_definitions(-DBOOST_BEAST_TESTS) # For buffers_cat
-
 add_subdirectory(_experimental)
 add_subdirectory(core)
 add_subdirectory(http)
