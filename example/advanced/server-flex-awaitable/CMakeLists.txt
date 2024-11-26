@@ -20,7 +20,7 @@ target_include_directories(advanced-server-flex-awaitable
     PRIVATE ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(advanced-server-flex-awaitable
-    PRIVATE Boost::beast Boost::scope OpenSSL::SSL OpenSSL::Crypto)
+    PRIVATE Boost::beast OpenSSL::SSL OpenSSL::Crypto)
 
 set_target_properties(advanced-server-flex-awaitable
     PROPERTIES FOLDER "example-advanced-server")

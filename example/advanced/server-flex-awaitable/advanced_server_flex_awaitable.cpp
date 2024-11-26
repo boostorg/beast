@@ -20,7 +20,6 @@
 #include <boost/asio/ssl.hpp>
 #include <boost/beast.hpp>
 #include <boost/beast/ssl.hpp>
-#include <boost/scope/scope_exit.hpp>
 
 #include <algorithm>
 #include <cstdlib>
@@ -243,17 +242,42 @@ public:
         auto lg = std::lock_guard{ mtx_ };
         auto cs = css_.emplace(css_.end());
 
+        class remover
+        {
+            task_group* tg_;
+            decltype(css_)::iterator cs_;
+
+        public:
+            remover(
+                task_group* tg,
+                decltype(css_)::iterator cs)
+                : tg_{ tg }
+                , cs_{ cs }
+            {
+            }
+
+            remover(remover&& other) noexcept
+                : tg_{ std::exchange(other.tg_, nullptr) }
+                , cs_{ other.cs_ }
+            {
+            }
+
+            ~remover()
+            {
+                if(tg_)
+                {
+                    auto lg = std::lock_guard{ tg_->mtx_ };
+                    if(tg_->css_.erase(cs_) == tg_->css_.end())
+                        tg_->cv_.cancel();
+                }
+            }
+        };
+
         return net::bind_cancellation_slot(
             cs->slot(),
             net::consign(
                 std::forward<CompletionToken>(completion_token),
-                boost::scope::make_scope_exit(
-                    [this, cs]()
-                    {
-                        auto lg = std::lock_guard{ mtx_ };
-                        if(css_.erase(cs) == css_.end())
-                            cv_.cancel();
-                    })));
+                remover{ this, cs }));
     }
 
     /** Emits the signal to all child tasks and invokes the slot's
