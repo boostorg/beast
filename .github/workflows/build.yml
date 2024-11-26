@@ -80,6 +80,11 @@ jobs:
             os: ubuntu-24.04
             install: g++-13
             supported: true
+          - toolset: gcc-14
+            cxxstd: "11,14,17,20,2b"
+            os: ubuntu-24.04
+            install: g++-14
+            supported: true
 # clang 3.5 not supported
 # It can't compile the websocket stream code
           - toolset: clang
