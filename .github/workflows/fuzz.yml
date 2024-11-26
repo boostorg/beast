@@ -11,7 +11,6 @@ concurrency:
   group: ${{format('{0}:{1}:{2}', github.repository, github.workflow, github.ref)}}
   cancel-in-progress: true
 
-
 jobs:
   fuzz:
     runs-on: ubuntu-24.04
@@ -41,9 +40,7 @@ jobs:
           cd boost-root
           cp -r $GITHUB_WORKSPACE/* libs/$LIBRARY
           git submodule update --init tools/boostdep
-          python3 tools/boostdep/depinst/depinst.py $LIBRARY
-          ./bootstrap.sh
-          ./b2
+          python tools/boostdep/depinst/depinst.py --git_args "--jobs 3" $LIBRARY
   
       - name: Fuzz corpus
         uses: actions/cache@v3.3.1
@@ -58,13 +55,11 @@ jobs:
       - name: Run fuzzer
         run: |
           cd ../boost-root/libs/beast
-          mkdir build
-          cd build
+          mkdir __build__ && cd __build__
           cmake \
             -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_C_COMPILER=clang \
             -DBOOST_BEAST_BUILD_EXAMPLES=OFF \
-            -DBOOST_BEAST_BUILD_TESTS=ON \
             -DBOOST_BEAST_BUILD_FUZZERS=ON \
             -DBOOST_BEAST_FUZZER_CORPUS_PATH=${{ github.workspace }}/corpus.tar ..
           make boost_beast_fuzz_all

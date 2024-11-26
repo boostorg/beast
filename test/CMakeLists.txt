@@ -86,6 +86,6 @@ add_subdirectory(bench)
 add_subdirectory(doc)
 add_subdirectory(example)
 
-if (BOOST_BEAST_BUILD_FUZZERS AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (BOOST_BEAST_BUILD_FUZZERS)
     add_subdirectory(fuzz)
 endif ()
