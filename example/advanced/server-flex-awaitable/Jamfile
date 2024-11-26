@@ -12,7 +12,6 @@ import ac ;
 project
     : requirements
         [ ac.check-library /boost/beast/test//lib-asio-ssl : <library>/boost/beast/test//lib-asio-ssl/<link>static : <build>no ]
-        <library>/boost/scope//boost_scope
     ;
 
 exe advanced-server-flex-awaitable :

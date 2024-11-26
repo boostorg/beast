@@ -55,28 +55,28 @@ set(BOOST_SRC_DIR ${DEFAULT_BOOST_SRC_DIR} CACHE STRING "Boost source dir to use
 #-------------------------------------------------
 # The boost super-project requires one explicit dependency per-line.
 set(BOOST_BEAST_DEPENDENCIES
-        Boost::asio
-        Boost::assert
-        Boost::bind
-        Boost::config
-        Boost::container
-        Boost::container_hash
-        Boost::core
-        Boost::endian
-        Boost::intrusive
-        Boost::logic
-        Boost::mp11
-        Boost::optional
-        Boost::preprocessor
-        Boost::smart_ptr
-        Boost::static_assert
-        Boost::static_string
-        Boost::system
-        Boost::throw_exception
-        Boost::type_index
-        Boost::type_traits
-        Boost::winapi
-        )
+    Boost::asio
+    Boost::assert
+    Boost::bind
+    Boost::config
+    Boost::container
+    Boost::container_hash
+    Boost::core
+    Boost::endian
+    Boost::intrusive
+    Boost::logic
+    Boost::mp11
+    Boost::optional
+    Boost::preprocessor
+    Boost::smart_ptr
+    Boost::static_assert
+    Boost::static_string
+    Boost::system
+    Boost::throw_exception
+    Boost::type_index
+    Boost::type_traits
+    Boost::winapi)
+
 foreach (BOOST_BEAST_DEPENDENCY ${BOOST_BEAST_DEPENDENCIES})
     if (BOOST_BEAST_DEPENDENCY MATCHES "^[ ]*Boost::([A-Za-z0-9_]+)[ ]*$")
         list(APPEND BOOST_BEAST_INCLUDE_LIBRARIES ${CMAKE_MATCH_1})
@@ -87,7 +87,7 @@ if (BOOST_BEAST_BUILD_TESTS)
     set(BOOST_BEAST_UNIT_TEST_LIBRARIES filesystem)
 endif ()
 if (BOOST_BEAST_BUILD_EXAMPLES)
-    set(BOOST_BEAST_EXAMPLE_LIBRARIES scope json)
+    set(BOOST_BEAST_EXAMPLE_LIBRARIES json)
 endif ()
 # Complete dependency list
 set(BOOST_INCLUDE_LIBRARIES ${BOOST_BEAST_INCLUDE_LIBRARIES} ${BOOST_BEAST_UNIT_TEST_LIBRARIES} ${BOOST_BEAST_EXAMPLE_LIBRARIES})
