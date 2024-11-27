@@ -227,7 +227,11 @@ jobs:
 
     needs: [runner-selection]
     runs-on: ${{ fromJSON(needs.runner-selection.outputs.labelmatrix)[matrix.os] }}
-    container: ${{ matrix.container }}
+    container:
+      image: ${{ matrix.container }}
+      volumes:
+        - /node20217:/node20217:rw,rshared
+        - /node20217:/__e/node20:ro,rshared
 
     steps:
       - name: Setup container environment
@@ -246,9 +250,11 @@ jobs:
           sudo python3 get-pip.py
           sudo /usr/local/bin/pip install cmake
 
-          if [[ "${{matrix.container}}" == "ubuntu:16.04" ]] || [[ "${{matrix.container}}" == "ubuntu:18.04" ]]; then
-            echo "ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true" >> $GITHUB_ENV
-          fi
+      - name: Install nodejs20glibc2.17
+        if: matrix.container == 'ubuntu:16.04' || matrix.container == 'ubuntu:18.04'
+        run: |
+          curl -LO https://unofficial-builds.nodejs.org/download/release/v20.9.0/node-v20.9.0-linux-x64-glibc-217.tar.xz
+          tar -xf node-v20.9.0-linux-x64-glibc-217.tar.xz --strip-components 1 -C /node20217
 
       - uses: actions/checkout@v3
 
