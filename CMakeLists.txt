@@ -149,11 +149,13 @@ add_library(Boost::beast ALIAS boost_beast)
 target_include_directories(boost_beast INTERFACE include)
 target_link_libraries(boost_beast INTERFACE ${BOOST_BEAST_DEPENDENCIES})
 target_compile_features(boost_beast INTERFACE cxx_std_11)
-file(GLOB_RECURSE BOOST_BEAST_HEADERS CONFIGURE_DEPENDS include/boost/*.hpp)
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/include/boost PREFIX "" FILES ${BOOST_BEAST_HEADERS})
-target_sources(boost_beast PRIVATE ${BOOST_BEAST_HEADERS} build.jam)
 
+if (BOOST_BEAST_IS_ROOT)
+    file(GLOB_RECURSE BOOST_BEAST_HEADERS CONFIGURE_DEPENDS include/boost/*.hpp)
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/include/boost PREFIX "" FILES ${BOOST_BEAST_HEADERS})
+    target_sources(boost_beast PRIVATE ${BOOST_BEAST_HEADERS} build.jam)
+endif ()
 #-------------------------------------------------
 #
 # Tests
