@@ -67,10 +67,12 @@ add_library(lib-zlib STATIC
     extern/zlib-1.2.12/uncompr.c
     extern/zlib-1.2.12/zutil.c)
 target_compile_options(lib-zlib PRIVATE
-    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-w>
-    $<$<CXX_COMPILER_ID:MSVC>:/wd4127>
-    $<$<CXX_COMPILER_ID:MSVC>:/wd4244>
-    $<$<CXX_COMPILER_ID:MSVC>:/wd4131>)
+    $<$<C_COMPILER_ID:GNU>:-w>
+    $<$<C_COMPILER_ID:Clang>:-w>
+    $<$<C_COMPILER_ID:AppleClang>:-w>
+    $<$<C_COMPILER_ID:MSVC>:/wd4127>
+    $<$<C_COMPILER_ID:MSVC>:/wd4244>
+    $<$<C_COMPILER_ID:MSVC>:/wd4131>)
 target_include_directories(lib-zlib PUBLIC extern/zlib-1.2.12)
 set_target_properties(lib-zlib PROPERTIES FOLDER "static-libs")
 
