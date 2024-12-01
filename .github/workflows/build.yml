@@ -213,15 +213,15 @@ jobs:
             supported: true
 # macos
           - toolset: clang
-            os: macos-12
-            cxxstd: "11,14,17,20,2b"
-            supported: true
-          - toolset: clang
             os: macos-13
             cxxstd: "11,14,17,20,2b"
             supported: true
           - toolset: clang
             os: macos-14
+            cxxstd: "11,14,17,20,2b"
+            supported: true
+          - toolset: clang
+            os: macos-15
             cxxstd: "11,14,17,20,2b"
             supported: true
 
@@ -231,8 +231,8 @@ jobs:
       image: ${{ matrix.container }}
       volumes:
         - /node20217:/node20217:rw,rshared
-        - /node20217:/__e/node20:ro,rshared
-
+        - ${{ startsWith(matrix.container, 'ubuntu:1') && '/node20217:/__e/node20:ro,rshared' || ' ' }}
+  
     steps:
       - name: Setup container environment
         if: matrix.container != ''
@@ -251,7 +251,7 @@ jobs:
           sudo /usr/local/bin/pip install cmake
 
       - name: Install nodejs20glibc2.17
-        if: matrix.container == 'ubuntu:16.04' || matrix.container == 'ubuntu:18.04'
+        if: ${{ startsWith( matrix.container, 'ubuntu:1' ) }}
         run: |
           curl -LO https://archives.boost.io/misc/node/node-v20.9.0-linux-x64-glibc-217.tar.xz
           tar -xf node-v20.9.0-linux-x64-glibc-217.tar.xz --strip-components 1 -C /node20217
@@ -605,7 +605,7 @@ jobs:
       - name: Use the installed library
         run: |
           cd ../boost-root/libs/$LIBRARY/test/cmake_test && mkdir __build__ && cd __build__
-          cmake -DCMAKE_INSTALL_PREFIX=~/.local ..
+          cmake -DCMAKE_INSTALL_PREFIX=~/.local -DBOOST_CI_INSTALL_TEST=ON ..
           cmake --build .
           ctest --output-on-failure --no-tests=error
 
@@ -771,7 +771,7 @@ jobs:
         shell: cmd
         run: |
           cd ../boost-root/libs/%LIBRARY%/test/cmake_test && mkdir __build__ && cd __build__
-          cmake -DCMAKE_INSTALL_PREFIX=C:/cmake-prefix -DCMAKE_TOOLCHAIN_FILE="../../../cmake/toolchains/msvc.cmake" ..
+          cmake -DCMAKE_INSTALL_PREFIX=C:/cmake-prefix -DBOOST_CI_INSTALL_TEST=ON -DCMAKE_TOOLCHAIN_FILE="../../../cmake/toolchains/msvc.cmake" ..
           cmake --build . --config Debug
           ctest --output-on-failure --no-tests=error -C Debug
 
