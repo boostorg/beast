@@ -60,6 +60,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_C_COMPILER=clang \
             -DBOOST_BEAST_BUILD_EXAMPLES=OFF \
+            -DBOOST_BEAST_BUILD_TESTS=ON \
             -DBOOST_BEAST_BUILD_FUZZERS=ON \
             -DBOOST_BEAST_FUZZER_CORPUS_PATH=${{ github.workspace }}/corpus.tar ..
-          make boost_beast_fuzz_all
+          cmake --build . --target boost_beast_fuzz_all
