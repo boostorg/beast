@@ -253,7 +253,7 @@ jobs:
       - name: Install nodejs20glibc2.17
         if: matrix.container == 'ubuntu:16.04' || matrix.container == 'ubuntu:18.04'
         run: |
-          curl -LO https://unofficial-builds.nodejs.org/download/release/v20.9.0/node-v20.9.0-linux-x64-glibc-217.tar.xz
+          curl -LO https://archives.boost.io/misc/node/node-v20.9.0-linux-x64-glibc-217.tar.xz
           tar -xf node-v20.9.0-linux-x64-glibc-217.tar.xz --strip-components 1 -C /node20217
 
       - uses: actions/checkout@v3
