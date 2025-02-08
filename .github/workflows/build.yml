@@ -196,13 +196,13 @@ jobs:
           - toolset: clang
             install: clang-16
             compiler: clang++-16
-            cxxstd: "11,14,17,20,2b"
+            cxxstd: "11,14,17,20" # no 2b: https://github.com/llvm/llvm-project/issues/97842
             os: ubuntu-24.04
             supported: true
           - toolset: clang
             install: clang-17
             compiler: clang++-17
-            cxxstd: "11,14,17,20,2b"
+            cxxstd: "11,14,17,20" # no 2b: https://github.com/llvm/llvm-project/issues/97842
             os: ubuntu-24.04
             supported: true
           - toolset: clang

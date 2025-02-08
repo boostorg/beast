@@ -439,8 +439,12 @@ struct stream<NextLayer, deflateSupported>::impl_type
             if(timeout_opt.idle_timeout != none())
             {
                 idle_counter = 0;
-                timer.expires_after(
-                    timeout_opt.idle_timeout / 2);
+                if(timeout_opt.keep_alive_pings)
+                    timer.expires_after(
+                        timeout_opt.idle_timeout / 2);
+                else
+                    timer.expires_after(
+                        timeout_opt.idle_timeout);
 
                 BOOST_ASIO_HANDLER_LOCATION((
                     __FILE__, __LINE__,
@@ -565,9 +569,9 @@ private:
                 if(impl.timeout_opt.idle_timeout == none())
                     return;
 
-                if( impl.idle_counter < 1 )
+                if( impl.timeout_opt.keep_alive_pings &&
+                    impl.idle_counter < 1)
                 {
-                    if( impl.timeout_opt.keep_alive_pings )
                     {
                         BOOST_ASIO_HANDLER_LOCATION((
                             __FILE__, __LINE__,
