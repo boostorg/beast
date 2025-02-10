@@ -108,7 +108,7 @@ public:
             test::connect(ws1.next_layer(), ws2.next_layer());
             ws1.set_option(stream_base::timeout{
                 stream_base::none(),
-                std::chrono::milliseconds(500),
+                std::chrono::seconds(1),
                 false
             });
             ws2.async_accept(test::success_handler());
@@ -125,13 +125,13 @@ public:
                             system_error{ec});
                     got_timeout = true;
                 });
-            ioc.run_for(std::chrono::milliseconds(250));
+            ioc.run_for(std::chrono::milliseconds(500));
             ioc.restart();
             ws2.async_ping("", test::success_handler());
-            ioc.run_for(std::chrono::milliseconds(300));
+            ioc.run_for(std::chrono::milliseconds(600));
             ioc.restart();
             BEAST_EXPECT(!got_timeout);
-            ioc.run_for(std::chrono::milliseconds(500));
+            ioc.run_for(std::chrono::seconds(1));
             ioc.restart();
             BEAST_EXPECT(got_timeout);
         }
