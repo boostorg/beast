@@ -1574,26 +1574,26 @@ public:
     //
     //--------------------------------------------------------------------------
 
-    /** Send a websocket close control frame.
+    /** Perform the WebSocket closing handshake and close the underlying stream.
 
-        This function is used to send a
-        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>,
-        which begins the websocket closing handshake. The session ends when
-        both ends of the connection have sent and received a close frame.
+        This function sends a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>
+        to begin the WebSocket closing handshake and waits for a corresponding
+        close frame in response. Once received, it calls @ref teardown
+        to gracefully shut down the underlying stream.
+
+        After beginning the closing handshake, the program should not write
+        further message data, pings, or pongs. However, it can still read
+        incoming message data. A read returning @ref error::closed indicates a
+        successful connection closure.
 
         The call blocks until one of the following conditions is true:
 
-        @li The close frame is written.
-
+        @li The closing handshake completes, and @ref teardown finishes.
         @li An error occurs.
 
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
-
-        After beginning the closing handshake, the program should not write
-        further message data, pings, or pongs. Instead, the program should
-        continue reading message data until an error occurs. A read returning
-        @ref error::closed indicates a successful connection closure.
 
         @param cr The reason for the close.
         If the close reason specifies a close code other than
@@ -1609,26 +1609,26 @@ public:
     void
     close(close_reason const& cr);
 
-    /** Send a websocket close control frame.
+    /** Perform the WebSocket closing handshake and close the underlying stream.
 
-        This function is used to send a
-        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>,
-        which begins the websocket closing handshake. The session ends when
-        both ends of the connection have sent and received a close frame.
+        This function sends a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>
+        to begin the WebSocket closing handshake and waits for a corresponding
+        close frame in response. Once received, it calls @ref teardown
+        to gracefully shut down the underlying stream.
+
+        After beginning the closing handshake, the program should not write
+        further message data, pings, or pongs. However, it can still read
+        incoming message data. A read returning @ref error::closed indicates a
+        successful connection closure.
 
         The call blocks until one of the following conditions is true:
 
-        @li The close frame is written.
-
+        @li The closing handshake completes, and @ref teardown finishes.
         @li An error occurs.
 
         The algorithm, known as a <em>composed operation</em>, is implemented
         in terms of calls to the next layer's `write_some` function.
-
-        After beginning the closing handshake, the program should not write
-        further message data, pings, or pongs. Instead, the program should
-        continue reading message data until an error occurs. A read returning
-        @ref error::closed indicates a successful connection closure.
 
         @param cr The reason for the close.
         If the close reason specifies a close code other than
@@ -1644,29 +1644,33 @@ public:
     void
     close(close_reason const& cr, error_code& ec);
 
-    /** Send a websocket close control frame asynchronously.
+    /** Perform the WebSocket closing handshake asynchronously and close
+        the underlying stream.
 
-        This function is used to asynchronously send a
-        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>,
-        which begins the websocket closing handshake. The session ends when
-        both ends of the connection have sent and received a close frame.
+        This function sends a
+        <a href="https://tools.ietf.org/html/rfc6455#section-5.5.1">close frame</a>
+        to begin the WebSocket closing handshake and waits for a corresponding
+        close frame in response. Once received, it calls @ref async_teardown
+        to gracefully shut down the underlying stream asynchronously.
+
+        After beginning the closing handshake, the program should not write
+        further message data, pings, or pongs. However, it can still read
+        incoming message data. A read returning @ref error::closed indicates a
+        successful connection closure.
 
         This call always returns immediately. The asynchronous operation
         will continue until one of the following conditions is true:
 
-        @li The close frame finishes sending.
-
+        @li The closing handshake completes, and @ref async_teardown finishes.
         @li An error occurs.
+
+        If a timeout occurs, @ref close_socket will be called to close the
+        underlying stream.
 
         The algorithm, known as a <em>composed asynchronous operation</em>,
         is implemented in terms of calls to the next layer's `async_write_some`
         function. No other operations except for message reading operations
         should be initiated on the stream after a close operation is started.
-
-        After beginning the closing handshake, the program should not write
-        further message data, pings, or pongs. Instead, the program should
-        continue reading message data until an error occurs. A read returning
-        @ref error::closed indicates a successful connection closure.
 
         @param cr The reason for the close.
         If the close reason specifies a close code other than
@@ -1704,7 +1708,7 @@ public:
 
         `terminal` cancellation succeeds when supported by the underlying stream.
 
-        @note `terminal` cancellation will may close the underlying socket.
+        @note `terminal` cancellation may close the underlying socket.
 
         @see
         @li <a href="https://tools.ietf.org/html/rfc6455#section-7.1.2">Websocket Closing Handshake (RFC6455)</a>
