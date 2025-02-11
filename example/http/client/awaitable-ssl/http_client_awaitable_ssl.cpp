@@ -51,9 +51,17 @@ do_session(
     auto stream   = ssl::stream<beast::tcp_stream>{ executor, ctx };
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
-    if(!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
+    if(! SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
     {
-        throw boost::system::system_error(
+        throw beast::system_error(
+            static_cast<int>(::ERR_get_error()),
+            net::error::get_ssl_category());
+    }
+
+    // Set the expected hostname in the peer certificate for verification
+    if(! SSL_set1_host(stream.native_handle(), host.c_str()))
+    {
+        throw beast::system_error(
             static_cast<int>(::ERR_get_error()),
             net::error::get_ssl_category());
     }

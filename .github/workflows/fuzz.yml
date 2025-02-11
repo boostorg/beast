@@ -43,7 +43,7 @@ jobs:
           python tools/boostdep/depinst/depinst.py --git_args "--jobs 3" $LIBRARY
   
       - name: Fuzz corpus
-        uses: actions/cache@v3.3.1
+        uses: actions/cache@v4
         id: cache-corpus
         with:
           path: ${{ github.workspace }}/corpus.tar
