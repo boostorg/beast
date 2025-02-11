@@ -56,6 +56,9 @@ int main(int argc, char** argv)
         // The SSL context is required, and holds certificates
         ssl::context ctx{ssl::context::tlsv12_client};
 
+        // Verify the remote server's certificate
+        ctx.set_verify_mode(ssl::verify_peer);
+
         // This holds the root certificate used for verification
         load_root_certificates(ctx);
 
@@ -71,11 +74,19 @@ int main(int argc, char** argv)
 
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if(! SSL_set_tlsext_host_name(ws.next_layer().native_handle(), host.c_str()))
+        {
             throw beast::system_error(
-                beast::error_code(
-                    static_cast<int>(::ERR_get_error()),
-                    net::error::get_ssl_category()),
-                "Failed to set SNI Hostname");
+                static_cast<int>(::ERR_get_error()),
+                net::error::get_ssl_category());
+        }
+
+        // Set the expected hostname in the peer certificate for verification
+        if(! SSL_set1_host(ws.next_layer().native_handle(), host.c_str()))
+        {
+            throw beast::system_error(
+                static_cast<int>(::ERR_get_error()),
+                net::error::get_ssl_category());
+        }
 
         // Update the host_ string. This will provide the value of the
         // Host HTTP header during the WebSocket handshake.

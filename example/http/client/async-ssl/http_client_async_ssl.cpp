@@ -69,7 +69,19 @@ public:
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if(! SSL_set_tlsext_host_name(stream_.native_handle(), host))
         {
-            beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
+            beast::error_code ec{
+                static_cast<int>(::ERR_get_error()),
+                net::error::get_ssl_category()};
+            std::cerr << ec.message() << "\n";
+            return;
+        }
+
+        // Set the expected hostname in the peer certificate for verification
+        if(! SSL_set1_host(stream_.native_handle(), host))
+        {
+            beast::error_code ec{
+                static_cast<int>(::ERR_get_error()),
+                net::error::get_ssl_category()};
             std::cerr << ec.message() << "\n";
             return;
         }

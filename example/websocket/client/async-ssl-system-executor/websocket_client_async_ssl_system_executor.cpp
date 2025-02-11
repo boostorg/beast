@@ -116,13 +116,17 @@ public:
         beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
 
         // Set SNI Hostname (many hosts need this to handshake successfully)
-        if(! SSL_set_tlsext_host_name(
-            ws_.next_layer().native_handle(),
-            host_.c_str()))
+        if(! SSL_set_tlsext_host_name(ws_.next_layer().native_handle(), host_.c_str()))
         {
-          ec = beast::error_code(static_cast<int>(::ERR_get_error()),
-                                 net::error::get_ssl_category());
-          return fail(ec, "connect");
+            ec.assign(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category());
+            return fail(ec, "connect");
+        }
+
+        // Set the expected hostname in the peer certificate for verification
+        if(! SSL_set1_host(ws_.next_layer().native_handle(), host_.c_str()))
+        {
+            ec.assign(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category());
+            return fail(ec, "connect");
         }
 
         // Update the host_ string. This will provide the value of the
@@ -251,6 +255,9 @@ int main(int argc, char** argv)
 
     // The SSL context is required, and holds certificates
     ssl::context ctx{ssl::context::tlsv12_client};
+
+    // Verify the remote server's certificate
+    ctx.set_verify_mode(ssl::verify_peer);
 
     // This holds the root certificate used for verification
     load_root_certificates(ctx);

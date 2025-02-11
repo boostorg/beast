@@ -65,6 +65,14 @@ do_session(
         return;
     }
 
+    // Set the expected hostname in the peer certificate for verification
+    if(! SSL_set1_host(stream.native_handle(), host.c_str()))
+    {
+        ec.assign(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category());
+        std::cerr << ec.message() << "\n";
+        return;
+    }
+
     // Look up the domain name
     auto const results = resolver.async_resolve(host, port, yield[ec]);
     if(ec)
