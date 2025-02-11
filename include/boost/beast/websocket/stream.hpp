@@ -2281,6 +2281,8 @@ public:
         Received message data is appended to the buffer.
         The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
+        The function @ref is_message_done may be called to determine if the
+        message received by the last read operation is complete.
 
         Until the operation completes, the implementation will read incoming
         control frames and handle them automatically as follows:
@@ -2488,6 +2490,8 @@ public:
         Received message data is appended to the buffer.
         The functions @ref got_binary and @ref got_text may be used
         to query the stream and determine the type of the last received message.
+        The function @ref is_message_done may be called to determine if the
+        message received by the last read operation is complete.
 
         Until the operation completes, the implementation will read incoming
         control frames and handle them automatically as follows:
