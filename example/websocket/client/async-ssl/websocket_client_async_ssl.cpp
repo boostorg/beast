@@ -66,6 +66,19 @@ public:
         char const* port,
         char const* text)
     {
+        // Set SNI Hostname (many hosts need this to handshake successfully)
+        if(! SSL_set_tlsext_host_name(ws_.next_layer().native_handle(), host))
+        {
+            beast::error_code ec{
+                static_cast<int>(::ERR_get_error()),
+                net::error::get_ssl_category()};
+            std::cerr << ec.message() << "\n";
+            return;
+        }
+
+        // Set the expected hostname in the peer certificate for verification
+        ws_.next_layer().set_verify_callback(ssl::host_name_verification(host));
+
         // Save these for later
         host_ = host;
         text_ = text;
@@ -106,21 +119,7 @@ public:
 
         // Set a timeout on the operation
         beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
-
-        // Set SNI Hostname (many hosts need this to handshake successfully)
-        if(! SSL_set_tlsext_host_name(ws_.next_layer().native_handle(), host_.c_str()))
-        {
-            ec.assign(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category());
-            return fail(ec, "connect");
-        }
-
-        // Set the expected hostname in the peer certificate for verification
-        if(! SSL_set1_host(ws_.next_layer().native_handle(), host_.c_str()))
-        {
-            ec.assign(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category());
-            return fail(ec, "connect");
-        }
-
+ 
         // Update the host_ string. This will provide the value of the
         // Host HTTP header during the WebSocket handshake.
         // See https://tools.ietf.org/html/rfc7230#section-5.4

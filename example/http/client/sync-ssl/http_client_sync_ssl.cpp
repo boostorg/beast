@@ -75,12 +75,7 @@ int main(int argc, char** argv)
         }
 
         // Set the expected hostname in the peer certificate for verification
-        if(! SSL_set1_host(stream.native_handle(), host))
-        {
-            throw beast::system_error(
-                static_cast<int>(::ERR_get_error()),
-                net::error::get_ssl_category());
-        }
+        stream.set_verify_callback(ssl::host_name_verification(host));
 
         // Look up the domain name
         auto const results = resolver.resolve(host, port);
