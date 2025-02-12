@@ -78,11 +78,7 @@ do_session(
     }
 
     // Set the expected hostname in the peer certificate for verification
-    if(! SSL_set1_host(ws.next_layer().native_handle(), host.c_str()))
-    {
-        ec.assign(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category());
-        return fail(ec, "connect");
-    }
+    ws.next_layer().set_verify_callback(ssl::host_name_verification(host));
 
     // Update the host string. This will provide the value of the
     // Host HTTP header during the WebSocket handshake.

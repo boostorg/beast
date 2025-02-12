@@ -85,14 +85,7 @@ public:
         }
 
         // Set the expected hostname in the peer certificate for verification
-        if(! SSL_set1_host(stream_.native_handle(), host))
-        {
-            beast::error_code ec{
-                static_cast<int>(::ERR_get_error()),
-                net::error::get_ssl_category()};
-            std::cerr << ec.message() << "\n";
-            return;
-        }
+        stream_.set_verify_callback(ssl::host_name_verification(host));
 
         // Set up an HTTP GET request message
         req_.version(version);

@@ -81,12 +81,7 @@ int main(int argc, char** argv)
         }
 
         // Set the expected hostname in the peer certificate for verification
-        if(! SSL_set1_host(ws.next_layer().native_handle(), host.c_str()))
-        {
-            throw beast::system_error(
-                static_cast<int>(::ERR_get_error()),
-                net::error::get_ssl_category());
-        }
+        ws.next_layer().set_verify_callback(ssl::host_name_verification(host));
 
         // Update the host_ string. This will provide the value of the
         // Host HTTP header during the WebSocket handshake.
