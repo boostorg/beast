@@ -8,7 +8,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable(tests-beast-zlib
+add_executable(boost_beast_tests_zlib
     Jamfile
     error.cpp
     deflate_stream.cpp
@@ -22,15 +22,15 @@ source_group("" FILES
     inflate_stream.cpp
     zlib.cpp)
 
-target_include_directories(tests-beast-zlib
+target_include_directories(boost_beast_tests_zlib
     PRIVATE ${PROJECT_SOURCE_DIR}/test/extern)
 
-target_link_libraries(tests-beast-zlib
-    lib-test
-    lib-zlib)
+target_link_libraries(boost_beast_tests_zlib
+    boost_beast_lib_test
+    boost_beast_lib_zlib)
 
-set_target_properties(tests-beast-zlib
+set_target_properties(boost_beast_tests_zlib
     PROPERTIES FOLDER "tests")
 
-add_test(NAME tests-beast-zlib COMMAND tests-beast-zlib)
-add_dependencies(tests tests-beast-zlib)
+add_test(NAME boost_beast_tests_zlib COMMAND boost_beast_tests_zlib)
+add_dependencies(tests boost_beast_tests_zlib)

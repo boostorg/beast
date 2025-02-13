@@ -8,7 +8,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable(tests-beast-_experimental
+add_executable(boost_beast_tests__experimental
     Jamfile
     _test_detail_stream_state.cpp
     error.cpp
@@ -22,12 +22,12 @@ source_group("" FILES
     icy_stream.cpp
     stream.cpp)
 
-target_link_libraries(tests-beast-_experimental
-    lib-asio-ssl
-    lib-test)
+target_link_libraries(boost_beast_tests__experimental
+    boost_beast_lib_asio_ssl
+    boost_beast_lib_test)
 
-set_target_properties(tests-beast-_experimental
+set_target_properties(boost_beast_tests__experimental
     PROPERTIES FOLDER "tests")
 
-add_test(NAME tests-beast-_experimental COMMAND tests-beast-_experimental)
-add_dependencies(tests tests-beast-_experimental)
+add_test(NAME boost_beast_tests__experimental COMMAND boost_beast_tests__experimental)
+add_dependencies(tests boost_beast_tests__experimental)

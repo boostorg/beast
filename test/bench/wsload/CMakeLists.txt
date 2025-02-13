@@ -8,7 +8,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable(bench-wsload
+add_executable(boost_beast_bench_wsload
     Jamfile
     wsload.cpp)
 
@@ -16,8 +16,8 @@ source_group("" FILES
     Jamfile
     wsload.cpp)
 
-target_link_libraries(bench-wsload
-    lib-beast)
+target_link_libraries(boost_beast_bench_wsload
+    boost_beast_lib_beast)
 
-set_target_properties(bench-wsload
+set_target_properties(boost_beast_bench_wsload
     PROPERTIES FOLDER "tests-bench")

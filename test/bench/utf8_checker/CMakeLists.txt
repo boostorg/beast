@@ -8,7 +8,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable(bench-utf8-checker
+add_executable(boost_beast_bench_utf8_checker
     Jamfile
     bench_utf8_checker.cpp)
 
@@ -16,8 +16,8 @@ source_group("" FILES
     Jamfile
     bench_utf8_checker.cpp)
 
-target_link_libraries(bench-utf8-checker
-    lib-test)
+target_link_libraries(boost_beast_bench_utf8_checker
+    boost_beast_lib_test)
 
-set_target_properties(bench-utf8-checker
+set_target_properties(boost_beast_bench_utf8_checker
     PROPERTIES FOLDER "tests-bench")

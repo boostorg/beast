@@ -10,16 +10,16 @@
 
 file(GLOB_RECURSE PFILES CONFIGURE_DEPENDS Jamfile *.cpp *.hpp)
 
-add_executable(tests-beast-websocket ${PFILES})
+add_executable(boost_beast_tests_websocket ${PFILES})
 
 source_group("" FILES ${PFILES})
 
-target_link_libraries(tests-beast-websocket
-    lib-asio-ssl
-    lib-test)
+target_link_libraries(boost_beast_tests_websocket
+    boost_beast_lib_asio_ssl
+    boost_beast_lib_test)
 
-set_target_properties(tests-beast-websocket
+set_target_properties(boost_beast_tests_websocket
     PROPERTIES FOLDER "tests")
 
-add_test(NAME tests-beast-websocket COMMAND tests-beast-websocket)
-add_dependencies(tests tests-beast-websocket)
+add_test(NAME boost_beast_tests_websocket COMMAND boost_beast_tests_websocket)
+add_dependencies(tests boost_beast_tests_websocket)

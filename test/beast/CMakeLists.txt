@@ -15,7 +15,7 @@ add_subdirectory(ssl)
 add_subdirectory(websocket)
 add_subdirectory(zlib)
 
-add_executable(tests-beast
+add_executable(boost_beast_tests_self_contained
     Jamfile
     core.cpp
     http.cpp
@@ -33,12 +33,12 @@ source_group("" FILES
     websocket.cpp
     zlib.cpp)
 
-target_link_libraries(tests-beast
-    lib-asio-ssl
-    lib-test)
+target_link_libraries(boost_beast_tests_self_contained
+    boost_beast_lib_asio_ssl
+    boost_beast_lib_test)
 
-set_target_properties(tests-beast
+set_target_properties(boost_beast_tests_self_contained
     PROPERTIES FOLDER "tests")
 
-add_test(NAME tests-beast COMMAND tests-beast)
-add_dependencies(tests tests-beast)
+add_test(NAME boost_beast_tests_self_contained COMMAND boost_beast_tests_self_contained)
+add_dependencies(tests boost_beast_tests_self_contained)

@@ -10,16 +10,16 @@
 
 file(GLOB_RECURSE PFILES CONFIGURE_DEPENDS Jamfile *.cpp *.hpp)
 
-add_executable(tests-beast-http ${PFILES})
+add_executable(boost_beast_tests_http ${PFILES})
 
 source_group("" FILES ${PFILES})
 
-target_link_libraries(tests-beast-http
-    lib-test
+target_link_libraries(boost_beast_tests_http
+    boost_beast_lib_test
     Boost::filesystem)
 
-set_target_properties(tests-beast-http
+set_target_properties(boost_beast_tests_http
     PROPERTIES FOLDER "tests")
 
-add_test(NAME tests-beast-http COMMAND tests-beast-http)
-add_dependencies(tests tests-beast-http)
+add_test(NAME boost_beast_tests_http COMMAND boost_beast_tests_http)
+add_dependencies(tests boost_beast_tests_http)
