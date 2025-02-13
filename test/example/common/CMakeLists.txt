@@ -8,7 +8,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable(tests-example-common
+add_executable(boost_beast_tests_example_common
     Jamfile
     root_certificates.cpp
     server_certificate.cpp)
@@ -18,15 +18,15 @@ source_group("" FILES
     root_certificates.cpp
     server_certificate.cpp)
 
-target_include_directories(tests-example-common
+target_include_directories(boost_beast_tests_example_common
     PRIVATE ${PROJECT_SOURCE_DIR})
 
-target_link_libraries(tests-example-common
-    lib-asio-ssl
-    lib-test)
+target_link_libraries(boost_beast_tests_example_common
+    boost_beast_lib_asio_ssl
+    boost_beast_lib_test)
 
-set_target_properties(tests-example-common
+set_target_properties(boost_beast_tests_example_common
     PROPERTIES FOLDER "tests")
 
-add_test(NAME tests-example-common COMMAND tests-example-common)
-add_dependencies(tests tests-example-common)
+add_test(NAME boost_beast_tests_example_common COMMAND boost_beast_tests_example_common)
+add_dependencies(tests boost_beast_tests_example_common)

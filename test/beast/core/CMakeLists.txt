@@ -10,16 +10,16 @@
 
 file(GLOB_RECURSE PFILES CONFIGURE_DEPENDS Jamfile *.cpp *.hpp)
 
-add_executable(tests-beast-core ${PFILES})
+add_executable(boost_beast_tests_core ${PFILES})
 
 source_group("" FILES ${PFILES})
 
-target_link_libraries(tests-beast-core
-    lib-test
+target_link_libraries(boost_beast_tests_core
+    boost_beast_lib_test
     Boost::filesystem)
 
-set_target_properties(tests-beast-core
+set_target_properties(boost_beast_tests_core
     PROPERTIES FOLDER "tests")
 
-add_test(NAME tests-beast-core COMMAND tests-beast-core)
-add_dependencies(tests tests-beast-core)
+add_test(NAME boost_beast_tests_core COMMAND boost_beast_tests_core)
+add_dependencies(tests boost_beast_tests_core)

@@ -10,19 +10,19 @@
 
 file(GLOB_RECURSE PFILES CONFIGURE_DEPENDS Jamfile *.cpp *.ipp *.hpp)
 
-add_executable(tests-doc ${PFILES})
+add_executable(boost_beast_tests_doc ${PFILES})
 
 source_group("" FILES ${PFILES})
 
-target_include_directories(tests-doc
+target_include_directories(boost_beast_tests_doc
     PRIVATE ${PROJECT_SOURCE_DIR})
 
-target_link_libraries(tests-doc
-    lib-asio-ssl
-    lib-test)
+target_link_libraries(boost_beast_tests_doc
+    boost_beast_lib_asio_ssl
+    boost_beast_lib_test)
 
-set_target_properties(tests-doc
+set_target_properties(boost_beast_tests_doc
     PROPERTIES FOLDER "tests")
 
-add_test(NAME tests-doc COMMAND tests-doc)
-add_dependencies(tests tests-doc)
+add_test(NAME boost_beast_tests_doc COMMAND boost_beast_tests_doc)
+add_dependencies(tests boost_beast_tests_doc)

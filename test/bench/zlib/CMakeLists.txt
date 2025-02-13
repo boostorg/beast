@@ -8,7 +8,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable(bench-zlib
+add_executable(boost_beast_bench_zlib
     Jamfile
     deflate_stream.cpp
     inflate_stream.cpp)
@@ -18,12 +18,12 @@ source_group("" FILES
     deflate_stream.cpp
     inflate_stream.cpp)
 
-target_include_directories(bench-zlib
+target_include_directories(boost_beast_bench_zlib
     PRIVATE ${PROJECT_SOURCE_DIR}/test/extern)
 
-target_link_libraries(bench-zlib
-    lib-test
-    lib-zlib)
+target_link_libraries(boost_beast_bench_zlib
+    boost_beast_lib_test
+    boost_beast_lib_zlib)
 
-set_target_properties(bench-zlib
+set_target_properties(boost_beast_bench_zlib
     PROPERTIES FOLDER "tests-bench")

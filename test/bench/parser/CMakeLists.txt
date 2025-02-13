@@ -8,7 +8,7 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-add_executable(bench-parser
+add_executable(boost_beast_bench_parser
     Jamfile
     nodejs_parser.hpp
     nodejs_parser.cpp
@@ -20,11 +20,11 @@ source_group("" FILES
     nodejs_parser.cpp
     bench_parser.cpp)
 
-target_include_directories(bench-parser
+target_include_directories(boost_beast_bench_parser
     PRIVATE ${PROJECT_SOURCE_DIR})
 
-target_link_libraries(bench-parser
-    lib-test)
+target_link_libraries(boost_beast_bench_parser
+    boost_beast_lib_test)
 
-set_target_properties(bench-parser
+set_target_properties(boost_beast_bench_parser
     PROPERTIES FOLDER "tests-bench")
