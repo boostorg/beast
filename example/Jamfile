@@ -30,5 +30,7 @@ build-project advanced ;
 build-project http ;
 build-project websocket ;
 
+build-project doc ;
+
 # legacy
 build-project echo-op ;
