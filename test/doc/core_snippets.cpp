@@ -136,4 +136,29 @@ if(ec != net::ssl::error::stream_truncated)
     }
 }
 
+void ssl_tls()
+{
+    net::io_context ioc;
+    net::ssl::context ctx(net::ssl::context::tlsv12);
+    net::ssl::stream<tcp_stream> stream(ioc, ctx);
+
+    //[snippet_core_6
+    // Verify the remote server's certificate
+    ctx.set_verify_mode(net::ssl::verify_peer);
+    //]
+
+    //[snippet_core_7
+    // Verify the remote server's Hostname or IP address
+    stream.set_verify_callback(
+        net::ssl::host_name_verification("host.name"));
+    //]
+
+    //[snippet_core_8
+    // Verify the remote client's certificate
+    ctx.set_verify_mode(
+        net::ssl::verify_peer |
+        net::ssl::verify_fail_if_no_peer_cert);
+    //]
+}
+
 } // doc_core_snippets

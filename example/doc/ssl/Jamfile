@@ -1,0 +1,20 @@
+import ac ;
+
+project
+    : requirements
+        [ ac.check-library /boost/beast/test//lib-asio-ssl : <library>/boost/beast/test//lib-asio-ssl/<link>static : <build>no ]
+    ;
+
+exe doc-ssl-client :
+    client.cpp
+    :
+    <variant>coverage:<build>no
+    <variant>ubasan:<build>no
+    ;
+
+exe doc-ssl-server :
+    server.cpp
+    :
+    <variant>coverage:<build>no
+    <variant>ubasan:<build>no
+    ;
