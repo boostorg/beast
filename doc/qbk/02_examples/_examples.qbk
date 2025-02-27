@@ -33,6 +33,10 @@ used to evaluate robustness. All asynchronous clients support timeouts.
         [[path_link example/http/client/async/http_client_async.cpp http_client_async.cpp]]
         [[path_link example/http/client/async-ssl/http_client_async_ssl.cpp http_client_async_ssl.cpp]]
 ][
+        [HTTP, asynchronous Unix domain sockets]
+        [[path_link example/http/client/async-local/http_client_async_local.cpp http_client_async_local.cpp]]
+        []
+][
         [HTTP, asynchronous using __system_executor__]
         []
         [[path_link example/http/client/async-ssl-system-executor/http_client_async_ssl_system_executor.cpp http_client_async_ssl_system_executor.cpp]]
@@ -50,10 +54,10 @@ used to evaluate robustness. All asynchronous clients support timeouts.
         []
 ][
         [HTTP json_body (synchronous)]
-        [[path_link example/http/client/body/json_body.hpp example/http/client/body/json_client.cpp]]
+        [[path_link example/http/client/body/json_client.hpp json_client.cpp]]
 ][
         [HTTP client for all methods (synchronous)]
-        [[path_link example/http/client/methods/http_client_methods.cpp example/http/client/methods/http_client_methods.cpp]]
+        [[path_link example/http/client/methods/http_client_methods.cpp http_client_methods.cpp]]
 ]]
 
 These WebSocket clients connect to a
@@ -70,6 +74,10 @@ before disconnecting. All asynchronous clients support timeouts.
         [WebSocket, asynchronous]
         [[path_link example/websocket/client/async/websocket_client_async.cpp websocket_client_async.cpp]]
         [[path_link example/websocket/client/async-ssl/websocket_client_async_ssl.cpp websocket_client_async_ssl.cpp]]
+][
+        [WebSocket, asynchronous Unix domain sockets]
+        [[path_link example/websocket/client/async-local/websocket_client_async_local.cpp websocket_client_async_local.cpp]]
+        []
 ][
         [WebSocket, asynchronous using __system_executor__]
         []
@@ -103,6 +111,10 @@ command line. All asynchronous servers support timeouts.
         [HTTP, asynchronous]
         [[path_link example/http/server/async/http_server_async.cpp http_server_async.cpp]]
         [[path_link example/http/server/async-ssl/http_server_async_ssl.cpp http_server_async_ssl.cpp]]
+][
+        [HTTP, asynchronous Unix domain sockets]
+        [[path_link example/http/server/async-local/http_server_async_local.cpp http_server_async_local.cpp]]
+        []
 ][
         [HTTP, coroutine]
         [[path_link example/http/server/coro/http_server_coro.cpp http_server_coro.cpp]]
@@ -142,6 +154,10 @@ support timeouts.
         [WebSocket, asynchronous]
         [[path_link example/websocket/server/async/websocket_server_async.cpp websocket_server_async.cpp]]
         [[path_link example/websocket/server/async-ssl/websocket_server_async_ssl.cpp websocket_server_async_ssl.cpp]]
+][
+        [WebSocket, asynchronous Unix domain sockets]
+        [[path_link example/websocket/server/async-local/websocket_server_async_local.cpp websocket_server_async_local.cpp]]
+        []
 ][
         [WebSocket, coroutine]
         [[path_link example/websocket/server/coro/websocket_server_coro.cpp websocket_server_coro.cpp]]

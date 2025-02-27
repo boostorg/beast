@@ -8,6 +8,7 @@
 #
 
 build-project async ;
+build-project async-local ;
 build-project coro ;
 build-project fast ;
 build-project small ;
