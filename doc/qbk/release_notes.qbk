@@ -11,6 +11,25 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.88]
+
+[*Fixes]
+
+* [issue 2962] Fixed out-of-band access issue in `iequals` function
+
+[*Improvements]
+
+* [issue 2974] Updated SSL examples to verify peer certificate hostname
+* [issue 2954] Refactored CMakeLists
+* [issue 2955] Removed Boost.Scope dependency from examples
+* [issue 2716] WebSockets: Peer pings are counted as activity for `idle_timeout`
+
+[*Documentation]
+
+* [issue 2918] Added new examples for Unix domain sockets
+* [issue 2910] Added SSL/TLS Certificate section to documentation
+* [issue 2730] Improved documentation of `websocket::stream::async_close`
+
 [heading Boost 1.87]
 
 [*API Changes]
