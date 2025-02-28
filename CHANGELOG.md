@@ -1,3 +1,16 @@
+Version 357:
+
+* Added new examples for Unix domain sockets
+* Added SSL/TLS Certificate section to documentation
+* Updated SSL examples to verify peer certificate hostname
+* Improved documentation of `websocket::stream::async_close`
+* WebSockets: Peer pings are counted as activity for `idle_timeout`
+* Fixed out-of-band access issue in `iequals` function
+* Removed Boost.Scope dependency from examples
+* Refactored CMakeLists
+
+--------------------------------------------------------------------------------
+
 Version 356:
 
 * Added `error_code` overload for `basic_fields::insert()`
