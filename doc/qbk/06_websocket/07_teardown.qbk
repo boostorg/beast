@@ -28,7 +28,7 @@ as free functions associated with the next layer type:
 * [link beast.ref.boost__beast__websocket__teardown `teardown`]: Overloads
   of this function drain and shut down a stream synchronously.
 
-* [link beast.ref.boost__beast__websocket__teardown `async_teardown`]:
+* [link beast.ref.boost__beast__websocket__async_teardown `async_teardown`]:
   Overloads of this function drain and shut down a stream asynchronously.
 
 The implementation provides suitable overloads of the teardown
