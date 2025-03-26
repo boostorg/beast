@@ -5,7 +5,7 @@ Version 357:
 * Updated SSL examples to verify peer certificate hostname
 * Improved documentation of `websocket::stream::async_close`
 * WebSockets: Peer pings are counted as activity for `idle_timeout`
-* Fixed out-of-band access issue in `iequals` function
+* Fixed out-of-bounds access in `iequals` function
 * Removed Boost.Scope dependency from examples
 * Refactored CMakeLists
 

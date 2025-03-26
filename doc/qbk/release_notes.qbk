@@ -15,7 +15,7 @@
 
 [*Fixes]
 
-* [issue 2962] Fixed out-of-band access issue in `iequals` function
+* [issue 2962] Fixed out-of-bounds access in `iequals` function
 
 [*Improvements]
 
