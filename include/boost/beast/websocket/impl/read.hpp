@@ -662,6 +662,7 @@ public:
             }
 
             impl.change_status(status::closing);
+            impl.update_timer(this->get_executor());
 
             if(! impl.wr_close)
             {
