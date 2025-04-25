@@ -10,7 +10,9 @@
 #ifndef BOOST_BEAST_CORE_DETAIL_ASYNC_BASE_HPP
 #define BOOST_BEAST_CORE_DETAIL_ASYNC_BASE_HPP
 
-#include <boost/core/exchange.hpp>
+#include <boost/beast/core/detail/type_traits.hpp>
+
+#include <boost/asio/associated_immediate_executor.hpp>
 
 namespace boost {
 namespace beast {
@@ -37,6 +39,18 @@ protected:
     virtual ~stable_base() = default;
 
     virtual void destroy() = 0;
+};
+
+template<typename Handler, typename = void>
+struct with_immediate_executor_type
+{
+};
+
+template<typename Handler>
+struct with_immediate_executor_type<Handler,
+    void_t<typename Handler::immediate_executor_type>>
+{
+    using immediate_executor_type = typename Handler::immediate_executor_type;
 };
 
 } // detail

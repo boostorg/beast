@@ -177,7 +177,8 @@ template<
 >
 class async_base
 #if ! BOOST_BEAST_DOXYGEN
-    : private boost::empty_value<Allocator>
+    : public detail::with_immediate_executor_type<Handler>
+    , private boost::empty_value<Allocator>
 #endif
 {
     static_assert(
@@ -193,7 +194,7 @@ public:
     If a class derived from @ref boost::beast::async_base is a completion
     handler, then the associated executor of the derived class will
     be this type.
-*/
+    */
     using executor_type =
 #if BOOST_BEAST_DOXYGEN
         __implementation_defined__;
@@ -210,18 +211,11 @@ public:
     If a class derived from @ref boost::beast::async_base is a completion
     handler, then the associated immediage executor of the derived class will
     be this type.
-*/
-    using immediate_executor_type =
+    */
 #if BOOST_BEAST_DOXYGEN
+    using immediate_executor_type =
         __implementation_defined__;
-#else
-        typename
-        net::associated_immediate_executor<
-            Handler,
-            typename detail::select_work_guard_t<Executor1>::executor_type
-                >::type;
 #endif
-
 
   private:
 
@@ -333,8 +327,10 @@ public:
         handler, then the object returned from this function will be used
         as the associated immediate executor of the derived class.
     */
-    immediate_executor_type
+    auto
     get_immediate_executor() const noexcept
+        -> decltype(net::get_associated_immediate_executor(
+            h_, wg1_.get_executor()))
     {
         return net::get_associated_immediate_executor(
             h_, wg1_.get_executor());
