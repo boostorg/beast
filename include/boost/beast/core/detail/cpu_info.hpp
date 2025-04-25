@@ -11,6 +11,7 @@
 #define BOOST_BEAST_DETAIL_CPU_INFO_HPP
 
 #include <boost/config.hpp>
+#include <cstdint>
 
 #ifndef BOOST_BEAST_NO_INTRINSICS
 # if defined(BOOST_MSVC) || ((defined(BOOST_GCC) || defined(BOOST_CLANG)) && defined(__SSE4_2__))
