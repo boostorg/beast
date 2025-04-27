@@ -362,8 +362,7 @@ net::awaitable<void, executor_type>
 run_websocket_session(
     Stream& stream,
     beast::flat_buffer& buffer,
-    http::request<http::string_body> req,
-    beast::string_view doc_root)
+    http::request<http::string_body> req)
 {
     auto cs = co_await net::this_coro::cancellation_state;
     auto ws = websocket::stream<Stream&>{ stream };
@@ -438,7 +437,7 @@ run_session(
             beast::get_lowest_layer(stream).expires_never();
 
             co_await run_websocket_session(
-                stream, buffer, parser.release(), doc_root);
+                stream, buffer, parser.release());
 
             co_return;
         }
@@ -581,7 +580,9 @@ handle_signals(task_group& task_group)
     }
     else // SIGTERM
     {
-        executor.get_inner_executor().context().stop();
+        net::query(
+            executor.get_inner_executor(),
+            net::execution::context).stop();
     }
 }
 
