@@ -17,6 +17,7 @@
 #include <boost/asio/append.hpp>
 #include <boost/asio/associated_cancellation_slot.hpp>
 #include <boost/asio/dispatch.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/post.hpp>
 #include <mutex>
 #include <stdexcept>
@@ -57,13 +58,8 @@ class basic_stream<Executor>::read_op : public detail::stream_read_op_base
         Handler h_;
         boost::weak_ptr<detail::stream_state> wp_;
         Buffers b_;
-#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
-        net::any_io_executor wg2_;
-#else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
         net::executor_work_guard<
             net::associated_executor_t<Handler, net::any_io_executor>> wg2_;
-#endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
-
         lambda(lambda&&) = default;
         lambda(lambda const&) = default;
 
@@ -75,15 +71,7 @@ class basic_stream<Executor>::read_op : public detail::stream_read_op_base
             : h_(std::forward<Handler_>(h))
             , wp_(s)
             , b_(b)
-#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
-            , wg2_(net::prefer(
-                net::get_associated_executor(
-                  h_, s->exec),
-                net::execution::outstanding_work.tracked))
-#else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
-            , wg2_(net::get_associated_executor(
-                h_, s->exec))
-#endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
+            , wg2_(net::get_associated_executor(h_, s->exec))
         {
         }
 
@@ -131,24 +119,14 @@ class basic_stream<Executor>::read_op : public detail::stream_read_op_base
                 }
             }
 
-#if defined(BOOST_ASIO_NO_TS_EXECUTORS)
-            net::dispatch(wg2_,
-                net::append(std::move(h_), ec, bytes_transferred));
-            wg2_ = net::any_io_executor(); // probably unnecessary
-#else // defined(BOOST_ASIO_NO_TS_EXECUTORS)
             net::dispatch(wg2_.get_executor(),
                 net::append(std::move(h_), ec, bytes_transferred));
             wg2_.reset();
-#endif // defined(BOOST_ASIO_NO_TS_EXECUTORS)
         }
     };
 
     lambda fn_;
-#if defined(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
     net::executor_work_guard<net::any_io_executor> wg1_;
-#else
-    net::any_io_executor wg1_;
-#endif
 
 public:
     template<class Handler_>
@@ -157,25 +135,15 @@ public:
         boost::shared_ptr<detail::stream_state> const& s,
         Buffers const& b)
         : fn_(std::forward<Handler_>(h), s, b)
-#if defined(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
         , wg1_(s->exec)
-#else
-        , wg1_(net::prefer(s->exec,
-            net::execution::outstanding_work.tracked))
-#endif
     {
     }
 
     void
     operator()(error_code ec) override
     {
-#if defined(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
         net::post(wg1_.get_executor(), net::append(std::move(fn_), ec));
         wg1_.reset();
-#else
-        net::post(wg1_, net::append(std::move(fn_), ec));
-        wg1_ = net::any_io_executor(); // probably unnecessary
-#endif
     }
 };
 

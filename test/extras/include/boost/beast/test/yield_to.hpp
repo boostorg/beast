@@ -41,9 +41,7 @@ protected:
     net::io_context ioc_;
 
 private:
-    beast::detail::select_work_guard_t<
-        net::io_context::executor_type>
-            work_;
+    net::executor_work_guard<net::io_context::executor_type> work_;
     std::vector<std::thread> threads_;
     std::mutex m_;
     std::condition_variable cv_;
@@ -56,8 +54,7 @@ public:
 
     explicit
     enable_yield_to(std::size_t concurrency = 1)
-        : work_(beast::detail::make_work_guard(
-            ioc_.get_executor()))
+        : work_(ioc_.get_executor())
     {
         threads_.reserve(concurrency);
         while(concurrency--)

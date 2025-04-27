@@ -19,7 +19,6 @@
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/error.hpp>
-#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/any_io_executor.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/assert.hpp>

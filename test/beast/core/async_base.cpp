@@ -44,7 +44,7 @@ struct ex1_type
 {
 
     net::execution_context &
-    query(net::execution::context_t c) const noexcept
+    query(net::execution::context_t) const noexcept
     { return *reinterpret_cast<net::execution_context *>(&ex1ctx); }
 
     net::execution::blocking_t
@@ -52,23 +52,23 @@ struct ex1_type
     { return net::execution::blocking; };
 
     net::execution::outstanding_work_t
-    query(net::execution::outstanding_work_t w) const noexcept
+    query(net::execution::outstanding_work_t) const noexcept
     { return net::execution::outstanding_work; }
 
     ex1_type
-    require(net::execution::blocking_t::possibly_t b) const
+    require(net::execution::blocking_t::possibly_t) const
     { return *this; }
 
     ex1_type
-    require(net::execution::blocking_t::never_t b) const
+    require(net::execution::blocking_t::never_t) const
     { return *this; };
 
     ex1_type
-    prefer(net::execution::outstanding_work_t::untracked_t w) const
+    prefer(net::execution::outstanding_work_t::untracked_t) const
     { return *this; };
 
     ex1_type
-    prefer(net::execution::outstanding_work_t::tracked_t w) const
+    prefer(net::execution::outstanding_work_t::tracked_t) const
     { return *this; };
 
     template<class F>
