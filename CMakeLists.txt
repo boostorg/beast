@@ -1,6 +1,6 @@
 #
 # Copyright (c) 2019 Vinnie Falco (vinnie.falco@gmail.com)
-# Copyright (c) 2021 DMitry Arkhipov (grisumbras@gmail.com)
+# Copyright (c) 2021 Dmitry Arkhipov (grisumbras@gmail.com)
 # Copyright (c) 2022 Alan de Freitas (alandefreitas@gmail.com)
 # Copyright (c) 2024 Mohammad Nejati
 #
