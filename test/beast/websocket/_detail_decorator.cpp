@@ -139,7 +139,6 @@ public:
     void
     run() override
     {
-        log << "sizeof(decorator)==" << sizeof(decorator) << "\n";
         testDecorator();
     }
 };

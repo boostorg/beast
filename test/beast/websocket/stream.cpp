@@ -189,11 +189,6 @@ public:
             stream<test::stream&>>::value);
     #endif
 
-        log << "sizeof(websocket::stream) == " <<
-            sizeof(websocket::stream<test::stream&>) << std::endl;
-        log << "sizeof(websocket::stream::impl_type) == " <<
-            sizeof(websocket::stream<test::stream&>::impl_type) << std::endl;
-
         testOptions();
         testJavadoc();
     }

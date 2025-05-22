@@ -638,10 +638,6 @@ public:
     void
     run() override
     {
-        log <<
-            "sizeof(deflate_stream) == " <<
-            sizeof(deflate_stream) << std::endl;
-
         testDeflate(zlib_compressor);
         testDeflate(beast_compressor);
         testInvalidSettings(zlib_compressor);
