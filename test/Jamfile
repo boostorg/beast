@@ -55,7 +55,7 @@ local requirements =
     <target-os>solaris:<define>__EXTENSIONS__
     <target-os>solaris:<library>socket
     <target-os>solaris:<library>nsl
-    <target-os>windows:<define>_WIN32_WINNT=0x0601
+    <target-os>windows:<define>_WIN32_WINNT=0x0A00
     <target-os>windows,<toolset>gcc:<library>ws2_32
     <target-os>windows,<toolset>gcc:<library>mswsock
     <target-os>windows,<toolset>gcc-cygwin:<define>__USE_W32_SOCKETS

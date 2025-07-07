@@ -73,6 +73,11 @@ jobs:
             cxxstd: 11,14,17,20,2b
             os: ubuntu-24.04
             install: g++-14
+          - toolset: gcc-15
+            cxxstd: 11,14,17,20,23,2c
+            os: ubuntu-latest
+            container: ubuntu:25.04
+            install: g++-15
           - toolset: clang
             compiler: clang++-3.5
             cxxstd: 11
@@ -116,81 +121,87 @@ jobs:
             container: ubuntu:18.04
             install: clang-5.0
           - toolset: clang
-            install: clang-6.0
             compiler: clang++-6.0
             cxxstd: 11,14,17
             os: ubuntu-24.04
             container: ubuntu:18.04
+            install: clang-6.0
           - toolset: clang
-            install: clang-7
             compiler: clang++-7
             cxxstd: 11,14
             os: ubuntu-24.04
             container: ubuntu:18.04
+            install: clang-7
           - toolset: clang
-            install: clang-8
             compiler: clang++-8
             cxxstd: 11,14,17
             os: ubuntu-24.04
             container: ubuntu:18.04
+            install: clang-8
           - toolset: clang
-            install: clang-9
             compiler: clang++-9
             cxxstd: 11,14,17,2a
             os: ubuntu-24.04
             container: ubuntu:18.04
+            install: clang-9
           - toolset: clang
-            install: clang-10
             compiler: clang++-10
             cxxstd: 11,14,17,2a
             os: ubuntu-24.04
             container: ubuntu:20.04
+            install: clang-10
           - toolset: clang
-            install: clang-11
             compiler: clang++-11
             cxxstd: 11,14,17,2a
             os: ubuntu-24.04
             container: ubuntu:20.04
+            install: clang-11
           - toolset: clang
-            install: clang-12
             compiler: clang++-12
             cxxstd: 11,14,17,20
             os: ubuntu-22.04
+            install: clang-12
           - toolset: clang
-            install: clang-13
             compiler: clang++-13
             cxxstd: 11,14,17,20
             os: ubuntu-22.04
+            install: clang-13
           - toolset: clang
-            install: clang-14
             compiler: clang++-14
             cxxstd: 11,14,17,20
             os: ubuntu-22.04
+            install: clang-14
           - toolset: clang
-            install: clang-15
             compiler: clang++-15
             cxxstd: 11,14,17,20,2b
             os: ubuntu-22.04
+            install: clang-15
           - toolset: clang
-            install: clang-16
             compiler: clang++-16
             cxxstd: 11,14,17,20 # no 2b: https://github.com/llvm/llvm-project/issues/97842
             os: ubuntu-24.04
+            install: clang-16
           - toolset: clang
-            install: clang-17
             compiler: clang++-17
             cxxstd: 11,14,17,20 # no 2b: https://github.com/llvm/llvm-project/issues/97842
             os: ubuntu-24.04
+            install: clang-17
           - toolset: clang
-            install: clang-18
             compiler: clang++-18
             cxxstd: 11,14,17,20,2b
             os: ubuntu-24.04
+            install: clang-18
           - toolset: clang
-            install: clang-19
             compiler: clang++-19
             cxxstd: 11,14,17,20,2b
             os: ubuntu-24.04
+            install: clang-19
+          - toolset: clang
+            compiler: clang++-20
+            cxxstd: 11,14,17,20,23,2c
+            os: ubuntu-latest
+            container: ubuntu:25.04
+            install: clang-20
           - toolset: clang
             os: macos-13
             cxxstd: 11,14,17,20,2b
@@ -268,22 +279,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - toolset: msvc-14.2
-            cxxstd: 14,17
-            addrmd: 32
-            os: windows-2019
-          - toolset: msvc-14.2
-            cxxstd: 20,latest
-            addrmd: 32
-            os: windows-2019
-          - toolset: msvc-14.2
-            cxxstd: 14,17
-            addrmd: 64
-            os: windows-2019
-          - toolset: msvc-14.2
-            cxxstd: 20,latest
-            addrmd: 64
-            os: windows-2019
           - toolset: msvc-14.3
             cxxstd: 14,17
             addrmd: 32
@@ -309,6 +304,19 @@ jobs:
             cxxstd: 14,17,latest
             addrmd: 64
             os: windows-2022
+
+          # The windows-2022 image comes with GCC 12, which causes a
+          # `file too big` error even when using `-Wa,-mbig-obj` and
+          # `debug-symbols=off`.
+
+          # - toolset: gcc
+          #   cxxstd: "11,14"
+          #   addrmd: 64
+          #   os: windows-2022
+          # - toolset: gcc
+          #   cxxstd: "17,2a"
+          #   addrmd: 64
+          #   os: windows-2022
 
     needs: [runner-selection]
     runs-on: ${{ fromJSON(needs.runner-selection.outputs.labelmatrix)[matrix.os] }}
@@ -532,7 +540,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-2025
           - os: windows-2022
 
     runs-on: ${{matrix.os}}
@@ -581,7 +589,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-2025
           - os: windows-2022
 
     runs-on: ${{matrix.os}}
@@ -648,7 +656,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-2025
           - os: windows-2022
 
     runs-on: ${{matrix.os}}
