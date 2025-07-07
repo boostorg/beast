@@ -1,3 +1,17 @@
+Version 358:
+
+* Added missing `cstdint` header to `detail/cpu_info.hpp`
+* Conditionally defined `immediate_executor_type` in `async_base`
+* Replaced `detail/work_guard.hpp` with `net::executor_work_guard`
+* Used `handshake_timeout` for closing handshake during read operations
+* Removed moved sections from documentation
+* Removed superfluous log messages from tests
+* Fixed portability issues for building tests in MinGW
+* Fixed portability issues for building tests in MinGW
+* Fixed `std::is_trivial` deprecation warnings
+
+--------------------------------------------------------------------------------
+
 Version 357:
 
 * Added new examples for Unix domain sockets

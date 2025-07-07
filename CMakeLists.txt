@@ -16,7 +16,7 @@
 #
 #-------------------------------------------------
 cmake_minimum_required(VERSION 3.8...3.20)
-set(BOOST_BEAST_VERSION 357)
+set(BOOST_BEAST_VERSION 358)
 if (BOOST_SUPERPROJECT_VERSION)
     set(BOOST_BEAST_VERSION ${BOOST_SUPERPROJECT_VERSION})
 endif ()

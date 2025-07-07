@@ -11,6 +11,25 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.89]
+
+[*Fixes]
+
+* [issue 3002] Conditionally defined `immediate_executor_type` in `async_base`
+* [issue 2999] Used `handshake_timeout` for closing handshake during read operations
+* [issue 3003] Added missing `cstdint` header to `detail/cpu_info.hpp`
+* [issue 3016] Fixed `std::is_trivial` deprecation warnings
+
+[*Improvements]
+
+* [issue 3005] Replaced `detail/work_guard.hpp` with `net::executor_work_guard`
+* [issue 3016] Fixed portability issues for building tests in MinGW
+
+[*Documentation]
+
+* [issue 3009] Removed moved sections from documentation
+* [issue 3009] Removed superfluous log messages from tests
+
 [heading Boost 1.88]
 
 [*Fixes]
