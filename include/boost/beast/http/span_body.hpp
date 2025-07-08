@@ -39,7 +39,8 @@ struct span_body
 {
 private:
     static_assert(
-        std::is_trivial<T>::value &&
+        std::is_trivially_default_constructible<T>::value &&
+        std::is_trivially_copyable<T>::value &&
         std::is_standard_layout<T>::value,
             "POD requirements not met");
 
