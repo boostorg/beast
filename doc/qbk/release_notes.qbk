@@ -19,6 +19,7 @@
 * [issue 2999] Used `handshake_timeout` for closing handshake during read operations
 * [issue 3003] Added missing `cstdint` header to `detail/cpu_info.hpp`
 * [issue 3016] Fixed `std::is_trivial` deprecation warnings
+* [issue 3019] Fixed `-Wmaybe-uninitialized` warnings
 
 [*Improvements]
 

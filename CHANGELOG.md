@@ -7,8 +7,8 @@ Version 358:
 * Removed moved sections from documentation
 * Removed superfluous log messages from tests
 * Fixed portability issues for building tests in MinGW
-* Fixed portability issues for building tests in MinGW
 * Fixed `std::is_trivial` deprecation warnings
+* Fixed `-Wmaybe-uninitialized` warnings
 
 --------------------------------------------------------------------------------
 
