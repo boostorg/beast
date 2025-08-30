@@ -10,6 +10,8 @@
 #ifndef BOOST_BEAST_HPP
 #define BOOST_BEAST_HPP
 
+// IWYU pragma: begin_exports
+
 #include <boost/beast/core/detail/config.hpp> // must come first
 
 #include <boost/beast/core.hpp>
@@ -17,5 +19,7 @@
 #include <boost/beast/version.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/zlib.hpp>
+
+// IWYU pragma: end_exports
 
 #endif
