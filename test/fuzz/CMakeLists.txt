@@ -108,7 +108,7 @@ function(add_boost_beast_fuzzer NAME)
         DEPENDS untar_corpus fuzzer_${NAME})
     add_dependencies(fuzz_${NAME} fuzzer_${NAME})
     add_dependencies(boost_beast_fuzz_all fuzz_${NAME})
-    set_target_properties(fuzz_${NAME} PROPERTIES FOLDER "UBSAN_OPTIONS=halt_on_error=false")
+    set_target_properties(fuzz_${NAME} PROPERTIES ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=false")
     set_target_properties(fuzz_${NAME} PROPERTIES FOLDER "fuzzing")
     if (BOOST_BEAST_FUZZER_ADD_TO_CTEST)
         add_test(
