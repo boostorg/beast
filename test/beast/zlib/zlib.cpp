@@ -8,5 +8,5 @@
 //
 
 // Make sure symbols don't conflict with ZLib
-#include "zlib-1.2.12/zlib.h"
+#include "zlib-1.3.1/zlib.h"
 #include <boost/beast/zlib.hpp>

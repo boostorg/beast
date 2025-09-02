@@ -16,7 +16,7 @@
 #include <random>
 #include <string>
 
-#include "zlib-1.2.12/zlib.h"
+#include "zlib-1.3.1/zlib.h"
 
 namespace boost {
 namespace beast {
