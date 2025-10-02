@@ -188,6 +188,7 @@ public:
                 f1.insert("1", "1");
                 basic_fields<pocma_t> f2;
                 f2 = std::move(f1);
+                BEAST_EXPECT(f1.get_allocator()->nmassign == 1);
                 BEAST_EXPECT(f1.begin() == f1.end());
                 BEAST_EXPECT(f2["1"] == "1");
             }
@@ -199,6 +200,7 @@ public:
                 f1.insert("1", "1");
                 basic_fields<pocma_t> f2;
                 f2 = std::move(f1);
+                BEAST_EXPECT(f1.get_allocator()->nmassign == 0);
                 BEAST_EXPECT(f1.begin() == f1.end());
                 BEAST_EXPECT(f2["1"] == "1");
             }
@@ -225,6 +227,7 @@ public:
                 f1.insert("1", "1");
                 basic_fields<pocca_t> f2;
                 f2 = f1;
+                BEAST_EXPECT(f1.get_allocator()->ncpassign == 1);
                 BEAST_EXPECT(f2["1"] == "1");
             }
             {
@@ -235,6 +238,7 @@ public:
                 f1.insert("1", "1");
                 basic_fields<pocca_t> f2;
                 f2 = f1;
+                BEAST_EXPECT(f1.get_allocator()->ncpassign == 0);
                 BEAST_EXPECT(f2["1"] == "1");
             }
         }
