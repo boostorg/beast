@@ -94,7 +94,7 @@ public:
 
 private:
 
-    inline std::time_t time_gm(struct tm* tm) {
+    inline std::time_t my_time_gm(struct tm* tm) {
 #if defined(_DEFAULT_SOURCE) // Feature test for glibc
         return timegm(tm);
 #elif defined(_MSC_VER) // Test for Microsoft C/C++
@@ -144,9 +144,9 @@ private:
 
                 // fix up the day of week, day of year etc
                 t.tm_isdst = 0;
-                t.tm_wday = -1; // a canary for a time_gm error
+                t.tm_wday = -1; // a canary for a my_time_gm error
 
-                std::time_t epoch_time = time_gm(&t);
+                std::time_t epoch_time = my_time_gm(&t);
 
                 if (epoch_time == -1 || t.tm_wday == -1) // "real error"
                     return error_handler_(ec, "json_price_decoder::on_process parse failure");

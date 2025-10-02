@@ -30,6 +30,7 @@
 #include <boost/url/url.hpp>
 
 #include "json_price_decoder.hpp"
+#include "price_store.hpp"
 
 #include <iostream>
 #include <functional>
@@ -85,24 +86,26 @@ int main(int argc, char** argv)
     // This holds the root certificate used for verification
     load_root_certificates(ctx);
 
-    net::thread_pool decoder_tp(1);
-
     auto decoded_recv = [](const std::string& symbol, double price) {
         std::cout << "Decoded Recv" << symbol << ":" << price << "\n" << std::endl;
     };
 
-    json_price_decoder decoder_worker(decoder_tp, decoded_recv, fail);
+    auto price_store_update_recv = [](const std::string&) {
 
-    decoder_worker.run();
+    };
 
-	auto live_input_recv = [&decoder_worker](std::string&& v) {
-		//std::cout << "Live input Recv" << v << "\n" << std::endl;
-        decoder_worker.post(processor_base::input_type::LIVE, std::move(v));
-	};
+    price_store store(coins, price_store_update_recv);
 
-    auto historic_input_recv = [&decoder_worker](std::string&& v) {
-        std::cout << "Historic input Recv" << v << "\n" << std::endl;
-        decoder_worker.post(processor_base::input_type::HISTORIC, std::move(v));
+	auto live_input_recv = [&store](const std::string& coin,
+		std::chrono::system_clock::time_point time,
+		double price) {
+			store.post(coin, time, price);
+		};
+
+    auto historic_input_recv = [&store](const std::string& coin,
+        std::chrono::system_clock::time_point time,
+        double price) {
+        store.post(coin, time, price);
     };
 
     // The io_context is required for all I/O
@@ -112,15 +115,17 @@ int main(int argc, char** argv)
     historic_price_fetcher historic_fetcher(listen_ioc, ctx, coins, historic_input_recv, fail);
     historic_fetcher.run();
 
+    // Now we run the event loop until all historic prices have been received.
+    listen_ioc.run();
+
     // Construct and start a the websocket listener.
     live_price_listener listen_worker(listen_ioc, ctx, coins, live_input_recv, fail);
     listen_worker.run();
 
-    // Run the I/O service. The call will return when
+    // Restartr the event loop. The call will return when
     // the socket is closed.
+    listen_ioc.restart();
     listen_ioc.run();
-
-    decoder_tp.join();
 
     return EXIT_SUCCESS;
 }

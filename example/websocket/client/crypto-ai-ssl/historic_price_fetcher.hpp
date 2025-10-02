@@ -16,6 +16,7 @@
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/json.hpp>
 
 #include <string>
 
@@ -27,7 +28,10 @@
 // Opens a websocket and subsscribes to price ticks
 class historic_price_fetcher : public processor_base
 {
-    std::function<void(std::string&&)> receive_handler_;
+    std::function<void(
+        const std::string&,
+        std::chrono::system_clock::time_point,
+        double)>                                               receive_handler_;
     std::function<void(boost::beast::error_code, char const*)> error_handler_;
 
     boost::asio::strand<boost::asio::io_context::executor_type> strand_;
@@ -39,9 +43,16 @@ class historic_price_fetcher : public processor_base
     boost::beast::http::response<boost::beast::http::string_body> response_;
 
     std::string host_;
-    std::vector<std::string> coins_ = { "BTC-USD", "ETH-USD" };
+    std::vector<std::string> coins_;
 
+    std::string current_coin_;
+
+    std::time_t start_of_day_;
     bool active_;
+
+    // It is more efficient to persist the json parser so that memory allocation does not need
+    // to be repeated each time we docode a message
+    boost::json::parser parser_;
 
 public:
     // Resolver and socket require an io_context
@@ -50,7 +61,10 @@ public:
             boost::asio::io_context& ioc
             , boost::asio::ssl::context& ctx
             , const std::vector<std::string>& coins
-            , std::function<void(std::string&&)> receive_handler
+            , std::function<void(
+                const std::string&
+                , std::chrono::system_clock::time_point
+                , double)> receive_handler
             , std::function<void(boost::beast::error_code, char const*)> err_handler)
         : receive_handler_(receive_handler)
         , error_handler_(err_handler)
@@ -58,6 +72,7 @@ public:
         , resolver_(strand_)
         , stream_(strand_, ctx)
         , coins_(coins)
+        , start_of_day_(0)
         , active_(false)
     {
     }
@@ -95,6 +110,9 @@ private:
         on_read(
             boost::beast::error_code ec,
             std::size_t bytes_transferred);
+
+    void parse_json(
+        boost::core::string_view str);
 
     void
         on_shutdown(boost::beast::error_code ec);

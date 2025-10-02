@@ -9,12 +9,14 @@
 
 add_executable(websocket-client-crypto-ai-ssl
     Jamfile
+    ai_querier.cpp
     historic_price_fetcher.cpp
     live_price_listener.cpp
     websocket_client_crypto_ai_ssl.cpp)
 
 source_group("" FILES
     Jamfile
+    ai_querier.cpp
     historic_price_fetcher.cpp
     live_price_listener.cpp
     websocket_client_crypto_ai_ssl.cpp)

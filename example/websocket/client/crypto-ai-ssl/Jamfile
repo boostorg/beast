@@ -15,6 +15,7 @@ project
     ;
 
 exe websocket-client-crypto-ai-ssl :
+    ai_querier.cpp
     historic_price_fetcher.cpp
     live_price_listener.cpp
     websocket_client_crypto_ai_ssl.cpp

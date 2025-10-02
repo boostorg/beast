@@ -22,6 +22,7 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 #include <boost/core/ignore_unused.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/json.hpp>
 #include <boost/url/parse.hpp>
 #include <boost/url/url.hpp>
@@ -39,6 +40,17 @@ using namespace websocket; // from <boost/beast/websocket.hpp>
 
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
+
+
+static inline std::time_t my_time_gm(struct tm* tm) {
+#if defined(_DEFAULT_SOURCE) // Feature test for glibc
+    return timegm(tm);
+#elif defined(_MSC_VER) // Test for Microsoft C/C++
+    return _mkgmtime(tm);
+#else
+#error "Neither timegm nor _mkgmtime available"
+#endif
+}
 
 // Start the asynchronous operation
 void live_price_listener::run()
@@ -72,7 +84,7 @@ void live_price_listener::run()
     // `beast::bind_front_handler` is an equally viable alternative.
     resolver_.async_resolve(
         host_,
-        "443",
+        "https",
         [this](error_code ec, tcp::resolver::results_type results)
         {
             // Note that `results` is actually an iterator into a container of
@@ -319,17 +331,26 @@ void live_price_listener::on_read(beast::error_code ec, std::size_t bytes_transf
     if (!active_)
         return;
 
-    //std::cout << "Interim: " << beast::make_printable(buffer_.data()) << "\n\n" << std::endl;
+    // The asynchronous read performs its own commit() on the dynamic buffer, thus the readable
+    // section of the dynamic buffer contains the message we want to decode.
+    asio::const_buffer buf(buffer_.cdata());
 
-    receive_handler_(beast::buffers_to_string(buffer_.data()));
+    // We convert the const_buffer buf into a string_view, and then parse the json string itself.
+    // Note that an alternative would be to use beast::buffers_to_string but that would
+    // perform an additional allocation.
+    parse_json(core::string_view(static_cast<const char*>(buf.data()), buf.size()));
 
-    // Erase the const section of the dynamic buffer. We know that the mutable section
-    // does not contain any data at this point, so this call merely updates internal
-    // buffer pointers rather than having to call memmove.
-    buffer_.consume(buffer_.max_size());
+    std::cout << "Interim: " << beast::make_printable(buffer_.data()) << "\n\n" << std::endl;
+
+    //receive_handler_(beast::buffers_to_string(buffer_.data()));
+
+    // Erase the const section of the dynamic buffer.
+    // Note: the clear() function does not deallocate so the capactity of the flat_buffer is
+    // unchanged, preventing the need for a reallocation each time a message is received.
+    buffer_.clear();
 
     count++;
-    if (count > 10) cancel();
+    if (count > 20) cancel();
 
     // This is a very common idiom in async programming. As soon as a read completes, we
     // initiate another asynchronous read, almost like an infinite loop.
@@ -342,9 +363,67 @@ void live_price_listener::on_read(beast::error_code ec, std::size_t bytes_transf
     );
 }
 
+
+
+void live_price_listener::parse_json(core::string_view str)
+{
+    parser_.reset();
+
+    boost::system::error_code ec;
+    parser_.write(str, ec);
+
+    if (ec)
+        return error_handler_(ec, "json_price_decoder::parse_json");
+
+    json::value jv(parser_.release());
+
+    core::string_view productstr;
+    core::string_view timestr;
+
+    double price = 0;
+
+    // Design note: the json parsing could be done without using the exception
+    // interface, but the resulting code would be considerably more verbose.
+    try {
+        if (jv.as_object().at("type").as_string() != "ticker")
+            return;
+
+        productstr = jv.as_object().at("product_id").as_string();
+
+        core::string_view pricestr = jv.as_object().at("price").as_string();
+
+        timestr = jv.as_object().at("time").as_string();
+
+        std::size_t str_size = 0;
+        price = std::stod(pricestr, &str_size);
+    }
+    catch (boost::system::system_error se) {
+        return error_handler_(ec, "json_price_decoder::parse_json parse failure");
+    }
+    catch (std::invalid_argument se) {
+        return error_handler_(ec, "json_price_decoder::parse_json parse failure");
+    }
+    catch (std::out_of_range se) {
+        return error_handler_(ec, "json_price_decoder::parse_json parse failure");
+    }
+
+    // As timestr is a *UTC* string, we want to generate a chrono::system_clock::time_point
+    // representing the UTC time.
+    posix_time::ptime ptime = posix_time::from_iso_extended_string(timestr);
+    std::time_t epoch_time = posix_time::to_time_t(ptime);
+    const auto price_time = std::chrono::system_clock::from_time_t(epoch_time);
+
+    if (receive_handler_)
+        receive_handler_(productstr, price_time, price);
+
+    std::cout << "Decoded live " << productstr << " price: " << price << " at " << price_time << std::endl;
+
+    //std::this_thread::sleep_for(std::chrono::milliseconds(10*1000));
+}
+
 void live_price_listener::on_close(beast::error_code ec)
 {
-    if (ec)
+    if (ec && ec != boost::asio::ssl::error::stream_truncated)
         return error_handler_(ec, "close");
 
     // If we get here then the connection is closed gracefully

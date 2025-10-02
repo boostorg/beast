@@ -16,6 +16,7 @@
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/json.hpp>
 
 #include <string>
 
@@ -27,7 +28,10 @@
 class live_price_listener : public processor_base
 {
     // This holds the function called when a live price is received.
-    std::function<void(std::string&&)> receive_handler_;
+    std::function<void(
+        const std::string&,
+        std::chrono::system_clock::time_point,
+        double)>                                         receive_handler_;
 
     // This holds the function called when an error happens.
     std::function<void(boost::beast::error_code, char const*)> error_handler_;
@@ -63,6 +67,10 @@ class live_price_listener : public processor_base
     // immediately.
     bool active_;
 
+    // It is more efficient to persist the json parser so that memory allocation does not need
+    // to be repeated each time we docode a message
+    boost::json::parser parser_;
+
     int count = 0;
 
 public:
@@ -73,7 +81,10 @@ public:
             boost::asio::io_context& ioc
             , boost::asio::ssl::context& ctx
             , const std::vector<std::string>& coins
-            , std::function<void(std::string&&)> receive_handler
+            , std::function<void(
+                const std::string&
+                , std::chrono::system_clock::time_point
+                , double)> receive_handler
             , std::function<void(boost::beast::error_code, char const*)> err_handler)
         : receive_handler_(receive_handler)
         , error_handler_(err_handler)
@@ -122,6 +133,9 @@ private:
         on_read(
             boost::beast::error_code ec,
             std::size_t bytes_transferred);
+
+    void parse_json(
+        boost::core::string_view str);
 
     void
         on_close(boost::beast::error_code ec);
