@@ -32,7 +32,7 @@ class historic_price_fetcher : public processor_base
         const std::string&,
         std::chrono::system_clock::time_point,
         double)>                                               receive_handler_;
-    std::function<void(boost::beast::error_code, char const*)> error_handler_;
+    std::function<void(boost::system::error_code, char const*)> error_handler_;
 
     boost::asio::strand<boost::asio::io_context::executor_type> strand_;
     boost::asio::ip::tcp::resolver resolver_;
@@ -65,7 +65,7 @@ public:
                 const std::string&
                 , std::chrono::system_clock::time_point
                 , double)> receive_handler
-            , std::function<void(boost::beast::error_code, char const*)> err_handler)
+            , std::function<void(boost::system::error_code, char const*)> err_handler)
         : receive_handler_(receive_handler)
         , error_handler_(err_handler)
         , strand_(boost::asio::make_strand(ioc))
@@ -87,35 +87,35 @@ public:
 private:
     void
         on_resolve(
-            boost::beast::error_code ec,
+            boost::system::error_code ec,
             boost::asio::ip::tcp::resolver::results_type results);
 
     void
         on_connect(
-            boost::beast::error_code ec,
+            boost::system::error_code ec,
             boost::asio::ip::tcp::resolver::results_type::endpoint_type ep);
 
     void
-        on_ssl_handshake(boost::beast::error_code ec);
+        on_ssl_handshake(boost::system::error_code ec);
 
     void
         next_request();
 
     void
         on_write(
-            boost::beast::error_code ec,
+            boost::system::error_code ec,
             std::size_t bytes_transferred);
 
     void
         on_read(
-            boost::beast::error_code ec,
+            boost::system::error_code ec,
             std::size_t bytes_transferred);
 
     void parse_json(
         boost::core::string_view str);
 
     void
-        on_shutdown(boost::beast::error_code ec);
+        on_shutdown(boost::system::error_code ec);
 };
 
 #endif

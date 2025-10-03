@@ -112,7 +112,7 @@ public:
 			std::vector<price_entry>& v2 = pos->second.second;
 			// Add the missing entries into v2.
 			v2.reserve(v1.capacity());
-			for (int i = v2.size(); i < v1.size(); i++) {
+			for (std::size_t i = v2.size(); i < v1.size(); i++) {
 				v2.push_back(v1[i]);
 			}
 			return v2;

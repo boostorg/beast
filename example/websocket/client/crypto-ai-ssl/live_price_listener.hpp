@@ -34,7 +34,7 @@ class live_price_listener : public processor_base
         double)>                                         receive_handler_;
 
     // This holds the function called when an error happens.
-    std::function<void(boost::beast::error_code, char const*)> error_handler_;
+    std::function<void(boost::system::error_code, char const*)> error_handler_;
 
     // We want to ensure that operations to set up the websocket are performed in order,
     // and that we do not attempt to call async_read when another async_read is in progress.
@@ -85,7 +85,7 @@ public:
                 const std::string&
                 , std::chrono::system_clock::time_point
                 , double)> receive_handler
-            , std::function<void(boost::beast::error_code, char const*)> err_handler)
+            , std::function<void(boost::system::error_code, char const*)> err_handler)
         : receive_handler_(receive_handler)
         , error_handler_(err_handler)
         , strand_(boost::asio::make_strand(ioc))
@@ -109,36 +109,35 @@ public:
 private:
     void
         on_resolve(
-            boost::beast::error_code ec,
+            boost::system::error_code ec,
             boost::asio::ip::tcp::resolver::results_type results);
 
     void
         on_connect(
-            boost::beast::error_code ec,
+            boost::system::error_code ec,
             boost::asio::ip::tcp::resolver::results_type::endpoint_type ep);
 
     void
-        on_ssl_handshake(boost::beast::error_code ec);
+        on_ssl_handshake(boost::system::error_code ec);
 
     void
-        on_handshake(boost::beast::error_code ec);
+        on_handshake(boost::system::error_code ec);
 
     void
         on_write(
-            boost::beast::error_code ec,
-            std::size_t bytes_required,
+            boost::system::error_code ec,
             std::size_t bytes_transferred);
 
     void
         on_read(
-            boost::beast::error_code ec,
+            boost::system::error_code ec,
             std::size_t bytes_transferred);
 
     void parse_json(
         boost::core::string_view str);
 
     void
-        on_close(boost::beast::error_code ec);
+        on_close(boost::system::error_code ec);
 };
 
 #endif

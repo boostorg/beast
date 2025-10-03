@@ -48,7 +48,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 // Report a failure
 void
-fail(beast::error_code ec, char const* what)
+fail(system::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }

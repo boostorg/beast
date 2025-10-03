@@ -61,7 +61,7 @@ void historic_price_fetcher::run()
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if (!SSL_set_tlsext_host_name(stream_.native_handle(), host_.c_str()))
     {
-        beast::error_code ec{
+        system::error_code ec{
             static_cast<int>(::ERR_get_error()),
             net::error::get_ssl_category() };
         return error_handler_(ec, "SNI");
@@ -111,7 +111,7 @@ void historic_price_fetcher::cancel()
     );
 }
 
-void historic_price_fetcher::on_resolve(beast::error_code ec, tcp::resolver::results_type results)
+void historic_price_fetcher::on_resolve(system::error_code ec, tcp::resolver::results_type results)
 {
     if (ec) {
         cancel();
@@ -134,7 +134,7 @@ void historic_price_fetcher::on_resolve(beast::error_code ec, tcp::resolver::res
     );
 }
 
-void historic_price_fetcher::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
+void historic_price_fetcher::on_connect(system::error_code ec, tcp::resolver::results_type::endpoint_type ep)
 {
     boost::ignore_unused(ep);
 
@@ -159,7 +159,7 @@ void historic_price_fetcher::on_connect(beast::error_code ec, tcp::resolver::res
     );
 }
 
-void historic_price_fetcher::on_ssl_handshake(beast::error_code ec)
+void historic_price_fetcher::on_ssl_handshake(system::error_code ec)
 {
     if (ec) {
         cancel();
@@ -214,7 +214,7 @@ void historic_price_fetcher::next_request()
     }
 }
 
-void historic_price_fetcher::on_write(beast::error_code ec, std::size_t bytes_transferred)
+void historic_price_fetcher::on_write(system::error_code ec, std::size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 
@@ -237,7 +237,7 @@ void historic_price_fetcher::on_write(beast::error_code ec, std::size_t bytes_tr
 }
 
 
-void historic_price_fetcher::on_read(beast::error_code ec, std::size_t bytes_transferred)
+void historic_price_fetcher::on_read(system::error_code ec, std::size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 
@@ -326,7 +326,7 @@ void historic_price_fetcher::parse_json(core::string_view str)
             core::string_view closestr  = it->as_object().at("close").as_string();
 
             std::size_t str_size = 0;
-            std::time_t start_time = std::stod(startstr, &str_size);
+            std::time_t start_time = static_cast<std::time_t>(std::stoll(startstr, &str_size));
             if (start_time > start_of_day_) {
                 double open = std::stod(openstr, &str_size);
 
@@ -348,7 +348,7 @@ void historic_price_fetcher::parse_json(core::string_view str)
     }
 }
 
-void historic_price_fetcher::on_shutdown(beast::error_code ec)
+void historic_price_fetcher::on_shutdown(system::error_code ec)
 {
     if (ec && ec != boost::asio::ssl::error::stream_truncated)
         return error_handler_(ec, "shutdown");

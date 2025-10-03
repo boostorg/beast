@@ -63,7 +63,7 @@ void live_price_listener::run()
     // part of asio or beast.
     if (!SSL_set_tlsext_host_name(ws_.next_layer().native_handle(), host_.c_str()))
     {
-        beast::error_code ec{
+        system::error_code ec{
             static_cast<int>(::ERR_get_error()),
             net::error::get_ssl_category() };
         return error_handler_(ec, "SNI");
@@ -117,7 +117,7 @@ void live_price_listener::cancel()
 }
 
 // This is the function called when hostname resolution completes.
-void live_price_listener::on_resolve(beast::error_code ec, tcp::resolver::results_type results)
+void live_price_listener::on_resolve(system::error_code ec, tcp::resolver::results_type results)
 {
     // In the event of an error call the `cancel` function which will drain
     // any pending completion handlers. In this case the websocket is not yet
@@ -155,7 +155,7 @@ void live_price_listener::on_resolve(beast::error_code ec, tcp::resolver::result
 
 // Once the underlying socket is connected, this function performs the next step,
 // namely getting the SSL layer running.
-void live_price_listener::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
+void live_price_listener::on_connect(system::error_code ec, tcp::resolver::results_type::endpoint_type ep)
 {
     if (ec) {
         // In the event of a connection error call the `cancel` function which will drain
@@ -192,7 +192,7 @@ void live_price_listener::on_connect(beast::error_code ec, tcp::resolver::result
     );
 }
 
-void live_price_listener::on_ssl_handshake(beast::error_code ec)
+void live_price_listener::on_ssl_handshake(system::error_code ec)
 {
     if (ec) {
         // In the event of an ssl error call the `cancel` function which will drain
@@ -246,7 +246,7 @@ void live_price_listener::on_ssl_handshake(beast::error_code ec)
 // This is the function that is called when the websocket is up and usable.
 // The previous steps were relatively generic across all websocket connections,
 // and from this point on we need to include business logic.
-void live_price_listener::on_handshake(beast::error_code ec)
+void live_price_listener::on_handshake(system::error_code ec)
 {
     if (ec) {
         cancel();
@@ -273,27 +273,22 @@ void live_price_listener::on_handshake(beast::error_code ec)
     // Send the subscription message to the server.
     ws_.async_write(
         net::buffer(subscribe_json_str),
-        [this, len=subscribe_json_str.size()](error_code ec, std::size_t bytes_transferred)
+        [this](error_code ec, std::size_t bytes_transferred)
         {
-            on_write(ec, len, bytes_transferred);
+            on_write(ec, bytes_transferred);
         }
     );
 }
 
 void live_price_listener::on_write(
-      beast::error_code ec
-    , std::size_t bytes_required
+      system::error_code ec
     , std::size_t bytes_transferred)
 {
-    // Check for errors and verify that the byte count sent in the subscription message
-    // is what we expected.
+    boost::ignore_unused(bytes_transferred);
+
+    // Check for errors.
     if (ec) {
         cancel();
-        return error_handler_(ec, "write");
-    }
-    else if (bytes_transferred < bytes_required) {
-        cancel();
-        // TODO: figure out what to put in ec here.
         return error_handler_(ec, "write");
     }
 
@@ -313,7 +308,7 @@ void live_price_listener::on_write(
     );
 }
 
-void live_price_listener::on_read(beast::error_code ec, std::size_t bytes_transferred)
+void live_price_listener::on_read(system::error_code ec, std::size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 
@@ -421,7 +416,7 @@ void live_price_listener::parse_json(core::string_view str)
     //std::this_thread::sleep_for(std::chrono::milliseconds(10*1000));
 }
 
-void live_price_listener::on_close(beast::error_code ec)
+void live_price_listener::on_close(system::error_code ec)
 {
     if (ec && ec != boost::asio::ssl::error::stream_truncated)
         return error_handler_(ec, "close");

@@ -49,7 +49,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 class json_price_decoder : public processor_base
 {
 	std::function<void(const std::string&, double)> receive_handler_;
-	std::function<void(beast::error_code, char const*)> error_handler_;
+	std::function<void(system::error_code, char const*)> error_handler_;
     net::execution_context &ctx_;
     bool active_;
 
@@ -58,7 +58,7 @@ public:
     explicit
         json_price_decoder(net::execution_context& ec
             , std::function<void(const std::string&, double)> receive_handler
-            , std::function<void(beast::error_code, char const*)> err_handler)
+            , std::function<void(system::error_code, char const*)> err_handler)
         : receive_handler_(receive_handler)
         , error_handler_(err_handler)
         , ctx_(ec)
