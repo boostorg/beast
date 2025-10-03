@@ -39,17 +39,6 @@ using namespace beast;         // from <boost/beast.hpp>
 
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-
-static inline std::time_t my_time_gm(struct tm* tm) {
-#if defined(_DEFAULT_SOURCE) // Feature test for glibc
-    return timegm(tm);
-#elif defined(_MSC_VER) // Test for Microsoft C/C++
-    return _mkgmtime(tm);
-#else
-#error "Neither timegm nor _mkgmtime available"
-#endif
-}
-
 // Start the asynchronous operation
 void historic_price_fetcher::run()
 {

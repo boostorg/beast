@@ -56,6 +56,10 @@ class live_price_listener : public processor_base
     // completion handler is called.
     boost::beast::flat_buffer buffer_;
 
+    // The subscription message needs to persist until the asynchronous operation initiated
+    // by ws_.async_write() completes. Thus it is held here as a member.
+    std::string subscribe_json_str_;
+
     // The host will be used at multiple stages during the websocket's setup process.
     std::string host_;
 
