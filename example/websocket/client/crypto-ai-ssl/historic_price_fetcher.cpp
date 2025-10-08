@@ -32,6 +32,8 @@
 #include <functional>
 #include <string>
 
+#if 0
+
 using namespace boost;
 using namespace std::placeholders;
 
@@ -347,3 +349,5 @@ void historic_price_fetcher::on_shutdown(system::error_code ec)
     // The make_printable() function helps print a ConstBufferSequence
     std::cout << "Final buffer content:" << beast::make_printable(buffer_.data()) << std::endl;
 }
+
+#endif
