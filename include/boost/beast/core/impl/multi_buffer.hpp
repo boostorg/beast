@@ -610,7 +610,6 @@ operator=(basic_multi_buffer&& other) ->
 {
     if(this == &other)
         return *this;
-    clear();
     max_ = other.max_;
     move_assign(other, pocma{});
     return *this;
@@ -1073,6 +1072,8 @@ void
 basic_multi_buffer<Allocator>::
 move_assign(basic_multi_buffer& other, std::true_type) noexcept
 {
+    clear();
+    shrink_to_fit();
     this->get() = std::move(other.get());
     auto const at_end =
         other.out_ == other.list_.end();
@@ -1103,7 +1104,24 @@ move_assign(basic_multi_buffer& other, std::false_type)
     }
     else
     {
-        move_assign(other, std::true_type{});
+        clear();
+        shrink_to_fit();
+        auto const at_end =
+            other.out_ == other.list_.end();
+        list_ = std::move(other.list_);
+        out_ = at_end ? list_.end() : other.out_;
+
+        in_size_ = other.in_size_;
+        in_pos_ = other.in_pos_;
+        out_pos_ = other.out_pos_;
+        out_end_ = other.out_end_;
+        max_ = other.max_;
+
+        other.in_size_ = 0;
+        other.out_ = other.list_.end();
+        other.in_pos_ = 0;
+        other.out_pos_ = 0;
+        other.out_end_ = 0;
     }
 }
 
@@ -1123,6 +1141,7 @@ copy_assign(
     basic_multi_buffer const& other, std::true_type)
 {
     clear();
+    shrink_to_fit();
     this->get() = other.get();
     copy_from(other);
 }

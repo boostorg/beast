@@ -312,6 +312,7 @@ public:
                 ostream(b1) << "Hello";
                 basic_multi_buffer<pocma_t> b2;
                 b2 = std::move(b1);
+                BEAST_EXPECT(b1.get_allocator()->nmassign == 1);
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
@@ -323,6 +324,7 @@ public:
                 ostream(b1) << "Hello";
                 basic_multi_buffer<pocma_t> b2;
                 b2 = std::move(b1);
+                BEAST_EXPECT(b1.get_allocator()->nmassign == 0);
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
@@ -349,6 +351,7 @@ public:
                 ostream(b1) << "Hello";
                 basic_multi_buffer<pocca_t> b2;
                 b2 = b1;
+                BEAST_EXPECT(b1.get_allocator()->ncpassign == 1);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
             {
@@ -359,6 +362,7 @@ public:
                 ostream(b1) << "Hello";
                 basic_multi_buffer<pocca_t> b2;
                 b2 = b1;
+                BEAST_EXPECT(b1.get_allocator()->ncpassign == 0);
                 BEAST_EXPECT(buffers_to_string(b2.data()) == "Hello");
             }
         }

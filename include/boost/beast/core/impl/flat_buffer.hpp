@@ -452,7 +452,19 @@ move_assign(basic_flat_buffer& other, std::false_type)
     }
     else
     {
-        move_assign(other, std::true_type{});
+        clear();
+        shrink_to_fit();
+        begin_ = other.begin_;
+        in_ = other.in_;
+        out_ = other.out_;
+        last_ = out_;
+        end_ = other.end_;
+        max_ = other.max_;
+        other.begin_ = nullptr;
+        other.in_ = nullptr;
+        other.out_ = nullptr;
+        other.last_ = nullptr;
+        other.end_ = nullptr;
     }
 }
 
@@ -461,6 +473,8 @@ void
 basic_flat_buffer<Allocator>::
 copy_assign(basic_flat_buffer const& other, std::true_type)
 {
+    clear();
+    shrink_to_fit();
     max_ = other.max_;
     this->get() = other.get();
     copy_from(other);
@@ -471,8 +485,6 @@ void
 basic_flat_buffer<Allocator>::
 copy_assign(basic_flat_buffer const& other, std::false_type)
 {
-    clear();
-    shrink_to_fit();
     max_ = other.max_;
     copy_from(other);
 }

@@ -23,7 +23,7 @@ elif [[ "${TRAVIS}" == "true" ]]; then
   JOBS="2"
 elif [[ $(uname -s) == "Linux" ]]; then
   # Physical cores
-  JOBS=$(lscpu -p | grep -v '^#' | sort -u -t, -k 2,4 | wc -l)
+  JOBS=4
 elif [[ $(uname) == "Darwin" ]]; then
   # Physical cores
   JOBS=$(sysctl -n hw.physicalcpu)
