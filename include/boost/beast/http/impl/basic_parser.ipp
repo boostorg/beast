@@ -389,7 +389,14 @@ inner_parse_fields(char const*& in,
         do_field(f, value, ec);
         if(ec)
             return;
-        this->on_field_impl(f, name, value, ec);
+        if(BOOST_UNLIKELY(state_ == state::trailer_fields))
+        {
+            this->on_trailer_field_impl(f, name, value, ec);
+        }
+        else
+        {
+            this->on_field_impl(f, name, value, ec);
+        }
         if(ec)
             return;
         in = p;
