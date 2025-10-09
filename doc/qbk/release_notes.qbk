@@ -79,7 +79,7 @@
 
 [*API Changes]
 
-* [issue 2878] Added HTTP status code 418 `I'm a teapot`
+* [issue 2878] Added HTTP status code *418 I'm a teapot*
 
 [*Fixes]
 
