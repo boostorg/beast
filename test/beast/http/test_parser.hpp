@@ -35,13 +35,14 @@ public:
     std::string path;
     std::string reason;
     std::string body;
-    int got_on_begin       = 0;
-    int got_on_field       = 0;
-    int got_on_header      = 0;
-    int got_on_body        = 0;
-    int got_content_length = 0;
-    int got_on_chunk       = 0;
-    int got_on_complete    = 0;
+    int got_on_begin         = 0;
+    int got_on_field         = 0;
+    int got_on_trailer_field = 0;
+    int got_on_header        = 0;
+    int got_on_body          = 0;
+    int got_content_length   = 0;
+    int got_on_chunk         = 0;
+    int got_on_complete      = 0;
     std::unordered_map<
         std::string, std::string> fields;
 
@@ -86,6 +87,16 @@ public:
         string_view value, error_code& ec)
     {
         ++got_on_field;
+        if(fc_)
+            fc_->fail(ec);
+        fields[std::string(name)] = std::string(value);
+    }
+
+    void
+    on_trailer_field_impl(field, string_view name,
+        string_view value, error_code& ec)
+    {
+        ++got_on_trailer_field;
         if(fc_)
             fc_->fail(ec);
         fields[std::string(name)] = std::string(value);

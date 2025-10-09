@@ -240,6 +240,12 @@ public:
         }
 
         void
+        on_trailer_field_impl(field,
+            string_view, string_view, error_code&) override
+        {
+        }
+
+        void
         on_header_impl(error_code&) override
         {
         }
