@@ -370,24 +370,24 @@ public:
             // group fields
             fields f;
             f.insert(field::age,   "1");
-            f.insert(field::body,  "2");
-            f.insert(field::close, "3");
-            f.insert(field::body,  "4");
+            f.insert(field::cookie,  "2");
+            f.insert(field::from, "3");
+            f.insert(field::cookie,  "4");
             BEAST_EXPECT(std::next(f.begin(), 0)->name() == field::age);
-            BEAST_EXPECT(std::next(f.begin(), 1)->name() == field::body);
-            BEAST_EXPECT(std::next(f.begin(), 2)->name() == field::body);
-            BEAST_EXPECT(std::next(f.begin(), 3)->name() == field::close);
+            BEAST_EXPECT(std::next(f.begin(), 1)->name() == field::cookie);
+            BEAST_EXPECT(std::next(f.begin(), 2)->name() == field::cookie);
+            BEAST_EXPECT(std::next(f.begin(), 3)->name() == field::from);
             BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "Age");
-            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "Body");
-            BEAST_EXPECT(std::next(f.begin(), 2)->name_string() == "Body");
-            BEAST_EXPECT(std::next(f.begin(), 3)->name_string() == "Close");
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "Cookie");
+            BEAST_EXPECT(std::next(f.begin(), 2)->name_string() == "Cookie");
+            BEAST_EXPECT(std::next(f.begin(), 3)->name_string() == "From");
             BEAST_EXPECT(std::next(f.begin(), 0)->value() == "1");
             BEAST_EXPECT(std::next(f.begin(), 1)->value() == "2");
             BEAST_EXPECT(std::next(f.begin(), 2)->value() == "4");
             BEAST_EXPECT(std::next(f.begin(), 3)->value() == "3");
-            BEAST_EXPECT(f.erase(field::body) == 2);
+            BEAST_EXPECT(f.erase(field::cookie) == 2);
             BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "Age");
-            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "Close");
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "From");
         }
         {
             // group fields, case insensitive

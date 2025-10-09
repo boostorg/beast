@@ -217,7 +217,7 @@ void fxx() {
     res.set(field::server, "Beast");
 
     // Inform the client of the trailer fields we will send
-    res.set(field::trailer, "Content-MD5, Expires");
+    res.set(field::trailer, "Content-Digest");
 
     res.chunked(true);
 
@@ -229,8 +229,7 @@ void fxx() {
 
     // Prepare the trailer
     fields trailer;
-    trailer.set(field::content_md5, "f4a5c16584f03d90");
-    trailer.set(field::expires, "never");
+    trailer.set(field::content_digest, "f4a5c16584f03d90");
 
     // Emit the trailer in the last chunk.
     // The implementation will use the default allocator to create the storage for holding
@@ -243,7 +242,7 @@ void fxx() {
 //[http_snippet_22
     // Use a custom allocator for serializing the last chunk
     fields trailer;
-    trailer.set(field::approved, "yes");
+    trailer.set(field::server_timing, "custom-metric;dur=123.4");
     net::write(sock, make_chunk_last(trailer, std::allocator<char>{}));
 //]
 }
@@ -253,8 +252,7 @@ void fxx() {
     // Manually emit a trailer.
     // We are responsible for ensuring that the trailer format adheres to the specification.
     string_view ext =
-        "Content-MD5: f4a5c16584f03d90\r\n"
-        "Expires: never\r\n"
+        "Content-Digest: f4a5c16584f03d90\r\n"
         "\r\n";
     net::write(sock, make_chunk_last(net::const_buffer{ext.data(), ext.size()}));
 //]
