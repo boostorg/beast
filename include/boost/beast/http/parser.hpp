@@ -72,6 +72,7 @@ class parser
     typename Body::reader rd_;
     bool rd_inited_ = false;
     bool used_ = false;
+    bool merge_all_trailers_ = false;
 
     std::function<void(
         std::uint64_t,
@@ -303,6 +304,52 @@ public:
         cb_b_ = std::ref(cb);
     }
 
+    /** Returns `true` if the parser is allowed to merge all trailer fields.
+
+        @see
+            merge_all_trailers(bool).
+    */
+    bool
+    merge_all_trailers() const noexcept
+    {
+        return merge_all_trailers_;
+    }
+
+    /** Set whether the parser is allowed to merge all trailer fields.
+
+        By default, the parser merges only a set of
+        well-known trailer fields. When this option is
+        enabled, the parser merges all trailer fields listed
+        in the `Trailer` header field in the header section
+        of the message.
+
+        @note Enabling this option can introduce security
+        risks if untrusted input is processed and the
+        `Trailer` header field in the header section of the
+        message is not properly validated.
+
+        The default value is `false`, which merges only the
+        following well-known trailer fields:
+
+        @li `Digest`
+        @li `Content-Digest`
+        @li `Repr-Digest`
+        @li `Signature`
+        @li `Signature-Input`
+        @li `Server-Timing`
+        @li `ETag`
+        @li `Link`
+        @li `Alt-Svc`
+
+        @param v `true` to merge all trailer fields, or
+        `false` to merge only the well-known ones.
+    */
+    void
+    merge_all_trailers(bool v)
+    {
+        merge_all_trailers_ = v;
+    }
+
 private:
     parser(std::true_type);
     parser(std::false_type);
@@ -451,6 +498,26 @@ private:
         string_view value,
         error_code& ec) override
     {
+        if(! token_list{m_[field::trailer]}.exists(name_string))
+            return;
+
+        switch(name)
+        {
+        case field::digest:          // RFC 3230, Section 2 (obsolete)
+        case field::content_digest:  // RFC 9530, Section 2
+        case field::repr_digest:     // RFC 9530, Section 3
+        case field::signature:       // RFC 9421, Section 4
+        case field::signature_input: // RFC 9421, Section 4
+        case field::server_timing:   // W3C Server Timing Spec
+        case field::etag:            // RFC 9110, Section 8.8.3
+        case field::link:            // RFC 8288, Section 3
+        case field::alt_svc:         // RFC 7838, Section 3
+            break;
+        default:
+            if(! merge_all_trailers_)
+                return;
+        }
+
         m_.insert(name, name_string, value, ec);
     }
 
