@@ -159,29 +159,29 @@ public:
             cb("MD5:ou812\r\n\r\n"));
 
         fields trailers;
-        trailers.set(field::content_md5, "ou812");
+        trailers.set(field::content_digest, "ou812");
 
         check<chunk_last<fields>>(
-            "0\r\nContent-MD5: ou812\r\n\r\n",
+            "0\r\nContent-Digest: ou812\r\n\r\n",
             trailers);
 
         {
             auto trailers2 = trailers;
 
             check_fwd<chunk_last<fields>>(
-                "0\r\nContent-MD5: ou812\r\n\r\n",
+                "0\r\nContent-Digest: ou812\r\n\r\n",
                 std::move(trailers2));
         }
 
         check<chunk_last<fields>>(
-            "0\r\nContent-MD5: ou812\r\n\r\n",
+            "0\r\nContent-Digest: ou812\r\n\r\n",
             trailers, std::allocator<double>{});
 
         {
             auto trailers2 = trailers;
 
             check<chunk_last<fields>>(
-                "0\r\nContent-MD5: ou812\r\n\r\n",
+                "0\r\nContent-Digest: ou812\r\n\r\n",
                 std::move(trailers2), std::allocator<double>{});
         }
     }
