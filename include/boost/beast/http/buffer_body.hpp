@@ -198,7 +198,7 @@ struct buffer_body
                 }
                 return boost::none;
             }
-            if(body_.data)
+            if(body_.data && body_.size != 0)
             {
                 ec = {};
                 toggle_ = true;
