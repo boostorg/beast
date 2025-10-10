@@ -647,6 +647,20 @@ public:
     //
     //--------------------------------------------------------------------------
 
+    /** Returns `true` if there is a field with the specified name.
+
+        @param name The field name.
+    */
+    bool
+    contains(field name) const;
+
+    /** Returns `true` if there is a field with the specified name.
+
+        @param name The field name. It is interpreted as a case-insensitive string.
+    */
+    bool
+    contains(string_view name) const;
+
     /** Return the number of fields with the specified name.
 
         @param name The field name.

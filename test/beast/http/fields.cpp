@@ -476,6 +476,20 @@ public:
             BEAST_THROWS(f.set(big_name, ""),                 boost::system::system_error);
             BEAST_THROWS(f.set("", big_value),                boost::system::system_error);
         }
+
+        {
+            fields f;
+            BEAST_EXPECT(! f.contains("Content-Type"));
+            f.set("Content-Type", "text/html");
+            BEAST_EXPECT(f.contains("Content-Type"));
+            BEAST_EXPECT(f.contains("content-type"));
+            BEAST_EXPECT(! f.contains(field::user_agent));
+
+            f.insert("AA", "a");
+            f.insert("AA", "b");
+            f.insert("AA", "c");
+            BEAST_EXPECT(f.contains("AA"));            
+        }
     }
 
     struct sized_body
