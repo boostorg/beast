@@ -15,6 +15,7 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/prepend.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
@@ -51,6 +52,12 @@ namespace boost {
             complete
         };
 
+        struct on_resolve {};
+        struct on_connect {};
+        struct on_ssl_handshake {};
+        struct on_write_request {};
+        struct on_read_result {};
+
         using resolver_type = asio::ip::basic_resolver<
             asio::ip::tcp, Executor>;
 
@@ -74,8 +81,6 @@ namespace boost {
         request_type&  request_;
         response_type& response_;
 
-        state state_;
-
     public:
 
         explicit
@@ -89,188 +94,165 @@ namespace boost {
             : client_(client)
             , resolver_(resolver)
             , ssl_stream_(ssl_stream)
-            , state_(state::starting)
             , buffer_(buffer)
             , request_(request)
             , response_(response)
         {
-            // Set the expected hostname in the peer certificate for verification
-            ssl_stream_.set_verify_callback(boost::asio::ssl::host_name_verification(client.get_host()));
-
-            // Set up an HTTP GET request message
-            request_.version(11);
-            request_.method(beast::http::verb::get);
-            request_.set(beast::http::field::host, client.get_host());
-            request_.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
         }
 
         template <typename Self>
         void operator()(
-            Self& self
-            , system::error_code ec = {})
+            Self& self)
         {
-            if (ec) {
-                state_ = state::error;
-                return self.complete(ec);
-            }
-
-            switch (state_) {
-            case state::starting: {
-                // Set SNI Hostname (many hosts need this to handshake successfully)
-                if (!SSL_set_tlsext_host_name(ssl_stream_.native_handle(), client_.get_host()))
-                {
-                    system::error_code ssl_ec{
-                        static_cast<int>(::ERR_get_error()),
-                        asio::error::get_ssl_category() };
-                    state_ = state::error;
-                    return self.complete(ssl_ec);
-                }
-
-                // Look up the domain name
-                state_ = state::resolving;
-                resolver_.async_resolve(
-                    client_.get_host(),
-                    "https",
-                    std::move(self)
-                );
-            } break;
-            case state::ssl_handshaking: {
-                // If there are any coins left to request, request one.
-                return send_next_request(self);
-            } break;
-            default: {
-                // This should not happen.
-                throw std::logic_error("unreachable");
-            }
-            }
+            // Look up the domain name
+            resolver_.async_resolve(
+                client_.get_host(),
+                "https",
+                asio::prepend(std::move(self), on_resolve{})
+            );
         };
 
         template <typename Self>
         void operator()(
             Self& self
+            , on_ssl_handshake
+            , system::error_code ec)
+        {
+            if (ec) {
+                return self.complete(ec);
+            }
+
+            // Set up an HTTP GET request message
+            request_.version(11);
+            request_.method(beast::http::verb::get);
+            request_.set(beast::http::field::host, client_.get_host());
+            request_.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+            
+            // If there are any coins left to request, request one.
+            return send_next_request(self);
+        };
+
+        template <typename Self>
+        void operator()(
+            Self& self
+            , on_resolve
             , system::error_code ec
             , asio::ip::tcp::resolver::results_type results)
         {
             if (ec) {
-                state_ = state::error;
                 return self.complete(ec);
             }
 
-            switch (state_) {
-            case state::resolving: {
-                // Set a timeout on the operation
-                beast::get_lowest_layer(ssl_stream_).expires_after(std::chrono::seconds(30));
+            // Set a timeout on the operation
+            beast::get_lowest_layer(ssl_stream_).expires_after(std::chrono::seconds(30));
 
-                // Make the connection on the IP address we get from a lookup
-                state_ = state::connecting;
-                for (auto& r : results) {
-                    std::cout << r.endpoint() << std::endl;
-                }
-                beast::get_lowest_layer(ssl_stream_).async_connect(
-                    results,
-                    std::move(self)
-                );
-            } break;
-            default: {
-                // This should not happen.
-                throw std::logic_error("unreachable");
-            }
-            }
+            // Make the connection on the IP address we get from a lookup
+            beast::get_lowest_layer(ssl_stream_).async_connect(
+                results,
+                asio::prepend(std::move(self), on_connect{})
+            );
+
         };
 
         template <typename Self>
         void operator()(
             Self& self
+            , on_connect
             , system::error_code ec
             , asio::ip::tcp::resolver::results_type::endpoint_type ep)
         {
             boost::ignore_unused(ep);
 
             if (ec) {
-                state_ = state::error;
                 return self.complete(ec);
             }
 
-            switch (state_) {
-            case state::connecting: {
-                // Set a timeout on the operation
-                beast::get_lowest_layer(ssl_stream_).expires_after(std::chrono::seconds(30));
+            // Set the expected hostname in the peer certificate for verification
+            ssl_stream_.set_verify_callback(boost::asio::ssl::host_name_verification(client_.get_host()));
 
-                // Perform the SSL handshake
-                state_ = state::ssl_handshaking;
-                ssl_stream_.async_handshake(
-                    boost::asio::ssl::stream_base::client,
-                    std::move(self)
-                );
-            } break;
-            default: {
-                // This should not happen.
-                throw std::logic_error("unreachable");
+            // Set SNI Hostname (many hosts need this to handshake successfully)
+            if (!SSL_set_tlsext_host_name(ssl_stream_.native_handle(), client_.get_host()))
+            {
+                system::error_code ssl_ec{
+                    static_cast<int>(::ERR_get_error()),
+                    asio::error::get_ssl_category() };
+                return self.complete(ssl_ec);
             }
-            }
+
+            // Set a timeout on the operation
+            beast::get_lowest_layer(ssl_stream_).expires_after(std::chrono::seconds(30));
+
+            // Perform the SSL handshake
+            ssl_stream_.async_handshake(
+                boost::asio::ssl::stream_base::client,
+                asio::prepend(std::move(self), on_ssl_handshake{})
+            );
         };
 
         template <typename Self>
         void operator()(
             Self& self
+            , on_write_request
             , system::error_code ec
             , std::size_t bytes_transferred)
         {
             boost::ignore_unused(bytes_transferred);
 
-            if (state_ == state::reading && ec == beast::http::error::end_of_stream) {
-                state_ = state::complete;
+            if (ec) {
+                return self.complete(ec);
+            }
+
+            // Read a message into our buffer
+            beast::http::async_read(
+                ssl_stream_,
+                buffer_,
+                response_,
+                asio::prepend(std::move(self), on_read_result{})
+            );
+
+        };
+
+        template <typename Self>
+        void operator()(
+            Self& self
+            , on_read_result
+            , system::error_code ec
+            , std::size_t bytes_transferred)
+        {
+            boost::ignore_unused(bytes_transferred);
+
+            if (ec == beast::http::error::end_of_stream) {
                 system::error_code ok{};
                 return self.complete(ok);
             }
             else if (ec) {
-                state_ = state::error;
                 return self.complete(ec);
             }
 
-            switch (state_) {
-            case state::writing: {
-                // Read a message into our buffer
-                state_ = state::reading;
-                beast::http::async_read(
-                    ssl_stream_,
-                    buffer_,
-                    response_,
-                    std::move(self)
-                );
-            } break;
-            case state::reading: {
-                // Process the received message
+            // Process the received message
 
-                // Write the message to standard out
-                //std::cout << "Response: " << response_ << "\n" << std::endl;
-                std::cout << "Body: " << response_.body() << "\n\n" << std::endl;
+            // Write the message to standard out
+            //std::cout << "Response: " << response_ << "\n" << std::endl;
+            std::cout << "Body: " << response_.body() << "\n\n" << std::endl;
 
-                // The response can be quite long, and we can avoid an allocation
-                // by swapping the body into an empty string.
-                std::string temp;
-                temp.swap(response_.body());
+            // The response can be quite long, and we can avoid an allocation
+            // by swapping the body into an empty string.
+            std::string temp;
+            temp.swap(response_.body());
 
-                client_.process_response(temp, ec);
-                if (ec) {
-                    state_ = state::error;
-                    return self.complete(ec);
-                }
-
-                send_next_request(self);
-            } break;
-            default: {
-                // This should not happen.
-                throw std::logic_error("unreachable");
+            client_.process_response(temp, ec);
+            if (ec) {
+                return self.complete(ec);
             }
-            }
+
+            send_next_request(self);
+
         };
 
         template <typename Self>
         void send_next_request(Self& self)
         {
             if (!client_.requests_outstanding()) {
-                state_ = state::complete;
                 system::error_code ok{};
                 return self.complete(ok);
             }
@@ -282,11 +264,10 @@ namespace boost {
             beast::get_lowest_layer(ssl_stream_).expires_after(std::chrono::seconds(30));
 
             // Send the message
-            state_ = state::writing;
             beast::http::async_write(
                 ssl_stream_,
                 request_,
-                std::move(self)
+                asio::prepend(std::move(self), on_write_request{})
             );
         }
     };
