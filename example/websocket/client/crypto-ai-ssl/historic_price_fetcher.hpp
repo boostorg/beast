@@ -11,6 +11,7 @@
 #define BOOST_BEAST_EXAMPLE_HISTORIC_PRICE_FETCHER
 
 #include <boost/asio/basic_stream_socket.hpp>
+#include <boost/asio/cancel_after.hpp>
 #include <boost/asio/compose.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/io_context.hpp>
@@ -41,17 +42,6 @@ namespace boost {
     template<class Executor>
     class historic_fetcher_op
     {
-        enum class state {
-            starting,
-            resolving,
-            connecting,
-            ssl_handshaking,
-            writing,
-            reading,
-            error,
-            complete
-        };
-
         struct on_resolve {};
         struct on_connect {};
         struct on_ssl_handshake {};
@@ -73,30 +63,13 @@ namespace boost {
         using request_type = beast::http::request<boost::beast::http::string_body>;
         using response_type = beast::http::response<boost::beast::http::string_body>;
 
-        client_type&     client_;
-        resolver_type&   resolver_;
-        ssl_stream_type& ssl_stream_;
-
-        buffer_type&   buffer_;
-        request_type&  request_;
-        response_type& response_;
-
     public:
 
         explicit
             historic_fetcher_op(
-                client_type& client
-                , resolver_type& resolver
-                , ssl_stream_type& ssl_stream
-                , buffer_type& buffer
-                , request_type& request
-                , response_type& response)
+                client_type& client)
             : client_(client)
-            , resolver_(resolver)
-            , ssl_stream_(ssl_stream)
-            , buffer_(buffer)
-            , request_(request)
-            , response_(response)
+            , start_of_day_(0)
         {
         }
 
@@ -105,32 +78,15 @@ namespace boost {
             Self& self)
         {
             // Look up the domain name
-            resolver_.async_resolve(
+            client_.resolver_.async_resolve(
                 client_.get_host(),
                 "https",
-                asio::prepend(std::move(self), on_resolve{})
+                asio::cancel_after(
+                    std::chrono::seconds(30),
+                    asio::prepend(std::move(self), on_resolve{}))
             );
         };
 
-        template <typename Self>
-        void operator()(
-            Self& self
-            , on_ssl_handshake
-            , system::error_code ec)
-        {
-            if (ec) {
-                return self.complete(ec);
-            }
-
-            // Set up an HTTP GET request message
-            request_.version(11);
-            request_.method(beast::http::verb::get);
-            request_.set(beast::http::field::host, client_.get_host());
-            request_.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-            
-            // If there are any coins left to request, request one.
-            return send_next_request(self);
-        };
 
         template <typename Self>
         void operator()(
@@ -140,19 +96,19 @@ namespace boost {
             , asio::ip::tcp::resolver::results_type results)
         {
             if (ec) {
-                return self.complete(ec);
+                return do_complete(self, ec);
             }
 
-            // Set a timeout on the operation
-            beast::get_lowest_layer(ssl_stream_).expires_after(std::chrono::seconds(30));
-
             // Make the connection on the IP address we get from a lookup
-            beast::get_lowest_layer(ssl_stream_).async_connect(
+            beast::get_lowest_layer(client_.ssl_stream_).async_connect(
                 results,
-                asio::prepend(std::move(self), on_connect{})
-            );
+                asio::cancel_after(
+                    std::chrono::seconds(30),
+                    asio::prepend(std::move(self), on_connect{})));
 
         };
+
+
 
         template <typename Self>
         void operator()(
@@ -164,29 +120,54 @@ namespace boost {
             boost::ignore_unused(ep);
 
             if (ec) {
-                return self.complete(ec);
+                return do_complete(self, ec);
             }
 
             // Set the expected hostname in the peer certificate for verification
-            ssl_stream_.set_verify_callback(boost::asio::ssl::host_name_verification(client_.get_host()));
+            client_.ssl_stream_.set_verify_callback(boost::asio::ssl::host_name_verification(client_.get_host()));
 
             // Set SNI Hostname (many hosts need this to handshake successfully)
-            if (!SSL_set_tlsext_host_name(ssl_stream_.native_handle(), client_.get_host()))
+            if (!SSL_set_tlsext_host_name(client_.ssl_stream_.native_handle(), client_.get_host()))
             {
                 system::error_code ssl_ec{
                     static_cast<int>(::ERR_get_error()),
                     asio::error::get_ssl_category() };
-                return self.complete(ssl_ec);
+                return do_complete(self, ssl_ec);
             }
 
-            // Set a timeout on the operation
-            beast::get_lowest_layer(ssl_stream_).expires_after(std::chrono::seconds(30));
-
             // Perform the SSL handshake
-            ssl_stream_.async_handshake(
+            client_.ssl_stream_.async_handshake(
                 boost::asio::ssl::stream_base::client,
-                asio::prepend(std::move(self), on_ssl_handshake{})
+                asio::cancel_after(
+                    std::chrono::seconds(30),
+                    asio::prepend(std::move(self), on_ssl_handshake{}))
             );
+        };
+
+
+        template <typename Self>
+        void operator()(
+            Self& self
+            , on_ssl_handshake
+            , system::error_code ec)
+        {
+            if (ec) {
+                return do_complete(self, ec);
+            }
+
+            // Find the subscription start time
+            posix_time::ptime ptime = posix_time::second_clock::universal_time();
+            posix_time::ptime sod = posix_time::ptime(ptime.date());
+            start_of_day_ = posix_time::to_time_t(sod);
+
+            // Set up an HTTP GET request message
+            client_.request_.version(11);
+            client_.request_.method(beast::http::verb::get);
+            client_.request_.set(beast::http::field::host, client_.get_host());
+            client_.request_.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+            // If there are any coins left to request, request one.
+            return send_next_request(self);
         };
 
         template <typename Self>
@@ -199,17 +180,18 @@ namespace boost {
             boost::ignore_unused(bytes_transferred);
 
             if (ec) {
-                return self.complete(ec);
+                return do_complete(self, ec);
             }
 
             // Read a message into our buffer
             beast::http::async_read(
-                ssl_stream_,
-                buffer_,
-                response_,
-                asio::prepend(std::move(self), on_read_result{})
+                client_.ssl_stream_,
+                client_.buffer_,
+                client_.response_,
+                asio::cancel_after(
+                    std::chrono::seconds(30),
+                    asio::prepend(std::move(self), on_read_result{}))
             );
-
         };
 
         template <typename Self>
@@ -223,26 +205,26 @@ namespace boost {
 
             if (ec == beast::http::error::end_of_stream) {
                 system::error_code ok{};
-                return self.complete(ok);
+                return do_complete(self, ok);
             }
             else if (ec) {
-                return self.complete(ec);
+                return do_complete(self, ec);
             }
 
             // Process the received message
 
             // Write the message to standard out
             //std::cout << "Response: " << response_ << "\n" << std::endl;
-            std::cout << "Body: " << response_.body() << "\n\n" << std::endl;
+            std::cout << "Body: " << client_.response_.body() << "\n\n" << std::endl;
 
             // The response can be quite long, and we can avoid an allocation
             // by swapping the body into an empty string.
             std::string temp;
-            temp.swap(response_.body());
+            temp.swap(client_.response_.body());
 
-            client_.process_response(temp, ec);
+            client_.process_response(temp, start_of_day_, ec);
             if (ec) {
-                return self.complete(ec);
+                return do_complete(self, ec);
             }
 
             send_next_request(self);
@@ -250,26 +232,37 @@ namespace boost {
         };
 
         template <typename Self>
+        void do_complete(Self& self, system::error_code ec)
+        {
+            self.complete(ec);
+            client_.running_.clear();
+            return;
+        }
+
+        template <typename Self>
         void send_next_request(Self& self)
         {
             if (!client_.requests_outstanding()) {
                 system::error_code ok{};
-                return self.complete(ok);
+                return do_complete(self, ok);
             }
 
             // Set up an HTTP GET request message
-            request_.target(client_.next_request());
-
-            // Set a timeout on the operation
-            beast::get_lowest_layer(ssl_stream_).expires_after(std::chrono::seconds(30));
+            client_.request_.target(client_.next_request());
 
             // Send the message
             beast::http::async_write(
-                ssl_stream_,
-                request_,
-                asio::prepend(std::move(self), on_write_request{})
+                client_.ssl_stream_,
+                client_.request_,
+                asio::cancel_after(
+                    std::chrono::seconds(30),
+                    asio::prepend(std::move(self), on_write_request{}))
             );
         }
+
+    private:
+        client_type& client_;
+        std::time_t start_of_day_;
     };
 
     template<class Executor>
@@ -288,39 +281,15 @@ namespace boost {
         using request_type = beast::http::request<boost::beast::http::string_body>;
         using response_type = beast::http::response<boost::beast::http::string_body>;
 
-        std::function<void(
-            const std::string&,
-            std::chrono::system_clock::time_point,
-            double)>                                                receive_handler_;
-
-        resolver_type   resolver_;
-        ssl_stream_type ssl_stream_;
-
-        buffer_type   buffer_;
-        request_type  request_;
-        response_type response_;
-
-        std::vector<std::string> coins_;
-        std::time_t start_of_day_;
-        std::string host_;
-
-        std::string current_coin_;
-
-        // It is more efficient to persist the json parser so that memory allocation does not need
-        // to be repeated each time we docode a message
-        json::parser parser_;
+        friend class historic_fetcher_op<Executor>;
 
     public:
-        //using socket_type =
-        //    asio::basic_socket<asio::ip::tcp, Executor>;
-
-        //using endpoint_type = asio::ip::tcp::endpoint;
 
         explicit
             historic_fetcher(
                 Executor& exec
                 , boost::asio::ssl::context& ctx
-                , const std::vector<std::string>& coins
+                , const boost::string_view host
                 , std::function<void(
                     const std::string&
                     , std::chrono::system_clock::time_point
@@ -328,24 +297,35 @@ namespace boost {
             : receive_handler_(receive_handler)
             , resolver_(exec)
             , ssl_stream_(exec, ctx)
-            , coins_(coins)
-            , start_of_day_(0)
+            , host_(host)
         {
-            // For this example use a hard-coded host name.
-            // In reality this would be stored in some form of configuration.
-            host_ = "api.coinbase.com";
-            //host_ = "www.boost.org";
-            //host_ = "ws-feed.exchange.coinbase.com";
-
-            // Set the expected hostname in the peer certificate for verification
-            ssl_stream_.set_verify_callback(boost::asio::ssl::host_name_verification(host_));
-
-            // Find the subscription start time
-            posix_time::ptime ptime = posix_time::second_clock::universal_time();
-            posix_time::ptime sod = posix_time::ptime(ptime.date());
-            start_of_day_ = posix_time::to_time_t(sod);
+            running_.clear();
         }
 
+        template<
+            BOOST_ASIO_COMPLETION_TOKEN_FOR(void(
+                system::error_code)) CompletionToken>
+        BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(CompletionToken, void(
+            system::error_code))
+            async_historic_fetch(
+                const std::vector<std::string>& coins,
+                CompletionToken&& token)
+        {
+            coins_ = coins;
+
+            bool already_running = running_.test_and_set();
+            BOOST_ASSERT(!already_running);
+
+            return asio::async_compose<
+                CompletionToken,
+                void(system::error_code)>(
+                    historic_fetcher_op<Executor>(
+                        *this)
+                    , token
+                    , ssl_stream_);
+        }
+
+    private:
         const char* get_host() {
             return host_.c_str();
         }
@@ -375,7 +355,7 @@ namespace boost {
         }
 
         void process_response(
-            boost::core::string_view str, boost::system::error_code& ec)
+            boost::core::string_view str, std::time_t start_of_day, boost::system::error_code& ec)
         {
             parser_.reset();
 
@@ -403,7 +383,7 @@ namespace boost {
 
                     std::size_t str_size = 0;
                     std::time_t start_time = static_cast<std::time_t>(std::stoll(startstr, &str_size));
-                    if (start_time > start_of_day_) {
+                    if (start_time > start_of_day) {
                         double open = std::stod(openstr, &str_size);
 
                         if (receive_handler_)
@@ -424,29 +404,27 @@ namespace boost {
             }
         }
 
-        template<
-            class Executor,
-            BOOST_ASIO_COMPLETION_TOKEN_FOR(void(
-                system::error_code)) CompletionToken>
-        BOOST_ASIO_INITFN_AUTO_RESULT_TYPE(CompletionToken, void(
-            system::error_code))
-            async_historic_fetch(
-                Executor& exec
-                , CompletionToken&& token)
-        {
-            return asio::async_compose<
-                CompletionToken,
-                void(system::error_code)>(
-                    historic_fetcher_op<Executor>(
-                        *this
-                        , resolver_
-                        , ssl_stream_
-                        , buffer_
-                        , request_
-                        , response_)
-                    , token
-                    , exec);
-        }
+        std::function<void(
+            const std::string&,
+            std::chrono::system_clock::time_point,
+            double)>                                                receive_handler_;
+
+        resolver_type   resolver_;
+        ssl_stream_type ssl_stream_;
+
+        buffer_type   buffer_;
+        request_type  request_;
+        response_type response_;
+
+        std::vector<std::string> coins_;
+        std::string host_;
+        std::atomic_flag running_;
+
+        std::string current_coin_;
+
+        // It is more efficient to persist the json parser so that memory allocation does not need
+        // to be repeated each time we docode a message
+        json::parser parser_;
     };
 
 

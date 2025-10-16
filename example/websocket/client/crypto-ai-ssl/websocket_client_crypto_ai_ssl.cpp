@@ -115,14 +115,16 @@ int main(int argc, char** argv)
     // Construct and start a the fetcher of historic prices.
     asio::strand<asio::io_context::executor_type> strand = asio::make_strand(listen_ioc);
 
+    std::string host = "api.coinbase.com";
+
     auto fetcher = boost::historic_fetcher(
         strand,
         ssl_ctx,
-        coins,
+        host,
         historic_input_recv);
 
     fetcher.async_historic_fetch(
-        strand,
+        coins,
         [](boost::system::error_code ec)
         {
             if (ec.failed())
