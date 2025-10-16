@@ -30,6 +30,7 @@
 #include <iostream>
 #include <functional>
 
+#if 0
 
 using namespace boost;
 using namespace std::placeholders;
@@ -334,8 +335,8 @@ void live_price_listener::on_read(system::error_code ec, std::size_t bytes_trans
     // unchanged, preventing the need for a reallocation each time a message is received.
     buffer_.clear();
 
-    count++;
-    if (count > 20) cancel();
+    testing_count++;
+    if (testing_count > 20) cancel();
 
     // This is a very common idiom in async programming. As soon as a read completes, we
     // initiate another asynchronous read, almost like an infinite loop.
@@ -416,3 +417,5 @@ void live_price_listener::on_close(system::error_code ec)
     // The make_printable() function helps print a ConstBufferSequence
     std::cout << "Final buffer content:" << beast::make_printable(buffer_.data()) << std::endl;
 }
+
+#endif

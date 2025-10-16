@@ -139,13 +139,16 @@ int main(int argc, char** argv)
     listen_ioc.run();
 
     // Skip the live stuff until we get the changes to historic pricing working.
-    return EXIT_SUCCESS;
+    //return EXIT_SUCCESS;
 
     // Construct and start a the websocket listener.
-    live_price_listener listen_worker(listen_ioc, ssl_ctx, coins, live_input_recv, fail);
+    // For this example hard-code the host.
+    //host_ = "ws-feed-public.sandbox.exchange.coinbase.com";
+    std::string ws_host = "ws-feed.exchange.coinbase.com";
+    live_price_listener listen_worker(listen_ioc, ssl_ctx, ws_host, coins, live_input_recv, fail);
     listen_worker.run();
 
-    // Restartr the event loop. The call will return when
+    // Restart the event loop. The run() call will return when
     // the socket is closed.
     listen_ioc.restart();
     listen_ioc.run();
