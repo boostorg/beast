@@ -69,7 +69,6 @@ set(BOOST_BEAST_DEPENDENCIES
     Boost::optional
     Boost::preprocessor
     Boost::smart_ptr
-    Boost::static_assert
     Boost::static_string
     Boost::system
     Boost::throw_exception

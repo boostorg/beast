@@ -30,10 +30,10 @@ class chunk_encode_test
 public:
     struct not_chunk_extensions {};
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         detail::is_chunk_extensions<chunk_extensions>::value);
     
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         ! detail::is_chunk_extensions<not_chunk_extensions>::value);
 
     template<class T, class... Args>

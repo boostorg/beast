@@ -79,50 +79,50 @@ public:
     };
 
     // 0-arg
-    BOOST_STATIC_ASSERT(std::is_constructible<
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<
         request<default_body>>::value);
 
     // 1-arg
-    BOOST_STATIC_ASSERT(! std::is_constructible<request<one_arg_body>
+    BOOST_CORE_STATIC_ASSERT(! std::is_constructible<request<one_arg_body>
         >::value);
 
-    //BOOST_STATIC_ASSERT(! std::is_constructible<request<one_arg_body>,
+    //BOOST_CORE_STATIC_ASSERT(! std::is_constructible<request<one_arg_body>,
     //    verb, string_view, unsigned>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
         verb, string_view, unsigned, Arg1>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
         verb, string_view, unsigned, Arg1&&>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
         verb, string_view, unsigned, Arg1 const>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
         verb, string_view, unsigned, Arg1 const&>::value);
 
     // 1-arg + fields
-    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
         verb, string_view, unsigned, Arg1, fields::allocator_type>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<request<one_arg_body>, std::piecewise_construct_t,
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>, std::piecewise_construct_t,
             std::tuple<Arg1>>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<request<two_arg_body>, std::piecewise_construct_t,
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<two_arg_body>, std::piecewise_construct_t,
             std::tuple<Arg1, Arg2>>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<request<two_arg_body>, std::piecewise_construct_t,
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<two_arg_body>, std::piecewise_construct_t,
             std::tuple<Arg1, Arg2>, std::tuple<fields::allocator_type>>::value);
 
     // special members
-    BOOST_STATIC_ASSERT(std::is_copy_constructible<header<true>>::value);
-    BOOST_STATIC_ASSERT(std::is_move_constructible<header<true>>::value);
-    BOOST_STATIC_ASSERT(std::is_copy_assignable<header<true>>::value);
-    BOOST_STATIC_ASSERT(std::is_move_assignable<header<true>>::value);
-    BOOST_STATIC_ASSERT(std::is_copy_constructible<header<false>>::value);
-    BOOST_STATIC_ASSERT(std::is_move_constructible<header<false>>::value);
-    BOOST_STATIC_ASSERT(std::is_copy_assignable<header<false>>::value);
-    BOOST_STATIC_ASSERT(std::is_move_assignable<header<false>>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_copy_constructible<header<true>>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_move_constructible<header<true>>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_copy_assignable<header<true>>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_move_assignable<header<true>>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_copy_constructible<header<false>>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_move_constructible<header<false>>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_copy_assignable<header<false>>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_move_assignable<header<false>>::value);
 
     void
     testMessage()

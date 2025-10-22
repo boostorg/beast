@@ -91,21 +91,21 @@ class message_generator_test : public beast::unit_test::suite
     static_assert(
         is_buffers_generator<message_generator>::value,
         "buffers_generator not modeled");
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_constructible<
             message_generator,
             message<true, string_body>&&>::value);
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_constructible<
             message_generator,
             message<false, string_body>&&>::value);
 
     // only rvalue refs
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         ! std::is_constructible<
             message_generator,
             message<true, string_body>&>::value);
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         ! std::is_constructible<
             message_generator,
             message<true, string_body> const&>::value);

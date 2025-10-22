@@ -43,14 +43,14 @@ struct is_invocable_udt4
 
 #ifndef __INTELLISENSE__
 // VFALCO Fails to compile with Intellisense
-BOOST_STATIC_ASSERT(is_invocable<is_invocable_udt1, void(int)>::value);
-BOOST_STATIC_ASSERT(is_invocable<is_invocable_udt2, int(int)>::value);
-BOOST_STATIC_ASSERT(is_invocable<is_invocable_udt3, int(int)>::value);
-BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt1, void(void)>::value);
-BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt2, int(void)>::value);
-BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt2, void(void)>::value);
-BOOST_STATIC_ASSERT(! is_invocable<is_invocable_udt3 const, int(int)>::value);
-BOOST_STATIC_ASSERT(is_invocable<is_invocable_udt4, void(std::unique_ptr<int>)>::value);
+BOOST_CORE_STATIC_ASSERT(is_invocable<is_invocable_udt1, void(int)>::value);
+BOOST_CORE_STATIC_ASSERT(is_invocable<is_invocable_udt2, int(int)>::value);
+BOOST_CORE_STATIC_ASSERT(is_invocable<is_invocable_udt3, int(int)>::value);
+BOOST_CORE_STATIC_ASSERT(! is_invocable<is_invocable_udt1, void(void)>::value);
+BOOST_CORE_STATIC_ASSERT(! is_invocable<is_invocable_udt2, int(void)>::value);
+BOOST_CORE_STATIC_ASSERT(! is_invocable<is_invocable_udt2, void(void)>::value);
+BOOST_CORE_STATIC_ASSERT(! is_invocable<is_invocable_udt3 const, int(int)>::value);
+BOOST_CORE_STATIC_ASSERT(is_invocable<is_invocable_udt4, void(std::unique_ptr<int>)>::value);
 #endif
 
 } // (anonymous)

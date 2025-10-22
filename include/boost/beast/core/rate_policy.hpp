@@ -11,7 +11,7 @@
 #define BOOST_BEAST_CORE_RATE_POLICY_HPP
 
 #include <boost/beast/core/detail/config.hpp>
-#include <cstdint>
+#include <cstddef>
 #include <limits>
 
 namespace boost {

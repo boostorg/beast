@@ -56,120 +56,120 @@ class buffer_traits_test : public beast::unit_test::suite
 public:
     // is_const_buffer_sequence
 
-    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_const_buffer_sequence<
             >::value);
 
-    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_const_buffer_sequence<
         net::const_buffer
             >::value);
 
-    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_const_buffer_sequence<
         net::const_buffer, net::const_buffer
             >::value);
 
-    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_const_buffer_sequence<
         net::const_buffer, net::mutable_buffer
             >::value);
 
-    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_const_buffer_sequence<
         net::mutable_buffer, net::mutable_buffer
             >::value);
 
-    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_const_buffer_sequence<
         net::const_buffer const&
             >::value);
 
-    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_const_buffer_sequence<
         net::const_buffer const&, net::const_buffer const&
             >::value);
 
-    BOOST_STATIC_ASSERT(is_const_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_const_buffer_sequence<
         net::const_buffer const&, net::mutable_buffer const&
             >::value);
 
     // is_mutable_buffer_sequence
 
-    BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_mutable_buffer_sequence<
             >::value);
 
-    BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_mutable_buffer_sequence<
         net::mutable_buffer
             >::value);
 
-    BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_mutable_buffer_sequence<
         net::mutable_buffer, net::mutable_buffer
             >::value);
 
-    BOOST_STATIC_ASSERT(! is_mutable_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(! is_mutable_buffer_sequence<
         net::const_buffer, net::const_buffer
             >::value);
 
-    BOOST_STATIC_ASSERT(! is_mutable_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(! is_mutable_buffer_sequence<
         net::const_buffer, net::mutable_buffer
             >::value);
 
-    BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_mutable_buffer_sequence<
         net::mutable_buffer const&
             >::value);
 
-    BOOST_STATIC_ASSERT(is_mutable_buffer_sequence<
+    BOOST_CORE_STATIC_ASSERT(is_mutable_buffer_sequence<
         net::mutable_buffer const&, net::mutable_buffer const&
             >::value);
 
     // buffers_type
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::const_buffer, buffers_type<
             net::const_buffer
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::const_buffer, buffers_type<
             net::const_buffer, net::const_buffer
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::const_buffer, buffers_type<
             net::const_buffer, net::mutable_buffer
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::mutable_buffer, buffers_type<
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::mutable_buffer, buffers_type<
             net::mutable_buffer
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::mutable_buffer, buffers_type<
             net::mutable_buffer, net::mutable_buffer
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::const_buffer, buffers_type<
             std::array<net::const_buffer, 3>
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::mutable_buffer, buffers_type<
             std::array<net::mutable_buffer, 3>
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::const_buffer, buffers_type<
             std::array<int, 3>
         >>::value);
 
     // buffers_iterator_type
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::const_buffer const*, buffers_iterator_type<
             net::const_buffer
         >>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         std::is_same<net::mutable_buffer const*, buffers_iterator_type<
             net::mutable_buffer
         >>::value);
@@ -224,7 +224,7 @@ public:
             BEAST_EXPECT(buffer_bytes(s) == 26);
         }
 
-        BOOST_STATIC_ASSERT(! detail::is_invocable<
+        BOOST_CORE_STATIC_ASSERT(! detail::is_invocable<
             detail::buffer_bytes_impl,
             std::size_t(not_sequence const&)>::value);
     }

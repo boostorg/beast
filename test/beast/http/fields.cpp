@@ -28,12 +28,12 @@ public:
     static constexpr std::size_t max_static_buffer =
         sizeof(beast::detail::temporary_buffer);
 
-    BOOST_STATIC_ASSERT(is_fields<fields>::value);
+    BOOST_CORE_STATIC_ASSERT(is_fields<fields>::value);
 
     // std::allocator is noexcept movable, fields should satisfy
     // these constraints as well.
-    BOOST_STATIC_ASSERT(std::is_nothrow_move_constructible<fields>::value);
-    BOOST_STATIC_ASSERT(std::is_nothrow_move_assignable<fields>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_nothrow_move_constructible<fields>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_nothrow_move_assignable<fields>::value);
 
     template<class Allocator>
     using fa_t = basic_fields<Allocator>;
@@ -1039,33 +1039,33 @@ public:
     void
     testIssue2085()
     {
-        BOOST_STATIC_ASSERT((! set_test<field, int>::value));
-        BOOST_STATIC_ASSERT((! set_test<field, std::nullptr_t>::value));
-        BOOST_STATIC_ASSERT((! set_test<field, double>::value));
-        BOOST_STATIC_ASSERT((! set_test<string_view, int>::value));
-        BOOST_STATIC_ASSERT((! set_test<string_view, std::nullptr_t>::value));
-        BOOST_STATIC_ASSERT((! set_test<string_view, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<field, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<field, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<field, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, double>::value));
 
-        BOOST_STATIC_ASSERT(( set_test<field, const char*>::value));
-        BOOST_STATIC_ASSERT(( set_test<field, string_view>::value));
-        BOOST_STATIC_ASSERT(( set_test<field, const char(&)[10]>::value));
-        BOOST_STATIC_ASSERT(( set_test<string_view, const char*>::value));
-        BOOST_STATIC_ASSERT(( set_test<string_view, string_view>::value));
-        BOOST_STATIC_ASSERT(( set_test<string_view, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<field, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<field, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<field, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, const char(&)[10]>::value));
 
-        BOOST_STATIC_ASSERT((! insert_test<field, int>::value));
-        BOOST_STATIC_ASSERT((! insert_test<field, std::nullptr_t>::value));
-        BOOST_STATIC_ASSERT((! insert_test<field, double>::value));
-        BOOST_STATIC_ASSERT((! insert_test<string_view, int>::value));
-        BOOST_STATIC_ASSERT((! insert_test<string_view, std::nullptr_t>::value));
-        BOOST_STATIC_ASSERT((! insert_test<string_view, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<field, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<field, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<field, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, double>::value));
 
-        BOOST_STATIC_ASSERT(( insert_test<field, const char*>::value));
-        BOOST_STATIC_ASSERT(( insert_test<field, string_view>::value));
-        BOOST_STATIC_ASSERT(( insert_test<field, const char(&)[10]>::value));
-        BOOST_STATIC_ASSERT(( insert_test<string_view, const char*>::value));
-        BOOST_STATIC_ASSERT(( insert_test<string_view, string_view>::value));
-        BOOST_STATIC_ASSERT(( insert_test<string_view, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<field, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<field, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<field, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, const char(&)[10]>::value));
     }
 
     template<class T>
@@ -1119,12 +1119,12 @@ public:
     testIssue2517()
     {
         using test_fields = basic_fields<throwing_allocator<char>>;
-        BOOST_STATIC_ASSERT(is_fields<test_fields>::value);
+        BOOST_CORE_STATIC_ASSERT(is_fields<test_fields>::value);
 
         // Check if basic_fields respects throw-constructibility and
         // propagate_on_container_move_assignment of the allocator.
-        BOOST_STATIC_ASSERT(std::is_nothrow_move_constructible<test_fields>::value);
-        BOOST_STATIC_ASSERT(!std::is_nothrow_move_assignable<test_fields>::value);
+        BOOST_CORE_STATIC_ASSERT(std::is_nothrow_move_constructible<test_fields>::value);
+        BOOST_CORE_STATIC_ASSERT(!std::is_nothrow_move_assignable<test_fields>::value);
 
         test_fields f1;
         f1.insert("1", "1");
