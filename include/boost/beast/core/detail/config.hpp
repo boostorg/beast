@@ -14,7 +14,7 @@
 #include <boost/config.hpp>
 #include <boost/version.hpp>
 #include <boost/core/ignore_unused.hpp>
-#include <boost/static_assert.hpp>
+#include <boost/core/detail/static_assert.hpp>
 #include <boost/preprocessor/cat.hpp>
 
 namespace boost {

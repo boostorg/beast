@@ -1267,7 +1267,7 @@ public:
                 net::strand<
                     net::io_context::executor_type>,
                 unlimited_rate_policy> stream(std::move(sock));
-            BOOST_STATIC_ASSERT(
+            BOOST_CORE_STATIC_ASSERT(
                 std::is_convertible<
                     decltype(sock)::executor_type,
                     decltype(stream)::executor_type>::value);

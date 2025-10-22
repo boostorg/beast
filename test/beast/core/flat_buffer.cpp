@@ -26,7 +26,7 @@ namespace beast {
 class flat_buffer_test : public beast::unit_test::suite
 {
 public:
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         is_mutable_dynamic_buffer<flat_buffer>::value);
 
     void
@@ -300,7 +300,7 @@ public:
         {
             basic_flat_buffer<a_t> b;
             auto a = b.get_allocator();
-            BOOST_STATIC_ASSERT(
+            BOOST_CORE_STATIC_ASSERT(
                 ! std::is_const<decltype(a)>::value);
             a->max_size = 30;
             try

@@ -32,11 +32,11 @@ template<class File, bool append_unicode_suffix = false>
 void
 test_file()
 {
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         is_file<File>::value);
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         ! std::is_copy_constructible<File>::value);
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         ! std::is_copy_assignable<File>::value);
 
     namespace fs = boost::filesystem;

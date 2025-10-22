@@ -150,7 +150,7 @@ public:
     void
     testAsioSSLCompat()
     {
-        BOOST_STATIC_ASSERT(
+        BOOST_CORE_STATIC_ASSERT(
             std::is_same<
                 boost::asio::ssl::stream<test::stream>::
                     lowest_layer_type,

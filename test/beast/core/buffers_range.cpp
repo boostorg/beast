@@ -20,22 +20,22 @@ namespace beast {
 class buffers_range_test : public beast::unit_test::suite
 {
 public:
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         is_const_buffer_sequence<
             decltype(beast::buffers_range(
                 std::declval<net::const_buffer>()))>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         is_const_buffer_sequence<
             decltype(beast::buffers_range(
                 std::declval<net::mutable_buffer>()))>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         ! net::is_mutable_buffer_sequence<
             decltype(beast::buffers_range(
                 std::declval<net::const_buffer>()))>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         net::is_mutable_buffer_sequence<
             decltype(beast::buffers_range(
                 std::declval<net::mutable_buffer>()))>::value);

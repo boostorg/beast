@@ -167,25 +167,25 @@ public:
     void
     run() override
     {
-        BOOST_STATIC_ASSERT(std::is_constructible<
+        BOOST_CORE_STATIC_ASSERT(std::is_constructible<
             stream<test::stream>, net::io_context&>::value);
 
-        BOOST_STATIC_ASSERT(std::is_move_constructible<
+        BOOST_CORE_STATIC_ASSERT(std::is_move_constructible<
             stream<test::stream>>::value);
 
     #if 0
-        BOOST_STATIC_ASSERT(std::is_move_assignable<
+        BOOST_CORE_STATIC_ASSERT(std::is_move_assignable<
             stream<test::stream>>::value);
     #endif
 
-        BOOST_STATIC_ASSERT(std::is_constructible<
+        BOOST_CORE_STATIC_ASSERT(std::is_constructible<
             stream<test::stream&>, test::stream&>::value);
 
         // VFALCO Should these be allowed for NextLayer references?
-        BOOST_STATIC_ASSERT(std::is_move_constructible<
+        BOOST_CORE_STATIC_ASSERT(std::is_move_constructible<
             stream<test::stream&>>::value);
     #if 0
-        BOOST_STATIC_ASSERT(std::is_move_assignable<
+        BOOST_CORE_STATIC_ASSERT(std::is_move_assignable<
             stream<test::stream&>>::value);
     #endif
 

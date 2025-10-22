@@ -12,6 +12,8 @@
 
 #include <boost/beast/core/detail/config.hpp>
 
+#include <cstddef>
+
 namespace boost {
 namespace beast {
 namespace websocket {

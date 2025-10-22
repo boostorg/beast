@@ -57,7 +57,7 @@ struct buffers_adaptor_test_hook
 class buffers_adaptor_test : public unit_test::suite
 {
 public:
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         is_mutable_dynamic_buffer<
             buffers_adaptor<buffers_triple>>::value);
 

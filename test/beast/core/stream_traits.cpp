@@ -65,13 +65,13 @@ public:
         }
     };
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         ! detail::has_next_layer<without>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         detail::has_next_layer<with<without>>::value);
 
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         detail::has_next_layer<with<with<without>>>::value);
 
     void
@@ -169,9 +169,9 @@ public:
     testGetLowestLayerJavadoc()
     {
         write_stream<without> s;
-        BOOST_STATIC_ASSERT(
+        BOOST_CORE_STATIC_ASSERT(
             is_sync_write_stream<without>::value);
-        BOOST_STATIC_ASSERT(std::is_same<
+        BOOST_CORE_STATIC_ASSERT(std::is_same<
             decltype(get_lowest_layer(s)), without&>::value);
 
 #if 0
@@ -238,37 +238,37 @@ public:
         void async_write_some(ConstBufferSequence const&, WriteHandler&&);
     };
 
-    BOOST_STATIC_ASSERT(is_sync_read_stream<sync_read_stream>::value);
-    BOOST_STATIC_ASSERT(is_sync_read_stream<sync_stream>::value);
-    BOOST_STATIC_ASSERT(is_sync_write_stream<sync_write_stream>::value);
-    BOOST_STATIC_ASSERT(is_sync_write_stream<sync_stream>::value);
-    BOOST_STATIC_ASSERT(is_sync_stream<sync_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_sync_read_stream<sync_read_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_sync_read_stream<sync_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_sync_write_stream<sync_write_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_sync_write_stream<sync_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_sync_stream<sync_stream>::value);
 
-    BOOST_STATIC_ASSERT(! is_sync_read_stream<sync_write_stream>::value);
-    BOOST_STATIC_ASSERT(! is_sync_write_stream<sync_read_stream>::value);
-    BOOST_STATIC_ASSERT(! is_sync_stream<async_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! is_sync_read_stream<sync_write_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! is_sync_write_stream<sync_read_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! is_sync_stream<async_stream>::value);
 
-    BOOST_STATIC_ASSERT(has_get_executor<async_read_stream>::value);
-    BOOST_STATIC_ASSERT(has_get_executor<async_write_stream>::value);
-    BOOST_STATIC_ASSERT(has_get_executor<async_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(has_get_executor<async_read_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(has_get_executor<async_write_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(has_get_executor<async_stream>::value);
 
-    BOOST_STATIC_ASSERT(! has_get_executor<sync_read_stream>::value);
-    BOOST_STATIC_ASSERT(! has_get_executor<sync_write_stream>::value);
-    BOOST_STATIC_ASSERT(! has_get_executor<sync_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! has_get_executor<sync_read_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! has_get_executor<sync_write_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! has_get_executor<sync_stream>::value);
 
-    BOOST_STATIC_ASSERT(is_async_read_stream<async_read_stream>::value);
-    BOOST_STATIC_ASSERT(is_async_read_stream<async_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_async_read_stream<async_read_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_async_read_stream<async_stream>::value);
 #if BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-    BOOST_STATIC_ASSERT(is_async_write_stream<net::ip::tcp::socket>::value);
+    BOOST_CORE_STATIC_ASSERT(is_async_write_stream<net::ip::tcp::socket>::value);
 #else
-    BOOST_STATIC_ASSERT(is_async_write_stream<async_write_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_async_write_stream<async_write_stream>::value);
 #endif
-    BOOST_STATIC_ASSERT(is_async_write_stream<async_stream>::value);
-    BOOST_STATIC_ASSERT(is_async_stream<async_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_async_write_stream<async_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(is_async_stream<async_stream>::value);
 
-    BOOST_STATIC_ASSERT(! is_async_write_stream<async_read_stream>::value);
-    BOOST_STATIC_ASSERT(! is_async_read_stream<async_write_stream>::value);
-    BOOST_STATIC_ASSERT(! is_async_stream<sync_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! is_async_write_stream<async_read_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! is_async_read_stream<async_write_stream>::value);
+    BOOST_CORE_STATIC_ASSERT(! is_async_stream<sync_stream>::value);
 
     //--------------------------------------------------------------------------
 
@@ -306,13 +306,13 @@ public:
             type layer(ioc);
             layer.next_layer().open(net::ip::tcp::v4());
             BEAST_EXPECT(layer.next_layer().is_open());
-            BOOST_STATIC_ASSERT(detail::has_next_layer<type>::value);
-            BOOST_STATIC_ASSERT((std::is_same<
+            BOOST_CORE_STATIC_ASSERT(detail::has_next_layer<type>::value);
+            BOOST_CORE_STATIC_ASSERT((std::is_same<
                 typename std::decay<decltype(get_lowest_layer(layer))>::type,
                 lowest_layer_type<decltype(layer)>>::value));
-            BOOST_STATIC_ASSERT(std::is_same<net::ip::tcp::socket&,
+            BOOST_CORE_STATIC_ASSERT(std::is_same<net::ip::tcp::socket&,
                 decltype(get_lowest_layer(layer))>::value);
-            BOOST_STATIC_ASSERT(std::is_same<net::ip::tcp::socket,
+            BOOST_CORE_STATIC_ASSERT(std::is_same<net::ip::tcp::socket,
                 lowest_layer_type<decltype(layer)>>::value);
             close_socket(get_lowest_layer(layer));
             BEAST_EXPECT(! layer.next_layer().is_open());
