@@ -67,7 +67,6 @@ set(BOOST_BEAST_DEPENDENCIES
     Boost::logic
     Boost::mp11
     Boost::optional
-    Boost::preprocessor
     Boost::smart_ptr
     Boost::static_string
     Boost::system

@@ -36,7 +36,6 @@ else()
   logic
   mp11
   optional
-  preprocessor
   smart_ptr
   static_string
   system
@@ -63,6 +62,7 @@ else()
   numeric/conversion
   range
   tokenizer
+  preprocessor
   array
   concept_check
   exception
