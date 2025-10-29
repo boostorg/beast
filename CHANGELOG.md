@@ -1,3 +1,17 @@
+Version 359:
+
+* Removed dependency on Boost.Preprocessor
+* Removed dependency on Boost.StaticString
+* `http::parser` rejects non-standard trailer fields by default
+* `http::basic_parser` uses a dedicated callback for trailer fields
+* `http::field` constants are updated
+* Added `http::basic_fields::contains` member function
+* `http::buffer_body` ignores empty chunks
+* Fixed allocator move/copy assignment in `flat_buffer` and `multi_buffer`
+* Fixed websocket permessage-deflate error on partial message consumption
+
+--------------------------------------------------------------------------------
+
 Version 358:
 
 * Added missing `cstdint` header to `detail/cpu_info.hpp`
