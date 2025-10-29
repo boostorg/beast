@@ -107,8 +107,8 @@ namespace net = boost::asio;
 #define BOOST_BEAST_ASSIGN_EC(ec, error) \
     do \
     { \
-        static constexpr auto loc__((BOOST_CURRENT_LOCATION)); \
-        ec.assign(error, &loc__); \
+        static constexpr auto loc_bb_((BOOST_CURRENT_LOCATION)); \
+        ec.assign(error, &loc_bb_); \
     } \
     while (false)
 #endif
