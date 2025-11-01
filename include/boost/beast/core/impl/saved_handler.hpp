@@ -43,12 +43,33 @@ public:
 template<class Handler, class Alloc>
 class saved_handler::impl final : public base
 {
+    friend class saved_handler;
+
     using alloc_type = typename
         beast::detail::allocator_traits<
             Alloc>::template rebind_alloc<impl>;
 
     using alloc_traits =
         beast::detail::allocator_traits<alloc_type>;
+
+    struct storage
+    {
+        alloc_type a;
+        impl* p;
+
+        explicit
+        storage(Alloc const& a_)
+            : a(a_)
+            , p(alloc_traits::allocate(a, 1))
+        {
+        }
+
+        ~storage()
+        {
+            if(p)
+                alloc_traits::deallocate(a, p, 1);
+        }
+    };
 
     struct ebo_pair : boost::empty_value<alloc_type>
     {
@@ -68,12 +89,12 @@ class saved_handler::impl final : public base
     ebo_pair v_;
     net::executor_work_guard<
         net::associated_executor_t<Handler>> wg2_;
-    net::cancellation_slot slot_{net::get_associated_cancellation_slot(v_.h)};
+
 public:
     template<class Handler_>
-    impl(alloc_type const& a, Handler_&& h, 
-         saved_handler * owner)
-        : base(owner), v_(a, std::forward<Handler_>(h))
+    impl(alloc_type const& a, Handler_&& h, saved_handler* owner)
+        : base(owner)
+        , v_(a, std::forward<Handler_>(h))
         , wg2_(net::get_associated_executor(v_.h))
     {
     }
@@ -85,8 +106,8 @@ public:
     void
     destroy() override
     {
+        net::get_associated_cancellation_slot(v_.h).clear();
         auto v = std::move(v_);
-        slot_.clear();
         alloc_traits::destroy(v.get(), this);
         alloc_traits::deallocate(v.get(), this, 1);
     }
@@ -94,7 +115,7 @@ public:
     void
     invoke() override
     {
-        slot_.clear();
+        net::get_associated_cancellation_slot(v_.h).clear();
         auto v = std::move(v_);
         alloc_traits::destroy(v.get(), this);
         alloc_traits::deallocate(v.get(), this, 1);
@@ -103,7 +124,7 @@ public:
 
     void self_complete()
     {
-        slot_.clear();
+        net::get_associated_cancellation_slot(v_.h).clear();
         owner_->p_ = nullptr;
         auto v = std::move(v_);
         alloc_traits::destroy(v.get(), this);
@@ -122,59 +143,39 @@ emplace(Handler&& handler, Allocator const& alloc,
 {
     // Can't delete a handler before invoking
     BOOST_ASSERT(! has_value());
-    using handler_type =
-        typename std::decay<Handler>::type;
-    using alloc_type = typename
-        detail::allocator_traits<Allocator>::
-            template rebind_alloc<impl<
-                handler_type, Allocator>>;
-    using alloc_traits =
-        beast::detail::allocator_traits<alloc_type>;
-    struct storage
-    {
-        alloc_type a;
-        impl<Handler, Allocator>* p;
+    using impl_type =
+        impl<typename std::decay<Handler>::type, Allocator>;
 
-        explicit
-        storage(Allocator const& a_)
-            : a(a_)
-            , p(alloc_traits::allocate(a, 1))
-        {
-        }
-
-        ~storage()
-        {
-            if(p)
-                alloc_traits::deallocate(a, p, 1);
-        }
-    };
-
-
-    auto cancel_slot = net::get_associated_cancellation_slot(handler);
-    storage s(alloc);
-    alloc_traits::construct(s.a, s.p,
+    typename impl_type::storage s(alloc);
+    impl_type::alloc_traits::construct(s.a, s.p,
         s.a, std::forward<Handler>(handler), this);
-    
+
     auto tmp = boost::exchange(s.p, nullptr);
     p_ = tmp;
 
-    if (cancel_slot.is_connected())
+    auto c_slot = net::get_associated_cancellation_slot(handler);
+    if (c_slot.is_connected())
     {
-        struct cancel_op
+        class cancel_op
         {
-            impl<Handler, Allocator>* p;
-            net::cancellation_type accepted_ct;
-            cancel_op(impl<Handler, Allocator>* p,
-                      net::cancellation_type accepted_ct) 
-                        : p(p), accepted_ct(accepted_ct) {}
+            impl_type* p_;
+            net::cancellation_type accepted_ct_;
 
-            void operator()(net::cancellation_type ct)
+        public:
+            cancel_op(impl_type* p, net::cancellation_type accepted_ct)
+                : p_(p)
+                , accepted_ct_(accepted_ct)
             {
-                if ((ct & accepted_ct) != net::cancellation_type::none)
-                    p->self_complete();
+            }
+
+            void
+            operator()(net::cancellation_type ct)
+            {
+                if((ct & accepted_ct_) != net::cancellation_type::none)
+                    p_->self_complete();
             }
         };
-        cancel_slot.template emplace<cancel_op>(tmp, cancel_type);
+        c_slot.template emplace<cancel_op>(tmp, cancel_type);
     }
 }
 
