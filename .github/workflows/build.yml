@@ -203,13 +203,13 @@ jobs:
             container: ubuntu:25.04
             install: clang-20
           - toolset: clang
-            os: macos-13
-            cxxstd: 11,14,17,20,2b
-          - toolset: clang
             os: macos-14
             cxxstd: 11,14,17,20,2b
           - toolset: clang
             os: macos-15
+            cxxstd: 11,14,17,20,2b
+          - toolset: clang
+            os: macos-26
             cxxstd: 11,14,17,20,2b
 
     needs: [runner-selection]
