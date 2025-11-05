@@ -52,22 +52,70 @@ class saved_handler::impl final : public base
     using alloc_traits =
         beast::detail::allocator_traits<alloc_type>;
 
-    struct storage
+    class cancel_op
     {
-        alloc_type a;
-        impl* p;
+        impl* p_;
+        net::cancellation_type accepted_ct_;
 
-        explicit
-        storage(Alloc const& a_)
-            : a(a_)
-            , p(alloc_traits::allocate(a, 1))
+    public:
+        cancel_op(impl* p, net::cancellation_type accepted_ct)
+            : p_(p)
+            , accepted_ct_(accepted_ct)
         {
+        }
+
+        void
+        operator()(net::cancellation_type ct)
+        {
+            if((ct & accepted_ct_) != net::cancellation_type::none)
+                p_->self_complete();
+        }
+    };
+
+    class storage
+    {
+        alloc_type a_;
+        impl* p_;
+        bool c_;
+
+    public:
+        explicit
+        storage(Alloc const& a)
+            : a_(a)
+            , p_(alloc_traits::allocate(a_, 1))
+            , c_(false)
+        {
+        }
+
+        template<class Handler_>
+        void
+        construct(Handler_&& h, saved_handler* owner)
+        {
+            alloc_traits::construct(
+                a_, p_, a_, std::forward<Handler_>(h), owner);
+            c_ = true;
+        }
+
+        impl*
+        get() noexcept
+        {
+            return p_;
+        }
+
+        impl*
+        release() noexcept
+        {
+            return boost::exchange(p_, nullptr);
         }
 
         ~storage()
         {
-            if(p)
-                alloc_traits::deallocate(a, p, 1);
+            if(p_)
+            {
+                if(c_)
+                    alloc_traits::destroy(a_, p_);
+                alloc_traits::deallocate(a_, p_, 1);
+            }
         }
     };
 
@@ -138,8 +186,10 @@ public:
 template<class Handler, class Allocator>
 void
 saved_handler::
-emplace(Handler&& handler, Allocator const& alloc,
-        net::cancellation_type cancel_type)
+emplace(
+    Handler&& handler,
+    Allocator const& alloc,
+    net::cancellation_type cancel_type)
 {
     // Can't delete a handler before invoking
     BOOST_ASSERT(! has_value());
@@ -147,36 +197,15 @@ emplace(Handler&& handler, Allocator const& alloc,
         impl<typename std::decay<Handler>::type, Allocator>;
 
     typename impl_type::storage s(alloc);
-    impl_type::alloc_traits::construct(s.a, s.p,
-        s.a, std::forward<Handler>(handler), this);
+    auto c_slot = net::get_associated_cancellation_slot(handler);
 
-    auto tmp = boost::exchange(s.p, nullptr);
-    p_ = tmp;
+    s.construct(std::forward<Handler>(handler), this);
 
-    auto c_slot = net::get_associated_cancellation_slot(tmp->v_.h);
-    if (c_slot.is_connected())
-    {
-        class cancel_op
-        {
-            impl_type* p_;
-            net::cancellation_type accepted_ct_;
+    if(c_slot.is_connected())
+        c_slot.template emplace<
+            typename impl_type::cancel_op>(s.get(), cancel_type);
 
-        public:
-            cancel_op(impl_type* p, net::cancellation_type accepted_ct)
-                : p_(p)
-                , accepted_ct_(accepted_ct)
-            {
-            }
-
-            void
-            operator()(net::cancellation_type ct)
-            {
-                if((ct & accepted_ct_) != net::cancellation_type::none)
-                    p_->self_complete();
-            }
-        };
-        c_slot.template emplace<cancel_op>(tmp, cancel_type);
-    }
+    p_ = s.release();
 }
 
 template<class Handler>
