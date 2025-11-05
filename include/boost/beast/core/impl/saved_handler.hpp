@@ -153,7 +153,7 @@ emplace(Handler&& handler, Allocator const& alloc,
     auto tmp = boost::exchange(s.p, nullptr);
     p_ = tmp;
 
-    auto c_slot = net::get_associated_cancellation_slot(handler);
+    auto c_slot = net::get_associated_cancellation_slot(tmp->v_.h);
     if (c_slot.is_connected())
     {
         class cancel_op
