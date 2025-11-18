@@ -18,7 +18,7 @@ namespace websocket {
 namespace detail {
 
 int
-parse_bits(core::string_view s)
+parse_bits(boost::core::string_view s)
 {
     if(s.size() == 0)
         return -1;

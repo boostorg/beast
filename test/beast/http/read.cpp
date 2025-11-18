@@ -440,7 +440,7 @@ public:
 
     template<class Parser, class Pred>
     void
-    readgrind(core::string_view s, Pred&& pred)
+    readgrind(boost::core::string_view s, Pred&& pred)
     {
         for(std::size_t n = 1; n < s.size() - 1; ++n)
         {
@@ -600,8 +600,8 @@ public:
             request_parser<string_body> p;
             test::stream s(ioc_);
 
-            s.append(core::string_view(hdr));
-            s.append(core::string_view(body));
+            s.append(boost::core::string_view(hdr));
+            s.append(boost::core::string_view(body));
             flat_buffer fb;
             error_code ec;
             auto bt = async_read_header(s, fb, p, yield[ec]);
@@ -685,8 +685,8 @@ public:
             // bytes_transferred returns length of header
             request_parser<string_body> p;
             test::stream s(ioc);
-            s.append(core::string_view(hdr));
-            s.append(core::string_view(body));
+            s.append(boost::core::string_view(hdr));
+            s.append(boost::core::string_view(body));
             flat_buffer fb;
             error_code ec;
             auto bt = read_header(s, fb, p, ec);
@@ -703,8 +703,8 @@ public:
             // bytes_transferred returns length of header
             request_parser<string_body> p;
             test::stream s(ioc);
-            s.append(core::string_view(hdr));
-            s.append(core::string_view(body));
+            s.append(boost::core::string_view(hdr));
+            s.append(boost::core::string_view(body));
             std::string res ;
             auto fb = asio::dynamic_buffer(res);
             error_code ec;

@@ -102,7 +102,7 @@ public:
         [&](ws_type_t<deflateSupported>& ws)
         {
             ws.next_layer().append(
-                core::string_view(
+                boost::core::string_view(
                     "\x01\x00" "\x80\x00", 4));
             multi_buffer b;
             w.read(ws, b);
@@ -133,7 +133,7 @@ public:
                 {0x89, 0x00}));
             bool invoked = false;
             ws.control_callback(
-                [&](frame_type kind, core::string_view)
+                [&](frame_type kind, boost::core::string_view)
                 {
                     BEAST_EXPECT(! invoked);
                     BEAST_EXPECT(kind == frame_type::ping);
@@ -155,7 +155,7 @@ public:
                 {0x88, 0x00}));
             bool invoked = false;
             ws.control_callback(
-                [&](frame_type kind, core::string_view)
+                [&](frame_type kind, boost::core::string_view)
                 {
                     BEAST_EXPECT(! invoked);
                     BEAST_EXPECT(kind == frame_type::close);
@@ -171,7 +171,7 @@ public:
         {
             bool once = false;
             ws.control_callback(
-                [&](frame_type kind, core::string_view s)
+                [&](frame_type kind, boost::core::string_view s)
                 {
                     BEAST_EXPECT(kind == frame_type::pong);
                     BEAST_EXPECT(! once);
@@ -194,7 +194,7 @@ public:
         {
             bool once = false;
             ws.control_callback(
-                [&](frame_type kind, core::string_view s)
+                [&](frame_type kind, boost::core::string_view s)
                 {
                     BEAST_EXPECT(kind == frame_type::pong);
                     BEAST_EXPECT(! once);
@@ -389,7 +389,7 @@ public:
         // close frames
         {
             auto const check =
-            [&](error_code ev, core::string_view s)
+            [&](error_code ev, boost::core::string_view s)
             {
                 echo_server es{log};
                 stream<test::stream, deflateSupported> ws{ioc_};
@@ -560,7 +560,7 @@ public:
                 w.read_some(ws, net::buffer(buf, sizeof(buf)));
             BEAST_EXPECT(bytes_written > 0);
             BEAST_EXPECT(
-                core::string_view(buf, 3).substr(0, bytes_written) ==
+                boost::core::string_view(buf, 3).substr(0, bytes_written) ==
                     s.substr(0, bytes_written));
         });
 
@@ -637,7 +637,7 @@ public:
         // Read close frames
         {
             auto const check =
-            [&](error_code ev, core::string_view s)
+            [&](error_code ev, boost::core::string_view s)
             {
                 echo_server es{log};
                 stream<test::stream> ws{ioc_};

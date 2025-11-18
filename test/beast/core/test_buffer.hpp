@@ -119,7 +119,7 @@ void test_mutable_buffers(
     MutableBufferSequence const& b,
     net::mutable_buffer)
 {
-    core::string_view src = "Hello, world!";
+    boost::core::string_view src = "Hello, world!";
     BOOST_ASSERT(buffer_bytes(b) <= src.size());
     if(src.size() > buffer_bytes(b))
         src = {src.data(), buffer_bytes(b)};
@@ -298,7 +298,7 @@ test_mutable_dynamic_buffer(
             typename MutableDynamicBuffer_v0::mutable_buffers_type,
             typename MutableDynamicBuffer_v0::const_buffers_type>::value);
 
-    core::string_view src = "Hello, world!";
+    boost::core::string_view src = "Hello, world!";
     if(src.size() > b0.max_size())
         src = {src.data(), b0.max_size()};
 
@@ -385,7 +385,7 @@ test_dynamic_buffer(
 
     // members
     {
-        core::string_view src = "Hello, world!";
+        boost::core::string_view src = "Hello, world!";
 
         DynamicBuffer_v0 b1(b0);
         auto const mb = b1.prepare(src.size());
@@ -524,7 +524,7 @@ test_dynamic_buffer(
     // setup source buffer
     char buf[13];
     unsigned char k0 = 0;
-    core::string_view src(buf, sizeof(buf));
+    boost::core::string_view src(buf, sizeof(buf));
     if(src.size() > b0.max_size())
         src = {src.data(), b0.max_size()};
     BEAST_EXPECT(b0.max_size() >= src.size());
@@ -559,7 +559,7 @@ test_dynamic_buffer(
     // k = consume size
     for(std::size_t h = 1; h <= src.size(); ++h)
     {
-        core::string_view in(src.data(), h);
+        boost::core::string_view in(src.data(), h);
         for(std::size_t i = 1; i <= in.size(); ++i) {
         for(std::size_t j = 1; j <= i + 1; ++j) {
         for(std::size_t k = 1; k <= in.size(); ++k) {
@@ -620,7 +620,7 @@ test_dynamic_buffer_ref(DynamicBuffer_v0 b0)
 
     // members
     {
-        core::string_view src = "Hello, world!";
+        boost::core::string_view src = "Hello, world!";
 
         DynamicBuffer_v0 b1(b0);
         auto const mb = b1.prepare(src.size());
@@ -702,7 +702,7 @@ test_dynamic_buffer_ref(DynamicBuffer_v0 b0)
     // setup source buffer
     char buf[13];
     unsigned char k0 = 0;
-    core::string_view src(buf, sizeof(buf));
+    boost::core::string_view src(buf, sizeof(buf));
     if(src.size() > b0.max_size())
         src = {src.data(), b0.max_size()};
     BEAST_EXPECT(b0.max_size() >= src.size());
@@ -737,7 +737,7 @@ test_dynamic_buffer_ref(DynamicBuffer_v0 b0)
     // k = consume size
     for(std::size_t h = 1; h <= src.size(); ++h)
     {
-        core::string_view in(src.data(), h);
+        boost::core::string_view in(src.data(), h);
         for(std::size_t i = 1; i <= in.size(); ++i) {
             for(std::size_t j = 1; j <= i + 1; ++j) {
                 for(std::size_t k = 1; k <= in.size(); ++k) {

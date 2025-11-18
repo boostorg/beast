@@ -45,7 +45,7 @@ public:
     void
     testMembers()
     {
-        core::string_view const s = "Hello, world!";
+        boost::core::string_view const s = "Hello, world!";
         
         // static_buffer_base
         {

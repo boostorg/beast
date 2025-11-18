@@ -274,7 +274,7 @@ public:
 
     template<bool isRequest>
     bool
-    equal_body(core::string_view sv, core::string_view body)
+    equal_body(boost::core::string_view sv, boost::core::string_view body)
     {
         test::stream ts{ioc_, sv}, tr{ioc_};
         ts.connect(tr);

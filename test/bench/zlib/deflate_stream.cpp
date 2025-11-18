@@ -65,7 +65,7 @@ public:
     }
 
     std::string
-    doDeflateBeast(core::string_view const& in)
+    doDeflateBeast(boost::core::string_view const& in)
     {
         z_params zs;
         deflate_stream ds;
@@ -88,7 +88,7 @@ public:
     }
 
     std::string
-    doDeflateZLib(core::string_view const& in)
+    doDeflateZLib(boost::core::string_view const& in)
     {
         int result;
         z_stream zs;

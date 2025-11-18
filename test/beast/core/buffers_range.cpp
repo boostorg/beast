@@ -69,7 +69,7 @@ public:
     testBufferSequence()
     {
         {
-            core::string_view s = "Hello, world!";
+            boost::core::string_view s = "Hello, world!";
             test_buffer_sequence(buffers_range(
                 net::const_buffer{s.data(), s.size()}));
         }

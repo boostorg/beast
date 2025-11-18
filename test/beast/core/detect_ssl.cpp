@@ -31,21 +31,21 @@ public:
     testDetect()
     {
         auto const yes =
-            [](int n, core::string_view s)
+            [](int n, boost::core::string_view s)
             {
                 BEAST_EXPECT(detail::is_tls_client_hello(
                     net::const_buffer(s.data(), n)));
             };
 
         auto const no =
-            [](int n, core::string_view s)
+            [](int n, boost::core::string_view s)
             {
                 BEAST_EXPECT(! detail::is_tls_client_hello(
                     net::const_buffer(s.data(), n)));
             };
 
         auto const maybe =
-            [](int n, core::string_view s)
+            [](int n, boost::core::string_view s)
             {
                 BEAST_EXPECT(boost::indeterminate(
                     detail::is_tls_client_hello(

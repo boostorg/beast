@@ -157,7 +157,7 @@ namespace http {
     @param f The field to convert
 */
 BOOST_BEAST_DECL
-core::string_view
+boost::core::string_view
 to_string(field f);
 
 /** Attempt to convert a string to a field enum.
@@ -169,7 +169,7 @@ to_string(field f);
 */
 BOOST_BEAST_DECL
 field
-string_to_field(core::string_view s);
+string_to_field(boost::core::string_view s);
 
 /// Write the text for a field name to an output stream.
 BOOST_BEAST_DECL

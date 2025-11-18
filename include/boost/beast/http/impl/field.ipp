@@ -42,12 +42,12 @@ struct field_table
     }
 
     using array_type =
-        std::array<core::string_view, 129>;
+        std::array<boost::core::string_view, 129>;
 
     // Strings are converted to lowercase
     static
     std::uint32_t
-    digest(core::string_view s)
+    digest(boost::core::string_view s)
     {
         std::uint32_t r = 0;
         std::size_t n = s.size();
@@ -77,7 +77,7 @@ struct field_table
     // strings must contain only valid http field characters.
     static
     bool
-    equals(core::string_view lhs, core::string_view rhs)
+    equals(boost::core::string_view lhs, boost::core::string_view rhs)
     {
         using Int = std::uint32_t; // VFALCO std::size_t?
         auto n = lhs.size();
@@ -257,7 +257,7 @@ struct field_table
     }
 
     field
-    string_to_field(core::string_view s) const
+    string_to_field(boost::core::string_view s) const
     {
         auto h = digest(s);
         auto j = h % N;
@@ -302,7 +302,7 @@ get_field_table()
 }
 
 BOOST_BEAST_DECL
-core::string_view
+boost::core::string_view
 to_string(field f)
 {
     auto const& v = get_field_table();
@@ -312,14 +312,14 @@ to_string(field f)
 
 } // detail
 
-core::string_view
+boost::core::string_view
 to_string(field f)
 {
     return detail::to_string(f);
 }
 
 field
-string_to_field(core::string_view s)
+string_to_field(boost::core::string_view s)
 {
     return detail::get_field_table().string_to_field(s);
 }

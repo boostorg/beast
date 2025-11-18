@@ -33,7 +33,7 @@ snippets()
     //[code_websocket_5_1
 
         ws.control_callback(
-            [](frame_type kind, core::string_view payload)
+            [](frame_type kind, boost::core::string_view payload)
             {
                 // Do something with the payload
                 boost::ignore_unused(kind, payload);

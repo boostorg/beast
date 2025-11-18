@@ -361,7 +361,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a ping and message to the input
-            ws.next_layer().append(core::string_view{
+            ws.next_layer().append(boost::core::string_view{
                 "\x89\x00" "\x81\x01*", 5});
             std::size_t count = 0;
             ws.async_read(b,
@@ -402,7 +402,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add an invalid frame to the input
-            ws.next_layer().append(core::string_view{
+            ws.next_layer().append(boost::core::string_view{
                 "\x09\x00", 2});
             std::size_t count = 0;
             ws.async_read(b,
@@ -443,7 +443,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a close frame to the input
-            ws.next_layer().append(core::string_view{
+            ws.next_layer().append(boost::core::string_view{
                 "\x88\x00", 2});
             std::size_t count = 0;
             ws.async_read(b,
@@ -485,7 +485,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a close frame to the input
-            ws.next_layer().append(core::string_view{
+            ws.next_layer().append(boost::core::string_view{
                 "\x88\x00", 2});
             std::size_t count = 0;
             ws.async_write(net::buffer(s),
@@ -529,7 +529,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a ping frame to the input
-            ws.next_layer().append(core::string_view{
+            ws.next_layer().append(boost::core::string_view{
                 "\x89\x00", 2});
             std::size_t count = 0;
             ws.async_write(net::buffer(s),

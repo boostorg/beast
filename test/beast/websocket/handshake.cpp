@@ -309,7 +309,7 @@ public:
         detail::pmd_offer po;
 
         auto const accept =
-        [&](core::string_view s)
+        [&](boost::core::string_view s)
         {
             http::fields f;
             f.set(http::field::sec_websocket_extensions, s);
@@ -319,7 +319,7 @@ public:
         };
 
         auto const reject =
-        [&](core::string_view s)
+        [&](boost::core::string_view s)
         {
             http::fields f;
             f.set(http::field::sec_websocket_extensions, s);
@@ -401,7 +401,7 @@ public:
         detail::pmd_offer po;
 
         auto const check =
-        [&](core::string_view match)
+        [&](boost::core::string_view match)
         {
             http::fields f;
             detail::pmd_write(f, po);
@@ -447,7 +447,7 @@ public:
 
         auto const reject =
         [&](
-            core::string_view offer)
+            boost::core::string_view offer)
         {
             detail::pmd_offer po;
             {
@@ -463,8 +463,8 @@ public:
 
         auto const accept =
         [&](
-            core::string_view offer,
-            core::string_view result)
+            boost::core::string_view offer,
+            boost::core::string_view result)
         {
             detail::pmd_offer po;
             {

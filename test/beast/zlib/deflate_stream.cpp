@@ -203,7 +203,7 @@ public:
     static
     std::string
     compress(
-        core::string_view const& in,
+        boost::core::string_view const& in,
         int level,                  // 0=none, 1..9, -1=default
         int windowBits,             // 9..15
         int memLevel)               // 1..9 (8=default)
@@ -240,7 +240,7 @@ public:
 
     static
     std::string
-    decompress(core::string_view const& in)
+    decompress(boost::core::string_view const& in)
     {
         int result;
         std::string out;
@@ -474,7 +474,7 @@ public:
         c.init();
         std::string out;
         out.resize(1024);
-        core::string_view s = "Hello";
+        boost::core::string_view s = "Hello";
         c.next_in(s.data());
         c.avail_in(s.size());
         c.next_out(&out.front());
@@ -501,7 +501,7 @@ public:
         c.init();
         std::string out;
         out.resize(1024);
-        core::string_view s = "Hello";
+        boost::core::string_view s = "Hello";
         c.next_in(s.data());
         c.avail_in(s.size());
         c.next_out(&out.front());
