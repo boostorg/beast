@@ -126,13 +126,13 @@ public:
         }
         {
             static_string<3> s1(
-                boost::core::string_view("123"));
+                core::string_view("123"));
             BEAST_EXPECT(s1 == "123");
             BEAST_EXPECT(*s1.end() == 0);
             try
             {
                 static_string<2> s2(
-                    boost::core::string_view("123"));
+                    core::string_view("123"));
                 fail("", __FILE__, __LINE__);
             }
             catch(std::length_error const&)
@@ -235,13 +235,13 @@ public:
         }
         {
             static_string<3> s1;
-            s1 = boost::core::string_view("123");
+            s1 = core::string_view("123");
             BEAST_EXPECT(s1 == "123");
             BEAST_EXPECT(*s1.end() == 0);
             try
             {
                 static_string<1> s2;
-                s2 = boost::core::string_view("123");
+                s2 = core::string_view("123");
                 fail("", __FILE__, __LINE__);
             }
             catch(std::length_error const&)
@@ -373,15 +373,15 @@ public:
         }
         {
             static_string<5> s1;
-            s1.assign(boost::core::string_view("123"));
+            s1.assign(core::string_view("123"));
             BEAST_EXPECT(s1 == "123");
             BEAST_EXPECT(*s1.end() == 0);
-            s1.assign(boost::core::string_view("12345"));
+            s1.assign(core::string_view("12345"));
             BEAST_EXPECT(s1 == "12345");
             BEAST_EXPECT(*s1.end() == 0);
             try
             {
-                s1.assign(boost::core::string_view("1234567"));
+                s1.assign(core::string_view("1234567"));
                 fail("", __FILE__, __LINE__);
             }
             catch(std::length_error const&)
@@ -486,7 +486,7 @@ public:
         }
         {
             static_string<3> s("123");
-            boost::core::string_view sv = s;
+            core::string_view sv = s;
             BEAST_EXPECT(static_string<5>(sv) == "123");
         }
     }
@@ -754,13 +754,13 @@ public:
         }
         {
             static_string<5> s1("123");
-            s1.insert(1, boost::core::string_view("UV"));
+            s1.insert(1, core::string_view("UV"));
             BEAST_EXPECT(s1 == "1UV23");
             BEAST_EXPECT(*s1.end() == 0);
             try
             {
                 static_string<4> s2("123");
-                s2.insert(1, boost::core::string_view("UV"));
+                s2.insert(1, core::string_view("UV"));
                 fail("", __FILE__, __LINE__);
             }
             catch(std::length_error const&)
@@ -770,7 +770,7 @@ public:
             try
             {
                 static_string<5> s2("123");
-                s2.insert(5, boost::core::string_view("UV"));
+                s2.insert(5, core::string_view("UV"));
                 fail("", __FILE__, __LINE__);
             }
             catch(std::out_of_range const&)
@@ -1033,7 +1033,7 @@ public:
             }
         }
         {
-            boost::core::string_view s1("XYZ");
+            core::string_view s1("XYZ");
             static_string<5> s2("12");
             s2.append(s1);
             BEAST_EXPECT(s2 == "12XYZ");
@@ -1133,7 +1133,7 @@ public:
             }
         }
         {
-            boost::core::string_view s1("34");
+            core::string_view s1("34");
             static_string<4> s2("12");
             s2 += s1;
             BEAST_EXPECT(s2 == "1234");

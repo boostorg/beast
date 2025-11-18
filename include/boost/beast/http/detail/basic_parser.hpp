@@ -74,7 +74,7 @@ struct basic_parser_base
         char const* it, char const* first);
 
     static
-    boost::core::string_view
+    core::string_view
     make_string(char const* first, char const* last)
     {
         return {first, static_cast<
@@ -123,7 +123,7 @@ struct basic_parser_base
     BOOST_BEAST_DECL
     static
     bool
-    parse_dec(boost::core::string_view s, std::uint64_t& v);
+    parse_dec(core::string_view s, std::uint64_t& v);
 
     BOOST_BEAST_DECL
     static
@@ -140,14 +140,14 @@ struct basic_parser_base
     void
     parse_method(
         char const*& it, char const* last,
-        boost::core::string_view& result, error_code& ec);
+        core::string_view& result, error_code& ec);
 
     BOOST_BEAST_DECL
     static
     void
     parse_target(
         char const*& it, char const* last,
-        boost::core::string_view& result, error_code& ec);
+        core::string_view& result, error_code& ec);
 
     BOOST_BEAST_DECL
     static
@@ -168,7 +168,7 @@ struct basic_parser_base
     void
     parse_reason(
         char const*& it, char const* last,
-        boost::core::string_view& result, error_code& ec);
+        core::string_view& result, error_code& ec);
 
     BOOST_BEAST_DECL
     static
@@ -176,8 +176,8 @@ struct basic_parser_base
     parse_field(
         char const*& p,
         char const* last,
-        boost::core::string_view& name,
-        boost::core::string_view& value,
+        core::string_view& name,
+        core::string_view& value,
         beast::detail::char_buffer<max_obs_fold>& buf,
         error_code& ec);
 

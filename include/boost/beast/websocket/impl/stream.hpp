@@ -251,7 +251,7 @@ template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
 control_callback(std::function<
-    void(frame_type, boost::core::string_view)> cb)
+    void(frame_type, core::string_view)> cb)
 {
     impl_->ctrl_cb = std::move(cb);
 }

@@ -68,7 +68,7 @@ net::connect(stream, r.resolve("www.example.com", "http"));
 //[snippet_core_3
 
 template<class SyncWriteStream>
-void write_string(SyncWriteStream& stream, boost::core::string_view s)
+void write_string(SyncWriteStream& stream, core::string_view s)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream type requirements not met");

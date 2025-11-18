@@ -22,10 +22,10 @@ namespace detail {
 namespace string_literals {
 
 inline
-boost::core::string_view
+core::string_view
 operator""_sv(char const* p, std::size_t n)
 {
-    return boost::core::string_view{p, n};
+    return core::string_view{p, n};
 }
 
 } // string_literals

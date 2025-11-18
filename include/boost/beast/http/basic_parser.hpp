@@ -461,8 +461,8 @@ protected:
     void
     on_request_impl(
         verb method,
-        boost::core::string_view method_str,
-        boost::core::string_view target,
+        core::string_view method_str,
+        core::string_view target,
         int version,
         error_code& ec) = 0;
 
@@ -488,7 +488,7 @@ protected:
     void
     on_response_impl(
         int code,
-        boost::core::string_view reason,
+        core::string_view reason,
         int version,
         error_code& ec) = 0;
 
@@ -512,8 +512,8 @@ protected:
     void
     on_field_impl(
         field name,
-        boost::core::string_view name_string,
-        boost::core::string_view value,
+        core::string_view name_string,
+        core::string_view value,
         error_code& ec) = 0;
 
     /** Called once for each complete field in the HTTP trailer header.
@@ -536,8 +536,8 @@ protected:
     void
     on_trailer_field_impl(
         field name,
-        boost::core::string_view name_string,
-        boost::core::string_view value,
+        core::string_view name_string,
+        core::string_view value,
         error_code& ec) = 0;
 
     /** Called once after the complete HTTP header is received.
@@ -587,7 +587,7 @@ protected:
     virtual
     std::size_t
     on_body_impl(
-        boost::core::string_view body,
+        core::string_view body,
         error_code& ec) = 0;
 
     /** Called each time a new chunk header of a chunk encoded body is received.
@@ -607,7 +607,7 @@ protected:
     void
     on_chunk_header_impl(
         std::uint64_t size,
-        boost::core::string_view extensions,
+        core::string_view extensions,
         error_code& ec) = 0;
 
     /** Called each time additional data is received representing part of a body chunk.
@@ -636,7 +636,7 @@ protected:
     std::size_t
     on_chunk_body_impl(
         std::uint64_t remain,
-        boost::core::string_view body,
+        core::string_view body,
         error_code& ec) = 0;
 
     /** Called once when the complete message is received.
@@ -714,7 +714,7 @@ private:
 
     void
     do_field(field f,
-        boost::core::string_view value, error_code& ec);
+        core::string_view value, error_code& ec);
 };
 
 } // http

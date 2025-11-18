@@ -43,7 +43,7 @@ public:
     {
         char buf[13];
         buffers_triple b(buf, sizeof(buf));
-        boost::core::string_view src = "Hello, world!";
+        core::string_view src = "Hello, world!";
         BEAST_EXPECT(src.size() == sizeof(buf));
         net::buffer_copy(b,
             net::const_buffer(src.data(), src.size()));

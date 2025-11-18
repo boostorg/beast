@@ -135,11 +135,11 @@ enum class verb
 */
 BOOST_BEAST_DECL
 verb
-string_to_verb(boost::core::string_view s);
+string_to_verb(core::string_view s);
 
 /// Returns the text representation of a request method verb.
 BOOST_BEAST_DECL
-boost::core::string_view
+core::string_view
 to_string(verb v);
 
 /// Write the text for a request method verb to an output stream.

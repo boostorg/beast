@@ -36,7 +36,7 @@ public:
 
     static
     net::const_buffer
-    buf(boost::core::string_view s)
+    buf(core::string_view s)
     {
         return {s.data(), s.size()};
     }
@@ -70,7 +70,7 @@ public:
 
     template<bool isRequest, class F>
     void
-    doMatrix(boost::core::string_view s0, F const& f)
+    doMatrix(core::string_view s0, F const& f)
     {
         // parse a single buffer
         {

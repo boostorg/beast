@@ -281,7 +281,7 @@ public:
     */
     basic_stream(
         net::io_context& ioc,
-        boost::core::string_view s);
+        core::string_view s);
 
     /** Construct a stream
 
@@ -301,7 +301,7 @@ public:
     basic_stream(
         net::io_context& ioc,
         fail_count& fc,
-        boost::core::string_view s);
+        core::string_view s);
 
     /// Establish a connection
     void
@@ -333,12 +333,12 @@ public:
     }
 
     /// Returns a string view representing the pending input data
-    boost::core::string_view
+    core::string_view
     str() const;
 
     /// Appends a string to the pending input data
     void
-    append(boost::core::string_view s);
+    append(core::string_view s);
 
     /// Clear the pending input area
     void

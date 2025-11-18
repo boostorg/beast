@@ -174,7 +174,7 @@ public:
 
     template<class F0, class... FN>
     void
-    do_trials(boost::core::string_view name,
+    do_trials(core::string_view name,
         std::size_t trials, F0&& f0, FN... fn)
     {
         using namespace std::chrono;

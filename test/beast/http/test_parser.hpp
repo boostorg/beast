@@ -55,8 +55,8 @@ public:
     }
 
     void
-    on_request_impl(verb, boost::core::string_view method_str_,
-        boost::core::string_view path_, int version_, error_code& ec)
+    on_request_impl(verb, core::string_view method_str_,
+        core::string_view path_, int version_, error_code& ec)
     {
         method = std::string(
             method_str_.data(), method_str_.size());
@@ -70,7 +70,7 @@ public:
 
     void
     on_response_impl(int code,
-        boost::core::string_view reason_,
+        core::string_view reason_,
             int version_, error_code& ec)
     {
         status = code;
@@ -83,8 +83,8 @@ public:
     }
 
     void
-    on_field_impl(field, boost::core::string_view name,
-        boost::core::string_view value, error_code& ec)
+    on_field_impl(field, core::string_view name,
+        core::string_view value, error_code& ec)
     {
         ++got_on_field;
         if(fc_)
@@ -93,8 +93,8 @@ public:
     }
 
     void
-    on_trailer_field_impl(field, boost::core::string_view name,
-        boost::core::string_view value, error_code& ec)
+    on_trailer_field_impl(field, core::string_view name,
+        core::string_view value, error_code& ec)
     {
         ++got_on_trailer_field;
         if(fc_)
@@ -125,7 +125,7 @@ public:
     }
 
     std::size_t
-    on_body_impl(boost::core::string_view s,
+    on_body_impl(core::string_view s,
         error_code& ec)
     {
         body.append(s.data(), s.size());
@@ -137,7 +137,7 @@ public:
     void
     on_chunk_header_impl(
         std::uint64_t,
-        boost::core::string_view,
+        core::string_view,
         error_code& ec)
     {
         ++got_on_chunk;
@@ -148,7 +148,7 @@ public:
     std::size_t
     on_chunk_body_impl(
         std::uint64_t,
-        boost::core::string_view s,
+        core::string_view s,
         error_code& ec)
     {
         body.append(s.data(), s.size());

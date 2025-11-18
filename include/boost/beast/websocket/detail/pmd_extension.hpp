@@ -45,7 +45,7 @@ struct pmd_offer
 
 BOOST_BEAST_DECL
 int
-parse_bits(boost::core::string_view s);
+parse_bits(core::string_view s);
 
 BOOST_BEAST_DECL
 void

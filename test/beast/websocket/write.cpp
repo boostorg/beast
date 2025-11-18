@@ -375,7 +375,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a ping and message to the input
-            ws.next_layer().append(boost::core::string_view{
+            ws.next_layer().append(core::string_view{
                 "\x89\x00" "\x81\x01*", 5});
             std::size_t count = 0;
             multi_buffer b;

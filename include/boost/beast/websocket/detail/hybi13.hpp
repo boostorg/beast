@@ -34,7 +34,7 @@ BOOST_BEAST_DECL
 void
 make_sec_ws_accept(
     sec_ws_accept_type& accept,
-    boost::core::string_view key);
+    core::string_view key);
 
 } // detail
 } // websocket

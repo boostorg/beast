@@ -32,13 +32,13 @@ struct temporary_buffer
 
     BOOST_BEAST_DECL
     void
-    append(boost::core::string_view s);
+    append(core::string_view s);
 
     BOOST_BEAST_DECL
     void
-    append(boost::core::string_view s1, boost::core::string_view s2);
+    append(core::string_view s1, core::string_view s2);
 
-    boost::core::string_view
+    core::string_view
     view() const noexcept
     {
         return {data_, size_};
@@ -53,7 +53,7 @@ struct temporary_buffer
 private:
     BOOST_BEAST_DECL
     void
-    unchecked_append(boost::core::string_view s);
+    unchecked_append(core::string_view s);
 
     BOOST_BEAST_DECL
     void

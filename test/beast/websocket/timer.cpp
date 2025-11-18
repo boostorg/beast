@@ -48,7 +48,7 @@ struct timer_test : unit_test::suite
             flat_buffer b2;
             bool received = false;
             ws1.control_callback(
-                [&received](frame_type ft, boost::core::string_view)
+                [&received](frame_type ft, core::string_view)
                 {
                     received = true;
                     BEAST_EXPECT(ft == frame_type::ping);
