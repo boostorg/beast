@@ -42,15 +42,15 @@ using stream_type   = typename beast::tcp_stream::rebind_executor<executor_type>
 using acceptor_type = typename net::ip::tcp::acceptor::rebind_executor<executor_type>::other;
 
 // Return a reasonable mime type based on the extension of a file.
-beast::string_view
-mime_type(beast::string_view path)
+boost::core::string_view
+mime_type(boost::core::string_view path)
 {
     using beast::iequals;
     auto const ext = [&path]
     {
         auto const pos = path.rfind(".");
-        if(pos == beast::string_view::npos)
-            return beast::string_view{};
+        if(pos == boost::core::string_view::npos)
+            return boost::core::string_view{};
         return path.substr(pos);
     }();
     if(iequals(ext, ".htm"))  return "text/html";
@@ -81,8 +81,8 @@ mime_type(beast::string_view path)
 // The returned path is normalized for the platform.
 std::string
 path_cat(
-    beast::string_view base,
-    beast::string_view path)
+    boost::core::string_view base,
+    boost::core::string_view path)
 {
     if(base.empty())
         return std::string(path);
@@ -111,12 +111,12 @@ path_cat(
 template<class Body, class Allocator>
 http::message_generator
 handle_request(
-    beast::string_view doc_root,
+    boost::core::string_view doc_root,
     http::request<Body, http::basic_fields<Allocator>>&& req)
 {
     // Returns a bad request response
     auto const bad_request =
-    [&req](beast::string_view why)
+    [&req](boost::core::string_view why)
     {
         http::response<http::string_body> res{http::status::bad_request, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -129,7 +129,7 @@ handle_request(
 
     // Returns a not found response
     auto const not_found =
-    [&req](beast::string_view target)
+    [&req](boost::core::string_view target)
     {
         http::response<http::string_body> res{http::status::not_found, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -142,7 +142,7 @@ handle_request(
 
     // Returns a server error response
     auto const server_error =
-    [&req](beast::string_view what)
+    [&req](boost::core::string_view what)
     {
         http::response<http::string_body> res{http::status::internal_server_error, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -161,7 +161,7 @@ handle_request(
     // Request path must be absolute and not contain "..".
     if( req.target().empty() ||
         req.target()[0] != '/' ||
-        req.target().find("..") != beast::string_view::npos)
+        req.target().find("..") != boost::core::string_view::npos)
         return bad_request("Illegal request-target");
 
     // Build the path to the requested file
@@ -416,7 +416,7 @@ net::awaitable<void, executor_type>
 run_session(
     Stream& stream,
     beast::flat_buffer& buffer,
-    beast::string_view doc_root)
+    boost::core::string_view doc_root)
 {
     auto cs = co_await net::this_coro::cancellation_state;
 
@@ -457,7 +457,7 @@ net::awaitable<void, executor_type>
 detect_session(
     stream_type stream,
     ssl::context& ctx,
-    beast::string_view doc_root)
+    boost::core::string_view doc_root)
 {
     beast::flat_buffer buffer;
 
@@ -509,7 +509,7 @@ listen(
     task_group& task_group,
     ssl::context& ctx,
     net::ip::tcp::endpoint endpoint,
-    beast::string_view doc_root)
+    boost::core::string_view doc_root)
 {
     auto cs       = co_await net::this_coro::cancellation_state;
     auto executor = co_await net::this_coro::executor;
@@ -600,7 +600,7 @@ main(int argc, char* argv[])
     auto const address  = net::ip::make_address(argv[1]);
     auto const port     = static_cast<unsigned short>(std::atoi(argv[2]));
     auto const endpoint = net::ip::tcp::endpoint{ address, port };
-    auto const doc_root = beast::string_view{ argv[3] };
+    auto const doc_root = boost::core::string_view{ argv[3] };
     auto const threads  = std::max<int>(1, std::atoi(argv[4]));
 
     // The io_context is required for all I/O
