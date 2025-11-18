@@ -393,7 +393,7 @@ test_file()
 
     // read and write
     {
-        core::string_view const s = "Hello, world!";
+        boost::core::string_view const s = "Hello, world!";
 
         // write
         {

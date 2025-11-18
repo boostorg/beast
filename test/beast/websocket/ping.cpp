@@ -148,7 +148,7 @@ public:
                 true
             });
             unsigned n_pongs = 0;
-            ws1.control_callback({[&](frame_type kind, core::string_view)
+            ws1.control_callback({[&](frame_type kind, boost::core::string_view)
                 {
                     if (kind == frame_type::pong)
                         ++n_pongs;
@@ -247,7 +247,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a ping and message to the input
-            ws.next_layer().append(core::string_view{
+            ws.next_layer().append(boost::core::string_view{
                 "\x89\x00" "\x81\x01*", 5});
             std::size_t count = 0;
             multi_buffer b;
@@ -288,7 +288,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add an invalid frame to the input
-            ws.next_layer().append(core::string_view{
+            ws.next_layer().append(boost::core::string_view{
                 "\x09\x00", 2});
 
             std::size_t count = 0;
@@ -330,7 +330,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // add a close frame to the input
-            ws.next_layer().append(core::string_view{
+            ws.next_layer().append(boost::core::string_view{
                 "\x88\x00", 2});
             std::size_t count = 0;
             multi_buffer b;

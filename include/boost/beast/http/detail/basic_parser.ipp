@@ -155,7 +155,7 @@ find_eol(
 bool
 basic_parser_base::
 parse_dec(
-    core::string_view s,
+    boost::core::string_view s,
     std::uint64_t& v)
 {
     char const* it = s.data();
@@ -271,7 +271,7 @@ void
 basic_parser_base::
 parse_method(
     char const*& it, char const* last,
-    core::string_view& result, error_code& ec)
+    boost::core::string_view& result, error_code& ec)
 {
     // parse token SP
     auto const first = it;
@@ -308,7 +308,7 @@ void
 basic_parser_base::
 parse_target(
     char const*& it, char const* last,
-    core::string_view& result, error_code& ec)
+    boost::core::string_view& result, error_code& ec)
 {
     // parse target SP
     auto const first = it;
@@ -437,7 +437,7 @@ void
 basic_parser_base::
 parse_reason(
     char const*& it, char const* last,
-    core::string_view& result, error_code& ec)
+    boost::core::string_view& result, error_code& ec)
 {
     auto const first = it;
     char const* token_last = nullptr;
@@ -459,8 +459,8 @@ basic_parser_base::
 parse_field(
     char const*& p,
     char const* last,
-    core::string_view& name,
-    core::string_view& value,
+    boost::core::string_view& name,
+    boost::core::string_view& value,
     beast::detail::char_buffer<max_obs_fold>& buf,
     error_code& ec)
 {

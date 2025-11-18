@@ -17,10 +17,10 @@ namespace boost {
 namespace beast {
 
 template<class S>
-inline core::string_view
+inline boost::core::string_view
 to_string_view(const S& s)
 {
-    return core::string_view(s.data(), s.size());
+    return boost::core::string_view(s.data(), s.size());
 }
 
 } // beast

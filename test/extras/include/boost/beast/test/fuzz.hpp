@@ -92,7 +92,7 @@ fuzz(
             break;
         }
         }
-        f(core::string_view{mod.data(), mod.size()});
+        f(boost::core::string_view{mod.data(), mod.size()});
         if(depth > 0)
             fuzz(mod, repeat, depth - 1, r, f);
     }

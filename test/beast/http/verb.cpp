@@ -66,7 +66,7 @@ public:
         good(verb::unlink);
 
         auto const bad =
-            [&](core::string_view s)
+            [&](boost::core::string_view s)
             {
                 auto const v = string_to_verb(s);
                 BEAST_EXPECTS(v == verb::unknown, to_string(v));

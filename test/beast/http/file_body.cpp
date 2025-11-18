@@ -103,7 +103,7 @@ public:
     doTestFileBody()
     {
         error_code ec;
-        core::string_view const s =
+        boost::core::string_view const s =
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Content-Length: 3\r\n"
@@ -147,7 +147,7 @@ public:
                 sr.next(ec, visit);
                 BEAST_EXPECTS(! ec, ec.message());
                 auto const b = buffers_front(visit.buffer.data());
-                core::string_view const s1{
+                boost::core::string_view const s1{
                     reinterpret_cast<char const*>(b.data()),
                     b.size()};
                 BEAST_EXPECTS(s1 == s, s1);
@@ -164,7 +164,7 @@ public:
         auto temp = temp_file(log);
 
         error_code ec;
-        core::string_view const ten =
+        boost::core::string_view const ten =
             "0123456789"; // 40
         // create the temporary file
         {
@@ -219,7 +219,7 @@ public:
         auto temp = temp_file(log);
 
         error_code ec;
-        core::string_view const ten =
+        boost::core::string_view const ten =
                 "0123456789"; // 40
         // create the temporary file
         {

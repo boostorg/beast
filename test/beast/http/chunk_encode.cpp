@@ -38,7 +38,7 @@ public:
 
     template<class T, class... Args>
     void
-    check(core::string_view match, Args&&... args)
+    check(boost::core::string_view match, Args&&... args)
     {
         T t(std::forward<Args>(args)...);
         BEAST_EXPECT(buffers_to_string(t) == match);
@@ -50,7 +50,7 @@ public:
 
     template<class T, class... Args>
     void
-    check_fwd(core::string_view match, Args&&... args)
+    check_fwd(boost::core::string_view match, Args&&... args)
     {
         T t(std::forward<Args>(args)...);
         BEAST_EXPECT(buffers_to_string(t) == match);
@@ -64,7 +64,7 @@ public:
 
     static
     cb_t
-    cb(core::string_view s)
+    cb(boost::core::string_view s)
     {
         return {s.data(), s.size()};
     }
@@ -227,7 +227,7 @@ public:
     testParseChunkExtensions()
     {
         auto const grind =
-        [&](core::string_view s)
+        [&](boost::core::string_view s)
         {
             error_code ec;
             static_string<200> ss(s.data(), s.size());
@@ -235,7 +235,7 @@ public:
             for(auto i = 3; i--;)
             {
                 test::fuzz(ss, 5, 5, r,
-                [&](core::string_view s)
+                [&](boost::core::string_view s)
                 {
                     chunk_extensions c1;
                     c1.parse(s, ec);
@@ -259,7 +259,7 @@ public:
             }
         };
         auto const good =
-        [&](core::string_view s)
+        [&](boost::core::string_view s)
         {
             error_code ec;
             chunk_extensions ce;
@@ -268,7 +268,7 @@ public:
             grind(s);
         };
         auto const bad =
-        [&](core::string_view s)
+        [&](boost::core::string_view s)
         {
             error_code ec;
             chunk_extensions ce;

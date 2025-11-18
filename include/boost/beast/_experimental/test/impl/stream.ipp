@@ -123,7 +123,7 @@ template<class Executor>
 basic_stream<Executor>::
 basic_stream(
     net::io_context& ioc,
-    core::string_view s)
+    boost::core::string_view s)
     : in_(detail::stream_service::make_impl(ioc.get_executor(), nullptr))
 {
     in_->b.commit(net::buffer_copy(
@@ -136,7 +136,7 @@ basic_stream<Executor>::
 basic_stream(
     net::io_context& ioc,
     fail_count& fc,
-    core::string_view s)
+    boost::core::string_view s)
     : in_(detail::stream_service::make_impl(ioc.get_executor(), &fc))
 {
     in_->b.commit(net::buffer_copy(
@@ -161,7 +161,7 @@ connect(basic_stream& remote)
 }
 
 template<class Executor>
-core::string_view
+boost::core::string_view
 basic_stream<Executor>::
 str() const
 {
@@ -175,7 +175,7 @@ str() const
 template<class Executor>
 void
 basic_stream<Executor>::
-append(core::string_view s)
+append(boost::core::string_view s)
 {
     std::lock_guard<std::mutex> lock{in_->m};
     in_->b.commit(net::buffer_copy(

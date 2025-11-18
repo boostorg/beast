@@ -66,7 +66,7 @@ public:
 
     static
     std::string
-    compress(core::string_view const& in)
+    compress(boost::core::string_view const& in)
     {
         int result;
         z_stream zs;
@@ -98,7 +98,7 @@ public:
     }
 
     std::string
-    doInflateBeast(core::string_view const& in)
+    doInflateBeast(boost::core::string_view const& in)
     {
         z_params zs;
         std::string out;
@@ -125,7 +125,7 @@ public:
     }
 
     std::string
-    doInflateZLib(core::string_view const& in)
+    doInflateZLib(boost::core::string_view const& in)
     {
         int result;
         z_stream zs;

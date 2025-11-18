@@ -156,7 +156,7 @@ class stream
         std::chrono::steady_clock::time_point;
 
     using control_cb_type =
-        std::function<void(frame_type, core::string_view)>;
+        std::function<void(frame_type, boost::core::string_view)>;
 
 #ifndef BOOST_BEAST_DOXYGEN
     friend class close_test;
@@ -525,7 +525,7 @@ public:
         void
         callback(
             frame_type kind,              // The type of frame
-            core::string_view payload     // The payload in the frame
+            boost::core::string_view payload     // The payload in the frame
         );
         @endcode
         The implementation type-erases the callback which may require
@@ -545,7 +545,7 @@ public:
         in undefined behavior.
     */
     void
-    control_callback(std::function<void(frame_type, core::string_view)> cb);
+    control_callback(std::function<void(frame_type, boost::core::string_view)> cb);
 
     /** Reset the control frame callback.
 
@@ -762,8 +762,8 @@ public:
     */
     void
     handshake(
-        core::string_view host,
-        core::string_view target);
+        boost::core::string_view host,
+        boost::core::string_view target);
 
     /** Perform the WebSocket handshake in the client role.
 
@@ -820,8 +820,8 @@ public:
     void
     handshake(
         response_type& res,
-        core::string_view host,
-        core::string_view target);
+        boost::core::string_view host,
+        boost::core::string_view target);
 
     /** Perform the WebSocket handshake in the client role.
 
@@ -868,8 +868,8 @@ public:
     */
     void
     handshake(
-        core::string_view host,
-        core::string_view target,
+        boost::core::string_view host,
+        boost::core::string_view target,
         error_code& ec);
 
     /** Perform the WebSocket handshake in the client role.
@@ -925,8 +925,8 @@ public:
     void
     handshake(
         response_type& res,
-        core::string_view host,
-        core::string_view target,
+        boost::core::string_view host,
+        boost::core::string_view target,
         error_code& ec);
 
     /** Perform the WebSocket handshake asynchronously in the client role.
@@ -1002,8 +1002,8 @@ public:
     >
     BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
     async_handshake(
-        core::string_view host,
-        core::string_view target,
+        boost::core::string_view host,
+        boost::core::string_view target,
         HandshakeHandler&& handler =
             net::default_completion_token_t<
                 executor_type>{});
@@ -1091,8 +1091,8 @@ public:
     BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
     async_handshake(
         response_type& res,
-        core::string_view host,
-        core::string_view target,
+        boost::core::string_view host,
+        boost::core::string_view target,
         HandshakeHandler&& handler =
             net::default_completion_token_t<
                 executor_type>{});
@@ -2909,7 +2909,7 @@ private:
     template<class RequestDecorator>
     void
     do_handshake(response_type* res_p,
-        core::string_view host, core::string_view target,
+        boost::core::string_view host, boost::core::string_view target,
             RequestDecorator const& decorator,
                 error_code& ec);
 

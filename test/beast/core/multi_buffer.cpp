@@ -418,7 +418,7 @@ public:
                 }
             }
             {
-                core::string_view const s = "Hello, world!";
+                boost::core::string_view const s = "Hello, world!";
                 multi_buffer b1{64};
                 BEAST_EXPECT(b1.size() == 0);
                 BEAST_EXPECT(b1.max_size() == 64);
@@ -683,7 +683,7 @@ public:
     void
     testMatrix1()
     {
-        core::string_view s = "Hello, world";
+        boost::core::string_view s = "Hello, world";
         BEAST_EXPECT(s.size() == 12);
         for(std::size_t i = 1; i < 12; ++i) {
         for(std::size_t x = 1; x < 4; ++x) {

@@ -37,7 +37,7 @@ public:
 
         // const
         {
-            core::string_view src = "Hello, world!";
+            boost::core::string_view src = "Hello, world!";
             std::array<net::const_buffer, 3> b{{
                 net::const_buffer(src.data(),     3),
                 net::const_buffer(src.data() + 3, 4),

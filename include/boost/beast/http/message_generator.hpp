@@ -34,7 +34,7 @@ namespace http {
     @code
     template <class Body, class Fields>
     http::message_generator handle_request(
-        core::string_view doc_root,
+        boost::core::string_view doc_root,
         http::request<Body, Fields>&& request);
     @endcode
    
