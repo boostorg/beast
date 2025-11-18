@@ -1042,30 +1042,30 @@ public:
         BOOST_CORE_STATIC_ASSERT((! set_test<field, int>::value));
         BOOST_CORE_STATIC_ASSERT((! set_test<field, std::nullptr_t>::value));
         BOOST_CORE_STATIC_ASSERT((! set_test<field, double>::value));
-        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, int>::value));
-        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, std::nullptr_t>::value));
-        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<core::string_view, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<core::string_view, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<core::string_view, double>::value));
 
         BOOST_CORE_STATIC_ASSERT(( set_test<field, const char*>::value));
-        BOOST_CORE_STATIC_ASSERT(( set_test<field, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<field, core::string_view>::value));
         BOOST_CORE_STATIC_ASSERT(( set_test<field, const char(&)[10]>::value));
-        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, const char*>::value));
-        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, string_view>::value));
-        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<core::string_view, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<core::string_view, core::string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<core::string_view, const char(&)[10]>::value));
 
         BOOST_CORE_STATIC_ASSERT((! insert_test<field, int>::value));
         BOOST_CORE_STATIC_ASSERT((! insert_test<field, std::nullptr_t>::value));
         BOOST_CORE_STATIC_ASSERT((! insert_test<field, double>::value));
-        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, int>::value));
-        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, std::nullptr_t>::value));
-        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<core::string_view, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<core::string_view, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<core::string_view, double>::value));
 
         BOOST_CORE_STATIC_ASSERT(( insert_test<field, const char*>::value));
-        BOOST_CORE_STATIC_ASSERT(( insert_test<field, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<field, core::string_view>::value));
         BOOST_CORE_STATIC_ASSERT(( insert_test<field, const char(&)[10]>::value));
-        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, const char*>::value));
-        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, string_view>::value));
-        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<core::string_view, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<core::string_view, core::string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<core::string_view, const char(&)[10]>::value));
     }
 
     template<class T>

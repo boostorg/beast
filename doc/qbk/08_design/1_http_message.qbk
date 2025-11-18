@@ -254,15 +254,15 @@ a requirement to the [*Fields] type. First, the interface change:
 template<class Fields>
 struct header<true, Fields> : Fields
 {
-    int         version;
+    int                   version;
 
-    verb        method() const;
-    string_view method_string() const;
-    void        method(verb);
-    void        method(string_view);
+    verb                  method() const;
+    core::string_view     method_string() const;
+    void                  method(verb);
+    void                  method(core::string_view);
 
-    string_view target(); const;
-    void        target(string_view);
+    core::string_view     target(); const;
+    void                  target(core::string_view);
 
 private:
     verb method_;
@@ -272,10 +272,10 @@ private:
 template<class Fields>
 struct header<false, Fields> : Fields
 {
-    int         version;
-    int         result;
-    string_view reason() const;
-    void        reason(string_view);
+    int                   version;
+    int                   result;
+    core::string_view     reason() const;
+    void                  reason(core::string_view);
 };
 ```
 
@@ -298,14 +298,14 @@ struct header<false, Fields> : Fields
     int     version;
     int     status;
 
-    string_view
+    core::string_view
     reason() const
     {
         return this->reason_impl(); // protected member of Fields
     }
 
     void
-    reason(string_view s)
+    reason(core::string_view s)
     {
         this->reason_impl(s);       // protected member of Fields
     }

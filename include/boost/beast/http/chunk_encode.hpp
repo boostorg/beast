@@ -154,7 +154,7 @@ public:
     */
     chunk_header(
         std::size_t size,
-        string_view extensions);
+        core::string_view extensions);
 
     /** Constructor
 
@@ -169,7 +169,7 @@ public:
 
         @param extensions The chunk extensions object. The expression
         `extensions.str()` must be valid, and the return type must
-        be convertible to @ref string_view. This object will be copied
+        be convertible to @ref core::string_view. This object will be copied
         or moved as needed to ensure that the chunk header object retains
         ownership of the buffers provided by the chunk extensions object.
 
@@ -202,7 +202,7 @@ public:
 
         @param extensions The chunk extensions object. The expression
         `extensions.str()` must be valid, and the return type must
-        be convertible to @ref string_view. This object will be copied
+        be convertible to @ref core::string_view. This object will be copied
         or moved as needed to ensure that the chunk header object retains
         ownership of the buffers provided by the chunk extensions object.
 
@@ -342,7 +342,7 @@ public:
     */
     chunk_body(
         ConstBufferSequence const& buffers,
-        string_view extensions);
+        core::string_view extensions);
 
     /** Constructor
 
@@ -360,7 +360,7 @@ public:
 
         @param extensions The chunk extensions object. The expression
         `extensions.str()` must be valid, and the return type must
-        be convertible to @ref string_view. This object will be copied
+        be convertible to @ref core::string_view. This object will be copied
         or moved as needed to ensure that the chunk header object retains
         ownership of the buffers provided by the chunk extensions object.
 
@@ -373,7 +373,7 @@ public:
 #if ! BOOST_BEAST_DOXYGEN
         , class = typename std::enable_if<
             ! std::is_convertible<typename std::decay<
-                ChunkExtensions>::type, string_view>::value>::type
+                ChunkExtensions>::type, core::string_view>::value>::type
 #endif
     >
     chunk_body(
@@ -396,7 +396,7 @@ public:
 
         @param extensions The chunk extensions object. The expression
         `extensions.str()` must be valid, and the return type must
-        be convertible to @ref string_view. This object will be copied
+        be convertible to @ref core::string_view. This object will be copied
         or moved as needed to ensure that the chunk header object retains
         ownership of the buffers provided by the chunk extensions object.
 
@@ -412,7 +412,7 @@ public:
 #if ! BOOST_BEAST_DOXYGEN
         , class = typename std::enable_if<
             ! std::is_convertible<typename std::decay<
-                ChunkExtensions>::type, string_view>::value>::type
+                ChunkExtensions>::type, core::string_view>::value>::type
 #endif
     >
     chunk_body(
@@ -582,7 +582,7 @@ class basic_chunk_extensions
     do_parse(FwdIt it, FwdIt last, error_code& ec);
 
     void
-    do_insert(string_view name, string_view value);
+    do_insert(core::string_view name, core::string_view value);
 
 public:
     /** The type of value when iterating.
@@ -591,7 +591,7 @@ public:
         element is the value which may be empty. The value is
         stored in its raw representation, without quotes or escapes.
     */
-    using value_type = std::pair<string_view, string_view>;
+    using value_type = std::pair<core::string_view, core::string_view>;
 
     class const_iterator;
 
@@ -630,14 +630,14 @@ public:
         Any previous extensions will be cleared
     */
     void
-    parse(string_view s, error_code& ec);
+    parse(core::string_view s, error_code& ec);
 
     /** Insert an extension name with an empty value
 
         @param name The name of the extension
     */
     void
-    insert(string_view name);
+    insert(core::string_view name);
 
     /** Insert an extension value
 
@@ -647,10 +647,10 @@ public:
         contents, the serialized extension may use a quoted string.
     */
     void
-    insert(string_view name, string_view value);
+    insert(core::string_view name, core::string_view value);
 
     /// Return the serialized representation of the chunk extension
-    string_view
+    core::string_view
     str() const
     {
         return s_;

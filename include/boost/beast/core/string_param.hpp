@@ -43,7 +43,7 @@ namespace beast {
 */
 class string_param
 {
-    string_view sv_;
+    core::string_view sv_;
     char buf_[128];
     boost::optional<detail::static_ostream> os_;
 
@@ -55,12 +55,12 @@ class string_param
     template<class T>
     typename std::enable_if<
         ! std::is_integral<T>::value &&
-        ! std::is_convertible<T, string_view>::value
+        ! std::is_convertible<T, core::string_view>::value
     >::type
     print(T const&);
 
     void
-    print(string_view);
+    print(core::string_view);
 
     template<class T>
     typename std::enable_if<
@@ -98,7 +98,7 @@ public:
         the result of streaming each argument in order into an
         output stream. It is used as a notational convenience
         at call sites which expect a parameter with the semantics
-        of a @ref string_view.
+        of a @ref core::string_view.
 
         The implementation uses a small, internal static buffer
         to avoid memory allocations especially for the case where
@@ -111,14 +111,14 @@ public:
     string_param(Args const&... args);
 
     /// Returns the contained string
-    string_view
+    core::string_view
     str() const
     {
         return sv_;
     }
 
-    /// Implicit conversion to @ref string_view
-    operator string_view const() const
+    /// Implicit conversion to @ref core::string_view
+    operator core::string_view const() const
     {
         return sv_;
     }

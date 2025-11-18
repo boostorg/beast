@@ -30,7 +30,7 @@ In this table:
 * `c` denotes a (possibly const) value of type `F`.
 * `b` is a value of type `bool`
 * `n` is a value of type `boost::optional<std::uint64_t>`.
-* `s` is a value of type [link beast.ref.boost__beast__string_view `string_view`].
+* `s` is a value of type [link beast.ref.boost__beast__string_view `core::string_view`].
 * `v` is a value of type `unsigned int` representing the HTTP-version.
 
 [table Valid expressions
@@ -43,7 +43,7 @@ In this table:
     ]
 ][
     [`c.get_method_impl()`]
-    [`string_view`]
+    [`core::string_view`]
     [
         Returns the method text.
         The implementation only calls this function for request
@@ -52,14 +52,14 @@ In this table:
     ]
 ][
     [`c.get_target_impl()`]
-    [`string_view`]
+    [`core::string_view`]
     [
         Returns the target string.
         The implementation only calls this function for request headers.
     ]
 ][
     [`c.get_reason_impl()`]
-    [`string_view`]
+    [`core::string_view`]
     [
         Returns the obsolete request text.
         The implementation only calls this for response headers when

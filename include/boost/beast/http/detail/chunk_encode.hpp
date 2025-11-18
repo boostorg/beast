@@ -56,7 +56,7 @@ struct is_chunk_extensions : std::false_type {};
 
 template<class T>
 struct is_chunk_extensions<T, beast::detail::void_t<decltype(
-    std::declval<string_view&>() = std::declval<T&>().str()
+    std::declval<core::string_view&>() = std::declval<T&>().str()
         )>> : std::true_type
 {
 };
