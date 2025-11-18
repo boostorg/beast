@@ -55,7 +55,7 @@ public:
 
     template<bool isRequest>
     bool
-    equal_body(core::string_view sv, core::string_view body)
+    equal_body(boost::core::string_view sv, boost::core::string_view body)
     {
         test::stream ts{ioc_, sv};
         message<isRequest, string_body, fields> m;
@@ -271,7 +271,7 @@ public:
     doExplicitChunkSerialize()
     {
         auto const buf =
-            [](core::string_view s)
+            [](boost::core::string_view s)
             {
                 return net::const_buffer{
                     s.data(), s.size()};
