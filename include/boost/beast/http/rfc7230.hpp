@@ -140,7 +140,7 @@ public:
 */
 class ext_list
 {
-    using iter_type = string_view::const_iterator;
+    using iter_type = boost::core::string_view::const_iterator;
 
     boost::core::string_view s_;
 
@@ -233,7 +233,7 @@ public:
 */
 class token_list
 {
-    using iter_type = string_view::const_iterator;
+    using iter_type = boost::core::string_view::const_iterator;
 
     boost::core::string_view s_;
 

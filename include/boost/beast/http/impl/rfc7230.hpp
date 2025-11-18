@@ -19,7 +19,7 @@ namespace http {
 
 class param_list::const_iterator
 {
-    using iter_type = string_view::const_iterator;
+    using iter_type = boost::core::string_view::const_iterator;
 
     std::string s_;
     detail::param_iter pi_;
