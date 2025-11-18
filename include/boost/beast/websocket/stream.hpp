@@ -524,8 +524,8 @@ public:
         @code
         void
         callback(
-            frame_type kind,       // The type of frame
-            core::string_view payload    // The payload in the frame
+            frame_type kind,              // The type of frame
+            core::string_view payload     // The payload in the frame
         );
         @endcode
         The implementation type-erases the callback which may require

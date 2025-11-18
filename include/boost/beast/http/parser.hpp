@@ -237,9 +237,9 @@ public:
         @code
         void
         on_chunk_header(
-            std::uint64_t size,         // Size of the chunk, zero for the last chunk
+            std::uint64_t size,               // Size of the chunk, zero for the last chunk
             core::string_view extensions,     // The chunk-extensions in raw form
-            error_code& ec);            // May be set by the callback to indicate an error
+            error_code& ec);                  // May be set by the callback to indicate an error
         @endcode
     */
     template<class Callback>
@@ -285,9 +285,9 @@ public:
         @code
         std::size_t
         on_chunk_header(
-            std::uint64_t remain,       // Octets remaining in this chunk, includes `body`
+            std::uint64_t remain,             // Octets remaining in this chunk, includes `body`
             core::string_view body,           // A buffer holding some or all of the remainder of the chunk body
-            error_code& ec);            // May be set by the callback to indicate an error
+            error_code& ec);                  // May be set by the callback to indicate an error
         @endcode
         */
     template<class Callback>
