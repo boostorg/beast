@@ -309,7 +309,7 @@ public:
         detail::pmd_offer po;
 
         auto const accept =
-        [&](string_view s)
+        [&](core::string_view s)
         {
             http::fields f;
             f.set(http::field::sec_websocket_extensions, s);
@@ -319,7 +319,7 @@ public:
         };
 
         auto const reject =
-        [&](string_view s)
+        [&](core::string_view s)
         {
             http::fields f;
             f.set(http::field::sec_websocket_extensions, s);
@@ -401,7 +401,7 @@ public:
         detail::pmd_offer po;
 
         auto const check =
-        [&](string_view match)
+        [&](core::string_view match)
         {
             http::fields f;
             detail::pmd_write(f, po);
@@ -447,7 +447,7 @@ public:
 
         auto const reject =
         [&](
-            string_view offer)
+            core::string_view offer)
         {
             detail::pmd_offer po;
             {
@@ -463,8 +463,8 @@ public:
 
         auto const accept =
         [&](
-            string_view offer,
-            string_view result)
+            core::string_view offer,
+            core::string_view result)
         {
             detail::pmd_offer po;
             {

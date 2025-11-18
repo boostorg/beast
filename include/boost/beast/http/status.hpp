@@ -163,7 +163,7 @@ to_status_class(status v);
     @param v The status code to use.
 */
 BOOST_BEAST_DECL
-string_view
+core::string_view
 obsolete_reason(status v);
 
 /// Outputs the standard reason phrase of a status code to a stream.

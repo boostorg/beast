@@ -76,12 +76,12 @@ class parser
 
     std::function<void(
         std::uint64_t,
-        string_view,
+        core::string_view,
         error_code&)> cb_h_;
 
     std::function<std::size_t(
         std::uint64_t,
-        string_view,
+        core::string_view,
         error_code&)> cb_b_;
 
 public:
@@ -225,7 +225,7 @@ public:
         @par Example
         @code
         auto callback =
-            [](std::uint64_t size, string_view extensions, error_code& ec)
+            [](std::uint64_t size, core::string_view extensions, error_code& ec)
             {
                 //...
             };
@@ -238,7 +238,7 @@ public:
         void
         on_chunk_header(
             std::uint64_t size,         // Size of the chunk, zero for the last chunk
-            string_view extensions,     // The chunk-extensions in raw form
+            core::string_view extensions,     // The chunk-extensions in raw form
             error_code& ec);            // May be set by the callback to indicate an error
         @endcode
     */
@@ -273,7 +273,7 @@ public:
         @par Example
         @code
         auto callback =
-            [](std::uint64_t remain, string_view body, error_code& ec)
+            [](std::uint64_t remain, core::string_view body, error_code& ec)
             {
                 //...
             };
@@ -286,7 +286,7 @@ public:
         std::size_t
         on_chunk_header(
             std::uint64_t remain,       // Octets remaining in this chunk, includes `body`
-            string_view body,           // A buffer holding some or all of the remainder of the chunk body
+            core::string_view body,           // A buffer holding some or all of the remainder of the chunk body
             error_code& ec);            // May be set by the callback to indicate an error
         @endcode
         */
@@ -387,8 +387,8 @@ private:
     void
     on_request_impl(
         verb method,
-        string_view method_str,
-        string_view target,
+        core::string_view method_str,
+        core::string_view target,
         int version,
         error_code& ec,
         std::true_type)
@@ -417,7 +417,7 @@ private:
 
     void
     on_request_impl(
-        verb, string_view, string_view,
+        verb, core::string_view, core::string_view,
         int, error_code&, std::false_type)
     {
     }
@@ -425,8 +425,8 @@ private:
     void
     on_request_impl(
         verb method,
-        string_view method_str,
-        string_view target,
+        core::string_view method_str,
+        core::string_view target,
         int version,
         error_code& ec) override
     {
@@ -438,7 +438,7 @@ private:
     void
     on_response_impl(
         int code,
-        string_view reason,
+        core::string_view reason,
         int version,
         error_code& ec,
         std::true_type)
@@ -464,7 +464,7 @@ private:
 
     void
     on_response_impl(
-        int, string_view, int,
+        int, core::string_view, int,
         error_code&, std::false_type)
     {
     }
@@ -472,7 +472,7 @@ private:
     void
     on_response_impl(
         int code,
-        string_view reason,
+        core::string_view reason,
         int version,
         error_code& ec) override
     {
@@ -484,8 +484,8 @@ private:
     void
     on_field_impl(
         field name,
-        string_view name_string,
-        string_view value,
+        core::string_view name_string,
+        core::string_view value,
         error_code& ec) override
     {
         m_.insert(name, name_string, value, ec);
@@ -494,8 +494,8 @@ private:
     void
     on_trailer_field_impl(
         field name,
-        string_view name_string,
-        string_view value,
+        core::string_view name_string,
+        core::string_view value,
         error_code& ec) override
     {
         if(! token_list{m_[field::trailer]}.exists(name_string))
@@ -538,7 +538,7 @@ private:
 
     std::size_t
     on_body_impl(
-        string_view body,
+        core::string_view body,
         error_code& ec) override
     {
         return rd_.put(net::buffer(
@@ -548,7 +548,7 @@ private:
     void
     on_chunk_header_impl(
         std::uint64_t size,
-        string_view extensions,
+        core::string_view extensions,
         error_code& ec) override
     {
         if(cb_h_)
@@ -558,7 +558,7 @@ private:
     std::size_t
     on_chunk_body_impl(
         std::uint64_t remain,
-        string_view body,
+        core::string_view body,
         error_code& ec) override
     {
         if(cb_b_)

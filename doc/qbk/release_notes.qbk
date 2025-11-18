@@ -258,7 +258,7 @@
 [*Miscellaneous]
 
 * [issue 2363] Remove `BOOST_BEAST_USE_STD_STRING_VIEW`
-* [issue 2417] use boost::core::string_view. This improves inter-conversion between string_view implementations. Some observable differences for users:
+* [issue 2417] use boost::core::string_view. This improves inter-conversion between core::string_view implementations. Some observable differences for users:
  * `core::string_view` no longer supports the `.to_string()` or `.clear()` extensions from Utility
  * code that relied on `.max_size()` returning `.size(),` needs to be fixed to use `.size()` instead
  * `remove_suffix()` and `remove_prefix()` were more lenient than the standard specs; be sure you don't rely on it clamping the argument to valid range
@@ -426,7 +426,7 @@
 * [issue 1956] Deprecate `string_param` (API Change)
   ['Actions Required]
   `string_param`, which was previously the argument type when setting field values
-  has been replaced by `string_view`. Because of this, it is no longer possible to
+  has been replaced by `core::string_view`. Because of this, it is no longer possible to
   set message field values directly as integrals.
   Users are requied to convert numeric arguments to a string type prior to calling
   `fields::set` et. al.

@@ -251,7 +251,7 @@ void fxx() {
 //[http_snippet_23
     // Manually emit a trailer.
     // We are responsible for ensuring that the trailer format adheres to the specification.
-    string_view ext =
+    core::string_view ext =
         "Content-Digest: f4a5c16584f03d90\r\n"
         "\r\n";
     net::write(sock, make_chunk_last(net::const_buffer{ext.data(), ext.size()}));

@@ -50,8 +50,8 @@ slow:
 
 bool
 iless::operator()(
-    string_view lhs,
-    string_view rhs) const
+    core::string_view lhs,
+    core::string_view rhs) const
 {
     using std::begin;
     using std::end;

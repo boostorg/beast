@@ -41,8 +41,8 @@ private:
     void
     on_request_impl(
         verb method,                // The method verb, verb::unknown if no match
-        string_view method_str,     // The method as a string
-        string_view target,         // The request-target
+        core::string_view method_str,     // The method as a string
+        core::string_view target,         // The request-target
         int version,                // The HTTP-version
         error_code& ec) override;   // The error returned to the caller, if any
 
@@ -67,7 +67,7 @@ private:
     void
     on_response_impl(
         int code,                   // The status-code
-        string_view reason,         // The obsolete reason-phrase
+        core::string_view reason,         // The obsolete reason-phrase
         int version,                // The HTTP-version
         error_code& ec) override;   // The error returned to the caller, if any
 
@@ -90,8 +90,8 @@ private:
     void
     on_field_impl(
         field f,                    // The known-field enumeration constant
-        string_view name,           // The field name string.
-        string_view value,          // The field value
+        core::string_view name,           // The field name string.
+        core::string_view value,          // The field value
         error_code& ec) override;   // The error returned to the caller, if any
 
     /** Called once after the complete HTTP header is received.
@@ -141,7 +141,7 @@ private:
     */
     std::size_t
     on_body_impl(
-        string_view s,              // A portion of the body
+        core::string_view s,              // A portion of the body
         error_code& ec) override;   // The error returned to the caller, if any
 
     /** Called each time a new chunk header of a chunk encoded body is received.
@@ -161,7 +161,7 @@ private:
     on_chunk_header_impl(
         std::uint64_t size,         // The size of the upcoming chunk,
                                     // or zero for the last chunk
-        string_view extension,      // The chunk extensions (may be empty)
+        core::string_view extension,      // The chunk extensions (may be empty)
         error_code& ec) override;   // The error returned to the caller, if any
 
     /** Called each time additional data is received representing part of a body chunk.
@@ -191,7 +191,7 @@ private:
         std::uint64_t remain,       // The number of bytes remaining in the chunk,
                                     // including what is being passed here.
                                     // or zero for the last chunk
-        string_view body,           // The next piece of the chunk body
+        core::string_view body,           // The next piece of the chunk body
         error_code& ec) override;   // The error returned to the caller, if any
 
     /** Called once when the complete message is received.
@@ -216,8 +216,8 @@ public:
 
 template<bool isRequest>
 void custom_parser<isRequest>::
-on_request_impl(verb method, string_view method_str,
-    string_view path, int version, error_code& ec)
+on_request_impl(verb method, core::string_view method_str,
+    core::string_view path, int version, error_code& ec)
 {
     boost::ignore_unused(method, method_str, path, version);
     ec = {};
@@ -227,7 +227,7 @@ template<bool isRequest>
 void custom_parser<isRequest>::
 on_response_impl(
     int status,
-    string_view reason,
+    core::string_view reason,
     int version,
     error_code& ec)
 {
@@ -239,8 +239,8 @@ template<bool isRequest>
 void custom_parser<isRequest>::
 on_field_impl(
     field f,
-    string_view name,
-    string_view value,
+    core::string_view name,
+    core::string_view value,
     error_code& ec)
 {
     boost::ignore_unused(f, name, value);
@@ -266,7 +266,7 @@ on_body_init_impl(
 
 template<bool isRequest>
 std::size_t custom_parser<isRequest>::
-on_body_impl(string_view body, error_code& ec)
+on_body_impl(core::string_view body, error_code& ec)
 {
     boost::ignore_unused(body);
     ec = {};
@@ -277,7 +277,7 @@ template<bool isRequest>
 void custom_parser<isRequest>::
 on_chunk_header_impl(
     std::uint64_t size,
-    string_view extension,
+    core::string_view extension,
     error_code& ec)
 {
     boost::ignore_unused(size, extension);
@@ -288,7 +288,7 @@ template<bool isRequest>
 std::size_t custom_parser<isRequest>::
 on_chunk_body_impl(
     std::uint64_t remain,
-    string_view body,
+    core::string_view body,
     error_code& ec)
 {
     boost::ignore_unused(remain);

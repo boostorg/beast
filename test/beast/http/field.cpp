@@ -23,7 +23,7 @@ public:
     testField()
     {
         auto const match =
-            [&](field f, string_view s)
+            [&](field f, core::string_view s)
             {
                 BEAST_EXPECT(iequals(to_string(f), s));
                 BEAST_EXPECT(string_to_field(s) == f);
@@ -163,7 +163,7 @@ public:
         match(field::x_xss_protection, "X-XSS-Protection");
 
         auto const unknown =
-            [&](string_view s)
+            [&](core::string_view s)
             {
                 BEAST_EXPECT(string_to_field(s) == field::unknown);
             };
