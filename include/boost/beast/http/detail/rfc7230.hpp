@@ -63,7 +63,7 @@ trim(boost::core::string_view s);
 
 struct param_iter
 {
-    using iter_type = string_view::const_iterator;
+    using iter_type = boost::core::string_view::const_iterator;
 
     iter_type it;
     iter_type first;
