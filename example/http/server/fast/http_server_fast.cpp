@@ -33,15 +33,15 @@ namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 // Return a reasonable mime type based on the extension of a file.
-core::string_view
-mime_type(core::string_view path)
+boost::core::string_view
+mime_type(boost::core::string_view path)
 {
     using beast::iequals;
     auto const ext = [&path]
     {
         auto const pos = path.rfind(".");
-        if(pos == core::string_view::npos)
-            return core::string_view{};
+        if(pos == boost::core::string_view::npos)
+            return boost::core::string_view{};
         return path.substr(pos);
     }();
     if(iequals(ext, ".htm"))  return "text/html";
@@ -230,7 +230,7 @@ private:
             });
     }
 
-    void send_file(core::string_view target)
+    void send_file(boost::core::string_view target)
     {
         // Request path must be absolute and not contain "..".
         if (target.empty() || target[0] != '/' || target.find("..") != std::string::npos)
