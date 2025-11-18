@@ -50,7 +50,7 @@ public:
     {
     }
 
-    boost::core::string_view
+    core::string_view
     str() const
     {
         if(! s_.empty())
@@ -128,7 +128,7 @@ public:
         imbue(std::locale::classic());
     }
 
-    boost::core::string_view
+    core::string_view
     str() const
     {
         return osb_.str();

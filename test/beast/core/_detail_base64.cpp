@@ -32,14 +32,14 @@ public:
     }
 
     std::string
-    base64_encode(boost::core::string_view s)
+    base64_encode(core::string_view s)
     {
         return base64_encode (reinterpret_cast <
             std::uint8_t const*> (s.data()), s.size());
     }
 
     std::string
-    base64_decode(boost::core::string_view data)
+    base64_decode(core::string_view data)
     {
         std::string dest;
         dest.resize(base64::decoded_size(data.size()));

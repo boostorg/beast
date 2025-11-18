@@ -33,13 +33,13 @@ snippets()
     {
     //[code_core_1_refresher_1s
         net::const_buffer cb("Hello, world!", 13);
-        assert(boost::core::string_view(reinterpret_cast<char const*>(
+        assert(core::string_view(reinterpret_cast<char const*>(
             cb.data()), cb.size()) == "Hello, world!");
 
         char storage[13];
         net::mutable_buffer mb(storage, sizeof(storage));
         std::memcpy(mb.data(), cb.data(), mb.size());
-        assert(boost::core::string_view(reinterpret_cast<char const*>(
+        assert(core::string_view(reinterpret_cast<char const*>(
             mb.data()), mb.size()) == "Hello, world!");
     //]
     }

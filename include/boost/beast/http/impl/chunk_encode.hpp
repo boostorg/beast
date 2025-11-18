@@ -35,7 +35,7 @@ inline
 chunk_header::
 chunk_header(
     std::size_t size,
-    boost::core::string_view extensions)
+    core::string_view extensions)
     : view_(
         size,
         net::const_buffer{
@@ -102,7 +102,7 @@ template<class ConstBufferSequence>
 chunk_body<ConstBufferSequence>::
 chunk_body(
     ConstBufferSequence const& buffers,
-    boost::core::string_view extensions)
+    core::string_view extensions)
     : view_(
         buffer_bytes(buffers),
         net::const_buffer{
@@ -311,10 +311,10 @@ operator*() ->
     using beast::detail::varint_read;
     auto it = it_;
     auto n = varint_read(it);
-    value_.first = boost::core::string_view{it, n};
+    value_.first = core::string_view{it, n};
     it += n;
     n = varint_read(it);
-    value_.second = boost::core::string_view{it, n};
+    value_.second = core::string_view{it, n};
     return value_;
 }
 
@@ -560,7 +560,7 @@ semi:
 template<class Allocator>
 void
 basic_chunk_extensions<Allocator>::
-do_insert(boost::core::string_view name, boost::core::string_view value)
+do_insert(core::string_view name, core::string_view value)
 {
 /*
     chunk-ext       = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
@@ -623,7 +623,7 @@ do_insert(boost::core::string_view name, boost::core::string_view value)
 template<class Allocator>
 void
 basic_chunk_extensions<Allocator>::
-parse(boost::core::string_view s, error_code& ec)
+parse(core::string_view s, error_code& ec)
 {
     do_parse(s.data(), s.data() + s.size(), ec);
     if(! ec)
@@ -637,7 +637,7 @@ parse(boost::core::string_view s, error_code& ec)
 template<class Allocator>
 void
 basic_chunk_extensions<Allocator>::
-insert(boost::core::string_view name)
+insert(core::string_view name)
 {
     do_insert(name, {});
 
@@ -659,7 +659,7 @@ insert(boost::core::string_view name)
 template<class Allocator>
 void
 basic_chunk_extensions<Allocator>::
-insert(boost::core::string_view name, boost::core::string_view value)
+insert(core::string_view name, core::string_view value)
 {
     do_insert(name, value);
 

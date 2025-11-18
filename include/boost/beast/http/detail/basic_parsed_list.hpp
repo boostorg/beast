@@ -25,7 +25,7 @@ namespace detail {
 template<class Policy>
 class basic_parsed_list
 {
-    boost::core::string_view s_;
+    core::string_view s_;
 
 public:
     /// The type of policy this list uses for parsing.
@@ -130,7 +130,7 @@ public:
 
     /// Construct a list from a string
     explicit
-    basic_parsed_list(boost::core::string_view s)
+    basic_parsed_list(core::string_view s)
         : s_(s)
     {
     }

@@ -19,7 +19,7 @@ namespace http {
 
 class param_list::const_iterator
 {
-    using iter_type = boost::core::string_view::const_iterator;
+    using iter_type = core::string_view::const_iterator;
 
     std::string s_;
     detail::param_iter pi_;
@@ -89,7 +89,7 @@ private:
     BOOST_BEAST_DECL
     static
     void
-    unquote(boost::core::string_view sr, std::string & s);
+    unquote(core::string_view sr, std::string & s);
 
     BOOST_BEAST_DECL
     void

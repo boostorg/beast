@@ -192,7 +192,7 @@ writer(basic_fields const& f,
         " <target>"
         " HTTP/X.Y\r\n" (11 chars)
 */
-    boost::core::string_view sv;
+    core::string_view sv;
     if(v == verb::unknown)
         sv = f_.get_method_impl();
     else
@@ -248,7 +248,7 @@ writer(basic_fields const& f,
     buf_[11]= '0' + static_cast<char>(code % 10);
     buf_[12]= ' ';
 
-    boost::core::string_view sv;
+    core::string_view sv;
     if(! f_.target_or_reason_.empty())
         sv = f_.target_or_reason_;
     else
@@ -289,7 +289,7 @@ template<class Allocator>
 basic_fields<Allocator>::
 value_type::
 value_type(field name,
-    boost::core::string_view sname, boost::core::string_view value)
+    core::string_view sname, core::string_view value)
     : off_(static_cast<off_t>(sname.size() + 2))
     , len_(static_cast<off_t>(value.size()))
     , f_(name)
@@ -315,7 +315,7 @@ name() const
 }
 
 template<class Allocator>
-boost::core::string_view const
+core::string_view const
 basic_fields<Allocator>::
 value_type::
 name_string() const
@@ -325,7 +325,7 @@ name_string() const
 }
 
 template<class Allocator>
-boost::core::string_view const
+core::string_view const
 basic_fields<Allocator>::
 value_type::
 value() const
@@ -338,7 +338,7 @@ template<class Allocator>
 basic_fields<Allocator>::
 element::
 element(field name,
-    boost::core::string_view sname, boost::core::string_view value)
+    core::string_view sname, core::string_view value)
     : value_type(name, sname, value)
 {
 }
@@ -470,7 +470,7 @@ operator=(basic_fields<OtherAlloc> const& other) ->
 //------------------------------------------------------------------------------
 
 template<class Allocator>
-boost::core::string_view const
+core::string_view const
 basic_fields<Allocator>::
 at(field name) const
 {
@@ -483,9 +483,9 @@ at(field name) const
 }
 
 template<class Allocator>
-boost::core::string_view const
+core::string_view const
 basic_fields<Allocator>::
-at(boost::core::string_view name) const
+at(core::string_view name) const
 {
     auto const it = find(name);
     if(it == end())
@@ -495,7 +495,7 @@ at(boost::core::string_view name) const
 }
 
 template<class Allocator>
-boost::core::string_view const
+core::string_view const
 basic_fields<Allocator>::
 operator[](field name) const
 {
@@ -507,9 +507,9 @@ operator[](field name) const
 }
 
 template<class Allocator>
-boost::core::string_view const
+core::string_view const
 basic_fields<Allocator>::
-operator[](boost::core::string_view name) const
+operator[](core::string_view name) const
 {
     auto const it = find(name);
     if(it == end())
@@ -537,7 +537,7 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-insert(field name, boost::core::string_view value)
+insert(field name, core::string_view value)
 {
     BOOST_ASSERT(name != field::unknown);
     insert(name, to_string(name), value);
@@ -546,7 +546,7 @@ insert(field name, boost::core::string_view value)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-insert(boost::core::string_view sname, boost::core::string_view value)
+insert(core::string_view sname, core::string_view value)
 {
     insert(
         string_to_field(sname), sname, value);
@@ -557,8 +557,8 @@ void
 basic_fields<Allocator>::
 insert(
     field name,
-    boost::core::string_view sname,
-    boost::core::string_view value,
+    core::string_view sname,
+    core::string_view value,
     error_code& ec)
 {
     ec = {};
@@ -572,7 +572,7 @@ template<class Allocator>
 void
 basic_fields<Allocator>::
 insert(field name,
-    boost::core::string_view sname, boost::core::string_view value)
+    core::string_view sname, core::string_view value)
 {
     insert_element(
         new_element(name, sname, value));
@@ -581,7 +581,7 @@ insert(field name,
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set(field name, boost::core::string_view value)
+set(field name, core::string_view value)
 {
     BOOST_ASSERT(name != field::unknown);
     set_element(
@@ -591,7 +591,7 @@ set(field name, boost::core::string_view value)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-set(boost::core::string_view sname, boost::core::string_view value)
+set(core::string_view sname, core::string_view value)
 {
     set_element(new_element(
         string_to_field(sname), sname, value));
@@ -623,7 +623,7 @@ erase(field name)
 template<class Allocator>
 std::size_t
 basic_fields<Allocator>::
-erase(boost::core::string_view name)
+erase(core::string_view name)
 {
     std::size_t n =0;
     set_.erase_and_dispose(name, key_compare{},
@@ -672,7 +672,7 @@ contains(field name) const
 template<class Allocator>
 bool
 basic_fields<Allocator>::
-contains(boost::core::string_view name) const
+contains(core::string_view name) const
 {
     return find(name) != end();
 }
@@ -690,7 +690,7 @@ count(field name) const
 template<class Allocator>
 std::size_t
 basic_fields<Allocator>::
-count(boost::core::string_view name) const
+count(core::string_view name) const
 {
     return set_.count(name, key_compare{});
 }
@@ -709,7 +709,7 @@ find(field name) const ->
 template<class Allocator>
 auto
 basic_fields<Allocator>::
-find(boost::core::string_view name) const ->
+find(core::string_view name) const ->
     const_iterator
 {
     auto const it = set_.find(
@@ -733,7 +733,7 @@ equal_range(field name) const ->
 template<class Allocator>
 auto
 basic_fields<Allocator>::
-equal_range(boost::core::string_view name) const ->
+equal_range(core::string_view name) const ->
     std::pair<const_iterator, const_iterator>
 {
     auto result =
@@ -752,13 +752,13 @@ namespace detail {
 struct iequals_predicate
 {
     bool
-    operator()(boost::core::string_view s) const
+    operator()(core::string_view s) const
     {
         return beast::iequals(s, sv1) || beast::iequals(s, sv2);
     }
 
-    boost::core::string_view sv1;
-    boost::core::string_view sv2;
+    core::string_view sv1;
+    core::string_view sv2;
 };
 
 // Filter the last item in a token list
@@ -766,13 +766,13 @@ BOOST_BEAST_DECL
 void
 filter_token_list_last(
     beast::detail::temporary_buffer& s,
-    boost::core::string_view value,
+    core::string_view value,
     iequals_predicate const& pred);
 
 BOOST_BEAST_DECL
 void
 keep_alive_impl(
-    beast::detail::temporary_buffer& s, boost::core::string_view value,
+    beast::detail::temporary_buffer& s, core::string_view value,
     unsigned version, bool keep_alive);
 
 } // detail
@@ -783,7 +783,7 @@ keep_alive_impl(
 
 template<class Allocator>
 inline
-boost::core::string_view
+core::string_view
 basic_fields<Allocator>::
 get_method_impl() const
 {
@@ -792,7 +792,7 @@ get_method_impl() const
 
 template<class Allocator>
 inline
-boost::core::string_view
+core::string_view
 basic_fields<Allocator>::
 get_target_impl() const
 {
@@ -805,7 +805,7 @@ get_target_impl() const
 
 template<class Allocator>
 inline
-boost::core::string_view
+core::string_view
 basic_fields<Allocator>::
 get_reason_impl() const
 {
@@ -860,7 +860,7 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-set_method_impl(boost::core::string_view s)
+set_method_impl(core::string_view s)
 {
     realloc_string(method_, s);
 }
@@ -869,7 +869,7 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-set_target_impl(boost::core::string_view s)
+set_target_impl(core::string_view s)
 {
     realloc_target(
         target_or_reason_, s);
@@ -879,7 +879,7 @@ template<class Allocator>
 inline
 void
 basic_fields<Allocator>::
-set_reason_impl(boost::core::string_view s)
+set_reason_impl(core::string_view s)
 {
     realloc_string(
         target_or_reason_, s);
@@ -967,8 +967,8 @@ auto
 basic_fields<Allocator>::
 try_create_new_element(
     field name,
-    boost::core::string_view sname,
-    boost::core::string_view value,
+    core::string_view sname,
+    core::string_view value,
     error_code& ec) -> element*
 {
     if(sname.size() > max_name_size)
@@ -998,8 +998,8 @@ auto
 basic_fields<Allocator>::
 new_element(
     field name,
-    boost::core::string_view sname,
-    boost::core::string_view value) -> element&
+    core::string_view sname,
+    core::string_view value) -> element&
 {
     error_code ec;
     auto* e = try_create_new_element(name, sname, value, ec);
@@ -1083,7 +1083,7 @@ set_element(element& e)
 template<class Allocator>
 void
 basic_fields<Allocator>::
-realloc_string(boost::core::string_view& dest, boost::core::string_view s)
+realloc_string(core::string_view& dest, core::string_view s)
 {
     if(dest.empty() && s.empty())
         return;
@@ -1109,7 +1109,7 @@ template<class Allocator>
 void
 basic_fields<Allocator>::
 realloc_target(
-    boost::core::string_view& dest, boost::core::string_view s)
+    core::string_view& dest, core::string_view s)
 {
     // The target string are stored with an
     // extra space at the beginning to help

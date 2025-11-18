@@ -482,7 +482,7 @@ public:
         net::io_context ioc;
 
         auto const check =
-        [&](error_code ev, boost::core::string_view s)
+        [&](error_code ev, core::string_view s)
         {
             for(int i = 0; i < 3; ++i)
             {
@@ -798,7 +798,7 @@ public:
         {
             {
                 stream<tcp::socket> ws1(ioc);
-                boost::core::string_view s =
+                core::string_view s =
                     "GET / HTTP/1.1\r\n"
                     "Host: localhost\r\n"
                     "Upgrade: websocket\r\n"

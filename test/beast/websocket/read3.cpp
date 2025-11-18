@@ -99,7 +99,7 @@ public:
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
             // insert a ping
-            ws.next_layer().append(boost::core::string_view(
+            ws.next_layer().append(core::string_view(
                 "\x89\x00", 2));
             std::size_t count = 0;
             std::string const s = "Hello, world";
@@ -139,7 +139,7 @@ public:
             std::size_t count = 0;
             // insert fragmented message with
             // a ping in between the frames.
-            ws.next_layer().append(boost::core::string_view(
+            ws.next_layer().append(core::string_view(
                 "\x01\x01*"
                 "\x89\x00"
                 "\x80\x01*", 8));
@@ -187,7 +187,7 @@ public:
             std::size_t count = 0;
             // insert fragmented message with
             // a close in between the frames.
-            ws.next_layer().append(boost::core::string_view(
+            ws.next_layer().append(core::string_view(
                 "\x01\x01*"
                 "\x88\x00"
                 "\x80\x01*", 8));
@@ -219,7 +219,7 @@ public:
     testParseFrame()
     {
         auto const bad =
-            [&](boost::core::string_view s)
+            [&](core::string_view s)
             {
                 echo_server es{log};
                 net::io_context ioc;
@@ -335,8 +335,8 @@ public:
         }
 
         // length not canonical
-        bad(boost::core::string_view("\x81\x7e\x00\x7d", 4));
-        bad(boost::core::string_view("\x81\x7f\x00\x00\x00\x00\x00\x00\xff\xff", 10));
+        bad(core::string_view("\x81\x7e\x00\x7d", 4));
+        bad(core::string_view("\x81\x7f\x00\x00\x00\x00\x00\x00\xff\xff", 10));
     }
 
     void
@@ -398,7 +398,7 @@ public:
         bool called_cb = false;
         bool called_handler = false;
         ws.control_callback(
-            [&called_cb](frame_type, boost::core::string_view)
+            [&called_cb](frame_type, core::string_view)
             {
                 called_cb = true;
             });

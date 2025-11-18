@@ -22,7 +22,7 @@ namespace http {
 
 template<class = void>
 std::string
-escaped_string(boost::core::string_view s)
+escaped_string(core::string_view s)
 {
     std::string out;
     out.reserve(s.size());

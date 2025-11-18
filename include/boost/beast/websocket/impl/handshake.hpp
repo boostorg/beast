@@ -231,8 +231,8 @@ void
 stream<NextLayer, deflateSupported>::
 do_handshake(
     response_type* res_p,
-    boost::core::string_view host,
-    boost::core::string_view target,
+    core::string_view host,
+    core::string_view target,
     RequestDecorator const& decorator,
     error_code& ec)
 {
@@ -310,8 +310,8 @@ template<BOOST_BEAST_ASYNC_TPARAM1 HandshakeHandler>
 BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
 stream<NextLayer, deflateSupported>::
 async_handshake(
-    boost::core::string_view host,
-    boost::core::string_view target,
+    core::string_view host,
+    core::string_view target,
     HandshakeHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
@@ -335,8 +335,8 @@ BOOST_BEAST_ASYNC_RESULT1(HandshakeHandler)
 stream<NextLayer, deflateSupported>::
 async_handshake(
     response_type& res,
-    boost::core::string_view host,
-    boost::core::string_view target,
+    core::string_view host,
+    core::string_view target,
     HandshakeHandler&& handler)
 {
     static_assert(is_async_stream<next_layer_type>::value,
@@ -357,8 +357,8 @@ async_handshake(
 template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
-handshake(boost::core::string_view host,
-    boost::core::string_view target)
+handshake(core::string_view host,
+    core::string_view target)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream type requirements not met");
@@ -373,8 +373,8 @@ template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
 handshake(response_type& res,
-    boost::core::string_view host,
-        boost::core::string_view target)
+    core::string_view host,
+        core::string_view target)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream type requirements not met");
@@ -387,8 +387,8 @@ handshake(response_type& res,
 template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
-handshake(boost::core::string_view host,
-    boost::core::string_view target, error_code& ec)
+handshake(core::string_view host,
+    core::string_view target, error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,
         "SyncStream type requirements not met");
@@ -400,8 +400,8 @@ template<class NextLayer, bool deflateSupported>
 void
 stream<NextLayer, deflateSupported>::
 handshake(response_type& res,
-    boost::core::string_view host,
-        boost::core::string_view target,
+    core::string_view host,
+        core::string_view target,
             error_code& ec)
 {
     static_assert(is_sync_stream<next_layer_type>::value,

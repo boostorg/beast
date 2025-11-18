@@ -30,7 +30,7 @@ print(T const& t)
 template<class T>
 typename std::enable_if<
     ! std::is_integral<T>::value &&
-    ! std::is_convertible<T, boost::core::string_view>::value
+    ! std::is_convertible<T, core::string_view>::value
 >::type
 string_param::
 print(T const& t)
@@ -44,7 +44,7 @@ print(T const& t)
 inline
 void
 string_param::
-print(boost::core::string_view sv)
+print(core::string_view sv)
 {
     sv_ = sv;
 }
@@ -60,7 +60,7 @@ print_1(T const& t)
     auto const it = detail::raw_to_string<
         char, T, std::char_traits<char>>(
             last, sizeof(buf), t);
-    *os_ << boost::core::string_view{it,
+    *os_ << core::string_view{it,
         static_cast<std::size_t>(last - it)};
 }
 

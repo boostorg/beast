@@ -185,7 +185,7 @@ public:
             stream_base::none(),
             false});
         // add a close frame to the input
-        ws1.next_layer().append(boost::core::string_view{
+        ws1.next_layer().append(core::string_view{
             "\x88\x00", 2});
         ws1.async_read(b, test::fail_handler(
             beast::error::timeout));

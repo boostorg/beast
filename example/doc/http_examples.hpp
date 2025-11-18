@@ -376,7 +376,7 @@ response<empty_body>
 do_head_request(
     SyncStream& stream,
     DynamicBuffer& buffer,
-    boost::core::string_view target,
+    core::string_view target,
     error_code& ec)
 {
     // Do some type checking to be a good citizen
@@ -979,8 +979,8 @@ print_chunked_body(
     // after each chunk header and also after the last chunk.
     auto header_cb =
     [&](std::uint64_t size,               // Size of the chunk, or zero for the last chunk
-        boost::core::string_view extensions,     // The raw chunk-extensions string. Already validated.
-        error_code& ev)                   // We can set this to indicate an error
+        core::string_view extensions,            // The raw chunk-extensions string. Already validated.
+        error_code& ev)                          // We can set this to indicate an error
     {
         // Parse the chunk extensions so we can access them easily
         ce.parse(extensions, ev);
@@ -1008,8 +1008,8 @@ print_chunked_body(
     // more times for each piece of a chunk body.
     auto body_cb =            
     [&](std::uint64_t remain,         // The number of bytes left in this chunk
-        boost::core::string_view body,       // A buffer holding chunk body data
-        error_code& ec)               // We can set this to indicate an error
+        core::string_view body,              // A buffer holding chunk body data
+        error_code& ec)                      // We can set this to indicate an error
     {
         // If this is the last piece of the chunk body,
         // set the error so that the call to `read` returns

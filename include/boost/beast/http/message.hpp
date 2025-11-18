@@ -149,7 +149,7 @@ public:
 
         @see method
     */
-    boost::core::string_view
+    core::string_view
     method_string() const;
 
     /** Set the request-method.
@@ -163,7 +163,7 @@ public:
         @note This function is only available when `isRequest == true`.
     */
     void
-    method_string(boost::core::string_view s);
+    method_string(core::string_view s);
 
     /** Returns the request-target string.
 
@@ -174,7 +174,7 @@ public:
 
         @note This function is only available when `isRequest == true`.
     */
-    boost::core::string_view
+    core::string_view
     target() const;
 
     /** Set the request-target string.
@@ -190,7 +190,7 @@ public:
         @note This function is only available when `isRequest == true`.
     */
     void
-    target(boost::core::string_view s);
+    target(core::string_view s);
 
     // VFALCO Don't rearrange these declarations or
     //        ifdefs, or else the documentation will break.
@@ -235,7 +235,7 @@ private:
     template<class... FieldsArgs>
     header(
         verb method,
-        boost::core::string_view target_,
+        core::string_view target_,
         unsigned version_value,
         FieldsArgs&&... fields_args)
         : Fields(std::forward<FieldsArgs>(fields_args)...)
@@ -390,7 +390,7 @@ public:
 
         @note This function is only available when `isRequest == false`.
     */
-    boost::core::string_view
+    core::string_view
     reason() const;
 
     /** Set the response reason-phrase (deprecated)
@@ -412,7 +412,7 @@ public:
         @note This function is only available when `isRequest == false`.
     */
     void
-    reason(boost::core::string_view s);
+    reason(core::string_view s);
 
 private:
 #if ! BOOST_BEAST_DOXYGEN
@@ -557,12 +557,12 @@ public:
         @note This function is only available when `isRequest == true`.
     */
 #if BOOST_BEAST_DOXYGEN
-    message(verb method, boost::core::string_view target, unsigned version);
+    message(verb method, core::string_view target, unsigned version);
 #else
     template<class Version,
         class = typename std::enable_if<isRequest &&
             std::is_convertible<Version, unsigned>::value>::type>
-    message(verb method, boost::core::string_view target, Version version);
+    message(verb method, core::string_view target, Version version);
 #endif
 
     /** Constructor
@@ -579,13 +579,13 @@ public:
     */
 #if BOOST_BEAST_DOXYGEN
     template<class BodyArg>
-    message(verb method, boost::core::string_view target,
+    message(verb method, core::string_view target,
         unsigned version, BodyArg&& body_arg);
 #else
     template<class Version, class BodyArg,
         class = typename std::enable_if<isRequest &&
             std::is_convertible<Version, unsigned>::value>::type>
-    message(verb method, boost::core::string_view target,
+    message(verb method, core::string_view target,
         Version version, BodyArg&& body_arg);
 #endif
 
@@ -605,13 +605,13 @@ public:
     */
 #if BOOST_BEAST_DOXYGEN
     template<class BodyArg, class FieldsArg>
-    message(verb method, boost::core::string_view target, unsigned version,
+    message(verb method, core::string_view target, unsigned version,
         BodyArg&& body_arg, FieldsArg&& fields_arg);
 #else
     template<class Version, class BodyArg, class FieldsArg,
         class = typename std::enable_if<isRequest &&
             std::is_convertible<Version, unsigned>::value>::type>
-    message(verb method, boost::core::string_view target, Version version,
+    message(verb method, core::string_view target, Version version,
         BodyArg&& body_arg, FieldsArg&& fields_arg);
 #endif
 

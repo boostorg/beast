@@ -79,7 +79,7 @@ build_response(
             decorator(res);
             if(! res.contains(http::field::server))
                 res.set(http::field::server,
-                    boost::core::string_view(BOOST_BEAST_VERSION_STRING));
+                    core::string_view(BOOST_BEAST_VERSION_STRING));
         };
     auto err =
         [&](error e)
@@ -113,7 +113,7 @@ build_response(
         if(! http::token_list{it->value()}.exists("websocket"))
             return err(error::no_upgrade_websocket);
     }
-    boost::core::string_view key;
+    core::string_view key;
     {
         auto const it = req.find(http::field::sec_websocket_key);
         if(it == req.end())
