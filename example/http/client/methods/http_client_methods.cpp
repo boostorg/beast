@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 
         for (char * c = argv[1]; *c != '\0'; c++)
             *c = static_cast<char>(std::tolower(*c));
-        beast::string_view method{argv[1]};
+        boost::core::string_view method{argv[1]};
 
         // The io_context is required for all I/O
         net::io_context ioc;
