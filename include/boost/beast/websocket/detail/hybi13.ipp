@@ -38,7 +38,7 @@ make_sec_ws_key(sec_ws_key_type& key)
 void
 make_sec_ws_accept(
     sec_ws_accept_type& accept,
-    boost::core::string_view key)
+    core::string_view key)
 {
     BOOST_ASSERT(key.size() <= sec_ws_key_type::static_capacity);
     using namespace beast::detail::string_literals;
