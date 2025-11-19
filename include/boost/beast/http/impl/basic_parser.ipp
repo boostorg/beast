@@ -236,12 +236,12 @@ inner_parse_start_line(
 */
     auto p = in;
 
-    boost::core::string_view method;
+    core::string_view method;
     parse_method(p, last, method, ec);
     if(ec)
         return;
 
-    boost::core::string_view target;
+    core::string_view target;
     parse_target(p, last, target, ec);
     if(ec)
         return;
@@ -321,7 +321,7 @@ inner_parse_start_line(
         return;
 
     // parse reason CRLF
-    boost::core::string_view reason;
+    core::string_view reason;
     parse_reason(p, last, reason, ec);
     if(ec)
         return;
@@ -361,8 +361,8 @@ basic_parser<isRequest>::
 inner_parse_fields(char const*& in,
     char const* last, error_code& ec)
 {
-    boost::core::string_view name;
-    boost::core::string_view value;
+    core::string_view name;
+    core::string_view value;
     // https://stackoverflow.com/questions/686217/maximum-on-http-header-values
     beast::detail::char_buffer<max_obs_fold> buf;
     auto p = in;
@@ -533,7 +533,7 @@ parse_body(char const*& p,
     std::size_t n, error_code& ec)
 {
     ec = {};
-    n = this->on_body_impl(boost::core::string_view{p,
+    n = this->on_body_impl(core::string_view{p,
         beast::detail::clamp(len_, n)}, ec);
     p += n;
     len_ -= n;
@@ -561,7 +561,7 @@ parse_body_to_eof(char const*& p,
         *body_limit_ -= n;
     }
     ec = {};
-    n = this->on_body_impl(boost::core::string_view{p, n}, ec);
+    n = this->on_body_impl(core::string_view{p, n}, ec);
     p += n;
     if(ec)
         return;
@@ -666,7 +666,7 @@ parse_chunk_body(char const*& p,
 {
     ec = {};
     n = this->on_chunk_body_impl(
-        len_, boost::core::string_view{p,
+        len_, core::string_view{p,
             beast::detail::clamp(len_, n)}, ec);
     p += n;
     len_ -= n;
@@ -678,7 +678,7 @@ template<bool isRequest>
 void
 basic_parser<isRequest>::
 do_field(field f,
-    boost::core::string_view value, error_code& ec)
+    core::string_view value, error_code& ec)
 {
     using namespace beast::detail::string_literals;
     // Connection
@@ -790,7 +790,7 @@ do_field(field f,
         ec = {};
         auto const v = token_list{value};
         auto const p = std::find_if(v.begin(), v.end(),
-            [&](boost::core::string_view const& s)
+            [&](core::string_view const& s)
             {
                 return beast::iequals("chunked"_sv, s);
             });

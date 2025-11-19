@@ -23,7 +23,7 @@ namespace detail {
 
 void
 temporary_buffer::
-append(boost::core::string_view s)
+append(core::string_view s)
 {
     grow(s.size());
     unchecked_append(s);
@@ -31,7 +31,7 @@ append(boost::core::string_view s)
 
 void
 temporary_buffer::
-append(boost::core::string_view s1, boost::core::string_view s2)
+append(core::string_view s1, core::string_view s2)
 {
     grow(s1.size() + s2.size());
     unchecked_append(s1);
@@ -40,7 +40,7 @@ append(boost::core::string_view s1, boost::core::string_view s2)
 
 void
 temporary_buffer::
-unchecked_append(boost::core::string_view s)
+unchecked_append(core::string_view s)
 {
     auto n = s.size();
     std::memcpy(&data_[size_], s.data(), n);
