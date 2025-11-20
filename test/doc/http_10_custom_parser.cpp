@@ -40,11 +40,11 @@ private:
     */
     void
     on_request_impl(
-        verb method,                             // The method verb, verb::unknown if no match
-        boost::core::string_view method_str,     // The method as a string
-        boost::core::string_view target,         // The request-target
-        int version,                             // The HTTP-version
-        error_code& ec) override;                // The error returned to the caller, if any
+        verb method,                      // The method verb, verb::unknown if no match
+        core::string_view method_str,     // The method as a string
+        core::string_view target,         // The request-target
+        int version,                      // The HTTP-version
+        error_code& ec) override;         // The error returned to the caller, if any
 
     /** Called after receiving the status-line.
 
