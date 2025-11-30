@@ -20,6 +20,8 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
+namespace core = boost::core; // <core/string_view.hpp>
+
 namespace {
 
 #include "websocket_common.ipp"
@@ -33,7 +35,7 @@ snippets()
     //[code_websocket_5_1
 
         ws.control_callback(
-            [](frame_type kind, boost::core::string_view payload)
+            [](frame_type kind, core::string_view payload)
             {
                 // Do something with the payload
                 boost::ignore_unused(kind, payload);
