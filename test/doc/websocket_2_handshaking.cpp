@@ -20,6 +20,8 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
+namespace core = boost::core; // <core/string_view.hpp>
+
 namespace {
 
 #include "websocket_common.ipp"
@@ -136,14 +138,14 @@ snippets()
         //[code_websocket_2_6
 
         // a function to select the most preferred protocol from a comma-separated list
-        auto select_protocol = [](boost::core::string_view offered_tokens) -> std::string
+        auto select_protocol = [](core::string_view offered_tokens) -> std::string
         {
             // tokenize the Sec-Websocket-Protocol header offered by the client
             http::token_list offered( offered_tokens );
 
             // an array of protocols supported by this server
             // in descending order of preference
-            static const std::array<boost::core::string_view, 3>
+            static const std::array<core::string_view, 3>
                 supported = {{
                 "v3.my.chat",
                 "v2.my.chat",

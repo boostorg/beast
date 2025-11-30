@@ -32,6 +32,8 @@ namespace boost {
 namespace beast {
 namespace http {
 
+namespace core = boost::core; // <core/string_view.hpp>
+
 class examples_test
     : public beast::unit_test::suite
     , public beast::test::enable_yield_to
