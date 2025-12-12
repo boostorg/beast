@@ -16,7 +16,7 @@
 #
 #-------------------------------------------------
 cmake_minimum_required(VERSION 3.8...3.20)
-set(BOOST_BEAST_VERSION 358)
+set(BOOST_BEAST_VERSION 359)
 if (BOOST_SUPERPROJECT_VERSION)
     set(BOOST_BEAST_VERSION ${BOOST_SUPERPROJECT_VERSION})
 endif ()
@@ -67,9 +67,7 @@ set(BOOST_BEAST_DEPENDENCIES
     Boost::logic
     Boost::mp11
     Boost::optional
-    Boost::preprocessor
     Boost::smart_ptr
-    Boost::static_assert
     Boost::static_string
     Boost::system
     Boost::throw_exception

@@ -661,6 +661,24 @@ swap(
 
 template<class Allocator>
 inline
+bool
+basic_fields<Allocator>::
+contains(field name) const
+{
+    BOOST_ASSERT(name != field::unknown);
+    return contains(to_string(name));
+}
+
+template<class Allocator>
+bool
+basic_fields<Allocator>::
+contains(string_view name) const
+{
+    return find(name) != end();
+}
+
+template<class Allocator>
+inline
 std::size_t
 basic_fields<Allocator>::
 count(field name) const
@@ -835,7 +853,7 @@ bool
 basic_fields<Allocator>::
 has_content_length_impl() const
 {
-    return count(field::content_length) > 0;
+    return contains(field::content_length);
 }
 
 template<class Allocator>
@@ -999,7 +1017,7 @@ insert_element(element& e)
         set_.upper_bound(e.name_string(), key_compare{});
     if(before == set_.begin())
     {
-        BOOST_ASSERT(count(e.name_string()) == 0);
+        BOOST_ASSERT(! contains(e.name_string()));
         set_.insert_before(before, e);
         list_.push_back(e);
         return;
@@ -1008,7 +1026,7 @@ insert_element(element& e)
     // VFALCO is it worth comparing `field name` first?
     if(! beast::iequals(e.name_string(), last->name_string()))
     {
-        BOOST_ASSERT(count(e.name_string()) == 0);
+        BOOST_ASSERT(! contains(e.name_string()));
         set_.insert_before(before, e);
         list_.push_back(e);
         return;

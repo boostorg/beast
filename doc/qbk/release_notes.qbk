@@ -11,6 +11,38 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.90]
+
+[*API Changes]
+
+* [issue 3042] `http::parser` rejects non-standard trailer fields by default.
+  ['Actions Required]:
+  * If your code relies on a non-standard trailer field, consider setting
+    [link beast.ref.boost__beast__http__parser.merge_all_trailers.overload2 `http::parser::merge_all_trailers`]
+    after you have validated the `Trailer` header field in the header section of the message.
+* [issue 3042] `http::basic_parser` uses a dedicated callback for trailer fields.
+  ['Actions Required]:
+  * Custom parsers derived from `http::basic_parser` must override the new virtual function  
+    [link beast.ref.boost__beast__http__basic_parser.on_trailer_field_impl `http::basic_parser::on_trailer_field_impl`]
+    which is invoked for each field received while parsing the trailer section
+    of a chunked HTTP message.
+* [issue 3042] `http::field` constants are updated.
+  ['Actions Required]:
+  * Most removed constants were unrelated to the HTTP protocol. If your code
+    used one of them, please use the corresponding string literal value.
+
+[*Fixes]
+
+* [issue 3034] Fixed allocator move/copy assignment in `flat_buffer` and `multi_buffer`
+* [issue 3028] Fixed websocket permessage-deflate error on partial message consumption
+* [issue 3032] `http::buffer_body` ignores empty chunks
+
+[*Improvements]
+
+* [issue 3039] Added `http::basic_fields::contains` member function
+* [issue 3050] Removed dependency on Boost.Preprocessor
+* [issue 3048] Removed dependency on Boost.StaticAssert
+
 [heading Boost 1.89]
 
 [*Fixes]
@@ -79,7 +111,7 @@
 
 [*API Changes]
 
-* [issue 2878] Added HTTP status code 418 `I'm a teapot`
+* [issue 2878] Added HTTP status code *418 I'm a teapot*
 
 [*Fixes]
 

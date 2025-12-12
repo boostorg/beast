@@ -202,8 +202,8 @@ std::size_t sync_write_stream::write_some(ConstBufferSequence const&, error_code
 {
     return 0;
 }
-BOOST_STATIC_ASSERT(is_sync_read_stream<sync_read_stream>::value);
-BOOST_STATIC_ASSERT(is_sync_write_stream<sync_write_stream>::value);
+BOOST_CORE_STATIC_ASSERT(is_sync_read_stream<sync_read_stream>::value);
+BOOST_CORE_STATIC_ASSERT(is_sync_write_stream<sync_write_stream>::value);
 
 //------------------------------------------------------------------------------
 

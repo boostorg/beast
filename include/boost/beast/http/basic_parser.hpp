@@ -516,6 +516,30 @@ protected:
         string_view value,
         error_code& ec) = 0;
 
+    /** Called once for each complete field in the HTTP trailer header.
+
+        This virtual function is invoked for each field that is received
+        while parsing the trailer part of a chunked HTTP message.
+
+        @param name The known field enum value. If the name of the field
+        is not recognized, this value will be @ref field::unknown.
+
+        @param name_string The exact name of the field as received from
+        the input, represented as a string.
+
+        @param value A string holding the value of the field.
+
+        @param ec An output parameter which the function may set to indicate
+        an error. The error will be clear before this function is invoked.
+    */
+    virtual
+    void
+    on_trailer_field_impl(
+        field name,
+        string_view name_string,
+        string_view value,
+        error_code& ec) = 0;
+
     /** Called once after the complete HTTP header is received.
 
         This virtual function is invoked once, after the complete HTTP

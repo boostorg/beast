@@ -32,14 +32,14 @@ namespace beast {
 class multi_buffer_test : public beast::unit_test::suite
 {
 public:
-    BOOST_STATIC_ASSERT(
+    BOOST_CORE_STATIC_ASSERT(
         is_mutable_dynamic_buffer<multi_buffer>::value);
 
 #if ! BOOST_WORKAROUND(BOOST_LIBSTDCXX_VERSION, < 50000) && \
     ! BOOST_WORKAROUND(BOOST_MSVC, < 1910)
-//    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
+//    BOOST_CORE_STATIC_ASSERT(std::is_trivially_copyable<
 //        multi_buffer::const_buffers_type>::value);
-//    BOOST_STATIC_ASSERT(std::is_trivially_copyable<
+//    BOOST_CORE_STATIC_ASSERT(std::is_trivially_copyable<
 //        multi_buffer::mutable_data_type>::value);
 #endif
 
@@ -379,7 +379,7 @@ public:
         {
             basic_multi_buffer<equal_t> b;
             auto a = b.get_allocator();
-            BOOST_STATIC_ASSERT(
+            BOOST_CORE_STATIC_ASSERT(
                 ! std::is_const<decltype(a)>::value);
             a->max_size = 30;
             try

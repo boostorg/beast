@@ -138,16 +138,17 @@ public:
         doMatrix<false>(
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
-            "Expect: Expires, MD5-Fingerprint\r\n"
             "Transfer-Encoding: chunked\r\n"
+            "Trailer: Content-Digest, X-Forwarded-For\r\n"
             "\r\n"
             "5\r\n"
             "*****\r\n"
             "2;a;b=1;c=\"2\"\r\n"
             "--\r\n"
             "0;d;e=3;f=\"4\"\r\n"
-            "Expires: never\r\n"
-            "MD5-Fingerprint: -\r\n"
+            "Content-Digest: 123\r\n"
+            "Signature: xyz\r\n"
+            "X-Forwarded-For: 203.0.113.195\r\n"
             "\r\n",
             [&](parser_type<false> const& p)
             {
@@ -160,8 +161,9 @@ public:
                 BEAST_EXPECT(m.reason() == "OK");
                 BEAST_EXPECT(m["Server"] == "test");
                 BEAST_EXPECT(m["Transfer-Encoding"] == "chunked");
-                BEAST_EXPECT(m["Expires"] == "never");
-                BEAST_EXPECT(m["MD5-Fingerprint"] == "-");
+                BEAST_EXPECT(m["Content-Digest"] == "123");
+                BEAST_EXPECT(! m.contains("Signature"));
+                BEAST_EXPECT(! m.contains("X-Forwarded-For"));
                 BEAST_EXPECT(m.body() == "*****--");
             }
         );
@@ -324,6 +326,84 @@ public:
         BEAST_EXPECT(ec == error::need_more);
         BEAST_EXPECT(p.got_some());
         BEAST_EXPECT(used == 0);
+    }
+
+    void
+    testTrailerHeaders()
+    {
+        // standard trailer not listed in `Trailer` fields
+        {
+            error_code ec;
+            parser_type<false> p;
+            p.eager(true);
+            p.put(
+                buf("HTTP/1.1 200 OK\r\n"
+                    "Transfer-Encoding: chunked\r\n"
+                    "\r\n"
+                    "0\r\n"
+                    "Content-Digest: 123\r\n"
+                    "\r\n"),
+                ec);
+            BEAST_EXPECT(p.is_done());
+
+            // standard, not listed in Trailer
+            BEAST_EXPECT(! p.get().contains(field::content_digest));
+        }
+
+        // parser::merge_all_trailers(false);
+        {
+            error_code ec;
+            parser_type<false> p;
+            p.eager(true);
+            p.put(
+                buf("HTTP/1.1 200 OK\r\n"
+                    "Transfer-Encoding: chunked\r\n"
+                    "Trailer: Signature, X-Forwarded-For\r\n"
+                    "\r\n"
+                    "0\r\n"
+                    "Content-Digest: 123\r\n"
+                    "Signature: xyz\r\n"
+                    "X-Forwarded-For: 203.0.113.195\r\n"
+                    "\r\n"),
+                ec);
+            BEAST_EXPECT(p.is_done());
+
+            // standard, listed in Trailer
+            BEAST_EXPECT(p.get()[field::signature] == "xyz");
+
+            // standard, not listed in Trailer
+            BEAST_EXPECT(! p.get().contains(field::content_digest));
+            // non-standard, listed in Trailer
+            BEAST_EXPECT(! p.get().contains(field::x_forwarded_for));
+        }
+
+        // parser::merge_all_trailers(true);
+        {
+            error_code ec;
+            parser_type<false> p;
+            p.eager(true);
+            p.merge_all_trailers(true);
+            p.put(
+                buf("HTTP/1.1 200 OK\r\n"
+                    "Transfer-Encoding: chunked\r\n"
+                    "Trailer: Signature, X-Forwarded-For\r\n"
+                    "\r\n"
+                    "0\r\n"
+                    "Content-Digest: 123\r\n"
+                    "Signature: xyz\r\n"
+                    "X-Forwarded-For: 203.0.113.195\r\n"
+                    "\r\n"),
+                ec);
+            BEAST_EXPECT(p.is_done());
+
+            // standard, listed in Trailer
+            BEAST_EXPECT(p.get()[field::signature] == "xyz");
+            // non-standard, listed in Trailer
+            BEAST_EXPECT(p.get()[field::x_forwarded_for] == "203.0.113.195");
+
+            // standard, not listed in Trailer
+            BEAST_EXPECT(! p.get().contains(field::content_digest));
+        }
     }
 
     void
@@ -494,6 +574,7 @@ public:
         testNeedMore<multi_buffer>();
         testHeaderFieldLimits();
         testGotSome();
+        testTrailerHeaders();
         testIssue818();
         testIssue1187();
         testIssue1880();

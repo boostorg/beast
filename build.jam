@@ -20,9 +20,7 @@ constant boost_dependencies :
     /boost/logic//boost_logic
     /boost/mp11//boost_mp11
     /boost/optional//boost_optional
-    /boost/preprocessor//boost_preprocessor
     /boost/smart_ptr//boost_smart_ptr
-    /boost/static_assert//boost_static_assert
     /boost/static_string//boost_static_string
     /boost/system//boost_system
     /boost/throw_exception//boost_throw_exception

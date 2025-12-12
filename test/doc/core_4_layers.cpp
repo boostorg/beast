@@ -287,10 +287,10 @@ public:
 
 template class counted_stream<test::stream>;
 
-BOOST_STATIC_ASSERT(is_sync_read_stream<counted_stream<test::stream>>::value);
-BOOST_STATIC_ASSERT(is_sync_write_stream<counted_stream<test::stream>>::value);
-BOOST_STATIC_ASSERT(is_async_read_stream<counted_stream<test::stream>>::value);
-BOOST_STATIC_ASSERT(is_async_write_stream<counted_stream<test::stream>>::value);
+BOOST_CORE_STATIC_ASSERT(is_sync_read_stream<counted_stream<test::stream>>::value);
+BOOST_CORE_STATIC_ASSERT(is_sync_write_stream<counted_stream<test::stream>>::value);
+BOOST_CORE_STATIC_ASSERT(is_async_read_stream<counted_stream<test::stream>>::value);
+BOOST_CORE_STATIC_ASSERT(is_async_write_stream<counted_stream<test::stream>>::value);
 
 struct core_4_layers_test
     : public beast::unit_test::suite

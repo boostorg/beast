@@ -101,6 +101,54 @@ public:
         }
     };
 
+    class throwing_cancellation_slot
+    {
+    public:
+        throwing_cancellation_slot()
+        {
+        }
+
+        template <typename CancellationHandler, typename... Args>
+        CancellationHandler& emplace(Args&&...)
+        {
+            BOOST_THROW_EXCEPTION(std::exception{});
+        }
+
+        template <typename CancellationHandler>
+        CancellationHandler& assign(CancellationHandler&&)
+        {
+            BOOST_THROW_EXCEPTION(std::exception{});
+        }
+
+        void clear()
+        {
+        }
+
+        bool is_connected() const noexcept
+        {
+            return true;
+        }
+
+        bool has_handler() const noexcept
+        {
+            return false;
+        }
+
+        friend constexpr bool operator==(
+            const throwing_cancellation_slot&,
+            const throwing_cancellation_slot&) noexcept
+        {
+            return false;
+        }
+
+        friend constexpr bool operator!=(
+            const throwing_cancellation_slot&,
+            const throwing_cancellation_slot&) noexcept
+        {
+            return false;
+        }
+    };
+
     void
     testSavedHandler()
     {
@@ -198,7 +246,7 @@ public:
             net::cancellation_signal sig;          
 
             try
-            { 
+            {
                 sh.emplace(
                     net::bind_cancellation_slot(
                         sig.slot(), 
@@ -210,6 +258,23 @@ public:
                 pass();
             }
             BEAST_EXPECT(!sig.slot().has_handler());
+            BEAST_EXPECT(! sh.has_value());
+        }
+        {
+            saved_handler sh;
+
+            try
+            {
+                sh.emplace(
+                    net::bind_cancellation_slot(
+                        throwing_cancellation_slot(), 
+                        unhandler{}));
+                fail();
+            }
+            catch(std::exception const&)
+            {
+                pass();
+            }
             BEAST_EXPECT(! sh.has_value());
         }
     }

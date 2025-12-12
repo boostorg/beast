@@ -249,9 +249,9 @@ public:
     };
 
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
-    BOOST_STATIC_ASSERT(net::execution::is_executor<test_executor>::value);
+    BOOST_CORE_STATIC_ASSERT(net::execution::is_executor<test_executor>::value);
 #else
-    BOOST_STATIC_ASSERT(net::is_executor<test_executor>::value);
+    BOOST_CORE_STATIC_ASSERT(net::is_executor<test_executor>::value);
 #endif
 
     class test_cb

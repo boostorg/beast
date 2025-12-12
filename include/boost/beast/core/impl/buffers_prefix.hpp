@@ -43,7 +43,7 @@ public:
     using value_type = buffers_type<Buffers>;
 #endif
 
-    BOOST_STATIC_ASSERT(std::is_same<
+    BOOST_CORE_STATIC_ASSERT(std::is_same<
         typename const_iterator::value_type,
         typename buffers_prefix_view::value_type>::value);
 
@@ -156,7 +156,7 @@ setup(std::size_t size)
             size_ += size;
 
             // by design, this subtraction can wrap
-            BOOST_STATIC_ASSERT(std::is_unsigned<
+            BOOST_CORE_STATIC_ASSERT(std::is_unsigned<
                 decltype(remain_)>::value);
             remain_ = size - len;
             break;

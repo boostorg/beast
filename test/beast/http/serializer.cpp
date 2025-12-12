@@ -61,25 +61,25 @@ public:
         };
     };
 
-    BOOST_STATIC_ASSERT(std::is_const<  serializer<
+    BOOST_CORE_STATIC_ASSERT(std::is_const<  serializer<
         true, const_body>::value_type>::value);
 
-    BOOST_STATIC_ASSERT(! std::is_const<serializer<
+    BOOST_CORE_STATIC_ASSERT(! std::is_const<serializer<
         true, mutable_body>::value_type>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<
         serializer<true, const_body>,
         message   <true, const_body>&>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<
         serializer<true, const_body>,
         message   <true, const_body> const&>::value);
 
-    BOOST_STATIC_ASSERT(std::is_constructible<
+    BOOST_CORE_STATIC_ASSERT(std::is_constructible<
         serializer<true, mutable_body>,
         message   <true, mutable_body>&>::value);
 
-    BOOST_STATIC_ASSERT(! std::is_constructible<
+    BOOST_CORE_STATIC_ASSERT(! std::is_constructible<
         serializer<true, mutable_body>,
         message   <true, mutable_body> const&>::value);
 

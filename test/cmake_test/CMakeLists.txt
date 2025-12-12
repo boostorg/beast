@@ -36,9 +36,7 @@ else()
   logic
   mp11
   optional
-  preprocessor
   smart_ptr
-  static_assert
   static_string
   system
   throw_exception
@@ -53,6 +51,7 @@ else()
   date_time
   move
   describe
+  static_assert
   utility
   variant2
   predef
@@ -63,6 +62,7 @@ else()
   numeric/conversion
   range
   tokenizer
+  preprocessor
   array
   concept_check
   exception
@@ -75,8 +75,8 @@ else()
   conversion
   integer
   detail
-  function_types
   fusion
+  function_types
   functional
   typeof
   )

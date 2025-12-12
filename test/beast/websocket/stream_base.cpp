@@ -46,12 +46,12 @@ public:
         void operator()();
     };
 
-    BOOST_STATIC_ASSERT(detail::is_decorator<T1>::value);
-    BOOST_STATIC_ASSERT(detail::is_decorator<T2>::value);
-    BOOST_STATIC_ASSERT(detail::is_decorator<T3>::value);
-    BOOST_STATIC_ASSERT(detail::is_decorator<T4>::value);
-    BOOST_STATIC_ASSERT(! detail::is_decorator<T5>::value);
-    BOOST_STATIC_ASSERT(! detail::is_decorator<int>::value);
+    BOOST_CORE_STATIC_ASSERT(detail::is_decorator<T1>::value);
+    BOOST_CORE_STATIC_ASSERT(detail::is_decorator<T2>::value);
+    BOOST_CORE_STATIC_ASSERT(detail::is_decorator<T3>::value);
+    BOOST_CORE_STATIC_ASSERT(detail::is_decorator<T4>::value);
+    BOOST_CORE_STATIC_ASSERT(! detail::is_decorator<T5>::value);
+    BOOST_CORE_STATIC_ASSERT(! detail::is_decorator<int>::value);
 
     void
     testJavadoc()

@@ -97,7 +97,7 @@ public:
 };
 
 #if defined(BOOST_ASIO_NO_TS_EXECUTORS)
-BOOST_STATIC_ASSERT(net::execution::is_executor<simple_executor>::value);
+BOOST_CORE_STATIC_ASSERT(net::execution::is_executor<simple_executor>::value);
 #endif
 
 // A move-only handler

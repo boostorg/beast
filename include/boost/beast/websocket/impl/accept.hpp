@@ -77,7 +77,7 @@ build_response(
         {
             decorator_opt(res);
             decorator(res);
-            if(! res.count(http::field::server))
+            if(! res.contains(http::field::server))
                 res.set(http::field::server,
                     string_view(BOOST_BEAST_VERSION_STRING));
         };
@@ -97,7 +97,7 @@ build_response(
         return err(error::bad_http_version);
     if(req.method() != http::verb::get)
         return err(error::bad_method);
-    if(! req.count(http::field::host))
+    if(! req.contains(http::field::host))
         return err(error::no_host);
     {
         auto const it = req.find(http::field::connection);

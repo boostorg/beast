@@ -281,7 +281,7 @@ public:
         
         response<empty_body> res{status::ok, 11};
         res.set(field::server, "test");
-        res.set(field::accept, "Expires, Content-MD5");
+        res.set(field::trailer, "Content-Digest");
         res.chunked(true);
 
         error_code ec;
@@ -310,8 +310,7 @@ public:
                 std::allocator<double>{}), ec);
 
         fields trailers;
-        trailers.set(field::expires, "never");
-        trailers.set(field::content_md5, "f4a5c16584f03d90");
+        trailers.set(field::content_digest, "f4a5c16584f03d90");
 
         net::write(ts,
             make_chunk_last(
@@ -322,7 +321,7 @@ public:
             buffers_to_string(tr.buffer().data()) ==
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
-            "Accept: Expires, Content-MD5\r\n"
+            "Trailer: Content-Digest\r\n"
             "Transfer-Encoding: chunked\r\n"
             "\r\n"
             "5\r\n"
@@ -334,8 +333,7 @@ public:
             "8;last\r\n"
             "Last one\r\n"
             "0\r\n"
-            "Expires: never\r\n"
-            "Content-MD5: f4a5c16584f03d90\r\n"
+            "Content-Digest: f4a5c16584f03d90\r\n"
             "\r\n");
     }
 
@@ -347,7 +345,7 @@ public:
         test::stream ts(ioc_,
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
-            "Trailer: Expires, Content-MD5\r\n"
+            "Trailer: Content-Digest\r\n"
             "Transfer-Encoding: chunked\r\n"
             "\r\n"
             "5\r\n"
@@ -359,8 +357,7 @@ public:
             "8;last\r\n"
             "Last one\r\n"
             "0\r\n"
-            "Expires: never\r\n"
-            "Content-MD5: f4a5c16584f03d90\r\n"
+            "Content-Digest: f4a5c16584f03d90\r\n"
             "\r\n");
 
 
@@ -378,8 +375,7 @@ public:
             "Chunk Body: The Next Chunk\n"
             "Extension: last\n"
             "Chunk Body: Last one\n"
-            "Expires: never\n"
-            "Content-MD5: f4a5c16584f03d90\n");
+            "Content-Digest: f4a5c16584f03d90\n");
     }
 
     //--------------------------------------------------------------------------

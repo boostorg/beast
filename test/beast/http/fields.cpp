@@ -28,12 +28,12 @@ public:
     static constexpr std::size_t max_static_buffer =
         sizeof(beast::detail::temporary_buffer);
 
-    BOOST_STATIC_ASSERT(is_fields<fields>::value);
+    BOOST_CORE_STATIC_ASSERT(is_fields<fields>::value);
 
     // std::allocator is noexcept movable, fields should satisfy
     // these constraints as well.
-    BOOST_STATIC_ASSERT(std::is_nothrow_move_constructible<fields>::value);
-    BOOST_STATIC_ASSERT(std::is_nothrow_move_assignable<fields>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_nothrow_move_constructible<fields>::value);
+    BOOST_CORE_STATIC_ASSERT(std::is_nothrow_move_assignable<fields>::value);
 
     template<class Allocator>
     using fa_t = basic_fields<Allocator>;
@@ -370,24 +370,24 @@ public:
             // group fields
             fields f;
             f.insert(field::age,   "1");
-            f.insert(field::body,  "2");
-            f.insert(field::close, "3");
-            f.insert(field::body,  "4");
+            f.insert(field::cookie,  "2");
+            f.insert(field::from, "3");
+            f.insert(field::cookie,  "4");
             BEAST_EXPECT(std::next(f.begin(), 0)->name() == field::age);
-            BEAST_EXPECT(std::next(f.begin(), 1)->name() == field::body);
-            BEAST_EXPECT(std::next(f.begin(), 2)->name() == field::body);
-            BEAST_EXPECT(std::next(f.begin(), 3)->name() == field::close);
+            BEAST_EXPECT(std::next(f.begin(), 1)->name() == field::cookie);
+            BEAST_EXPECT(std::next(f.begin(), 2)->name() == field::cookie);
+            BEAST_EXPECT(std::next(f.begin(), 3)->name() == field::from);
             BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "Age");
-            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "Body");
-            BEAST_EXPECT(std::next(f.begin(), 2)->name_string() == "Body");
-            BEAST_EXPECT(std::next(f.begin(), 3)->name_string() == "Close");
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "Cookie");
+            BEAST_EXPECT(std::next(f.begin(), 2)->name_string() == "Cookie");
+            BEAST_EXPECT(std::next(f.begin(), 3)->name_string() == "From");
             BEAST_EXPECT(std::next(f.begin(), 0)->value() == "1");
             BEAST_EXPECT(std::next(f.begin(), 1)->value() == "2");
             BEAST_EXPECT(std::next(f.begin(), 2)->value() == "4");
             BEAST_EXPECT(std::next(f.begin(), 3)->value() == "3");
-            BEAST_EXPECT(f.erase(field::body) == 2);
+            BEAST_EXPECT(f.erase(field::cookie) == 2);
             BEAST_EXPECT(std::next(f.begin(), 0)->name_string() == "Age");
-            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "Close");
+            BEAST_EXPECT(std::next(f.begin(), 1)->name_string() == "From");
         }
         {
             // group fields, case insensitive
@@ -475,6 +475,20 @@ public:
             BEAST_THROWS(f.set(field::age, big_value),        boost::system::system_error);
             BEAST_THROWS(f.set(big_name, ""),                 boost::system::system_error);
             BEAST_THROWS(f.set("", big_value),                boost::system::system_error);
+        }
+
+        {
+            fields f;
+            BEAST_EXPECT(! f.contains("Content-Type"));
+            f.set("Content-Type", "text/html");
+            BEAST_EXPECT(f.contains("Content-Type"));
+            BEAST_EXPECT(f.contains("content-type"));
+            BEAST_EXPECT(! f.contains(field::user_agent));
+
+            f.insert("AA", "a");
+            f.insert("AA", "b");
+            f.insert("AA", "c");
+            BEAST_EXPECT(f.contains("AA"));            
         }
     }
 
@@ -1025,33 +1039,33 @@ public:
     void
     testIssue2085()
     {
-        BOOST_STATIC_ASSERT((! set_test<field, int>::value));
-        BOOST_STATIC_ASSERT((! set_test<field, std::nullptr_t>::value));
-        BOOST_STATIC_ASSERT((! set_test<field, double>::value));
-        BOOST_STATIC_ASSERT((! set_test<string_view, int>::value));
-        BOOST_STATIC_ASSERT((! set_test<string_view, std::nullptr_t>::value));
-        BOOST_STATIC_ASSERT((! set_test<string_view, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<field, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<field, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<field, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! set_test<string_view, double>::value));
 
-        BOOST_STATIC_ASSERT(( set_test<field, const char*>::value));
-        BOOST_STATIC_ASSERT(( set_test<field, string_view>::value));
-        BOOST_STATIC_ASSERT(( set_test<field, const char(&)[10]>::value));
-        BOOST_STATIC_ASSERT(( set_test<string_view, const char*>::value));
-        BOOST_STATIC_ASSERT(( set_test<string_view, string_view>::value));
-        BOOST_STATIC_ASSERT(( set_test<string_view, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<field, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<field, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<field, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( set_test<string_view, const char(&)[10]>::value));
 
-        BOOST_STATIC_ASSERT((! insert_test<field, int>::value));
-        BOOST_STATIC_ASSERT((! insert_test<field, std::nullptr_t>::value));
-        BOOST_STATIC_ASSERT((! insert_test<field, double>::value));
-        BOOST_STATIC_ASSERT((! insert_test<string_view, int>::value));
-        BOOST_STATIC_ASSERT((! insert_test<string_view, std::nullptr_t>::value));
-        BOOST_STATIC_ASSERT((! insert_test<string_view, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<field, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<field, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<field, double>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, int>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, std::nullptr_t>::value));
+        BOOST_CORE_STATIC_ASSERT((! insert_test<string_view, double>::value));
 
-        BOOST_STATIC_ASSERT(( insert_test<field, const char*>::value));
-        BOOST_STATIC_ASSERT(( insert_test<field, string_view>::value));
-        BOOST_STATIC_ASSERT(( insert_test<field, const char(&)[10]>::value));
-        BOOST_STATIC_ASSERT(( insert_test<string_view, const char*>::value));
-        BOOST_STATIC_ASSERT(( insert_test<string_view, string_view>::value));
-        BOOST_STATIC_ASSERT(( insert_test<string_view, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<field, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<field, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<field, const char(&)[10]>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, const char*>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, string_view>::value));
+        BOOST_CORE_STATIC_ASSERT(( insert_test<string_view, const char(&)[10]>::value));
     }
 
     template<class T>
@@ -1105,12 +1119,12 @@ public:
     testIssue2517()
     {
         using test_fields = basic_fields<throwing_allocator<char>>;
-        BOOST_STATIC_ASSERT(is_fields<test_fields>::value);
+        BOOST_CORE_STATIC_ASSERT(is_fields<test_fields>::value);
 
         // Check if basic_fields respects throw-constructibility and
         // propagate_on_container_move_assignment of the allocator.
-        BOOST_STATIC_ASSERT(std::is_nothrow_move_constructible<test_fields>::value);
-        BOOST_STATIC_ASSERT(!std::is_nothrow_move_assignable<test_fields>::value);
+        BOOST_CORE_STATIC_ASSERT(std::is_nothrow_move_constructible<test_fields>::value);
+        BOOST_CORE_STATIC_ASSERT(!std::is_nothrow_move_assignable<test_fields>::value);
 
         test_fields f1;
         f1.insert("1", "1");

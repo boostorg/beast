@@ -18,14 +18,14 @@ namespace boost {
 namespace beast {
 namespace http {
 
-BOOST_STATIC_ASSERT(is_body<vector_body<char>>::value);
-BOOST_STATIC_ASSERT(is_body_writer<vector_body<char>>::value);
-BOOST_STATIC_ASSERT(is_body_reader<vector_body<char>>::value);
+BOOST_CORE_STATIC_ASSERT(is_body<vector_body<char>>::value);
+BOOST_CORE_STATIC_ASSERT(is_body_writer<vector_body<char>>::value);
+BOOST_CORE_STATIC_ASSERT(is_body_reader<vector_body<char>>::value);
 
 #if __cpp_lib_byte >= 201603
-BOOST_STATIC_ASSERT(is_body<vector_body<std::byte>>::value);
-BOOST_STATIC_ASSERT(is_body_writer<vector_body<std::byte>>::value);
-BOOST_STATIC_ASSERT(is_body_reader<vector_body<std::byte>>::value);
+BOOST_CORE_STATIC_ASSERT(is_body<vector_body<std::byte>>::value);
+BOOST_CORE_STATIC_ASSERT(is_body_writer<vector_body<std::byte>>::value);
+BOOST_CORE_STATIC_ASSERT(is_body_reader<vector_body<std::byte>>::value);
 #endif
 
 } // http
