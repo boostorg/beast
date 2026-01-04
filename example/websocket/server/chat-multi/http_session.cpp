@@ -12,7 +12,7 @@
 #include <boost/config.hpp>
 #include <iostream>
 
-namespace core = boost::core; // from <core/string_view.hpp>
+namespace core = boost::core; // from <boost/core/detail/string_view.hpp>
 
 //------------------------------------------------------------------------------
 
