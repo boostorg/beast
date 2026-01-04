@@ -13,7 +13,7 @@ namespace boost {
 namespace beast {
 namespace http {
 
-namespace core = boost::core; // <core/string_view.hpp>
+namespace core = boost::core; // <boost/core/detail/string_view.hpp>
 
 //[code_http_10_custom_parser
 
@@ -193,7 +193,7 @@ private:
         std::uint64_t remain,                    // The number of bytes remaining in the chunk,
                                                  // including what is being passed here.
                                                  // or zero for the last chunk
-        core::string_view body,           // The next piece of the chunk body
+        core::string_view body,                  // The next piece of the chunk body
         error_code& ec) override;                // The error returned to the caller, if any
 
     /** Called once when the complete message is received.

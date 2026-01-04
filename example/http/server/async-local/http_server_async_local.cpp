@@ -35,8 +35,8 @@
 namespace beast = boost::beast;                      // from <boost/beast.hpp>
 namespace http = beast::http;                        // from <boost/beast/http.hpp>
 namespace net = boost::asio;                         // from <boost/asio.hpp>
+namespace core = boost::core;                        // from <boost/core/detail/string_view.hpp>
 using stream_protocol = net::local::stream_protocol; // from <boost/asio/local/stream_protocol.hpp>
-namespace core = boost::core;                        // from <core/string_view.hpp>
 
 // Return a reasonable mime type based on the extension of a file.
 core::string_view

@@ -20,7 +20,7 @@ namespace boost {
 namespace beast {
 namespace http {
 
-namespace core = boost::core; // <core/string_view.hpp>
+namespace core = boost::core; // <boost/core/detail/string_view.hpp>
 
 class BodyWriter;
 class BodyReader;
