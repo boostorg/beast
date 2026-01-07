@@ -46,7 +46,7 @@ struct impl_base<true>
     {
         // `true` if current read message is compressed
         bool rd_set = false;
-        std::uint8_t rd_eb_consumed = 0;
+        std::size_t rd_eb_consumed = 0;
 
         zlib::deflate_stream zo;
         zlib::inflate_stream zi;
