@@ -51,7 +51,6 @@ else()
   date_time
   move
   describe
-  static_assert
   utility
   variant2
   predef
