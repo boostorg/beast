@@ -27,6 +27,7 @@ git submodule update --init --depth 20 --jobs 4 \
     libs/align \
     libs/asio \
     libs/assert \
+    libs/compat \
     libs/config \
     libs/core \
     libs/describe \
