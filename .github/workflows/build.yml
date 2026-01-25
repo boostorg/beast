@@ -203,6 +203,12 @@ jobs:
             container: ubuntu:25.04
             install: clang-20
           - toolset: clang
+            compiler: clang++-21
+            cxxstd: 11,14,17,20,23,2c
+            os: ubuntu-latest
+            container: ubuntu:25.10
+            install: clang-21
+          - toolset: clang
             os: macos-14
             cxxstd: 11,14,17,20,2b
           - toolset: clang
@@ -380,9 +386,9 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: ubuntu-24.04
-          - os: macos-13
           - os: macos-14
           - os: macos-15
+          - os: macos-26
 
     runs-on: ${{matrix.os}}
 
@@ -428,9 +434,9 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: ubuntu-24.04
-          - os: macos-13
           - os: macos-14
           - os: macos-15
+          - os: macos-26
 
     runs-on: ${{matrix.os}}
 
@@ -486,9 +492,9 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: ubuntu-24.04
-          - os: macos-13
           - os: macos-14
           - os: macos-15
+          - os: macos-26
 
     runs-on: ${{matrix.os}}
 
