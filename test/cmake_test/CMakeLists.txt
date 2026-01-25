@@ -52,6 +52,7 @@ else()
   move
   describe
   utility
+  compat
   variant2
   predef
   pool
