@@ -613,6 +613,11 @@ parse_chunk_header(char const*& in,
         return;
     if(! eol)
     {
+        if(n + skip_ >= 8192)
+        {
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_chunk_extension);
+            return;
+        }
         BOOST_BEAST_ASSIGN_EC(ec, error::need_more);
         if(p != pend)
             skip_ = pend - p - 1;
