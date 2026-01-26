@@ -946,6 +946,22 @@ public:
             p.put(b.data(), ec);
             BEAST_EXPECTS(ec == error::body_limit, ec.message());
         }
+        {
+            multi_buffer b;
+            ostream(b) <<
+                "POST / HTTP/1.1\r\n"
+                "Transfer-Encoding: chunked\r\n"
+                "\r\n"
+                "1;" << std::string(8192 - 3, 'x');
+            error_code ec;
+            test_parser<true> p;
+            p.eager(true);
+            b.consume(p.put(b.data(), ec));
+            BEAST_EXPECTS(ec == error::need_more, ec.message());
+            ostream(b) << 'x';
+            b.consume(p.put(b.data(), ec));
+            BEAST_EXPECTS(ec == error::bad_chunk_extension, ec.message());
+        }
     }
 
     //--------------------------------------------------------------------------
