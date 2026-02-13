@@ -22,6 +22,7 @@
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
 #include <boost/optional.hpp>
+#include <boost/type_traits/type_with_alignment.hpp>
 #include <cctype>
 #include <cstring>
 #include <memory>
