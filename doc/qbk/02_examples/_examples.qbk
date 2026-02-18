@@ -54,7 +54,7 @@ used to evaluate robustness. All asynchronous clients support timeouts.
         []
 ][
         [HTTP json_body (synchronous)]
-        [[path_link example/http/client/body/json_client.hpp json_client.cpp]]
+        [[path_link example/http/client/body/json_client.cpp json_client.cpp]]
 ][
         [HTTP client for all methods (synchronous)]
         [[path_link example/http/client/methods/http_client_methods.cpp http_client_methods.cpp]]
