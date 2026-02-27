@@ -419,9 +419,12 @@ public:
         if(! is_continuation)
         {
             auto const ex = this->get_immediate_executor();
+            auto const op_ex = this->get_executor();
             net::dispatch(
                 ex,
-                net::append(std::move(h_), std::forward<Args>(args)...));
+                net::bind_executor(
+                    op_ex,
+                    net::append(std::move(h_), std::forward<Args>(args)...)));
             wg1_.reset();
         }
         else
