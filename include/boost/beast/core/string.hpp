@@ -27,8 +27,8 @@ namespace beast {
 BOOST_BEAST_DECL
 bool
 iequals(
-    beast::string_view lhs,
-    beast::string_view rhs);
+    core::string_view lhs,
+    core::string_view rhs);
 
 /** A case-insensitive less predicate for strings.
 
@@ -36,15 +36,15 @@ iequals(
 
     As of C++14, containers using this class as the `Compare` type will take part
     in heterogeneous lookup if the search term is implicitly convertible to
-    @ref string_view.
+    @ref core::string_view.
 */
 struct iless
 {
     BOOST_BEAST_DECL
     bool
     operator()(
-        string_view lhs,
-        string_view rhs) const;
+        core::string_view lhs,
+        core::string_view rhs) const;
 
     using is_transparent = void;
 };
@@ -55,14 +55,14 @@ struct iless
 
     As of C++14, containers using this class as the `Compare` type will take part
     in heterogeneous lookup if the search term is implicitly convertible to
-    @ref string_view.
+    @ref core::string_view.
 */
 struct iequal
 {
     bool
     operator()(
-        string_view lhs,
-        string_view rhs) const
+        core::string_view lhs,
+        core::string_view rhs) const
     {
         return iequals(lhs, rhs);
     }

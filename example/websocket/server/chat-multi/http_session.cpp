@@ -12,18 +12,20 @@
 #include <boost/config.hpp>
 #include <iostream>
 
+namespace core = boost::core; // from <boost/core/detail/string_view.hpp>
+
 //------------------------------------------------------------------------------
 
 // Return a reasonable mime type based on the extension of a file.
-beast::string_view
-mime_type(beast::string_view path)
+core::string_view
+mime_type(core::string_view path)
 {
     using beast::iequals;
     auto const ext = [&path]
     {
         auto const pos = path.rfind(".");
-        if(pos == beast::string_view::npos)
-            return beast::string_view{};
+        if(pos == core::string_view::npos)
+            return core::string_view{};
         return path.substr(pos);
     }();
     if(iequals(ext, ".htm"))  return "text/html";
@@ -54,8 +56,8 @@ mime_type(beast::string_view path)
 // The returned path is normalized for the platform.
 std::string
 path_cat(
-    beast::string_view base,
-    beast::string_view path)
+    core::string_view base,
+    core::string_view path)
 {
     if(base.empty())
         return std::string(path);
@@ -84,12 +86,12 @@ path_cat(
 template <class Body, class Allocator>
 http::message_generator
 handle_request(
-    beast::string_view doc_root,
+    core::string_view doc_root,
     http::request<Body, http::basic_fields<Allocator>>&& req)
 {
     // Returns a bad request response
     auto const bad_request =
-    [&req](beast::string_view why)
+    [&req](core::string_view why)
     {
         http::response<http::string_body> res{http::status::bad_request, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -102,7 +104,7 @@ handle_request(
 
     // Returns a not found response
     auto const not_found =
-    [&req](beast::string_view target)
+    [&req](core::string_view target)
     {
         http::response<http::string_body> res{http::status::not_found, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -115,7 +117,7 @@ handle_request(
 
     // Returns a server error response
     auto const server_error =
-    [&req](beast::string_view what)
+    [&req](core::string_view what)
     {
         http::response<http::string_body> res{http::status::internal_server_error, req.version()};
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -134,7 +136,7 @@ handle_request(
     // Request path must be absolute and not contain "..".
     if( req.target().empty() ||
         req.target()[0] != '/' ||
-        req.target().find("..") != beast::string_view::npos)
+        req.target().find("..") != core::string_view::npos)
         return bad_request("Illegal request-target");
 
     // Build the path to the requested file

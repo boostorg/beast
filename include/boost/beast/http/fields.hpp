@@ -92,7 +92,7 @@ public:
 
     protected:
         value_type(field name,
-            string_view sname, string_view value);
+            core::string_view sname, core::string_view value);
 
     public:
         /// Constructor (deleted)
@@ -106,11 +106,11 @@ public:
         name() const;
 
         /// Returns the field name as a string
-        string_view const
+        core::string_view const
         name_string() const;
 
         /// Returns the value of the field
-        string_view const
+        core::string_view const
         value() const;
     };
 
@@ -127,7 +127,7 @@ public:
         /// Returns `true` if lhs is less than rhs using a strict ordering
         bool
         operator()(
-            string_view lhs,
+            core::string_view lhs,
             value_type const& rhs) const noexcept
         {
             if(lhs.size() < rhs.name_string().size())
@@ -141,7 +141,7 @@ public:
         bool
         operator()(
             value_type const& lhs,
-            string_view rhs) const noexcept
+            core::string_view rhs) const noexcept
         {
             if(lhs.name_string().size() < rhs.size())
                 return true;
@@ -182,7 +182,7 @@ private:
         , public value_type
     {
         element(field name,
-            string_view sname, string_view value);
+            core::string_view sname, core::string_view value);
     };
 
     using list_t = typename boost::intrusive::make_list<
@@ -328,7 +328,7 @@ public:
 
         @throws std::out_of_range if the field is not found.
     */
-    string_view const
+    core::string_view const
     at(field name) const;
 
     /** Returns the value for a field, or throws an exception.
@@ -342,8 +342,8 @@ public:
 
         @throws std::out_of_range if the field is not found.
     */
-    string_view const
-    at(string_view name) const;
+    core::string_view const
+    at(core::string_view name) const;
 
     /** Returns the value for a field, or `""` if it does not exist.
 
@@ -352,7 +352,7 @@ public:
 
         @param name The name of the field.
     */
-    string_view const
+    core::string_view const
     operator[](field name) const;
 
     /** Returns the value for a case-insensitive matching header, or `""` if it does not exist.
@@ -362,8 +362,8 @@ public:
 
         @param name The name of the field. It is interpreted as a case-insensitive string.
     */
-    string_view const
-    operator[](string_view name) const;
+    core::string_view const
+    operator[](core::string_view name) const;
 
     //--------------------------------------------------------------------------
     //
@@ -451,7 +451,7 @@ public:
             error code will be @ref error::header_field_value_too_large.
     */
     void
-    insert(field name, string_view value);
+    insert(field name, core::string_view value);
 
     void
     insert(field, std::nullptr_t) = delete;
@@ -474,10 +474,10 @@ public:
             error code will be @ref error::header_field_value_too_large.
     */
     void
-    insert(string_view name, string_view value);
+    insert(core::string_view name, core::string_view value);
 
     void
-    insert(string_view, std::nullptr_t) = delete;
+    insert(core::string_view, std::nullptr_t) = delete;
 
     /** Insert a field.
 
@@ -502,11 +502,11 @@ public:
             error code will be @ref error::header_field_value_too_large.
     */
     void
-    insert(field name, string_view name_string,
-        string_view value);
+    insert(field name, core::string_view name_string,
+        core::string_view value);
 
     void
-    insert(field, string_view, std::nullptr_t) = delete;
+    insert(field, core::string_view, std::nullptr_t) = delete;
 
     /** Insert a field.
 
@@ -531,11 +531,11 @@ public:
             error code will be @ref error::header_field_value_too_large.
     */
     void
-    insert(field name, string_view name_string,
-        string_view value, error_code& ec);
+    insert(field name, core::string_view name_string,
+        core::string_view value, error_code& ec);
 
     void
-    insert(field, string_view, std::nullptr_t, error_code& ec) = delete;
+    insert(field, core::string_view, std::nullptr_t, error_code& ec) = delete;
 
     /** Set a field value, removing any other instances of that field.
 
@@ -551,7 +551,7 @@ public:
             error code will be @ref error::header_field_value_too_large.
     */
     void
-    set(field name, string_view value);
+    set(field name, core::string_view value);
 
     void
     set(field, std::nullptr_t) = delete;
@@ -572,10 +572,10 @@ public:
             error code will be @ref error::header_field_value_too_large.
     */
     void
-    set(string_view name, string_view value);
+    set(core::string_view name, core::string_view value);
 
     void
-    set(string_view, std::nullptr_t) = delete;
+    set(core::string_view, std::nullptr_t) = delete;
 
     /** Remove a field.
 
@@ -620,7 +620,7 @@ public:
         @return The number of fields removed.
     */
     std::size_t
-    erase(string_view name);
+    erase(core::string_view name);
 
     /** Return a buffer sequence representing the trailers.
 
@@ -660,7 +660,7 @@ public:
         @param name The field name. It is interpreted as a case-insensitive string.
     */
     bool
-    contains(string_view name) const;
+    contains(core::string_view name) const;
 
     /** Return the number of fields with the specified name.
 
@@ -674,7 +674,7 @@ public:
         @param name The field name. It is interpreted as a case-insensitive string.
     */
     std::size_t
-    count(string_view name) const;
+    count(core::string_view name) const;
 
     /** Returns an iterator to the case-insensitive matching field.
 
@@ -700,7 +700,7 @@ public:
         no match was found.
     */
     const_iterator
-    find(string_view name) const;
+    find(core::string_view name) const;
 
     /** Returns a range of iterators to the fields with the specified name.
 
@@ -722,7 +722,7 @@ public:
 
     /// @copydoc boost::beast::http::basic_fields::equal_range(boost::beast::http::field) const
     std::pair<const_iterator, const_iterator>
-    equal_range(string_view name) const;
+    equal_range(core::string_view name) const;
 
     //--------------------------------------------------------------------------
     //
@@ -742,21 +742,21 @@ protected:
 
         @note Only called for requests.
     */
-    string_view
+    core::string_view
     get_method_impl() const;
 
     /** Returns the request-target string.
 
         @note Only called for requests.
     */
-    string_view
+    core::string_view
     get_target_impl() const;
 
     /** Returns the response reason-phrase string.
 
         @note Only called for responses.
     */
-    string_view
+    core::string_view
     get_reason_impl() const;
 
     /** Returns the chunked Transfer-Encoding setting
@@ -779,21 +779,21 @@ protected:
         @note Only called for requests.
     */
     void
-    set_method_impl(string_view s);
+    set_method_impl(core::string_view s);
 
     /** Set or clear the target string.
 
         @note Only called for requests.
     */
     void
-    set_target_impl(string_view s);
+    set_target_impl(core::string_view s);
 
     /** Set or clear the reason string.
 
         @note Only called for responses.
     */
     void
-    set_reason_impl(string_view s);
+    set_reason_impl(core::string_view s);
 
     /** Adjusts the chunked Transfer-Encoding value
     */
@@ -819,15 +819,15 @@ private:
     element*
     try_create_new_element(
         field name,
-        string_view sname,
-        string_view value,
+        core::string_view sname,
+        core::string_view value,
         error_code& ec);
 
     element&
     new_element(
         field name,
-        string_view sname,
-        string_view value);
+        core::string_view sname,
+        core::string_view value);
 
     void
     insert_element(element& e);
@@ -839,11 +839,11 @@ private:
     set_element(element& e);
 
     void
-    realloc_string(string_view& dest, string_view s);
+    realloc_string(core::string_view& dest, core::string_view s);
 
     void
     realloc_target(
-        string_view& dest, string_view s);
+        core::string_view& dest, core::string_view s);
 
     template<class OtherAlloc>
     void
@@ -875,8 +875,8 @@ private:
 
     set_t set_;
     list_t list_;
-    string_view method_;
-    string_view target_or_reason_;
+    core::string_view method_;
+    core::string_view target_or_reason_;
 };
 
 #if BOOST_BEAST_DOXYGEN

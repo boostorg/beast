@@ -426,7 +426,7 @@
 * [issue 1956] Deprecate `string_param` (API Change)
   ['Actions Required]
   `string_param`, which was previously the argument type when setting field values
-  has been replaced by `string_view`. Because of this, it is no longer possible to
+  has been replaced by `core::string_view`. Because of this, it is no longer possible to
   set message field values directly as integrals.
   Users are requied to convert numeric arguments to a string type prior to calling
   `fields::set` et. al.

@@ -49,7 +49,7 @@ method(verb v)
 }
 
 template<class Fields>
-string_view
+core::string_view
 header<true, Fields>::
 method_string() const
 {
@@ -61,7 +61,7 @@ method_string() const
 template<class Fields>
 void
 header<true, Fields>::
-method_string(string_view s)
+method_string(core::string_view s)
 {
     method_ = string_to_verb(s);
     if(method_ != verb::unknown)
@@ -71,7 +71,7 @@ method_string(string_view s)
 }
 
 template<class Fields>
-string_view
+core::string_view
 header<true, Fields>::
 target() const
 {
@@ -81,7 +81,7 @@ target() const
 template<class Fields>
 void
 header<true, Fields>::
-target(string_view s)
+target(core::string_view s)
 {
     this->set_target_impl(s);
 }
@@ -149,7 +149,7 @@ result_int() const
 }
 
 template<class Fields>
-string_view
+core::string_view
 header<false, Fields>::
 reason() const
 {
@@ -162,7 +162,7 @@ reason() const
 template<class Fields>
 void
 header<false, Fields>::
-reason(string_view s)
+reason(core::string_view s)
 {
     this->set_reason_impl(s);
 }
@@ -208,7 +208,7 @@ message(header_type const& h, BodyArgs&&... body_args)
 template<bool isRequest, class Body, class Fields>
 template<class Version, class>
 message<isRequest, Body, Fields>::
-message(verb method, string_view target, Version version)
+message(verb method, core::string_view target, Version version)
     : header_type(method, target, version)
 {
 }
@@ -216,7 +216,7 @@ message(verb method, string_view target, Version version)
 template<bool isRequest, class Body, class Fields>
 template<class Version, class BodyArg, class>
 message<isRequest, Body, Fields>::
-message(verb method, string_view target,
+message(verb method, core::string_view target,
         Version version, BodyArg&& body_arg)
     : header_type(method, target, version)
     , boost::empty_value<
@@ -229,7 +229,7 @@ template<bool isRequest, class Body, class Fields>
 template<class Version, class BodyArg, class FieldsArg, class>
 message<isRequest, Body, Fields>::
 message(
-    verb method, string_view target, Version version,
+    verb method, core::string_view target, Version version,
     BodyArg&& body_arg,
     FieldsArg&& fields_arg)
     : header_type(method, target, version,

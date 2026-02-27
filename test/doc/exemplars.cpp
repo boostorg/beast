@@ -20,6 +20,8 @@ namespace boost {
 namespace beast {
 namespace http {
 
+namespace core = boost::core; // <boost/core/detail/string_view.hpp>
+
 class BodyWriter;
 class BodyReader;
 
@@ -199,21 +201,21 @@ protected:
 
         @note Only called for requests.
     */
-    string_view
+    core::string_view
     get_method_impl() const;
 
     /** Returns the request-target string.
 
         @note Only called for requests.
     */
-    string_view
+    core::string_view
     get_target_impl() const;
 
     /** Returns the response reason-phrase string.
 
         @note Only called for responses.
     */
-    string_view
+    core::string_view
     get_reason_impl() const;
 
     /** Returns the chunked Transfer-Encoding setting
@@ -236,21 +238,21 @@ protected:
         @note Only called for requests.
     */
     void
-    set_method_impl(string_view s);
+    set_method_impl(core::string_view s);
 
     /** Set or clear the target string.
 
         @note Only called for requests.
     */
     void
-    set_target_impl(string_view s);
+    set_target_impl(core::string_view s);
 
     /** Set or clear the reason string.
 
         @note Only called for responses.
     */
     void
-    set_reason_impl(string_view s);
+    set_reason_impl(core::string_view s);
 
     /** Sets or clears the chunked Transfer-Encoding value
     */

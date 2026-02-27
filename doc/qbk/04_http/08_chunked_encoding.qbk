@@ -178,9 +178,9 @@ interface provided by __parser__:
         ```
         void
         callback(
-            std::uint64_t size,         // Size of the chunk, zero for the last chunk
-            string_view extensions,     // The chunk-extensions in raw form
-            error_code& ec);            // May be set by the callback to indicate an error
+            std::uint64_t size,               // Size of the chunk, zero for the last chunk
+            core::string_view extensions,     // The chunk-extensions in raw form
+            error_code& ec);                  // May be set by the callback to indicate an error
         ```
     ]
 ][
@@ -204,9 +204,9 @@ interface provided by __parser__:
         ```
         std::size_t
         callback(
-            std::uint64_t remain,       // Octets remaining in this chunk, includes `body`
-            string_view body,           // A buffer holding some or all of the remainder of the chunk body
-            error_code& ec);            // May be set by the callback to indicate an error
+            std::uint64_t remain,             // Octets remaining in this chunk, includes `body`
+            core::string_view body,           // A buffer holding some or all of the remainder of the chunk body
+            error_code& ec);                  // May be set by the callback to indicate an error
         ```
     ]
 ]]

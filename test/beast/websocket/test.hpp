@@ -526,8 +526,8 @@ public:
         void
         handshake(
             stream<NextLayer, deflateSupported>& ws,
-            string_view uri,
-            string_view path) const
+            core::string_view uri,
+            core::string_view path) const
         {
             ws.handshake(uri, path);
         }
@@ -537,8 +537,8 @@ public:
         handshake(
             stream<NextLayer, deflateSupported>& ws,
             response_type& res,
-            string_view uri,
-            string_view path) const
+            core::string_view uri,
+            core::string_view path) const
         {
             ws.handshake(res, uri, path);
         }
@@ -549,8 +549,8 @@ public:
         void
         handshake_ex(
             stream<NextLayer, deflateSupported>& ws,
-            string_view uri,
-            string_view path,
+            core::string_view uri,
+            core::string_view path,
             Decorator const& d) const
         {
             ws.handshake_ex(uri, path, d);
@@ -563,8 +563,8 @@ public:
         handshake_ex(
             stream<NextLayer, deflateSupported>& ws,
             response_type& res,
-            string_view uri,
-            string_view path,
+            core::string_view uri,
+            core::string_view path,
             Decorator const& d) const
         {
             ws.handshake_ex(res, uri, path, d);
@@ -780,8 +780,8 @@ public:
         void
         handshake(
             stream<NextLayer, deflateSupported>& ws,
-            string_view uri,
-            string_view path) const
+            core::string_view uri,
+            core::string_view path) const
         {
             error_code ec;
             ws.async_handshake(
@@ -795,8 +795,8 @@ public:
         handshake(
             stream<NextLayer, deflateSupported>& ws,
             response_type& res,
-            string_view uri,
-            string_view path) const
+            core::string_view uri,
+            core::string_view path) const
         {
             error_code ec;
             ws.async_handshake(
@@ -811,8 +811,8 @@ public:
         void
         handshake_ex(
             stream<NextLayer, deflateSupported>& ws,
-            string_view uri,
-            string_view path,
+            core::string_view uri,
+            core::string_view path,
             Decorator const &d) const
         {
             error_code ec;
@@ -829,8 +829,8 @@ public:
         handshake_ex(
             stream<NextLayer, deflateSupported>& ws,
             response_type& res,
-            string_view uri,
-            string_view path,
+            core::string_view uri,
+            core::string_view path,
             Decorator const &d) const
         {
             error_code ec;
@@ -1061,8 +1061,8 @@ struct test_sync_api
     handshake(
         stream<NextLayer, deflateSupported>& ws,
         response_type& res,
-        string_view uri,
-        string_view path) const
+        core::string_view uri,
+        core::string_view path) const
     {
         ws.handshake(res, uri, path);
     }
@@ -1073,8 +1073,8 @@ struct test_sync_api
     void
     handshake_ex(
         stream<NextLayer, deflateSupported>& ws,
-        string_view uri,
-        string_view path,
+        core::string_view uri,
+        core::string_view path,
         Decorator const& d) const
     {
         ws.handshake_ex(uri, path, d);
@@ -1087,8 +1087,8 @@ struct test_sync_api
     handshake_ex(
         stream<NextLayer, deflateSupported>& ws,
         response_type& res,
-        string_view uri,
-        string_view path,
+        core::string_view uri,
+        core::string_view path,
         Decorator const& d) const
     {
         ws.handshake_ex(res, uri, path, d);
@@ -1361,8 +1361,8 @@ public:
     void
     handshake(
         stream<NextLayer, deflateSupported>& ws,
-        string_view uri,
-        string_view path) const
+        core::string_view uri,
+        core::string_view path) const
     {
         error_code ec;
         ws.async_handshake(
@@ -1378,8 +1378,8 @@ public:
     handshake(
         stream<NextLayer, deflateSupported>& ws,
         response_type& res,
-        string_view uri,
-        string_view path) const
+        core::string_view uri,
+        core::string_view path) const
     {
         error_code ec;
         ws.async_handshake(
@@ -1396,8 +1396,8 @@ public:
     void
     handshake_ex(
         stream<NextLayer, deflateSupported>& ws,
-        string_view uri,
-        string_view path,
+        core::string_view uri,
+        core::string_view path,
         Decorator const &d) const
     {
         error_code ec;
@@ -1416,8 +1416,8 @@ public:
     handshake_ex(
         stream<NextLayer, deflateSupported>& ws,
         response_type& res,
-        string_view uri,
-        string_view path,
+        core::string_view uri,
+        core::string_view path,
         Decorator const &d) const
     {
         error_code ec;

@@ -45,20 +45,20 @@ struct fields_model
 {
     struct writer;
     
-    string_view method() const;
-    string_view reason() const;
-    string_view target() const;
+    core::string_view method() const;
+    core::string_view reason() const;
+    core::string_view target() const;
 
 protected:
-    string_view get_method_impl() const;
-    string_view get_target_impl() const;
-    string_view get_reason_impl() const;
+    core::string_view get_method_impl() const;
+    core::string_view get_target_impl() const;
+    core::string_view get_reason_impl() const;
     bool get_chunked_impl() const;
     bool get_keep_alive_impl(unsigned) const;
     bool has_content_length_impl() const;
-    void set_method_impl(string_view);
-    void set_target_impl(string_view);
-    void set_reason_impl(string_view);
+    void set_method_impl(core::string_view);
+    void set_target_impl(core::string_view);
+    void set_reason_impl(core::string_view);
     void set_chunked_impl(bool);
     void set_content_length_impl(boost::optional<std::uint64_t>);
     void set_keep_alive_impl(unsigned, bool);
@@ -93,21 +93,21 @@ struct is_fields_helper : T
 {
     template<class U = is_fields_helper>
     static auto f1(int) -> decltype(
-        std::declval<string_view&>() = std::declval<U const&>().get_method_impl(),
+        std::declval<core::string_view&>() = std::declval<U const&>().get_method_impl(),
         std::true_type());
     static auto f1(...) -> std::false_type;
     using t1 = decltype(f1(0));
 
     template<class U = is_fields_helper>
     static auto f2(int) -> decltype(
-        std::declval<string_view&>() = std::declval<U const&>().get_target_impl(),
+        std::declval<core::string_view&>() = std::declval<U const&>().get_target_impl(),
         std::true_type());
     static auto f2(...) -> std::false_type;
     using t2 = decltype(f2(0));
 
     template<class U = is_fields_helper>
     static auto f3(int) -> decltype(
-        std::declval<string_view&>() = std::declval<U const&>().get_reason_impl(),
+        std::declval<core::string_view&>() = std::declval<U const&>().get_reason_impl(),
         std::true_type());
     static auto f3(...) -> std::false_type;
     using t3 = decltype(f3(0));
@@ -136,21 +136,21 @@ struct is_fields_helper : T
 
     template<class U = is_fields_helper>
     static auto f7(int) -> decltype(
-        void(std::declval<U&>().set_method_impl(std::declval<string_view>())),
+        void(std::declval<U&>().set_method_impl(std::declval<core::string_view>())),
         std::true_type());
     static auto f7(...) -> std::false_type;
     using t7 = decltype(f7(0));
 
     template<class U = is_fields_helper>
     static auto f8(int) -> decltype(
-        void(std::declval<U&>().set_target_impl(std::declval<string_view>())),
+        void(std::declval<U&>().set_target_impl(std::declval<core::string_view>())),
         std::true_type());
     static auto f8(...) -> std::false_type;
     using t8 = decltype(f8(0));
 
     template<class U = is_fields_helper>
     static auto f9(int) -> decltype(
-        void(std::declval<U&>().set_reason_impl(std::declval<string_view>())),
+        void(std::declval<U&>().set_reason_impl(std::declval<core::string_view>())),
         std::true_type());
     static auto f9(...) -> std::false_type;
     using t9 = decltype(f9(0));
