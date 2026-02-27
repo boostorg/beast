@@ -106,11 +106,19 @@ public:
         res.body().append(1000, '*');
         serializer<false, string_body> sr{res};
         sr.limit(limit);
+
         for(;;)
         {
             sr.next(ec, visit);
             BEAST_EXPECT(visit.size <= limit);
-            sr.consume(visit.size);
+            const bool header_was_done = sr.is_header_done();
+            const auto n = sr.consume(visit.size);
+
+            if (header_was_done && !sr.is_done())
+                BEAST_EXPECT(n == limit);
+            else
+                BEAST_EXPECT(n <= limit);
+
             if(sr.is_done())
                 break;
         }
