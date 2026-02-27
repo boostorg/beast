@@ -15,6 +15,10 @@ add_subdirectory(ssl)
 add_subdirectory(websocket)
 add_subdirectory(zlib)
 
+if (NOT TARGET boost_beast_lib_asio_ssl)
+    return()
+endif ()
+
 add_executable(boost_beast_tests_self_contained
     Jamfile
     core.cpp

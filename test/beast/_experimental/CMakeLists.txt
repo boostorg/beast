@@ -8,6 +8,10 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+if (NOT TARGET boost_beast_lib_asio_ssl)
+    return()
+endif ()
+
 add_executable(boost_beast_tests__experimental
     Jamfile
     _test_detail_stream_state.cpp

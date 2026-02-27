@@ -8,6 +8,10 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
+if (NOT TARGET boost_beast_lib_asio_ssl)
+    return()
+endif ()
+
 add_executable(boost_beast_tests_example_common
     Jamfile
     root_certificates.cpp

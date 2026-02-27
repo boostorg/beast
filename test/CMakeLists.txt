@@ -8,19 +8,19 @@
 # Official repository: https://github.com/boostorg/beast
 #
 
-if(BOOST_BEAST_IS_ROOT)
+if (BOOST_BEAST_IS_ROOT)
     set(EXCLUDE_TESTS_FROM_ALL)
-else()
+else ()
     set(EXCLUDE_TESTS_FROM_ALL EXCLUDE_FROM_ALL)
-endif()
+endif ()
 
-if(NOT TARGET tests)
+if (NOT TARGET tests)
     add_custom_target(tests ${EXCLUDE_TESTS_FROM_ALL})
     set_property(TARGET tests PROPERTY FOLDER Dependencies)
-endif()
+endif ()
 
 find_package(Threads REQUIRED)
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL)
 
 # boost_beast_lib_asio
 add_library(boost_beast_lib_asio STATIC lib_asio.cpp)
@@ -35,12 +35,14 @@ target_compile_definitions(boost_beast_lib_asio PUBLIC
 target_link_libraries(boost_beast_lib_asio PUBLIC Boost::asio Threads::Threads)
 set_target_properties(boost_beast_lib_asio PROPERTIES FOLDER "static-libs")
 
-# boost_beast_lib_asio_ssl
-add_library(boost_beast_lib_asio_ssl STATIC lib_asio_ssl.cpp)
-source_group("" FILES boost_beast_lib_asio_ssl.cpp)
-target_link_libraries(boost_beast_lib_asio_ssl PUBLIC boost_beast_lib_asio)
-target_link_libraries(boost_beast_lib_asio_ssl PUBLIC OpenSSL::SSL OpenSSL::Crypto)
-set_target_properties(boost_beast_lib_asio_ssl PROPERTIES FOLDER "static-libs")
+if (OPENSSL_FOUND)
+    # boost_beast_lib_asio_ssl
+    add_library(boost_beast_lib_asio_ssl STATIC lib_asio_ssl.cpp)
+    source_group("" FILES boost_beast_lib_asio_ssl.cpp)
+    target_link_libraries(boost_beast_lib_asio_ssl PUBLIC boost_beast_lib_asio)
+    target_link_libraries(boost_beast_lib_asio_ssl PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+    set_target_properties(boost_beast_lib_asio_ssl PROPERTIES FOLDER "static-libs")
+endif ()
 
 # boost_beast_lib_beast
 add_library(boost_beast_lib_beast STATIC lib_beast.cpp)
