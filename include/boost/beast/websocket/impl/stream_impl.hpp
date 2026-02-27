@@ -501,7 +501,7 @@ private:
     template<class Executor>
     static net::execution_context&
     get_context(Executor const& ex,
-        typename std::enable_if< net::execution::is_executor<Executor>::value >::type* = 0)
+        typename std::enable_if< net::execution::is_executor<Executor>::value >::type* = nullptr)
     {
         return net::query(ex, net::execution::context);
     }
@@ -509,7 +509,7 @@ private:
     template<class Executor>
     static net::execution_context&
     get_context(Executor const& ex,
-        typename std::enable_if< !net::execution::is_executor<Executor>::value >::type* = 0)
+        typename std::enable_if< !net::execution::is_executor<Executor>::value >::type* = nullptr)
     {
         return ex.context();
     }
