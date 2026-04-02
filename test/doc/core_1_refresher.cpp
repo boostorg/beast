@@ -24,7 +24,7 @@
 namespace boost {
 namespace beast {
 
-namespace core = boost::core; // <boost/core/detail/string_view.hpp>
+namespace core = boost::core;   // from <boost/beast.hpp>
 
 namespace {
 

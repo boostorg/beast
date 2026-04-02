@@ -8,6 +8,8 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
 
+namespace core = boost::core;
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     using namespace boost::beast;

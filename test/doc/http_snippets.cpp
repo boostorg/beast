@@ -14,7 +14,7 @@
 #include <thread>
 
 using namespace boost::beast;
-namespace core = boost::core; // <boost/core/detail/string_view.hpp>
+namespace core = boost::core;   // from <boost/beast.hpp>
 
 //[http_snippet_1
 

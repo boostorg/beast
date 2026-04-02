@@ -20,7 +20,7 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
-namespace core = boost::core; // <boost/core/detail/string_view.hpp>
+namespace core = boost::core;   // from <boost/beast.hpp>
 
 namespace {
 
