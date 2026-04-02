@@ -445,6 +445,80 @@ test_file()
     }
 
     BEAST_EXPECT(! fs::exists(path));
+    {
+        string_view const s = "Hello, world!";
+
+        {
+            File f;
+            error_code ec = make_error_code(errc::no_such_file_or_directory);
+            f.open(path, file_mode::write, ec);
+            BEAST_EXPECT(! ec);
+        }
+
+        {
+            File f;
+            error_code ec;
+            f.open(path, file_mode::write, ec);
+            BEAST_EXPECT(! ec);
+            ec = make_error_code(errc::no_such_file_or_directory);
+            f.write(s.data(), s.size(), ec);
+            BEAST_EXPECT(! ec);
+        }
+
+        {
+            File f;
+            error_code ec;
+            f.open(path, file_mode::read, ec);
+            BEAST_EXPECT(! ec);
+            ec = make_error_code(errc::no_such_file_or_directory);
+            f.size(ec);
+            BEAST_EXPECT(! ec);
+        }
+
+        {
+            File f;
+            error_code ec;
+            f.open(path, file_mode::read, ec);
+            BEAST_EXPECT(! ec);
+            ec = make_error_code(errc::no_such_file_or_directory);
+            f.pos(ec);
+            BEAST_EXPECT(! ec);
+        }
+
+        {
+            File f;
+            error_code ec;
+            f.open(path, file_mode::read, ec);
+            BEAST_EXPECT(! ec);
+            ec = make_error_code(errc::no_such_file_or_directory);
+            f.seek(0, ec);
+            BEAST_EXPECT(! ec);
+        }
+
+        {
+            File f;
+            error_code ec;
+            f.open(path, file_mode::read, ec);
+            BEAST_EXPECT(! ec);
+            std::string buf;
+            buf.resize(s.size());
+            ec = make_error_code(errc::no_such_file_or_directory);
+            f.read(&buf[0], buf.size(), ec);
+            BEAST_EXPECT(! ec);
+        }
+
+        {
+            File f;
+            error_code ec;
+            f.open(path, file_mode::read, ec);
+            BEAST_EXPECT(! ec);
+            ec = make_error_code(errc::no_such_file_or_directory);
+            f.close(ec);
+            BEAST_EXPECT(! ec);
+        }
+
+        remove(path);
+    }
 }
 
 } // beast
