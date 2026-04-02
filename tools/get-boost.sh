@@ -82,6 +82,7 @@ git submodule update --init --depth 20 --jobs 4 \
     libs/ratio \
     libs/rational \
     libs/regex \
+    libs/static_assert \
     libs/thread \
     libs/tuple \
     libs/type_index \
