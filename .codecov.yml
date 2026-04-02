@@ -23,3 +23,5 @@ ignore:
   - extra/**/*
   - test/*
   - test/**/*
+  - tools/*
+  - tools/**/*
