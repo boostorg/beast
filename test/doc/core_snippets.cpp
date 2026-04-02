@@ -19,6 +19,7 @@
 //]
 
 using namespace boost::beast;
+namespace core = boost::core;   // from <boost/beast.hpp>
 
 namespace doc_core_snippets {
 
