@@ -393,7 +393,7 @@ test_file()
 
     // read and write
     {
-        string_view const s = "Hello, world!";
+        core::string_view const s = "Hello, world!";
 
         // write
         {

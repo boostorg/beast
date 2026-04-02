@@ -58,17 +58,17 @@ std::int8_t
 unhex(char c);
 
 BOOST_BEAST_DECL
-string_view
-trim(string_view s);
+core::string_view
+trim(core::string_view s);
 
 struct param_iter
 {
-    using iter_type = string_view::const_iterator;
+    using iter_type = core::string_view::const_iterator;
 
     iter_type it;
     iter_type first;
     iter_type last;
-    std::pair<string_view, string_view> v;
+    std::pair<core::string_view, core::string_view> v;
 
     bool
     empty() const
@@ -86,12 +86,12 @@ struct param_iter
 */
 struct opt_token_list_policy
 {
-    using value_type = string_view;
+    using value_type = core::string_view;
 
     BOOST_BEAST_DECL
     bool
     operator()(value_type& v,
-        char const*& it, string_view s) const;
+        char const*& it, core::string_view s) const;
 };
 
 } // detail

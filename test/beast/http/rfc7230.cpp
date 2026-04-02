@@ -31,7 +31,7 @@ public:
 
     static
     std::string
-    str(string_view s)
+    str(core::string_view s)
     {
         return std::string(s.data(), s.size());
     }
@@ -246,7 +246,7 @@ public:
     template<class Policy>
     static
     std::vector<std::string>
-    to_vector(string_view in)
+    to_vector(core::string_view in)
     {
         std::vector<std::string> v;
         detail::basic_parsed_list<Policy> list{in};
@@ -258,7 +258,7 @@ public:
 
     template<class Policy>
     void
-    validate(string_view in,
+    validate(core::string_view in,
         std::vector<std::string> const& v)
     {
         BEAST_EXPECT(to_vector<Policy>(in) == v);
@@ -266,7 +266,7 @@ public:
 
     template<class Policy>
     void
-    good(string_view in)
+    good(core::string_view in)
     {
         BEAST_EXPECT(validate_list(
             detail::basic_parsed_list<Policy>{in}));
@@ -274,7 +274,7 @@ public:
 
     template<class Policy>
     void
-    good(string_view in,
+    good(core::string_view in,
         std::vector<std::string> const& v)
     {
         BEAST_EXPECT(validate_list(
@@ -284,7 +284,7 @@ public:
 
     template<class Policy>
     void
-    bad(string_view in)
+    bad(core::string_view in)
     {
         BEAST_EXPECT(! validate_list(
             detail::basic_parsed_list<Policy>{in}));

@@ -41,7 +41,7 @@ public:
     void
     testMembers()
     {
-        string_view const s = "Hello, world!";
+        core::string_view const s = "Hello, world!";
         
         // flat_static_buffer_base
         {

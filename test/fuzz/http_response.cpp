@@ -8,6 +8,8 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
 
+namespace core = boost::core;
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     using namespace boost::beast;
@@ -21,7 +23,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     http::chunk_extensions ce;
     http::response_parser<http::dynamic_body> parser;
 
-    auto chunk_header_cb = [&ce](std::uint64_t, string_view extensions, error_code& ev)
+    auto chunk_header_cb = [&ce](std::uint64_t, core::string_view extensions, error_code& ev)
     {
         ce.parse(extensions, ev);
     };

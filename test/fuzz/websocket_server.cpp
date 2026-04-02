@@ -8,6 +8,8 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
 
+namespace core = boost::core;
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     using namespace boost::beast;
@@ -18,7 +20,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     test::stream remote{ioc};
 
     websocket::stream<test::stream> ws{
-        ioc, string_view{reinterpret_cast<const char*>(data), size}};
+        ioc, core::string_view{reinterpret_cast<const char*>(data), size}};
 
     ws.set_option(websocket::stream_base::decorator(
         [](websocket::response_type& res)

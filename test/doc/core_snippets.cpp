@@ -19,6 +19,7 @@
 //]
 
 using namespace boost::beast;
+namespace core = boost::core;   // from <boost/beast.hpp>
 
 namespace doc_core_snippets {
 
@@ -29,6 +30,7 @@ void fxx()
 using namespace boost::beast;
 namespace net = boost::asio;
 namespace ssl = boost::asio::ssl;
+namespace core = boost::core;
 using tcp = net::ip::tcp;
 
 net::io_context ioc;
@@ -68,7 +70,7 @@ net::connect(stream, r.resolve("www.example.com", "http"));
 //[snippet_core_3
 
 template<class SyncWriteStream>
-void write_string(SyncWriteStream& stream, string_view s)
+void write_string(SyncWriteStream& stream, core::string_view s)
 {
     static_assert(is_sync_write_stream<SyncWriteStream>::value,
         "SyncWriteStream type requirements not met");

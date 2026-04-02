@@ -52,7 +52,7 @@ namespace http {
 */
 class param_list
 {
-    string_view s_;
+    core::string_view s_;
 
 public:
     /** The type of each element in the list.
@@ -62,7 +62,7 @@ public:
         be empty).
     */
     using value_type =
-        std::pair<string_view, string_view>;
+        std::pair<core::string_view, core::string_view>;
 
     /// A constant iterator to the list
 #if BOOST_BEAST_DOXYGEN
@@ -80,7 +80,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    param_list(string_view s)
+    param_list(core::string_view s)
         : s_(s)
     {
     }
@@ -140,9 +140,9 @@ public:
 */
 class ext_list
 {
-    using iter_type = string_view::const_iterator;
+    using iter_type = core::string_view::const_iterator;
 
-    string_view s_;
+    core::string_view s_;
 
 public:
     /** The type of each element in the list.
@@ -151,7 +151,7 @@ public:
         second element of the pair is an iterable container holding the
         extension's name/value parameters.
     */
-    using value_type = std::pair<string_view, param_list>;
+    using value_type = std::pair<core::string_view, param_list>;
 
     /// A constant iterator to the list
 #if BOOST_BEAST_DOXYGEN
@@ -166,7 +166,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    ext_list(string_view s)
+    ext_list(core::string_view s)
         : s_(s)
     {
     }
@@ -192,7 +192,7 @@ public:
     */
     BOOST_BEAST_DECL
     const_iterator
-    find(string_view const& s);
+    find(core::string_view const& s);
 
     /** Return `true` if a token is present in the list.
 
@@ -200,7 +200,7 @@ public:
     */
     BOOST_BEAST_DECL
     bool
-    exists(string_view const& s);
+    exists(core::string_view const& s);
 };
 
 //------------------------------------------------------------------------------
@@ -233,13 +233,13 @@ public:
 */
 class token_list
 {
-    using iter_type = string_view::const_iterator;
+    using iter_type = core::string_view::const_iterator;
 
-    string_view s_;
+    core::string_view s_;
 
 public:
     /// The type of each element in the token list.
-    using value_type = string_view;
+    using value_type = core::string_view;
 
     /// A constant iterator to the list
 #if BOOST_BEAST_DOXYGEN
@@ -254,7 +254,7 @@ public:
         must remain valid for the lifetime of the container.
     */
     explicit
-    token_list(string_view s)
+    token_list(core::string_view s)
         : s_(s)
     {
     }
@@ -277,7 +277,7 @@ public:
     */
     BOOST_BEAST_DECL
     bool
-    exists(string_view const& s);
+    exists(core::string_view const& s);
 };
 
 /** A list of tokens in a comma separated HTTP field value.

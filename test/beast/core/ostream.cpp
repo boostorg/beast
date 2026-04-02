@@ -27,7 +27,7 @@ public:
     void
     testOstream()
     {
-        string_view const s = "0123456789abcdef";
+        core::string_view const s = "0123456789abcdef";
         BEAST_EXPECT(s.size() == 16);
 
         // overflow
@@ -75,7 +75,7 @@ public:
         {
             // Issue #1853
             flat_static_buffer<16> b;
-            auto half_view = string_view(s.data(), 8);
+            auto half_view = core::string_view(s.data(), 8);
             {
                 auto os = ostream(b);
                 os << half_view;
@@ -88,9 +88,9 @@ public:
             flat_static_buffer<16> b;
             {
                 auto os = ostream(b);
-                os << string_view(s.data(), 8);
+                os << core::string_view(s.data(), 8);
                 os.flush();
-                os << string_view(s.data() + 8, 8);
+                os << core::string_view(s.data() + 8, 8);
                 os.flush();
             }
             BEAST_EXPECT(buffers_to_string(b.data()) == s);

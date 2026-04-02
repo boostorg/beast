@@ -18,7 +18,7 @@ namespace boost {
 namespace beast {
 namespace http {
 
-string_view
+core::string_view
 to_string(verb v)
 {
     using namespace beast::detail::string_literals;
@@ -72,7 +72,7 @@ to_string(verb v)
 }
 
 verb
-string_to_verb(string_view v)
+string_to_verb(core::string_view v)
 {
 /*
     ACL
