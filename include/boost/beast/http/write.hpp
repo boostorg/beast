@@ -702,7 +702,7 @@ async_write(
             executor_type<AsyncWriteStream>>{}
 #ifndef BOOST_BEAST_DOXYGEN
     , typename std::enable_if<
-        is_mutable_body_writer<Body>::value>::type* = 0
+        is_mutable_body_writer<Body>::value>::type* = nullptr
 #endif
     );
 
@@ -776,7 +776,7 @@ async_write(
             executor_type<AsyncWriteStream>>{}
 #ifndef BOOST_BEAST_DOXYGEN
     , typename std::enable_if<
-        ! is_mutable_body_writer<Body>::value>::type* = 0
+        ! is_mutable_body_writer<Body>::value>::type* = nullptr
 #endif
     );
 
