@@ -365,7 +365,7 @@ public:
     std::string
     field()
     {
-        static char const* const list[123] =
+        static char const* const list[124] =
         {
             "Accept",
             "Accept-CH",
@@ -420,6 +420,7 @@ public:
             "Forwarded",
             "From",
             "Host",
+            "HTTP2-Settings",
             "If-Match",
             "If-Modified-Since",
             "If-None-Match",
@@ -496,7 +497,7 @@ public:
             "X-Robots-Tag",
             "X-XSS-Protection"
         };
-        return list[rand(122)];
+        return list[rand(123)];
     }
 
     std::string

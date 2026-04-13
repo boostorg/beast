@@ -42,7 +42,7 @@ struct field_table
     }
 
     using array_type =
-        std::array<string_view, 129>;
+        std::array<string_view, 130>;
 
     // Strings are converted to lowercase
     static
@@ -169,6 +169,7 @@ struct field_table
             "Forwarded",
             "From",
             "Host",
+            "HTTP2-Settings",
             "If-Match",
             "If-Modified-Since",
             "If-None-Match",
