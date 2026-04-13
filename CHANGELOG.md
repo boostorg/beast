@@ -1,3 +1,13 @@
+Version 360:
+
+* Enforced 8KB sanity limit on chunk headers
+* Made OpenSSL an optional dependency for tests
+* Fixed typecast warnings in `inflate_with_eb`
+* Removed dependency on Boost.StaticAssert
+* Added `HTTP2-Settings` to HTTP field enum
+
+--------------------------------------------------------------------------------
+
 Version 359:
 
 * Removed dependency on Boost.Preprocessor

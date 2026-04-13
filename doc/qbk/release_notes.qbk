@@ -11,6 +11,19 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.91]
+
+[*Fixes]
+
+* [issue 3066] Fixed typecast warnings in `inflate_with_eb`
+
+[*Improvements]
+
+* [issue 3077] Enforced 8KB sanity limit on chunk headers
+* [issue 3085] Made OpenSSL an optional dependency for tests
+* [issue 3074] Removed dependency on Boost.StaticAssert
+* [issue 3091] Added `HTTP2-Settings` to HTTP field enum
+
 [heading Boost 1.90]
 
 [*API Changes]
