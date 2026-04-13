@@ -75,6 +75,7 @@ namespace http {
         forwarded,
         from,
         host,
+        http2_settings, // Deprecated
         if_match,
         if_modified_since,
         if_none_match,

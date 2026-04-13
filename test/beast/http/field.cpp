@@ -86,6 +86,7 @@ public:
         match(field::forwarded, "Forwarded");
         match(field::from, "From");
         match(field::host, "Host");
+        match(field::http2_settings, "HTTP2-Settings");
         match(field::if_match, "If-Match");
         match(field::if_modified_since, "If-Modified-Since");
         match(field::if_none_match, "If-None-Match");
