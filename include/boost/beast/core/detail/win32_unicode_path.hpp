@@ -29,6 +29,7 @@ class win32_unicode_path
 
 public:
     win32_unicode_path(const char* utf8_path, error_code& ec) {
+        ec = {};
         int ret = mb2wide(utf8_path, static_buf_.data(),
             static_buf_.size());
         if (ret == 0)
