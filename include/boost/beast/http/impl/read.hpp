@@ -206,7 +206,7 @@ public:
                 {
                     cont_ = true;
                     // VFALCO This was read_size_or_throw
-                    auto const size = read_size(b_, 65536);
+                    auto const size = read_size(b_, 128*1024);
                     if(size == 0)
                     {
                         BOOST_BEAST_ASSIGN_EC(ec, error::buffer_overflow);
@@ -352,7 +352,7 @@ read_some(SyncReadStream& s, DynamicBuffer& b, basic_parser<isRequest>& p, error
 
     do_read:
         // VFALCO This was read_size_or_throw
-        auto const size = read_size(b, 65536);
+        auto const size = read_size(b, 128*1024);
         if(size == 0)
         {
             BOOST_BEAST_ASSIGN_EC(ec, error::buffer_overflow);
