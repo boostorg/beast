@@ -387,15 +387,19 @@ inner_parse_fields(char const*& in,
         if(ec)
             return;
         auto const f = string_to_field(name);
-        do_field(f, value, ec);
-        if(ec)
-            return;
         if(BOOST_UNLIKELY(state_ == state::trailer_fields))
         {
+            // do_field() applies header-section semantics
+            // (Content-Length, Transfer-Encoding, Connection,
+            // Upgrade) which must not be honored when they appear
+            // in a chunked trailer, see rfc7230 section 4.1.2.
             this->on_trailer_field_impl(f, name, value, ec);
         }
         else
         {
+            do_field(f, value, ec);
+            if(ec)
+                return;
             this->on_field_impl(f, name, value, ec);
         }
         if(ec)
