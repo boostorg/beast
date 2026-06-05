@@ -404,6 +404,43 @@ public:
             // standard, not listed in Trailer
             BEAST_EXPECT(! p.get().contains(field::content_digest));
         }
+
+        // rfc7230 section 4.1.2: framing and connection control
+        // fields carried in a trailer must not affect the message
+        {
+            error_code ec;
+            parser_type<false> p;
+            p.eager(true);
+            p.put(
+                buf("HTTP/1.1 200 OK\r\n"
+                    "Transfer-Encoding: chunked\r\n"
+                    "\r\n"
+                    "0\r\n"
+                    "Connection: close\r\n"
+                    "\r\n"),
+                ec);
+            BEAST_EXPECT(p.is_done());
+            // Connection in the trailer must not close the connection
+            BEAST_EXPECT(p.keep_alive());
+        }
+        {
+            error_code ec;
+            parser_type<true> p;
+            p.eager(true);
+            p.put(
+                buf("GET / HTTP/1.1\r\n"
+                    "Host: localhost\r\n"
+                    "Transfer-Encoding: chunked\r\n"
+                    "\r\n"
+                    "0\r\n"
+                    "Connection: upgrade\r\n"
+                    "Upgrade: websocket\r\n"
+                    "\r\n"),
+                ec);
+            BEAST_EXPECT(p.is_done());
+            // Upgrade in the trailer must not mark the message as upgrade
+            BEAST_EXPECT(! p.upgrade());
+        }
     }
 
     void
