@@ -38,7 +38,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 class test_buffer
 {
-    char data_[4096];
+    char data_[4096] = {};
     net::const_buffer b_;
 
 public:
