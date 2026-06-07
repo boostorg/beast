@@ -61,7 +61,6 @@ git submodule update --init --depth 20 --jobs 4 \
     libs/exception \
     libs/function \
     libs/function_types \
-    libs/functional \
     libs/fusion \
     libs/integer \
     libs/io \

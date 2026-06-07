@@ -14,7 +14,7 @@
 #include <boost/beast/_experimental/unit_test/detail/const_container.hpp>
 #include <boost/assert.hpp>
 #include <boost/type_index.hpp>
-#include <boost/functional/hash.hpp>
+#include <boost/container_hash/hash.hpp>
 #include <typeindex>
 #include <set>
 #include <unordered_set>
