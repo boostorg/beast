@@ -76,20 +76,13 @@ jobs:
           - toolset: gcc-15
             cxxstd: 11,14,17,20,23,2c
             os: ubuntu-latest
-            container: ubuntu:25.04
+            container: ubuntu:26.04
             install: g++-15
-          - toolset: clang
-            compiler: clang++-3.5
-            cxxstd: 11
-            os: ubuntu-24.04
-            container: ubuntu:16.04
-            install: clang-3.5
-          - toolset: clang
-            compiler: clang++-3.6
-            cxxstd: 11,14
-            os: ubuntu-24.04
-            container: ubuntu:16.04
-            install: clang-3.6
+          - toolset: gcc-16
+            cxxstd: 11,14,17,20,23,2c
+            os: ubuntu-latest
+            container: ubuntu:26.04
+            install: g++-16
           - toolset: clang
             compiler: clang++-3.7
             cxxstd: 11,14
@@ -200,23 +193,29 @@ jobs:
             compiler: clang++-20
             cxxstd: 11,14,17,20,23,2c
             os: ubuntu-latest
-            container: ubuntu:25.04
+            container: ubuntu:24.04
             install: clang-20
           - toolset: clang
             compiler: clang++-21
             cxxstd: 11,14,17,20,23,2c
             os: ubuntu-latest
-            container: ubuntu:25.10
+            container: ubuntu:26.04
             install: clang-21
+          - toolset: clang
+            compiler: clang++-22
+            cxxstd: 11,14,17,20,23,2c
+            os: ubuntu-latest
+            container: ubuntu:26.04
+            install: clang-22
           - toolset: clang
             os: macos-14
             cxxstd: 11,14,17,20,2b
           - toolset: clang
             os: macos-15
-            cxxstd: 11,14,17,20,2b
+            cxxstd: 11,14,17,20,23,2c
           - toolset: clang
             os: macos-26
-            cxxstd: 11,14,17,20,2b
+            cxxstd: 11,14,17,20,23,2c
 
     needs: [runner-selection]
     runs-on: ${{ fromJSON(needs.runner-selection.outputs.labelmatrix)[matrix.os] }}
@@ -285,6 +284,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - toolset: msvc-14.5
+            cxxstd: 14,17
+            addrmd: 32
+            os: windows-2025-vs2026
+          - toolset: msvc-14.5
+            cxxstd: 20,latest
+            addrmd: 32
+            os: windows-2025-vs2026
+          - toolset: msvc-14.5
+            cxxstd: 14,17
+            addrmd: 64
+            os: windows-2025-vs2026
+          - toolset: msvc-14.5
+            cxxstd: 20,latest
+            addrmd: 64
+            os: windows-2025-vs2026
           - toolset: msvc-14.3
             cxxstd: 14,17
             addrmd: 32
@@ -302,30 +317,25 @@ jobs:
             addrmd: 64
             os: windows-2022
           - toolset: clang-win
-            cxxstd: 14,17,latest
+            cxxstd: 14,17,20,latest
             addrmd: 32
-            os: windows-2022
+            os: windows-2025
             cxxflags: "linkflags=/safeseh:no"
           - toolset: clang-win
-            cxxstd: 14,17,latest
+            cxxstd: 14,17,20,latest
             addrmd: 64
-            os: windows-2022
-
-          # The windows-2022 image comes with GCC 12, which causes a
-          # `file too big` error even when using `-Wa,-mbig-obj` and
-          # `debug-symbols=off`.
-
-          # - toolset: gcc
-          #   cxxstd: "11,14"
-          #   addrmd: 64
-          #   os: windows-2022
-          # - toolset: gcc
-          #   cxxstd: "17,2a"
-          #   addrmd: 64
-          #   os: windows-2022
+            os: windows-2025
+          - toolset: gcc
+            cxxstd: "11,14"
+            addrmd: 64
+            os: windows-2025-no-aws
+          - toolset: gcc
+            cxxstd: "17,2a"
+            addrmd: 64
+            os: windows-2025-no-aws
 
     needs: [runner-selection]
-    runs-on: ${{ fromJSON(needs.runner-selection.outputs.labelmatrix)[matrix.os] }}
+    runs-on: ${{ fromJSON(needs.runner-selection.outputs.labelmatrix)[matrix.os] || matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
