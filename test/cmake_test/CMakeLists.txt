@@ -77,7 +77,6 @@ else()
   detail
   fusion
   function_types
-  functional
   typeof
   )
 
