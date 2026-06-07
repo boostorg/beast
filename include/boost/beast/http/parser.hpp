@@ -498,11 +498,23 @@ private:
         string_view value,
         error_code& ec) override
     {
+        // Drop fields not advertised in the Trailer header
         if(! token_list{m_[field::trailer]}.exists(name_string))
             return;
 
         switch(name)
         {
+        // Drop fields that govern message framing or connection handling
+        case field::connection:
+        case field::proxy_connection:
+        case field::upgrade:
+        case field::transfer_encoding:
+        case field::content_length:
+        case field::trailer:
+        case field::host:
+            return;
+
+        // Safe and well-known trailer fields
         case field::digest:          // RFC 3230, Section 2 (obsolete)
         case field::content_digest:  // RFC 9530, Section 2
         case field::repr_digest:     // RFC 9530, Section 3
@@ -513,6 +525,7 @@ private:
         case field::link:            // RFC 8288, Section 3
         case field::alt_svc:         // RFC 7838, Section 3
             break;
+
         default:
             if(! merge_all_trailers_)
                 return;

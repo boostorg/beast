@@ -441,6 +441,44 @@ public:
             // Upgrade in the trailer must not mark the message as upgrade
             BEAST_EXPECT(! p.upgrade());
         }
+
+        // framing/connection control fields are dropped even when they
+        // are listed in `Trailer` and merge_all_trailers(true) is set
+        {
+            error_code ec;
+            parser_type<false> p;
+            p.eager(true);
+            p.merge_all_trailers(true);
+            p.put(
+                buf("HTTP/1.1 200 OK\r\n"
+                    "Transfer-Encoding: chunked\r\n"
+                    "Trailer: Connection, Proxy-Connection, Upgrade, "
+                        "Transfer-Encoding, Content-Length, Trailer, Host\r\n"
+                    "\r\n"
+                    "0\r\n"
+                    "Connection: close\r\n"
+                    "Proxy-Connection: close\r\n"
+                    "Upgrade: websocket\r\n"
+                    "Transfer-Encoding: gzip\r\n"
+                    "Content-Length: 42\r\n"
+                    "Trailer: Evil\r\n"
+                    "Host: evil.example\r\n"
+                    "\r\n"),
+                ec);
+            BEAST_EXPECT(p.is_done());
+
+            // fields absent from the header must not be added
+            BEAST_EXPECT(! p.get().contains(field::connection));
+            BEAST_EXPECT(! p.get().contains(field::proxy_connection));
+            BEAST_EXPECT(! p.get().contains(field::upgrade));
+            BEAST_EXPECT(! p.get().contains(field::content_length));
+            BEAST_EXPECT(! p.get().contains(field::host));
+
+            // fields present in the header must not be duplicated
+            BEAST_EXPECT(p.get().count(field::transfer_encoding) == 1);
+            BEAST_EXPECT(p.get()[field::transfer_encoding] == "chunked");
+            BEAST_EXPECT(p.get().count(field::trailer) == 1);
+        }
     }
 
     void
