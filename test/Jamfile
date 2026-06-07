@@ -58,6 +58,7 @@ local requirements =
     <target-os>windows:<define>_WIN32_WINNT=0x0A00
     <target-os>windows,<toolset>gcc:<library>ws2_32
     <target-os>windows,<toolset>gcc:<library>mswsock
+    <target-os>windows,<toolset>gcc:<cxxflags>-Wa,-mbig-obj
     <target-os>windows,<toolset>gcc-cygwin:<define>__USE_W32_SOCKETS
     <target-os>hpux,<toolset>gcc:<define>_XOPEN_SOURCE_EXTENDED
     <target-os>hpux:<library>ipv6
