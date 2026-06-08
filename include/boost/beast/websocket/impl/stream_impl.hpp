@@ -851,6 +851,12 @@ parse_fh(
             BOOST_BEAST_ASSIGN_EC(ec, error::bad_size);
             return false;
         }
+        if(fh.len >> 63)
+        {
+            // most significant bit must be 0
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_size);
+            return false;
+        }
         break;
     }
     }

@@ -337,6 +337,21 @@ public:
         // length not canonical
         bad(string_view("\x81\x7e\x00\x7d", 4));
         bad(string_view("\x81\x7f\x00\x00\x00\x00\x00\x00\xff\xff", 10));
+
+        // 64-bit length with the most significant bit set
+        {
+            echo_server es{log};
+            net::io_context ioc;
+            stream<test::stream> ws{ioc};
+            ws.next_layer().connect(es.stream());
+            ws.handshake("localhost", "/");
+            ws.next_layer().append(
+                string_view("\x81\x7f\xff\xff\xff\xff\xff\xff\xff\xff", 10));
+            error_code ec;
+            multi_buffer b;
+            ws.read(b, ec);
+            BEAST_EXPECTS(ec == error::bad_size, ec.message());
+        }
     }
 
     void
