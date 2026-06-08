@@ -323,13 +323,13 @@ public:
             doFailTest(w, ws, error::bad_close_code);
         });
 
-        // message size above 2^64
+        // message size 2^63-1
         doTest<deflateSupported>(pmd,
         [&](ws_type_t<deflateSupported>& ws)
         {
             w.write_some(ws, false, sbuf("*"));
             w.write_raw(ws, cbuf(
-                {0x80, 0xff, 0xff, 0xff, 0xff, 0xff,
+                {0x80, 0xff, 0x7f, 0xff, 0xff, 0xff,
                 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}));
             doReadTest(w, ws, close_code::too_big);
         });

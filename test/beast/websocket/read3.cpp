@@ -364,9 +364,9 @@ public:
             stream<test::stream> ws{ioc};
             ws.next_layer().connect(es.stream());
             ws.handshake("localhost", "/");
-            // too-big message frame indicates payload of 2^64-1
+            // too-big message frame indicates payload of 2^63-1
             net::write(ws.next_layer(), sbuf(
-                "\x81\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"));
+                "\x81\xff\x7f\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"));
             multi_buffer b;
             error_code ec;
             ws.read(b, ec);
