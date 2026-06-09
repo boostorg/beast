@@ -786,6 +786,17 @@ public:
             "Content-Length: 1\r\n"
             "Transfer-Encoding: chunked\r\n"
             "\r\n",                                     error::bad_transfer_encoding);
+
+        // chunked is an HTTP/1.1 transfer coding; reject a request that
+        // resolves to chunked framing over HTTP/1.0
+        failgrind<test_parser<true>>(
+            "GET / HTTP/1.0\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n0\r\n\r\n",                            error::bad_transfer_encoding);
+        failgrind<test_parser<true>>(
+            "GET / HTTP/1.0\r\n"
+            "Transfer-Encoding: gzip, chunked\r\n"
+            "\r\n0\r\n\r\n",                            error::bad_transfer_encoding);
     }
 
     void
