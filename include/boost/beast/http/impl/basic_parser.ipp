@@ -432,6 +432,16 @@ finish_header(error_code& ec, std::true_type)
     // RFC 7230 section 3.3
     // https://tools.ietf.org/html/rfc7230#section-3.3
 
+    // chunked is an HTTP/1.1 transfer coding; an HTTP/1.0 request that
+    // resolves to chunked framing cannot be delimited reliably by a
+    // recipient that ignores Transfer-Encoding per HTTP/1.0, so reject
+    // it here instead of consuming the body as chunks.
+    if((f_ & flagChunked) && ! (f_ & flagHTTP11))
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_transfer_encoding);
+        return;
+    }
+
     if(f_ & flagSkipBody)
     {
         state_ = state::complete;
