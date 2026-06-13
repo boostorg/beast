@@ -63,6 +63,7 @@ public:
         case error::short_read: return "unexpected eof in body";
         case error::header_field_name_too_large: return "header field name too large";
         case error::header_field_value_too_large: return "header field value too large";
+        case error::multiple_host: return "multiple Host";
 
         default:
             return "beast.http error";

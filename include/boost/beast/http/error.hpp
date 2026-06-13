@@ -170,7 +170,10 @@ enum class error
     header_field_name_too_large,
 
     /// Header field value exceeds @ref basic_fields::max_value_size.
-    header_field_value_too_large
+    header_field_value_too_large,
+
+    /// The request contains more than one Host header field.
+    multiple_host
 };
 
 } // http

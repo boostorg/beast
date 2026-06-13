@@ -828,6 +828,38 @@ public:
     }
 
     void
+    testHostField()
+    {
+        auto const m = [](std::string const& s)
+            { return "GET / HTTP/1.1\r\n" + s + "\r\n"; };
+
+        using P = test_parser<true>;
+
+        // a single Host, and lookalike field names, are fine
+        parsegrind<P>(m("Host: localhost\r\n"),                expect_flags{*this, 0});
+        parsegrind<P>(m("Hostname: x\r\n"),                    expect_flags{*this, 0});
+        parsegrind<P>(m("Host: a\r\n Host: b\r\n"),            expect_flags{*this, 0}); // obs-fold, single field
+
+        // RFC 7230 section 5.4: a request with more than one Host
+        // header field is rejected, whether or not the values agree
+        failgrind<P>(m("Host: localhost\r\n"
+                       "Host: other\r\n"),                     error::multiple_host);
+        failgrind<P>(m("Host: localhost\r\n"
+                       "Host: localhost\r\n"),                 error::multiple_host);
+        failgrind<P>(m("Host: a\r\n"
+                       "Content-Length: 0\r\n"
+                       "Host: b\r\n"),                         error::multiple_host);
+
+        // the rule is request-only; responses are not affected
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 0\r\n"
+            "Host: a\r\n"
+            "Host: b\r\n"
+            "\r\n",                                            expect_flags{*this, 0});
+    }
+
+    void
     testPartial()
     {
         // Make sure the slow-loris defense works and that
@@ -1636,6 +1668,7 @@ public:
         testContentLengthField();
         testTransferEncodingField();
         testUpgradeField();
+        testHostField();
         testPartial();
         testLimits();
         testBody();

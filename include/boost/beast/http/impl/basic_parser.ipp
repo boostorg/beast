@@ -835,6 +835,21 @@ do_field(field f,
         return;
     }
 
+    // Host
+    if(isRequest && f == field::host)
+    {
+        // RFC 7230 section 5.4: a request that contains more than one
+        // Host header field must be rejected. A duplicate Host lets an
+        // upstream and this parser resolve the request to different
+        // authorities, a request routing / cache poisoning vector.
+        if(f_ & flagHost)
+        {
+            BOOST_BEAST_ASSIGN_EC(ec, error::multiple_host);
+            return;
+        }
+        f_ |= flagHost;
+    }
+
     ec = {};
 }
 
