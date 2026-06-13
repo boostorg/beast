@@ -753,8 +753,11 @@ do_field(field f,
             BOOST_BEAST_ASSIGN_EC(ec, error::multiple_content_length);
         };
 
-        // conflicting field
-        if(f_ & flagChunked)
+        // conflicting field: a Transfer-Encoding was already seen, and a
+        // message must not carry both Transfer-Encoding and Content-Length
+        // regardless of the transfer coding or the order the two fields
+        // arrive in (RFC 7230 3.3.3).
+        if(f_ & (flagChunked | flagTransferEncoding))
             return bad_content_length();
 
         // Content-length may be a comma-separated list of integers
@@ -810,6 +813,11 @@ do_field(field f,
             BOOST_BEAST_ASSIGN_EC(ec, error::bad_transfer_encoding);
             return;
         }
+
+        // Record that a Transfer-Encoding was present so a Content-Length
+        // arriving afterwards is rejected the same way it would be if the
+        // fields arrived in the opposite order.
+        f_ |= flagTransferEncoding;
 
         ec = {};
         auto const v = token_list{value};
