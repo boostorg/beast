@@ -797,6 +797,19 @@ public:
             "GET / HTTP/1.0\r\n"
             "Transfer-Encoding: gzip, chunked\r\n"
             "\r\n0\r\n\r\n",                            error::bad_transfer_encoding);
+
+        // a message must not carry both Transfer-Encoding and Content-Length,
+        // regardless of the transfer coding or the order the fields arrive in
+        failgrind<test_parser<true>>(
+            "POST / HTTP/1.1\r\n"
+            "Content-Length: 5\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "\r\n",                                     error::bad_transfer_encoding);
+        failgrind<test_parser<true>>(
+            "POST / HTTP/1.1\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "Content-Length: 5\r\n"
+            "\r\n",                                     error::bad_content_length);
     }
 
     void
