@@ -27,11 +27,13 @@ public:
         BEAST_EXPECT(! is_valid_close_code(1004));
         BEAST_EXPECT(! is_valid_close_code(1005));
         BEAST_EXPECT(! is_valid_close_code(1006));
+        BEAST_EXPECT(! is_valid_close_code(1015));
         BEAST_EXPECT(! is_valid_close_code(1016));
         BEAST_EXPECT(! is_valid_close_code(2000));
         BEAST_EXPECT(! is_valid_close_code(2999));
         BEAST_EXPECT(is_valid_close_code(1000));
         BEAST_EXPECT(is_valid_close_code(1002));
+        BEAST_EXPECT(is_valid_close_code(1014));
         BEAST_EXPECT(is_valid_close_code(3000));
         BEAST_EXPECT(is_valid_close_code(4000));
         BEAST_EXPECT(is_valid_close_code(5000));

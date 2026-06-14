@@ -107,6 +107,9 @@ enum close_code : std::uint16_t
     /// The server is terminating the connection due to a temporary condition, e.g. it is overloaded and is casting off some of its clients.
     try_again_later = 1013,
 
+    /// The endpoint, acting as a gateway or proxy, received an invalid response from an upstream server, analogous to HTTP status 502.
+    bad_gateway     = 1014,
+
     //----
     //
     // The following are illegal on the wire
@@ -137,13 +140,7 @@ enum close_code : std::uint16_t
     abnormal        = 1006,
 
     /** Reserved for future use by the WebSocket standard.
-        
-        This code is reserved and may not be sent.
-    */
-    reserved2       = 1014,
 
-    /** Reserved for future use by the WebSocket standard.
-       
         This code is reserved and may not be sent.
     */
     reserved3       = 1015
