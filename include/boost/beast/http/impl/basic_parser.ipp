@@ -442,6 +442,15 @@ finish_header(error_code& ec, std::true_type)
         return;
     }
 
+    // if a Transfer-Encoding is present in a request and chunked is not the
+    // final coding, the body length cannot be determined reliably; reject the
+    // request instead of silently treating it as having no body.
+    if((f_ & flagTransferEncoding) && ! (f_ & flagChunked))
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_transfer_encoding);
+        return;
+    }
+
     if(f_ & flagSkipBody)
     {
         state_ = state::complete;

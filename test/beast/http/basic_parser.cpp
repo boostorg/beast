@@ -738,75 +738,138 @@ public:
         auto const ce = [](std::string const& s)
             { return "GET / HTTP/1.1\r\nTransfer-Encoding: " + s + "\r\n0\r\n\r\n"; };
         auto const te = [](std::string const& s)
-            { return "GET / HTTP/1.1\r\nTransfer-Encoding: " + s + "\r\n"; };
+            { return "HTTP/1.1 200 OK\r\nTransfer-Encoding: " + s + "\r\n"; };
 
-        using P = test_parser<true>;
+        using Preq = test_parser<true>;
+        using Pres = test_parser<false>;
 
-        parsegrind<P>(ce("chunked\r\n"),                expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("chunked \r\n"),               expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("chunked\t\r\n"),              expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("chunked \t\r\n"),             expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce(" chunked\r\n"),               expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("\tchunked\r\n"),              expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("chunked,\r\n"),               expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("chunked ,\r\n"),              expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("chunked, \r\n"),              expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce(",chunked\r\n"),               expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce(", chunked\r\n"),              expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce(" ,chunked\r\n"),              expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("chunked\r\n \r\n"),           expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("\r\n chunked\r\n"),           expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce(",\r\n chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("\r\n ,chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce(",\r\n chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("gzip, chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("gzip, chunked \r\n"),         expect_flags{*this, parse_flag::chunked});
-        parsegrind<P>(ce("gzip, \r\n chunked\r\n"),     expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("chunked\r\n"),                expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("chunked \r\n"),               expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("chunked\t\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("chunked \t\r\n"),             expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce(" chunked\r\n"),               expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("\tchunked\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("chunked,\r\n"),               expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("chunked ,\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("chunked, \r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce(",chunked\r\n"),               expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce(", chunked\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce(" ,chunked\r\n"),              expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("chunked\r\n \r\n"),           expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("\r\n chunked\r\n"),           expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce(",\r\n chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("\r\n ,chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce(",\r\n chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("gzip, chunked\r\n"),          expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("gzip, chunked \r\n"),         expect_flags{*this, parse_flag::chunked});
+        parsegrind<Preq>(ce("gzip, \r\n chunked\r\n"),     expect_flags{*this, parse_flag::chunked});
 
         // Technically invalid but beyond the parser's scope to detect
         // VFALCO Look into this
-        //parsegrind<P>(ce("custom;key=\",chunked\r\n"),  expect_flags{*this, parse_flag::chunked});
+        //parsegrind<Preq>(ce("custom;key=\",chunked\r\n"),  expect_flags{*this, parse_flag::chunked});
 
-        parsegrind<P>(te("gzip\r\n"),                   expect_flags{*this, 0});
-        parsegrind<P>(te("chunked, gzip\r\n"),          expect_flags{*this, 0});
-        parsegrind<P>(te("chunked\r\n , gzip\r\n"),     expect_flags{*this, 0});
-        parsegrind<P>(te("chunked,\r\n gzip\r\n"),      expect_flags{*this, 0});
-        parsegrind<P>(te("chunked,\r\n ,gzip\r\n"),     expect_flags{*this, 0});
-        parsegrind<P>(te("bigchunked\r\n"),             expect_flags{*this, 0});
-        parsegrind<P>(te("chunk\r\n ked\r\n"),          expect_flags{*this, 0});
-        parsegrind<P>(te("bar\r\n ley chunked\r\n"),    expect_flags{*this, 0});
-        parsegrind<P>(te("barley\r\n chunked\r\n"),     expect_flags{*this, 0});
+        parsegrind<Pres>(te("gzip\r\n"),                   expect_flags{*this, 0});
+        parsegrind<Pres>(te("chunked, gzip\r\n"),          expect_flags{*this, 0});
+        parsegrind<Pres>(te("chunked\r\n , gzip\r\n"),     expect_flags{*this, 0});
+        parsegrind<Pres>(te("chunked,\r\n gzip\r\n"),      expect_flags{*this, 0});
+        parsegrind<Pres>(te("chunked,\r\n ,gzip\r\n"),     expect_flags{*this, 0});
+        parsegrind<Pres>(te("bigchunked\r\n"),             expect_flags{*this, 0});
+        parsegrind<Pres>(te("chunk\r\n ked\r\n"),          expect_flags{*this, 0});
+        parsegrind<Pres>(te("bar\r\n ley chunked\r\n"),    expect_flags{*this, 0});
+        parsegrind<Pres>(te("barley\r\n chunked\r\n"),     expect_flags{*this, 0});
 
-        parsegrind<P>(m("Transfer-EncodinX: none\r\n"), expect_flags{*this, 0});
-        parsegrind<P>(m("Transfer-Encodings: 2\r\n"),   expect_flags{*this, 0});
-        parsegrind<P>(m("Transfer-Encoded: false\r\n"), expect_flags{*this, 0});
+        parsegrind<Preq>(m("Transfer-EncodinX: none\r\n"), expect_flags{*this, 0});
+        parsegrind<Preq>(m("Transfer-Encodings: 2\r\n"),   expect_flags{*this, 0});
+        parsegrind<Preq>(m("Transfer-Encoded: false\r\n"), expect_flags{*this, 0});
 
-        failgrind<test_parser<false>>(
+        failgrind<Pres>(
             "HTTP/1.1 200 OK\r\n"
             "Content-Length: 1\r\n"
             "Transfer-Encoding: chunked\r\n"
             "\r\n",                                     error::bad_transfer_encoding);
 
+        // repeated Transfer-Encoding fields concatenate
+        parsegrind<Preq>(
+            "GET / HTTP/1.1\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n"
+            "0\r\n\r\n",
+            expect_flags{*this, parse_flag::chunked});
+
+        // a coding after chunked means chunked is not final
+        failgrind<Preq>(
+            "GET / HTTP/1.1\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "\r\n",
+            error::bad_transfer_encoding);
+
+        // chunked applied twice is invalid
+        failgrind<Preq>(
+            "GET / HTTP/1.1\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n",
+            error::bad_transfer_encoding);
+
+        // a request whose Transfer-Encoding does not end in chunked has an
+        // indeterminate body length and must be rejected (RFC 7230 3.3.3)
+        failgrind<Preq>(
+            "GET / HTTP/1.1\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "\r\n",                                     error::bad_transfer_encoding);
+        failgrind<Preq>(
+            "GET / HTTP/1.1\r\n"
+            "Transfer-Encoding: chunked, gzip\r\n"
+            "\r\n",                                     error::bad_transfer_encoding);
+        parsegrind<Pres>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "\r\n",                                     expect_flags{*this, 0});
+        parsegrind<Pres>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked, gzip\r\n"
+            "\r\n",                                     expect_flags{*this, 0});
+
         // chunked is an HTTP/1.1 transfer coding; reject a request that
         // resolves to chunked framing over HTTP/1.0
-        failgrind<test_parser<true>>(
+        failgrind<Preq>(
             "GET / HTTP/1.0\r\n"
             "Transfer-Encoding: chunked\r\n"
             "\r\n0\r\n\r\n",                            error::bad_transfer_encoding);
-        failgrind<test_parser<true>>(
+        failgrind<Preq>(
             "GET / HTTP/1.0\r\n"
             "Transfer-Encoding: gzip, chunked\r\n"
             "\r\n0\r\n\r\n",                            error::bad_transfer_encoding);
+        parsegrind<Pres>(
+            "HTTP/1.0 200 OK\r\n"
+            "Transfer-Encoding: chunked\r\n"
+            "\r\n0\r\n\r\n",                            expect_flags{*this, parse_flag::chunked});
+        parsegrind<Pres>(
+            "HTTP/1.0 200 OK\r\n"
+            "Transfer-Encoding: gzip, chunked\r\n"
+            "\r\n0\r\n\r\n",                            expect_flags{*this, parse_flag::chunked});
 
         // a message must not carry both Transfer-Encoding and Content-Length,
         // regardless of the transfer coding or the order the fields arrive in
-        failgrind<test_parser<true>>(
+        failgrind<Preq>(
             "POST / HTTP/1.1\r\n"
             "Content-Length: 5\r\n"
             "Transfer-Encoding: gzip\r\n"
             "\r\n",                                     error::bad_transfer_encoding);
-        failgrind<test_parser<true>>(
+        failgrind<Preq>(
             "POST / HTTP/1.1\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "Content-Length: 5\r\n"
+            "\r\n",                                     error::bad_content_length);
+        failgrind<Pres>(
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Length: 5\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "\r\n",                                     error::bad_transfer_encoding);
+        failgrind<Pres>(
+            "HTTP/1.1 200 OK\r\n"
             "Transfer-Encoding: gzip\r\n"
             "Content-Length: 5\r\n"
             "\r\n",                                     error::bad_content_length);
@@ -1048,6 +1111,21 @@ public:
 
         parsegrind<test_parser<false>>(
             "HTTP/1.0 200 OK\r\n"
+            "\r\n"
+            "hello",
+            expect_body(*this, "hello"));
+
+        // a response whose Transfer-Encoding does not end in chunked is
+        // delimited by eof (RFC 7230 3.3.3)
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: gzip\r\n"
+            "\r\n"
+            "hello",
+            expect_body(*this, "hello"));
+        parsegrind<test_parser<false>>(
+            "HTTP/1.1 200 OK\r\n"
+            "Transfer-Encoding: chunked, gzip\r\n"
             "\r\n"
             "hello",
             expect_body(*this, "hello"));
