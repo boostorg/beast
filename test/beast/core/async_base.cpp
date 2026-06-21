@@ -644,10 +644,12 @@ public:
         {
             struct throwing_data
             {
+                volatile bool always = true;
+
                 throwing_data()
                 {
-                    BOOST_THROW_EXCEPTION(
-                        std::exception{});
+                    if(always)
+                        BOOST_THROW_EXCEPTION(std::exception{});
                 }
             };
             stable_async_base<
