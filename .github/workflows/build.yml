@@ -8,6 +8,7 @@ concurrency:
 
 env:
   UBSAN_OPTIONS: print_stacktrace=1
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
   runner-selection:
