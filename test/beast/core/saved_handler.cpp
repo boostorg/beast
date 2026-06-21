@@ -9,11 +9,6 @@
 
 #include <boost/config.hpp>
 
-#ifdef BOOST_MSVC
-#pragma warning(push)
-#pragma warning(disable: 4702) // unreachable code
-#endif
-
 // Test that header file is self-contained.
 #include <boost/beast/core/saved_handler.hpp>
 #include <boost/asio/bind_cancellation_slot.hpp>
@@ -88,11 +83,14 @@ public:
 
     struct throwing_handler
     {
+        volatile bool always = true;
+
         throwing_handler() = default;
 
         throwing_handler(throwing_handler&&)
         {
-            BOOST_THROW_EXCEPTION(std::exception{});
+            if(always)
+                BOOST_THROW_EXCEPTION(std::exception{});
         }
 
         void
@@ -291,7 +289,3 @@ BEAST_DEFINE_TESTSUITE(beast,core,saved_handler);
 
 } // beast
 } // boost
-
-#ifdef BOOST_MSVC
-#pragma warning(pop)
-#endif
