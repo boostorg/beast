@@ -800,6 +800,16 @@ semi:
                     ec = error::need_more;
                     return;
                 }
+                if(! detail::is_qpchar(*it))
+                {
+                    ec = error::bad_chunk_extension;
+                    return;
+                }
+            }
+            else if(! detail::is_qdchar(*it))
+            {
+                ec = error::bad_chunk_extension;
+                return;
             }
         }
         ++it;
