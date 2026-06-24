@@ -1679,6 +1679,40 @@ public:
     }
 
     void
+    testChunkExtensions()
+    {
+        // a quoted chunk-ext value is a quoted-string and may only hold
+        // qdtext or a valid quoted-pair, see rfc7230 section 4.1.1
+        auto const ce =
+            [&](string_view chunk, error_code expected)
+            {
+                string_view const hdr =
+                    "POST / HTTP/1.1\r\n"
+                    "Transfer-Encoding: chunked\r\n"
+                    "\r\n";
+                test_parser<true> p;
+                p.eager(true);
+                error_code ec;
+                p.put(net::buffer(hdr.data(), hdr.size()), ec);
+                BEAST_EXPECT(p.is_header_done());
+                p.put(net::buffer(chunk.data(), chunk.size()), ec);
+                BEAST_EXPECTS(ec == expected, ec.message());
+            };
+        // valid
+        ce("1;a=\"xy\"\r\nX\r\n0\r\n\r\n", {});
+        ce("1;a=\"\\\"\"\r\nX\r\n0\r\n\r\n", {});
+        // a bare LF inside the quotes is not qdtext
+        ce("1;a=\"\n\"\r\nX\r\n0\r\n\r\n",
+            error::bad_chunk_extension);
+        // a control character inside the quotes is not qdtext
+        ce("1;a=\"\x01\"\r\nX\r\n0\r\n\r\n",
+            error::bad_chunk_extension);
+        // a quoted-pair must escape a qpchar, not a control character
+        ce("1;a=\"\\\n\"\r\nX\r\n0\r\n\r\n",
+            error::bad_chunk_extension);
+    }
+
+    void
     testUnlimitedBody()
     {
         const char data[] =
@@ -1740,6 +1774,7 @@ public:
         testIssue1267();
         testChunkedOverflow();
         testChunkedBodySize();
+        testChunkExtensions();
         testUnlimitedBody();
         testIssue2201();
     }
