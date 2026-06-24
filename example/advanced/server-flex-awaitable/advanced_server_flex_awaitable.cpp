@@ -231,6 +231,13 @@ public:
 
         @param completion_token The completion token that will be adapted.
 
+        @note @p completion_token must have an associated executor that matches
+        the one the child task runs on (e.g. via @c net::bind_executor). This is
+        because @c emit() can run on a different thread than the task, and
+        @c co_spawn dispatches the cancellation to the handler's associated
+        executor; without one, the signal is emitted inline on the calling
+        thread, racing with the task.
+
         @par Thread Safety
         @e Distinct @e objects: Safe.@n
         @e Shared @e objects: Safe.
@@ -532,23 +539,25 @@ listen(
             throw boost::system::system_error{ ec };
 
         net::co_spawn(
-            std::move(socket_executor),
+            socket_executor,
             detect_session(stream_type{ std::move(socket) }, ctx, doc_root),
-            task_group.adapt(
-                [](std::exception_ptr e)
-                {
-                    if(e)
+            net::bind_executor(
+                socket_executor,
+                task_group.adapt(
+                    [](std::exception_ptr e)
                     {
-                        try
+                        if(e)
                         {
-                            std::rethrow_exception(e);
+                            try
+                            {
+                                std::rethrow_exception(e);
+                            }
+                            catch(std::exception& e)
+                            {
+                                std::cerr << "Error in session: " << e.what() << "\n";
+                            }
                         }
-                        catch(std::exception& e)
-                        {
-                            std::cerr << "Error in session: " << e.what() << "\n";
-                        }
-                    }
-                }));
+                    })));
     }
 }
 
@@ -616,24 +625,27 @@ main(int argc, char* argv[])
     task_group task_group{ ioc.get_executor() };
 
     // Create and launch a listening coroutine
+    auto listener_executor = net::make_strand(ioc);
     net::co_spawn(
-        net::make_strand(ioc),
+        listener_executor,
         listen(task_group, ctx, endpoint, doc_root),
-        task_group.adapt(
-            [](std::exception_ptr e)
-            {
-                if(e)
+        net::bind_executor(
+            listener_executor,
+            task_group.adapt(
+                [](std::exception_ptr e)
                 {
-                    try
+                    if(e)
                     {
-                        std::rethrow_exception(e);
+                        try
+                        {
+                            std::rethrow_exception(e);
+                        }
+                        catch(std::exception& e)
+                        {
+                            std::cerr << "Error in listener: " << e.what() << "\n";
+                        }
                     }
-                    catch(std::exception& e)
-                    {
-                        std::cerr << "Error in listener: " << e.what() << "\n";
-                    }
-                }
-            }));
+                })));
 
     // Create and launch a signal handler coroutine
     net::co_spawn(
