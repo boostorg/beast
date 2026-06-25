@@ -300,6 +300,7 @@ read(void* buffer, std::size_t n, error_code& ec) const
         ec.assign(errno, generic_category());
         return 0;
     }
+    ec = {};
     return nread;
 }
 
@@ -318,6 +319,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
         ec.assign(errno, generic_category());
         return 0;
     }
+    ec = {};
     return nwritten;
 }
 

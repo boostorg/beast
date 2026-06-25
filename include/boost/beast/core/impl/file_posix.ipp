@@ -288,12 +288,13 @@ read(void* buffer, std::size_t n, error_code& ec) const
         if(result == 0)
         {
             // short read
-            return nread;
+            break;
         }
         n -= result;
         nread += result;
         buffer = static_cast<char*>(buffer) + result;
     }
+    ec = {};
     return nread;
 }
 
@@ -328,6 +329,7 @@ write(void const* buffer, std::size_t n, error_code& ec)
         nwritten += result;
         buffer = static_cast<char const*>(buffer) + result;
     }
+    ec = {};
     return nwritten;
 }
 
