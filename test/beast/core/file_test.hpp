@@ -444,6 +444,87 @@ test_file()
         remove(path);
     }
 
+    // https://github.com/boostorg/beast/issues/3035
+    //
+    // A successful operation must clear `ec`.
+    {
+        string_view const s = "Hello, world!";
+
+        // write
+        {
+            File f;
+            {
+                error_code ec = error::timeout;
+                f.open(path, file_mode::write, ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            }
+            {
+                error_code ec = error::timeout;
+                f.write(s.data(), s.size(), ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            }
+            {
+                error_code ec = error::timeout;
+                f.write(s.data(), 0, ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            }
+            {
+                error_code ec = error::timeout;
+                auto n = f.size(ec);
+                BEAST_EXPECTS(! ec, ec.message());
+                BEAST_EXPECT(n == s.size());
+            }
+            {
+                error_code ec = error::timeout;
+                f.pos(ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            }
+            {
+                error_code ec = error::timeout;
+                f.seek(0, ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            }
+            {
+                error_code ec = error::timeout;
+                f.close(ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            }
+        }
+
+        // read
+        {
+            File f;
+            {
+                error_code ec = error::timeout;
+                f.open(path, file_mode::read, ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            }
+            {
+                std::string buf;
+                buf.resize(s.size());
+                error_code ec = error::timeout;
+                auto n = f.read(&buf[0], buf.size(), ec);
+                BEAST_EXPECTS(! ec, ec.message());
+                BEAST_EXPECT(n == s.size());
+                BEAST_EXPECT(buf == s);
+            }
+            {
+                char c;
+                error_code ec = error::timeout;
+                f.read(&c, 0, ec);
+                BEAST_EXPECTS(! ec, ec.message());
+            }
+            {
+                char c;
+                error_code ec = error::timeout;
+                auto n = f.read(&c, 1, ec);
+                BEAST_EXPECTS(! ec, ec.message());
+                BEAST_EXPECT(n == 0);
+            }
+        }
+        remove(path);
+    }
+
     BEAST_EXPECT(! fs::exists(path));
 }
 

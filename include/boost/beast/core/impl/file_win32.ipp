@@ -317,7 +317,10 @@ read(void* buffer, std::size_t n, error_code& ec)
             return nread;
         }
         if(bytesRead == 0)
+        {
+            ec = {};
             return nread;
+        }
         n -= bytesRead;
         nread += bytesRead;
         buffer = static_cast<char*>(buffer) + bytesRead;
@@ -357,7 +360,10 @@ write(void const* buffer, std::size_t n, error_code& ec)
             return nwritten;
         }
         if(bytesWritten == 0)
+        {
+            ec = {};
             return nwritten;
+        }
         n -= bytesWritten;
         nwritten += bytesWritten;
         buffer = static_cast<char const*>(buffer) + bytesWritten;
