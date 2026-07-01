@@ -672,6 +672,32 @@ public:
             BEAST_EXPECT(res.count(field::content_length) == 0);
             BEAST_EXPECT(res[field::transfer_encoding] == "chunked");
         }
+
+        // a body is not allowed on 1xx, 204 or 304
+        {
+            for(auto code : {
+                status::continue_,          // 100
+                status::switching_protocols,// 101
+                status::processing,         // 102
+                status::early_hints,        // 103
+                status::no_content,         // 204
+                status::not_modified})      // 304
+            {
+                response<sized_body> res;
+                res.version(11);
+                res.result(code);
+                res.body() = 1;
+                BEAST_THROWS(res.prepare_payload(), std::invalid_argument);
+            }
+
+            // an ordinary 2xx response with a body is unaffected
+            response<sized_body> res;
+            res.version(11);
+            res.result(status::ok);
+            res.body() = 1;
+            res.prepare_payload();
+            BEAST_EXPECT(res[field::content_length] == "1");
+        }
     }
 
     void

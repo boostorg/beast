@@ -390,7 +390,7 @@ prepare_payload(std::false_type)
 {
     auto const n = payload_size();
     if( (! n || *n > 0) && (
-        (status_class(this->result()) == status_class::informational ||
+        (to_status_class(this->result()) == status_class::informational ||
         this->result() == status::no_content ||
         this->result() == status::not_modified)))
     {
