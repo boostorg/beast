@@ -981,6 +981,20 @@ try_create_new_element(
         BOOST_BEAST_ASSIGN_EC(ec, error::header_field_value_too_large);
         return nullptr;
     }
+    // A CR or LF in the name or value is written verbatim into the
+    // serialized header block, which is terminated by CRLF; either one
+    // splits the field and injects additional header lines (rfc7230
+    // 3.2 forbids them in field-name and field-value).
+    if(sname.find_first_of("\r\n") != string_view::npos)
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_field);
+        return nullptr;
+    }
+    if(value.find_first_of("\r\n") != string_view::npos)
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::bad_value);
+        return nullptr;
+    }
     value = detail::trim(value);
     std::uint16_t const off =
         static_cast<off_t>(sname.size() + 2);
