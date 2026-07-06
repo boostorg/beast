@@ -8,7 +8,7 @@
 # As the yaml syntax for Drone CI is rather limited.
 #
 #
-globalenv={'B2_CI_VERSION': '1', 'B2_VARIANT': 'release'}
+globalenv={'B2_CI_VERSION': '1', 'ADD_UBUNTU_TOOLCHAIN_PPA': 'true', 'B2_VARIANT': 'release'}
 
 def main(ctx):
 
