@@ -83,6 +83,9 @@ public:
     using value_type = buffers_type<BufferSequence>;
 #endif
 
+    /// The type of the underlying buffer sequence
+    using sequence_type = BufferSequence;
+
 #if BOOST_BEAST_DOXYGEN
     /// A bidirectional iterator type that may be used to read elements.
     using const_iterator = __implementation_defined__;
@@ -136,6 +139,12 @@ public:
     */
     void
     consume(std::size_t amount);
+
+    /// Get the underlying BufferSequence
+    const sequence_type & buffer_sequence() const {return bs_;}
+
+    /// Get the amount of data to skipped at the beginning of the sequence.
+    std::size_t skip() const {return skip_;}
 };
 
 } // beast

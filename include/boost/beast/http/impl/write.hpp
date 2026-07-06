@@ -127,9 +127,10 @@ public:
         error_code ec,
         std::size_t bytes_transferred)
     {
+        std::size_t bytes_consumed = 0u;
         if(! ec)
-            sr_.consume(bytes_transferred);
-        this->complete_now(ec, bytes_transferred);
+            bytes_consumed = sr_.consume(bytes_transferred);
+        this->complete_now(ec, bytes_consumed);
     }
 };
 
@@ -514,15 +515,16 @@ write_some_impl(
     serializer<isRequest, Body, Fields>& sr,
     error_code& ec)
 {
+    std::size_t consumed = 0u;
     if(! sr.is_done())
     {
         write_some_lambda<SyncWriteStream> f{stream};
         sr.next(ec, f);
         if(ec)
-            return f.bytes_transferred;
+            return consumed;
         if(f.invoked)
-            sr.consume(f.bytes_transferred);
-        return f.bytes_transferred;
+            consumed = sr.consume(f.bytes_transferred);
+        return consumed;
     }
     ec = {};
     return 0;

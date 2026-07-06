@@ -63,6 +63,13 @@ public:
     /// Returns an iterator to one past the last buffer in the sequence
     const_iterator
     end() const;
+
+    /// Get an element in the buffer sequence tuple.
+    template<std::size_t I>
+    const detail::tuple_element<I, detail::tuple<Buffers...>> & get() const
+    {
+      return detail::get<I>(bn_);
+    }
 };
 
 /** Concatenate 1 or more buffer sequences.
