@@ -775,6 +775,17 @@ keep_alive_impl(
     beast::detail::temporary_buffer& s, string_view value,
     unsigned version, bool keep_alive);
 
+// Two single-octet finds lower to memchr, which is
+// considerably faster than find_first_of("\r\n").
+inline
+bool
+contains_crlf(string_view s)
+{
+    return
+        s.find('\r') != string_view::npos ||
+        s.find('\n') != string_view::npos;
+}
+
 } // detail
 
 //------------------------------------------------------------------------------
@@ -862,6 +873,11 @@ void
 basic_fields<Allocator>::
 set_method_impl(string_view s)
 {
+    // A CR or LF here splits the serialized start
+    // line, just as it does in a field (rfc7230 3.1.1).
+    if(detail::contains_crlf(s))
+        BOOST_THROW_EXCEPTION(
+            system_error{error::bad_method});
     realloc_string(method_, s);
 }
 
@@ -871,6 +887,9 @@ void
 basic_fields<Allocator>::
 set_target_impl(string_view s)
 {
+    if(detail::contains_crlf(s))
+        BOOST_THROW_EXCEPTION(
+            system_error{error::bad_target});
     realloc_target(
         target_or_reason_, s);
 }
@@ -881,6 +900,9 @@ void
 basic_fields<Allocator>::
 set_reason_impl(string_view s)
 {
+    if(detail::contains_crlf(s))
+        BOOST_THROW_EXCEPTION(
+            system_error{error::bad_reason});
     realloc_string(
         target_or_reason_, s);
 }
@@ -985,12 +1007,12 @@ try_create_new_element(
     // serialized header block, which is terminated by CRLF; either one
     // splits the field and injects additional header lines (rfc7230
     // 3.2 forbids them in field-name and field-value).
-    if(sname.find_first_of("\r\n") != string_view::npos)
+    if(detail::contains_crlf(sname))
     {
         BOOST_BEAST_ASSIGN_EC(ec, error::bad_field);
         return nullptr;
     }
-    if(value.find_first_of("\r\n") != string_view::npos)
+    if(detail::contains_crlf(value))
     {
         BOOST_BEAST_ASSIGN_EC(ec, error::bad_value);
         return nullptr;
