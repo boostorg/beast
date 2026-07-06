@@ -17,4 +17,5 @@ build-project sync ;
 build-project async-ssl ;
 build-project async-ssl-system-executor ;
 build-project coro-ssl ;
+build-project crypto-ai-ssl ;
 build-project sync-ssl ;

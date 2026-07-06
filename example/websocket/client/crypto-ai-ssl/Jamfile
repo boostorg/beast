@@ -1,0 +1,25 @@
+#
+# Copyright (c) 2015 Mungo Gill
+#
+# Distributed under the Boost Software License, Version 1.0. (See accompanying
+# file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+#
+# Official repository: https://github.com/boostorg/beast
+#
+
+import ac ;
+
+project
+    : requirements
+        [ ac.check-library /boost/beast/test//lib-asio-ssl : <library>/boost/beast/test//lib-asio-ssl/<link>static : <build>no ]
+    ;
+
+exe websocket-client-crypto-ai-ssl :
+    ai_querier.cpp
+    historic_price_fetcher.cpp
+    live_price_listener.cpp
+    websocket_client_crypto_ai_ssl.cpp
+    :
+    <variant>coverage:<build>no
+    <variant>ubasan:<build>no
+    ;
