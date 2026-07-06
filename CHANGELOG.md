@@ -1,3 +1,20 @@
+Version 361:
+
+* `websocket::stream` accepts close code 1014 (bad gateway)
+* `http::basic_parser` ignores connection and framing fields in trailers
+* `http::parser` drops framing and connection-control fields carried in trailers
+* `http::basic_parser` rejects chunked transfer-encoding in HTTP/1.0 requests
+* `http::basic_parser` rejects `Content-Length` with `Transfer-Encoding` regardless of field order
+* `http::basic_parser` rejects requests with a `Transfer-Encoding` that does not end in chunked
+* `http::basic_parser` validates quoted-strings in chunk extensions
+* `http::message::prepare_payload` rejects 1xx responses with a body
+* `websocket::stream` rejects 64-bit frame lengths with the high bit set
+* File operations clear the `error_code` on success
+* The `server-flex-awaitable` example dispatches cancellation to the task's strand
+* Removed dependency on Boost.Functional
+
+--------------------------------------------------------------------------------
+
 Version 360:
 
 * Enforced 8KB sanity limit on chunk headers

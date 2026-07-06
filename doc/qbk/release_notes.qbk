@@ -11,6 +11,32 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.92]
+
+[*API Changes]
+
+* [issue 3099] `websocket::stream` accepts close code 1014 (bad gateway).
+  ['Actions Required]:
+  * If your code references `websocket::close_code::reserved2`, use
+    `websocket::close_code::bad_gateway` instead.
+
+[*Fixes]
+
+* [issue 3094] `http::basic_parser` ignores connection and framing fields in trailers
+* [issue 3094] `http::parser` drops framing and connection-control fields carried in trailers
+* [issue 3096] `http::basic_parser` rejects chunked transfer-encoding in HTTP/1.0 requests
+* [issue 3098] `http::basic_parser` rejects `Content-Length` with `Transfer-Encoding` regardless of field order
+* [issue 3100] `http::basic_parser` rejects requests with a `Transfer-Encoding` that does not end in chunked
+* [issue 3102] `http::basic_parser` validates quoted-strings in chunk extensions
+* [issue 3104] `http::message::prepare_payload` rejects 1xx responses with a body
+* [issue 3095] `websocket::stream` rejects 64-bit frame lengths with the high bit set
+* [issue 3035] File operations clear the `error_code` on success
+* [issue 3101] The `server-flex-awaitable` example dispatches cancellation to the task's strand
+
+[*Improvements]
+
+* [issue 3094] Removed dependency on Boost.Functional
+
 [heading Boost 1.91]
 
 [*Fixes]
