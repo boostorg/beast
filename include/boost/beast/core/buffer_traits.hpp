@@ -106,7 +106,7 @@ using buffers_type = typename std::conditional<
     This metafunction is used to determine the type of iterator
     used by a particular buffer sequence.
 
-    @tparam T The buffer sequence type to use. The resulting
+    @tparam BufferSequence The buffer sequence type to use. The resulting
     type alias will be equal to the iterator type used by
     the buffer sequence.
 */
