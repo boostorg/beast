@@ -171,6 +171,12 @@ public:
         ce("a;i=1;j=2;k=3");
         ce("a;i=1;j=2;k=3,b;i=4;j=5;k=6");
 
+        // a trailing ext without params must not
+        // inherit the params of the ext before it
+        ce("a;i=1,b");
+        ce("a;i=1,b;j=2,c");
+        cs("a;i=1, b", "a;i=1,b");
+
         cq("ab;x=\" \"", "ab;x= ");
         cq("ab;x=\"\\\"\"", "ab;x=\"");
 

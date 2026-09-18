@@ -76,6 +76,7 @@ increment()
         };
     auto need_comma = it_ != first_;
     v_.first = {};
+    v_.second = {};
     first_ = it_;
     for(;;)
     {
