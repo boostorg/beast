@@ -680,6 +680,8 @@ protected:
     block_state
     deflate_rle(z_params& zs, Flush flush)
     {
+        if(level_ == 0)
+            return f_stored(zs, flush);
         return f_rle(zs, flush);
     }
 
