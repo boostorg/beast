@@ -210,13 +210,34 @@ struct impl_base<true>
 
     void
     on_response_pmd(
-        http::response<http::string_body> const& res)
+        http::response<http::string_body> const& res,
+        error_code& ec)
     {
         detail::pmd_offer offer;
         detail::pmd_read(offer, res);
-        // VFALCO see if offer satisfies pmd_config_,
-        //        return an error if not.
-        pmd_config_ = offer; // overwrite for now
+
+        // rfc7692 7.1.2.1/7.1.2.2: the server must not use a sliding window
+        // larger than the client offered. Accepting a larger window would make
+        // this endpoint allocate a bigger LZ77 window than the application
+        // permitted through permessage_deflate, so fail the handshake instead.
+        if(offer.accept && pmd_opts_.client_enable)
+        {
+            bool const server_bits_exceeded =
+                offer.server_max_window_bits != 0 &&
+                offer.server_max_window_bits >
+                    pmd_opts_.server_max_window_bits;
+            bool const client_bits_exceeded =
+                offer.client_max_window_bits > 0 &&
+                offer.client_max_window_bits >
+                    pmd_opts_.client_max_window_bits;
+            if(server_bits_exceeded || client_bits_exceeded)
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
+                return;
+            }
+        }
+
+        pmd_config_ = offer;
     }
 
     template<class Allocator>
@@ -434,7 +455,8 @@ struct impl_base<false>
 
     void
     on_response_pmd(
-        http::response<http::string_body> const&)
+        http::response<http::string_body> const&,
+        error_code&)
     {
     }
 

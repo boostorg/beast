@@ -395,6 +395,76 @@ public:
         reject("permessage-deflate; unknown=\"xy\"");
     }
 
+    // The client must not accept a permessage-deflate response that selects a
+    // sliding window larger than the client offered (rfc7692 7.1.2.1/7.1.2.2).
+    void
+    testExtResponseWindow()
+    {
+        // Drive a client handshake against a hand-crafted server response
+        // carrying `ext`, and return the resulting error_code.
+        auto const handshake_with =
+        [&](int server_max_window_bits,
+            int client_max_window_bits,
+            string_view ext) -> error_code
+        {
+            net::io_context ioc;
+            stream<test::stream> ws{ioc};
+            test::stream srv{ioc};
+            test::connect(ws.next_layer(), srv);
+
+            permessage_deflate pd;
+            pd.client_enable = true;
+            pd.server_max_window_bits = server_max_window_bits;
+            pd.client_max_window_bits = client_max_window_bits;
+            ws.set_option(pd);
+
+            error_code result;
+            ws.async_handshake("localhost", "/",
+                [&](error_code ec){ result = ec; });
+
+            flat_buffer buf;
+            http::request<http::empty_body> req;
+            std::string resp;
+            http::async_read(srv, buf, req,
+                [&](error_code ec, std::size_t)
+                {
+                    BEAST_EXPECTS(! ec, ec.message());
+                    detail::sec_ws_accept_type acc;
+                    detail::make_sec_ws_accept(acc,
+                        req[http::field::sec_websocket_key]);
+                    resp =
+                        "HTTP/1.1 101 Switching Protocols\r\n"
+                        "Upgrade: websocket\r\n"
+                        "Connection: upgrade\r\n"
+                        "Sec-WebSocket-Accept: " +
+                            std::string(to_string_view(acc)) + "\r\n"
+                        "Sec-WebSocket-Extensions: " +
+                            std::string(ext) + "\r\n"
+                        "\r\n";
+                    net::async_write(srv, net::buffer(resp),
+                        [](error_code, std::size_t){});
+                });
+
+            ioc.run();
+            return result;
+        };
+
+        // server selects a larger server window than offered -> reject
+        BEAST_EXPECT(handshake_with(10, 15,
+            "permessage-deflate; server_max_window_bits=15") ==
+                error::bad_sec_extensions);
+
+        // server selects a larger client window than offered -> reject
+        BEAST_EXPECT(handshake_with(15, 10,
+            "permessage-deflate; client_max_window_bits=15") ==
+                error::bad_sec_extensions);
+
+        // server selects windows within the offer -> accept
+        BEAST_EXPECT(! handshake_with(10, 10,
+            "permessage-deflate; server_max_window_bits=10;"
+            " client_max_window_bits=10"));
+    }
+
     void
     testExtWrite()
     {
@@ -875,6 +945,7 @@ public:
     {
         testHandshake();
         testExtRead();
+        testExtResponseWindow();
         testExtWrite();
         testExtNegotiate();
         testMoveOnly();
