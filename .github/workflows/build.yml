@@ -8,7 +8,6 @@ concurrency:
 
 env:
   UBSAN_OPTIONS: print_stacktrace=1
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
   runner-selection:
@@ -223,8 +222,8 @@ jobs:
     container:
       image: ${{ matrix.container }}
       volumes:
-        - /node20217:/node20217:rw,rshared
-        - ${{ startsWith(matrix.container, 'ubuntu:1') && '/node20217:/__e/node20:ro,rshared' || ' ' }}
+        - /node24217:/node24217:rw,rshared
+        - ${{ startsWith(matrix.container, 'ubuntu:1') && '/node24217:/__e/node24:ro,rshared' || ' ' }}
   
     steps:
       - name: Setup container environment
@@ -233,11 +232,11 @@ jobs:
           apt-get update
           apt-get -y install sudo python3 git g++ curl xz-utils
 
-      - name: Install nodejs20glibc2.17
+      - name: Install nodejs24glibc2.17
         if: ${{ startsWith( matrix.container, 'ubuntu:1' ) }}
         run: |
-          curl -LO https://archives.boost.io/misc/node/node-v20.9.0-linux-x64-glibc-217.tar.xz
-          tar -xf node-v20.9.0-linux-x64-glibc-217.tar.xz --strip-components 1 -C /node20217
+          curl -LO https://unofficial-builds.nodejs.org/download/release/v24.21.0/node-v24.21.0-linux-x64-glibc-217.tar.xz
+          tar -xf node-v24.21.0-linux-x64-glibc-217.tar.xz --strip-components 1 -C /node24217
 
       - uses: actions/checkout@v4
 
