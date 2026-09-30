@@ -151,17 +151,17 @@ lib lib-test
     ;
 
 lib lib-zlib :
-    extern/zlib-1.3.1/adler32.c
-    extern/zlib-1.3.1/compress.c
-    extern/zlib-1.3.1/crc32.c
-    extern/zlib-1.3.1/deflate.c
-    extern/zlib-1.3.1/infback.c
-    extern/zlib-1.3.1/inffast.c
-    extern/zlib-1.3.1/inflate.c
-    extern/zlib-1.3.1/inftrees.c
-    extern/zlib-1.3.1/trees.c
-    extern/zlib-1.3.1/uncompr.c
-    extern/zlib-1.3.1/zutil.c
+    extern/zlib-1.3.2/adler32.c
+    extern/zlib-1.3.2/compress.c
+    extern/zlib-1.3.2/crc32.c
+    extern/zlib-1.3.2/deflate.c
+    extern/zlib-1.3.2/infback.c
+    extern/zlib-1.3.2/inffast.c
+    extern/zlib-1.3.2/inflate.c
+    extern/zlib-1.3.2/inftrees.c
+    extern/zlib-1.3.2/trees.c
+    extern/zlib-1.3.2/uncompr.c
+    extern/zlib-1.3.2/zutil.c
     : requirements
     <warnings>off
     <link>static
