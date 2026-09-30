@@ -17,7 +17,7 @@
 #include <numeric>
 #include <random>
 
-#include "zlib-1.3.1/zlib.h"
+#include "zlib-1.3.2/zlib.h"
 
 #include "fixtures/CVE_2018_25032/default.hpp"
 #include "fixtures/CVE_2018_25032/fixed.hpp"
