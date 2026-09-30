@@ -1,3 +1,10 @@
+Version 362:
+
+* `http::ext_list` does not carry parameters from the previous extension into one that has none
+* Fixed the `@tparam` name in the `buffers_iterator_type` documentation
+
+--------------------------------------------------------------------------------
+
 Version 361:
 
 * `websocket::stream` accepts close code 1014 (bad gateway)
