@@ -8,7 +8,7 @@
 //
 // This is a derivative work based on Zlib, copyright below:
 /*
-    Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -214,29 +214,29 @@ private:
     window w_;
 
     // for string and stored block copying
-    unsigned length_;               // literal or length of data to copy
-    unsigned offset_;               // distance back to copy string from
+    unsigned length_ = 0;           // literal or length of data to copy
+    unsigned offset_ = 0;           // distance back to copy string from
 
     // for table and code decoding
-    unsigned extra_;                // extra bits needed
+    unsigned extra_ = 0;            // extra bits needed
 
     // dynamic table building
-    unsigned ncode_;                // number of code length code lengths
-    unsigned nlen_;                 // number of length code lengths
-    unsigned ndist_;                // number of distance code lengths
-    unsigned have_;                 // number of code lengths in lens[]
-    unsigned short lens_[320];      // temporary storage for code lengths
-    unsigned short work_[288];      // work area for code table building
-    code codes_[kEnough];           // space for code tables
+    unsigned ncode_ = 0;            // number of code length code lengths
+    unsigned nlen_ = 0;             // number of length code lengths
+    unsigned ndist_ = 0;            // number of distance code lengths
+    unsigned have_ = 0;             // number of code lengths in lens[]
+    unsigned short lens_[320] = {}; // temporary storage for code lengths
+    unsigned short work_[288] = {}; // work area for code table building
+    code codes_[kEnough] = {};      // space for code tables
     code *next_ = codes_;           // next available space in codes[]
     int back_ = -1;                 // bits back of last unprocessed length/lit
-    unsigned was_;                  // initial length of match
+    unsigned was_ = 0;              // initial length of match
 
     // fixed and dynamic code tables
-    code const* lencode_ = codes_   ; // starting table for length/literal codes
+    code const* lencode_ = codes_;  // starting table for length/literal codes
     code const* distcode_ = codes_; // starting table for distance codes
-    unsigned lenbits_;              // index bits for lencode
-    unsigned distbits_;             // index bits for distcode
+    unsigned lenbits_ = 0;          // index bits for lencode
+    unsigned distbits_ = 0;         // index bits for distcode
 };
 
 } // detail

@@ -3,6 +3,14 @@ Version 362:
 * `http::ext_list` does not carry parameters from the previous extension into one that has none
 * `detail::base64::decoded_size` accounts for unpadded input
 * Fixed the `@tparam` name in the `buffers_iterator_type` documentation
+* `zlib::deflate_stream` produces the same output as zlib 1.3.2
+* `zlib::deflate_stream::reset` rejects `windowBits` 8, as zlib does for raw deflate
+* `zlib::deflate_stream::write` returns `error::stream_error` for a null input pointer instead of throwing
+* `zlib::deflate_stream` uses `memLevel` 8 by default, as documented
+* `zlib::deflate_stream::upper_bound` and `zlib::deflate_upper_bound` return the zlib 1.3.2 bounds
+* `zlib::inflate_stream` decodes a stream whose last code ends in its last byte without further input
+* `zlib::inflate_stream::write` returns `error::stream_error` for null buffer pointers
+* Updated the reference zlib used by the tests to 1.3.2
 
 --------------------------------------------------------------------------------
 

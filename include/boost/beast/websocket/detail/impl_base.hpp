@@ -24,6 +24,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/asio/buffer.hpp>
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
@@ -285,13 +286,20 @@ struct impl_base<true>
         {
             detail::pmd_normalize(pmd_config_);
             pmd_.reset(::new pmd_type);
+            /*  permessage-deflate allows a window of 8 bits (256 bytes),
+                which deflate does not support; zlib rejects it for raw
+                streams. Compress with a 9-bit window instead. This is
+                safe for the peer, because match distances never exceed
+                the window size minus 262, so a 256-byte inflate window
+                is never exceeded. The inflater keeps the negotiated size.
+            */
             if(role == role_type::client)
             {
                 pmd_->zi.reset(
                     pmd_config_.server_max_window_bits);
                 pmd_->zo.reset(
                     pmd_opts_.compLevel,
-                    pmd_config_.client_max_window_bits,
+                    (std::max)(pmd_config_.client_max_window_bits, 9),
                     pmd_opts_.memLevel,
                     zlib::Strategy::normal);
             }
@@ -301,7 +309,7 @@ struct impl_base<true>
                     pmd_config_.client_max_window_bits);
                 pmd_->zo.reset(
                     pmd_opts_.compLevel,
-                    pmd_config_.server_max_window_bits,
+                    (std::max)(pmd_config_.server_max_window_bits, 9),
                     pmd_opts_.memLevel,
                     zlib::Strategy::normal);
             }

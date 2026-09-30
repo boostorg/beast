@@ -6,9 +6,10 @@
 //
 // Official repository: https://github.com/boostorg/beast
 //
-// This is a derivative work based on Zlib, copyright below:
+// This is a derivative work based on Zlib 1.3.2 (inflate.c, inffast.c,
+// inftrees.c), copyright below:
 /*
-    Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -75,6 +76,13 @@ void
 inflate_stream::
 doWrite(z_params& zs, Flush flush, error_code& ec)
 {
+    if(zs.next_out == nullptr ||
+        (zs.next_in == nullptr && zs.avail_in != 0))
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::stream_error);
+        return;
+    }
+
     ranges r;
     r.in.first = static_cast<
         std::uint8_t const*>(zs.next_in);
@@ -122,6 +130,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         {
             BOOST_BEAST_ASSIGN_EC(ec, e);
             mode_ = BAD;
+            done();
         };
 
     if(mode_ == TYPE)
@@ -250,7 +259,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 lens_[order[have_++]] = 0;
 
             next_ = &codes_[0];
-            lencode_ = next_;
+            lencode_ = distcode_ = next_;
             lenbits_ = 7;
             inflate_table(build::codes, &lens_[0],
                 order.size(), &next_, &lenbits_, work_, ec);
@@ -268,11 +277,16 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         {
             while(have_ < nlen_ + ndist_)
             {
-                std::uint16_t v;
-                if(! bi_.fill(lenbits_, r.in.next, r.in.last))
-                    return done();
-                bi_.peek(v, lenbits_);
-                auto cp = &lencode_[v];
+                code const* cp;
+                for(;;)
+                {
+                    cp = &lencode_[bi_.peek_fast() &
+                        ((1U << lenbits_) - 1)];
+                    if(cp->bits <= bi_.size())
+                        break;
+                    if(! bi_.fill(bi_.size() + 1, r.in.next, r.in.last))
+                        return done();
+                }
                 if(cp->val < 16)
                 {
                     bi_.drop(cp->bits);
@@ -336,7 +350,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             if(ec)
             {
                 mode_ = BAD;
-                return;
+                break;
             }
             distcode_ = next_;
             distbits_ = 6;
@@ -345,7 +359,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             if(ec)
             {
                 mode_ = BAD;
-                return;
+                break;
             }
             mode_ = LEN_;
             if(flush == Flush::trees)
@@ -365,33 +379,40 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 if(ec)
                 {
                     mode_ = BAD;
-                    return;
+                    break;
                 }
                 if(mode_ == TYPE)
                     back_ = -1;
                 break;
             }
-            if(! bi_.fill(lenbits_, r.in.next, r.in.last))
-                return done();
-            std::uint16_t v;
             back_ = 0;
-            bi_.peek(v, lenbits_);
-            auto cp = &lencode_[v];
+            code const* cp;
+            for(;;)
+            {
+                cp = &lencode_[bi_.peek_fast() &
+                    ((1U << lenbits_) - 1)];
+                if(cp->bits <= bi_.size())
+                    break;
+                if(! bi_.fill(bi_.size() + 1, r.in.next, r.in.last))
+                    return done();
+            }
             if(cp->op && (cp->op & 0xf0) == 0)
             {
-                auto prev = cp;
-                if(! bi_.fill(prev->bits + prev->op, r.in.next, r.in.last))
-                    return done();
-                bi_.peek(v, prev->bits + prev->op);
-                cp = &lencode_[prev->val + (v >> prev->bits)];
-                bi_.drop(prev->bits + cp->bits);
-                back_ += prev->bits + cp->bits;
+                auto const prev = cp;
+                for(;;)
+                {
+                    cp = &lencode_[prev->val + ((bi_.peek_fast() &
+                        ((1U << (prev->bits + prev->op)) - 1)) >> prev->bits)];
+                    if(static_cast<unsigned>(prev->bits + cp->bits) <= bi_.size())
+                        break;
+                    if(! bi_.fill(bi_.size() + 1, r.in.next, r.in.last))
+                        return done();
+                }
+                bi_.drop(prev->bits);
+                back_ += prev->bits;
             }
-            else
-            {
-                bi_.drop(cp->bits);
-                back_ += cp->bits;
-            }
+            bi_.drop(cp->bits);
+            back_ += cp->bits;
             length_ = cp->val;
             if(cp->op == 0)
             {
@@ -427,26 +448,33 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
 
         case DIST:
         {
-            if(! bi_.fill(distbits_, r.in.next, r.in.last))
-                return done();
-            std::uint16_t v;
-            bi_.peek(v, distbits_);
-            auto cp = &distcode_[v];
+            code const* cp;
+            for(;;)
+            {
+                cp = &distcode_[bi_.peek_fast() &
+                    ((1U << distbits_) - 1)];
+                if(cp->bits <= bi_.size())
+                    break;
+                if(! bi_.fill(bi_.size() + 1, r.in.next, r.in.last))
+                    return done();
+            }
             if((cp->op & 0xf0) == 0)
             {
-                auto prev = cp;
-                if(! bi_.fill(prev->bits + prev->op, r.in.next, r.in.last))
-                    return done();
-                bi_.peek(v, prev->bits + prev->op);
-                cp = &distcode_[prev->val + (v >> prev->bits)];
-                bi_.drop(prev->bits + cp->bits);
-                back_ += prev->bits + cp->bits;
+                auto const prev = cp;
+                for(;;)
+                {
+                    cp = &distcode_[prev->val + ((bi_.peek_fast() &
+                        ((1U << (prev->bits + prev->op)) - 1)) >> prev->bits)];
+                    if(static_cast<unsigned>(prev->bits + cp->bits) <= bi_.size())
+                        break;
+                    if(! bi_.fill(bi_.size() + 1, r.in.next, r.in.last))
+                        return done();
+                }
+                bi_.drop(prev->bits);
+                back_ += prev->bits;
             }
-            else
-            {
-                bi_.drop(cp->bits);
-                back_ += cp->bits;
-            }
+            bi_.drop(cp->bits);
+            back_ += cp->bits;
             if(cp->op & 64)
                 return err(error::invalid_distance_code);
             offset_ = cp->val;
@@ -588,7 +616,7 @@ inflate_table(
     // Length codes 257..285 extra
     static std::uint16_t constexpr lext[31] = {
         16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18,
-        19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 77, 202};
+        19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 199, 75};
 
     // Distance codes 0..29 base
     static std::uint16_t constexpr dbase[32] = {
