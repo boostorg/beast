@@ -34,7 +34,7 @@ public:
     std::string
     base64_encode(string_view s)
     {
-        return base64_encode (reinterpret_cast <
+        return base64_encode(reinterpret_cast <
             std::uint8_t const*> (s.data()), s.size());
     }
 
@@ -50,23 +50,23 @@ public:
     }
 
     void
-    check (std::string const& in, std::string const& out)
+    check(std::string const& in, std::string const& out)
     {
-        auto const encoded = base64_encode (in);
+        auto const encoded = base64_encode(in);
         BEAST_EXPECT(encoded == out);
-        BEAST_EXPECT(base64_decode (encoded) == in);
+        BEAST_EXPECT(base64_decode(encoded) == in);
     }
 
     void
-    run()
+    testRoundTrip()
     {
-        check ("",       "");
-        check ("f",      "Zg==");
-        check ("fo",     "Zm8=");
-        check ("foo",    "Zm9v");
-        check ("foob",   "Zm9vYg==");
-        check ("fooba",  "Zm9vYmE=");
-        check ("foobar", "Zm9vYmFy");
+        check("",       "");
+        check("f",      "Zg==");
+        check("fo",     "Zm8=");
+        check("foo",    "Zm9v");
+        check("foob",   "Zm9vYg==");
+        check("fooba",  "Zm9vYmE=");
+        check("foobar", "Zm9vYmFy");
 
         check(
             "Man is distinguished, not only by his reason, but by this singular passion from "
@@ -80,6 +80,42 @@ public:
             "dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo"
             "ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
             );
+    }
+
+    void
+    testSizes()
+    {
+        BEAST_EXPECT(base64::encoded_size(0) == 0);
+        BEAST_EXPECT(base64::encoded_size(1) == 4);
+        BEAST_EXPECT(base64::encoded_size(2) == 4);
+        BEAST_EXPECT(base64::encoded_size(3) == 4);
+        BEAST_EXPECT(base64::encoded_size(4) == 8);
+
+        BEAST_EXPECT(base64::decoded_size(0) == 0); // r=0
+        BEAST_EXPECT(base64::decoded_size(1) == 0); // r=1
+        BEAST_EXPECT(base64::decoded_size(2) == 1); // r=2
+        BEAST_EXPECT(base64::decoded_size(3) == 2); // r=3
+        BEAST_EXPECT(base64::decoded_size(4) == 3); // r=0
+
+        // lengths that are not a multiple of 4 must still be
+        // bounded, since the caller may not know whether the
+        // input was padded.
+        for(std::size_t n = 0; n <= 8; ++n)
+        {
+            std::string const in(n, 'A'); // a valid non-pad symbol
+            std::string scratch;
+            scratch.resize(n + 4);
+            auto const written = base64::decode(
+                &scratch[0], in.data(), in.size()).first;
+            BEAST_EXPECT(written <= base64::decoded_size(n));
+        }
+    }
+
+    void
+    run()
+    {
+        testRoundTrip();
+        testSizes();
     }
 };
 
