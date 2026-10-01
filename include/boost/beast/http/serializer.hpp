@@ -359,8 +359,10 @@ public:
         @param n The number of octets to consume. This number must
         be greater than zero and no greater than the number of
         octets in the buffers provided in the prior call to @ref next.
+
+        @return The amount of octets that were consumed from the previous call of .get on the body.
     */
-    void
+    std::size_t
     consume(std::size_t n);
 
     /** Provides low-level access to the associated <em>BodyWriter</em>
