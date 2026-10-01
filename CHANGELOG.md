@@ -1,6 +1,7 @@
 Version 362:
 
 * `http::ext_list` does not carry parameters from the previous extension into one that has none
+* `detail::base64::decoded_size` accounts for unpadded input
 * Fixed the `@tparam` name in the `buffers_iterator_type` documentation
 
 --------------------------------------------------------------------------------
