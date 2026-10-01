@@ -28,7 +28,7 @@ class icy_stream_test
 {
 public:
     void
-    doMatrix(string_view in, string_view out)
+    doMatrix(core::string_view in, core::string_view out)
     {
         using net::mutable_buffer;
         net::io_context ioc;

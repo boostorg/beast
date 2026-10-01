@@ -187,7 +187,7 @@ public:
     static
     std::string
     compress(
-        string_view const& in,
+        core::string_view const& in,
         int level,                  // 0=none, 1..9, -1=default
         int windowBits,             // 9..15
         int memLevel,               // 1..9 (8=default)

@@ -27,6 +27,7 @@
 namespace beast = boost::beast;     // from <boost/beast.hpp>
 namespace http = beast::http;       // from <boost/beast/http.hpp>
 namespace net = boost::asio;        // from <boost/asio.hpp>
+namespace core = boost::core;       // from <boost/core/detail/string_view.hpp>
 using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
 
 
@@ -147,7 +148,7 @@ int main(int argc, char** argv)
 
         for (char * c = argv[1]; *c != '\0'; c++)
             *c = static_cast<char>(std::tolower(*c));
-        beast::string_view method{argv[1]};
+        core::string_view method{argv[1]};
 
         // The io_context is required for all I/O
         net::io_context ioc;
