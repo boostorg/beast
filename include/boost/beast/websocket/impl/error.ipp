@@ -55,6 +55,7 @@ public:
         case error::no_sec_accept:          return "The WebSocket handshake Sec-WebSocket-Accept field is missing";
         case error::bad_sec_accept:         return "The WebSocket handshake Sec-WebSocket-Accept field is invalid";
         case error::upgrade_declined:       return "The WebSocket handshake was declined by the remote peer";
+        case error::bad_sec_extensions:     return "The WebSocket handshake Sec-WebSocket-Extensions field is invalid";
 
         case error::bad_opcode:             return "The WebSocket frame contained an illegal opcode";
         case error::bad_data_frame:         return "The WebSocket data frame was unexpected";
@@ -104,6 +105,7 @@ public:
         case error::no_sec_accept:
         case error::bad_sec_accept:
         case error::upgrade_declined:
+        case error::bad_sec_extensions:
             return condition::handshake_failed;
 
         case error::bad_opcode:
