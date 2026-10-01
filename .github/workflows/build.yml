@@ -319,12 +319,12 @@ jobs:
           - toolset: clang-win
             cxxstd: 14,17,20,latest
             addrmd: 32
-            os: windows-2025
+            os: windows-2025-no-aws
             cxxflags: "linkflags=/safeseh:no"
           - toolset: clang-win
             cxxstd: 14,17,20,latest
             addrmd: 64
-            os: windows-2025
+            os: windows-2025-no-aws
           - toolset: gcc
             cxxstd: "11,14"
             addrmd: 64
