@@ -41,7 +41,9 @@
 #include <boost/beast/zlib/zlib.hpp>
 #include <boost/beast/zlib/detail/bitstream.hpp>
 #include <boost/beast/zlib/detail/ranges.hpp>
-#include <boost/beast/zlib/detail/window.hpp>
+#include <boost/make_unique.hpp>
+#include <cstring>
+#include <memory>
 #if 0
 #include <boost/beast/core/detail/type_traits.hpp>
 #include <boost/throw_exception.hpp>
@@ -60,10 +62,7 @@ namespace detail {
 class inflate_stream
 {
 protected:
-    inflate_stream()
-    {
-        w_.reset(15);
-    }
+    inflate_stream() = default;
 
     BOOST_BEAST_DECL
     void
@@ -80,7 +79,7 @@ protected:
     void
     doReset()
     {
-        doReset(w_.bits());
+        doReset(static_cast<int>(wbits_));
     }
 
 private:
@@ -204,6 +203,10 @@ private:
     void
     inflate_fast(ranges& r, error_code& ec);
 
+    BOOST_BEAST_DECL
+    void
+    updatewindow(unsigned char const* end, std::size_t copy);
+
     bitstream bi_;
 
     Mode mode_ = HEAD;              // current inflate mode
@@ -211,7 +214,12 @@ private:
     unsigned dmax_ = 32768U;        // zlib header max distance (INFLATE_STRICT)
 
     // sliding window
-    window w_;
+    unsigned wbits_ = 15;           // log base 2 of requested window size
+    unsigned wsize_ = 0;            // window size or zero if not using window
+    unsigned whave_ = 0;            // valid bytes in the window
+    unsigned wnext_ = 0;            // window write index
+    std::unique_ptr<unsigned char[]>
+        window_;                    // allocated sliding window, if needed
 
     // for string and stored block copying
     unsigned length_ = 0;           // literal or length of data to copy

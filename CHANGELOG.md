@@ -10,6 +10,8 @@ Version 362:
 * `zlib::deflate_stream::upper_bound` and `zlib::deflate_upper_bound` return the zlib 1.3.2 bounds
 * `zlib::inflate_stream` decodes a stream whose last code ends in its last byte without further input
 * `zlib::inflate_stream::write` returns `error::stream_error` for null buffer pointers
+* `zlib::inflate_stream::clear` releases the window and resets the stream
+* `zlib::inflate_stream` matches the throughput of zlib 1.3.2
 * Updated the reference zlib used by the tests to 1.3.2
 
 --------------------------------------------------------------------------------

@@ -43,7 +43,6 @@
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/make_unique.hpp>
-#include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <algorithm>
 #include <cstdint>
@@ -348,10 +347,10 @@ doTune(
 {
     maybe_init(); // lm_init() would otherwise overwrite these
 
-    good_match_ = good_length;
+    good_match_ = (uInt)good_length;
+    max_lazy_match_ = (uInt)max_lazy;
     nice_match_ = nice_length;
-    max_lazy_match_ = max_lazy;
-    max_chain_length_ = max_chain;
+    max_chain_length_ = (uInt)max_chain;
 }
 
 void
@@ -404,13 +403,9 @@ doParams(z_params& zs, int level, Strategy strategy, error_code& ec)
     strategy_ = strategy;
 }
 
-// VFALCO boost::optional param is a workaround for
-//        gcc "maybe uninitialized" warning
-//        https://github.com/boostorg/beast/issues/532
-//
 void
 deflate_stream::
-doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
+doWrite(z_params& zs, Flush flush, error_code& ec)
 {
     maybe_init();
 
@@ -430,7 +425,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
 
     // value of flush param for previous deflate call
     int const old_flush = last_flush_;
-    last_flush_ = static_cast<int>(*flush);
+    last_flush_ = static_cast<int>(flush);
 
     // Flush as much pending output as possible
     if(pending_ != 0)
@@ -449,7 +444,7 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
         }
     }
     else if(zs.avail_in == 0 &&
-        static_cast<int>(*flush) <= old_flush && // Caution: depends on enum order
+        static_cast<int>(flush) <= old_flush && // Caution: depends on enum order
         flush != Flush::finish)
     {
         /* Make sure there is something to do and avoid duplicate consecutive
@@ -474,10 +469,10 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
     {
         block_state bstate;
 
-        bstate = level_ == 0 ? deflate_stored(zs, flush.get()) :
-                 strategy_ == Strategy::huffman ? deflate_huff(zs, flush.get()) :
-                 strategy_ == Strategy::rle ? deflate_rle(zs, flush.get()) :
-                 (this->*(get_config(level_).func))(zs, flush.get());
+        bstate = level_ == 0 ? deflate_stored(zs, flush) :
+                 strategy_ == Strategy::huffman ? deflate_huff(zs, flush) :
+                 strategy_ == Strategy::rle ? deflate_rle(zs, flush) :
+                 (this->*(get_config(level_).func))(zs, flush);
 
         if(bstate == finish_started || bstate == finish_done)
         {
@@ -536,61 +531,6 @@ doWrite(z_params& zs, boost::optional<Flush> flush, error_code& ec)
         BOOST_BEAST_ASSIGN_EC(ec, error::end_of_stream);
         return;
     }
-}
-
-// VFALCO Warning: untested
-void
-deflate_stream::
-doDictionary(Byte const* dict, uInt dictLength, error_code& ec)
-{
-    maybe_init();
-
-    if(lookahead_)
-    {
-        BOOST_BEAST_ASSIGN_EC(ec, error::stream_error);
-        return;
-    }
-
-    /* if dict would fill window, just replace the history */
-    if(dictLength >= w_size_)
-    {
-        clear_hash();
-        strstart_ = 0;
-        block_start_ = 0L;
-        insert_ = 0;
-        dict += dictLength - w_size_;  /* use the tail */
-        dictLength = w_size_;
-    }
-
-    /* insert dict into window and hash */
-    z_params zs;
-    zs.avail_in = dictLength;
-    zs.next_in = (const Byte *)dict;
-    zs.avail_out = 0;
-    zs.next_out = 0;
-    fill_window(zs);
-    while(lookahead_ >= minMatch)
-    {
-        uInt str = strstart_;
-        uInt n = lookahead_ - (minMatch-1);
-        do
-        {
-            update_hash(ins_h_, window_[str + minMatch-1]);
-            prev_[str & w_mask_] = head_[ins_h_];
-            head_[ins_h_] = (std::uint16_t)str;
-            str++;
-        }
-        while(--n);
-        strstart_ = str;
-        lookahead_ = minMatch-1;
-        fill_window(zs);
-    }
-    strstart_ += lookahead_;
-    block_start_ = (long)strstart_;
-    insert_ = lookahead_;
-    lookahead_ = 0;
-    match_length_ = prev_length_ = minMatch-1;
-    match_available_ = 0;
 }
 
 void
@@ -2382,7 +2322,7 @@ f_rle(z_params& zs, Flush flush) ->
                          prev == *++scan && prev == *++scan &&
                          prev == *++scan && prev == *++scan &&
                          scan < strend);
-                match_length_ = maxMatch - (int)(strend - scan);
+                match_length_ = maxMatch - (uInt)(strend - scan);
                 if(match_length_ > lookahead_)
                     match_length_ = lookahead_;
             }

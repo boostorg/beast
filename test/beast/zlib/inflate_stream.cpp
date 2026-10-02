@@ -871,6 +871,184 @@ public:
     }
 
     void
+    testClear()
+    {
+        /*  clear() puts the stream in a newly constructed state, so a
+            stream abandoned halfway through, with the window and the
+            bit buffer in use, must decode another one from its first
+            byte. The window size is kept.
+        */
+        auto const check = corpus1(3000);
+        auto const in = compress(check, 6, 9, 8, Z_DEFAULT_STRATEGY, Z_FINISH);
+        std::string out(check.size(), '\0');
+        inflate_stream is;
+        is.reset(9);
+        {
+            z_params zs{};
+            zs.next_in = in.data();
+            zs.avail_in = in.size() / 2;
+            zs.next_out = &out[0];
+            zs.avail_out = out.size();
+            error_code ec;
+            is.write(zs, Flush::sync, ec);
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(zs.total_out > 0 && zs.total_out < check.size());
+        }
+        for(int i = 0; i < 2; ++i)
+        {
+            // the second round clears a completed stream
+            is.clear();
+            z_params zs{};
+            zs.next_in = in.data();
+            zs.avail_in = in.size();
+            zs.next_out = &out[0];
+            zs.avail_out = out.size();
+            error_code ec;
+            is.write(zs, Flush::finish, ec);
+            BEAST_EXPECT(ec == error::end_of_stream);
+            BEAST_EXPECT(zs.total_out == check.size());
+            BEAST_EXPECT(out == check);
+        }
+        {
+            // clear is harmless on a fresh stream
+            inflate_stream fresh;
+            fresh.clear();
+            z_params zs{};
+            zs.next_in = in.data();
+            zs.avail_in = in.size();
+            zs.next_out = &out[0];
+            zs.avail_out = out.size();
+            error_code ec;
+            fresh.write(zs, Flush::finish, ec);
+            BEAST_EXPECT(ec == error::end_of_stream);
+            BEAST_EXPECT(out == check);
+        }
+    }
+
+    void
+    testFastWindowWrap()
+    {
+        /*  A match decoded by the fast path whose source lies across the
+            physical end of the sliding window and then continues into the
+            output of the current call. The stream is one fixed Huffman
+            block: 514 literals with 8-bit codes, a match of 258 bytes at
+            distance 3, eight more literals, end of block. With a 512-byte
+            window written in two calls of 300 and 214 bytes, the write
+            index is 2 after the literals: the two newest bytes sit at the
+            start of the window. The match then takes one byte from the end
+            of the window, those two bytes, and the rest from what it has
+            just produced.
+        */
+        struct bits
+        {
+            std::string out;
+            unsigned buf = 0;
+            unsigned n = 0;
+
+            // extra bits and header fields go least significant bit first
+            void put(unsigned value, unsigned len)
+            {
+                buf |= value << n;
+                n += len;
+                while(n >= 8)
+                {
+                    out.push_back(static_cast<char>(buf & 0xff));
+                    buf >>= 8;
+                    n -= 8;
+                }
+            }
+
+            // Huffman codes go most significant bit first
+            void code(unsigned c, unsigned len)
+            {
+                unsigned r = 0;
+                for(unsigned i = 0; i < len; ++i)
+                    r = (r << 1) | ((c >> i) & 1);
+                put(r, len);
+            }
+
+            void finish()
+            {
+                if(n)
+                    put(0, 8 - n);
+            }
+        };
+        bits b;
+        std::string check;
+        b.put(1, 1); // final block
+        b.put(1, 2); // fixed Huffman codes
+        for(unsigned i = 0; i < 514; ++i)
+        {
+            // literals 0..143 have 8-bit codes 0x30..0xbf
+            auto const v = (i * 7) % 144;
+            check.push_back(static_cast<char>(v));
+            b.code(0x30 + v, 8);
+        }
+        b.code(0xc5, 8); // length code 285: 258 bytes
+        b.code(2, 5);    // distance code 2: distance 3
+        for(unsigned i = 0; i < 258; ++i)
+            check.push_back(check[check.size() - 3]);
+        for(unsigned i = 0; i < 8; ++i)
+        {
+            auto const v = 100 + i;
+            check.push_back(static_cast<char>(v));
+            b.code(0x30 + v, 8);
+        }
+        b.code(0, 7); // end of block
+        b.finish();
+        auto const& in = b.out;
+        // 3 + 514*8 + 8 + 5 + 8*8 + 7 bits: the match code starts
+        // three bits into byte 514 and ends in byte 515
+        if(! BEAST_EXPECT(in.size() == 525))
+            return;
+
+        // the reference decoder accepts the stream
+        {
+            std::string zout(check.size(), '\0');
+            zlib_decompressor.init(9);
+            zlib_decompressor.next_in(in.data());
+            zlib_decompressor.avail_in(in.size());
+            zlib_decompressor.next_out(&zout[0]);
+            zlib_decompressor.avail_out(zout.size());
+            BEAST_EXPECT(zlib_decompressor.write(Flush::finish) ==
+                error::end_of_stream);
+            BEAST_EXPECT(zout == check);
+        }
+
+        inflate_stream is;
+        is.reset(9);
+        std::string out(check.size(), '\0');
+        z_params zs{};
+        error_code ec;
+
+        // 300 literals, limited by the output space
+        zs.next_in = in.data();
+        zs.avail_in = 515;
+        zs.next_out = &out[0];
+        zs.avail_out = 300;
+        is.write(zs, Flush::none, ec);
+        BEAST_EXPECT(! ec);
+        BEAST_EXPECT(zs.avail_out == 0);
+
+        // the other 214 literals, limited by the input: the five
+        // available bits of the match code cannot be decoded yet
+        zs.next_out = &out[300];
+        zs.avail_out = out.size() - 300;
+        is.write(zs, Flush::none, ec);
+        BEAST_EXPECT(! ec);
+        BEAST_EXPECT(zs.avail_in == 0);
+        BEAST_EXPECT(zs.total_out == 514);
+
+        // the match is the first code the fast path decodes
+        zs.next_in = in.data() + 515;
+        zs.avail_in = in.size() - 515;
+        is.write(zs, Flush::finish, ec);
+        BEAST_EXPECT(ec == error::end_of_stream);
+        BEAST_EXPECT(zs.total_out == check.size());
+        BEAST_EXPECT(out == check);
+    }
+
+    void
     run() override
     {
         testInflate(zlib_decompressor);
@@ -887,6 +1065,8 @@ public:
         testNullPointers(beast_decompressor);
         testFinalCodeInLastByte(zlib_decompressor);
         testFinalCodeInLastByte(beast_decompressor);
+        testClear();
+        testFastWindowWrap();
         testParity();
     }
 };

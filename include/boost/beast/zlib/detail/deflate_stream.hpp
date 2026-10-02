@@ -42,7 +42,6 @@
 #include <boost/beast/zlib/detail/ranges.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <cstdint>
 #include <cstdlib>
@@ -624,8 +623,7 @@ protected:
     BOOST_BEAST_DECL std::size_t doUpperBound (std::size_t sourceLen) const;
     BOOST_BEAST_DECL void doTune              (int good_length, int max_lazy, int nice_length, int max_chain);
     BOOST_BEAST_DECL void doParams            (z_params& zs, int level, Strategy strategy, error_code& ec);
-    BOOST_BEAST_DECL void doWrite             (z_params& zs, boost::optional<Flush> flush, error_code& ec);
-    BOOST_BEAST_DECL void doDictionary        (Byte const* dict, uInt dictLength, error_code& ec);
+    BOOST_BEAST_DECL void doWrite             (z_params& zs, Flush flush, error_code& ec);
     BOOST_BEAST_DECL void doPrime             (int bits, int value, error_code& ec);
     BOOST_BEAST_DECL void doPending           (unsigned* value, int* bits);
 
