@@ -26,7 +26,7 @@ namespace zlib {
 
 // This is a derivative work based on Zlib, copyright below:
 /*
-    Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -94,12 +94,16 @@ public:
         @param level Compression level from 0 to 9.
 
         @param windowBits The base two logarithm of the window size, or the
-        history buffer. It should be in the range 9..15.
+        history buffer. It should be in the range 9..15. A value of 8 is
+        rejected, as zlib does for raw deflate streams, because deflate
+        does not support a 256-byte window.
 
         @param memLevel How much memory should be allocated for the internal
         compression state, with level from from 1 to 9.
 
         @param strategy Strategy to tune the compression algorithm.
+
+        @throws std::invalid_argument if a parameter is out of range.
 
         @note Any unprocessed input or pending output from
         previous calls are discarded.
@@ -305,18 +309,40 @@ public:
         compression strategy. The interpretation of level and strategy
         is as in @ref reset. This can be used to switch between compression
         and straight copy of the input data, or to switch to a different kind
-        of input data requiring a different strategy. If the compression level
-        is changed, the input available so far is compressed with the old level
-        (and may be flushed); the new level will take effect only at the next
-        call of @ref write.
+        of input data requiring a different strategy. If the compression
+        approach (which is a function of the level) or the strategy is
+        changed, and if there have been any calls to @ref write since the
+        stream was reset, then the input available so far is compressed
+        with the old level and strategy using `write` with `Flush::block`.
+        There are three approaches for the compression levels 0, 1..3, and
+        4..9 respectively. The new level and strategy will take effect at
+        the next call of @ref write.
+
+        If a `write` with `Flush::block` is performed by `params`, and it
+        does not have enough output space to complete, then the parameter
+        change will not take effect. In this case, `params` can be called
+        again with the same parameters and more output space to try again.
+
+        In order to assure a change in the parameters on the first try, the
+        stream should be flushed using @ref write with `Flush::block` or
+        another flush request until `zs.avail_out` is not zero, before
+        calling `params`. Then no more input data should be provided before
+        the call to `params`. If this is done, the old level and strategy
+        will be applied to the data compressed before `params`, and the new
+        level and strategy will be applied to the data compressed after
+        `params`.
 
         Before the call of `params`, the stream state must be set as for a
-        call of @ref write, since the currently available input may have to be
-        compressed and flushed. In particular, `zs.avail_out` must be non-zero.
+        call of @ref write, since the currently available input may have to
+        be compressed and flushed.
 
-        @return `Z_OK` if success, `Z_STREAM_ERROR` if the source stream state
-        was inconsistent or if a parameter was invalid, `error::need_buffers`
-        if `zs.avail_out` was zero.
+        @return `error::stream_error` if the source stream state was
+        inconsistent or if a parameter was invalid, or `error::need_buffers`
+        if there was not enough output space to complete the compression of
+        the available input data before a change in the strategy or
+        approach. Note that in the case of `error::need_buffers`, the
+        parameters are not changed. `error::need_buffers` is not fatal, in
+        which case `params` can be retried with more output space.
     */
     void
     params(
@@ -335,11 +361,8 @@ public:
         output. The bytes not provided would be due to the available
         output space having being consumed. The number of bits of output
         not provided are between 0 and 7, where they await more bits to
-        join them in order to fill out a full byte. If pending or bits
+        join them in order to fill out a full byte. If `value` or `bits`
         are `nullptr`, then those values are not set.
-
-        @return `Z_OK` if success, or `Z_STREAM_ERROR` if the source
-        stream state was inconsistent.
     */
     void
     pending(unsigned *value, int *bits)
@@ -359,7 +382,8 @@ public:
         the output.
 
         @return `error::need_buffers` if there was not enough room in
-        the internal buffer to insert the bits.
+        the internal buffer to insert the bits, or if `bits` is negative
+        or greater than 16.
     */
     void
     prime(int bits, int value, error_code& ec)
@@ -383,30 +407,37 @@ public:
 std::size_t
 deflate_upper_bound(std::size_t bytes);
 
-/*  For the default windowBits of 15 and memLevel of 8, this function returns
-    a close to exact, as well as small, upper bound on the compressed size.
-    They are coded as constants here for a reason--if the #define's are
-    changed, then this function needs to be changed as well.  The return
-    value for 15 and 8 only works for those exact settings.
+/*  Without the stream parameters, the tight bound for the default settings
+    cannot be used. This returns what zlib's deflateBound returns when it is
+    not given a stream: the larger of two worst case bounds, plus the size
+    of a wrapper.
 
-    For any setting other than those defaults for windowBits and memLevel,
-    the value returned is a conservative worst case for the maximum expansion
-    resulting from using fixed blocks instead of stored blocks, which deflate
-    can emit on compressed data for some combinations of the parameters.
+    The ~4% bound derives from the overhead of stored blocks of 127 bytes
+    (the worst case memLevel == 1), five bytes of header for each block.
+    The larger expansion of ~13% results from a window size less than or
+    equal to the symbols buffer size (windowBits <= memLevel + 7). In that
+    case some of the data being compressed may have slid out of the sliding
+    window, impeding a stored block from being emitted. Then the only choice
+    is a fixed or dynamic block, where a fixed block limits the maximum
+    expansion to 9 bits per 8-bit byte, plus 10 bits for every block. The
+    smallest block size for which this can occur is 255 (memLevel == 2).
 
-    This function could be more sophisticated to provide closer upper bounds for
-    every combination of windowBits and memLevel.  But even the conservative
-    upper bound of about 14% expansion does not seem onerous for output buffer
-    allocation.
+    Shifts are used to approximate divisions, for speed.
 */
 inline
 std::size_t
 deflate_upper_bound(std::size_t bytes)
 {
-    return bytes +
-        ((bytes + 7) >> 3) +
-        ((bytes + 63) >> 6) + 5 +
-        6;
+    std::size_t fixedlen = bytes + (bytes >> 3) + (bytes >> 8) +
+        (bytes >> 9) + 4;
+    if(fixedlen < bytes)
+        fixedlen = static_cast<std::size_t>(-1);
+    std::size_t storelen = bytes + (bytes >> 5) + (bytes >> 7) +
+        (bytes >> 11) + 7;
+    if(storelen < bytes)
+        storelen = static_cast<std::size_t>(-1);
+    std::size_t const bound = fixedlen > storelen ? fixedlen : storelen;
+    return bound + 18 < bound ? static_cast<std::size_t>(-1) : bound + 18;
 }
 
 } // zlib

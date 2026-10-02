@@ -8,7 +8,7 @@
 //
 // This is a derivative work based on Zlib, copyright below:
 /*
-    Copyright (C) 1995-2018 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -42,7 +42,6 @@
 #include <boost/beast/zlib/detail/ranges.hpp>
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <cstdint>
 #include <cstdlib>
@@ -110,7 +109,7 @@ protected:
     static std::uint8_t constexpr max_mem_level = 9;
 
     // Default memLevel
-    static std::uint8_t constexpr def_mem_level = max_mem_level;
+    static std::uint8_t constexpr def_mem_level = 8;
 
     /*  Note: the deflate() code requires max_lazy >= minMatch and max_chain >= 4
         For deflate_fast() (levels <= 3) good is ignored and lazy has a different
@@ -125,6 +124,9 @@ protected:
 
     // Matches of length 3 are discarded if their distance exceeds kTooFar
     static std::size_t constexpr kTooFar = 4096;
+
+    // Maximum stored block length in deflate format (not including header)
+    static unsigned constexpr kMaxStored = 65535;
 
     /*  Minimum amount of lookahead, except at the end of the input file.
         See deflate.c for comments about the minMatch+1.
@@ -259,8 +261,12 @@ protected:
         pending_buf_size_;          // size of pending_buf
     Byte* pending_out_;             // next pending byte to output to the stream
     uInt pending_;                  // nb of bytes in the pending buffer
-    boost::optional<Flush>
-        last_flush_;                // value of flush param for previous deflate call
+
+    /*  Value of the flush parameter for the previous call to write,
+        or -1 to avoid returning need_buffers on the next call, or -2
+        if write has not been called since the stream was reset.
+    */
+    int last_flush_;
 
     uInt w_size_;                   // LZ77 window size (32K by default)
     uInt w_bits_;                   // log2(w_size)  (8..16)
@@ -307,10 +313,10 @@ protected:
     long block_start_;
 
     uInt match_length_;             // length of best match
-    IPos prev_match_;               // previous match
+    IPos prev_match_ = 0;           // previous match
     int match_available_;           // set if previous match exists
     uInt strstart_;                 // start of string to insert
-    uInt match_start_;              // start of matching string
+    uInt match_start_ = 0;          // start of matching string
     uInt lookahead_;                // number of valid bytes ahead in window
 
     /*  Length of the best match at previous step. Matches not greater
@@ -617,8 +623,7 @@ protected:
     BOOST_BEAST_DECL std::size_t doUpperBound (std::size_t sourceLen) const;
     BOOST_BEAST_DECL void doTune              (int good_length, int max_lazy, int nice_length, int max_chain);
     BOOST_BEAST_DECL void doParams            (z_params& zs, int level, Strategy strategy, error_code& ec);
-    BOOST_BEAST_DECL void doWrite             (z_params& zs, boost::optional<Flush> flush, error_code& ec);
-    BOOST_BEAST_DECL void doDictionary        (Byte const* dict, uInt dictLength, error_code& ec);
+    BOOST_BEAST_DECL void doWrite             (z_params& zs, Flush flush, error_code& ec);
     BOOST_BEAST_DECL void doPrime             (int bits, int value, error_code& ec);
     BOOST_BEAST_DECL void doPending           (unsigned* value, int* bits);
 
@@ -637,7 +642,6 @@ protected:
     BOOST_BEAST_DECL int  detect_data_type    ();
     BOOST_BEAST_DECL void bi_windup           ();
     BOOST_BEAST_DECL void bi_flush            ();
-    BOOST_BEAST_DECL void copy_block          (char *buf, unsigned len, int header);
 
     BOOST_BEAST_DECL void tr_init             ();
     BOOST_BEAST_DECL void tr_align            ();
@@ -647,6 +651,7 @@ protected:
     BOOST_BEAST_DECL void tr_tally_lit        (std::uint8_t c, bool& flush);
 
     BOOST_BEAST_DECL void tr_flush_block      (z_params& zs, char *buf, std::uint32_t stored_len, int last);
+    BOOST_BEAST_DECL void slide_hash          ();
     BOOST_BEAST_DECL void fill_window         (z_params& zs);
     BOOST_BEAST_DECL void flush_pending       (z_params& zs);
     BOOST_BEAST_DECL void flush_block         (z_params& zs, bool last);

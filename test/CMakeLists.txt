@@ -57,17 +57,17 @@ set_target_properties(boost_beast_lib_beast PROPERTIES FOLDER "static-libs")
 # boost_beast_lib_zlib
 enable_language(C)
 add_library(boost_beast_lib_zlib STATIC
-    extern/zlib-1.3.1/adler32.c
-    extern/zlib-1.3.1/compress.c
-    extern/zlib-1.3.1/crc32.c
-    extern/zlib-1.3.1/deflate.c
-    extern/zlib-1.3.1/infback.c
-    extern/zlib-1.3.1/inffast.c
-    extern/zlib-1.3.1/inflate.c
-    extern/zlib-1.3.1/inftrees.c
-    extern/zlib-1.3.1/trees.c
-    extern/zlib-1.3.1/uncompr.c
-    extern/zlib-1.3.1/zutil.c)
+    extern/zlib-1.3.2/adler32.c
+    extern/zlib-1.3.2/compress.c
+    extern/zlib-1.3.2/crc32.c
+    extern/zlib-1.3.2/deflate.c
+    extern/zlib-1.3.2/infback.c
+    extern/zlib-1.3.2/inffast.c
+    extern/zlib-1.3.2/inflate.c
+    extern/zlib-1.3.2/inftrees.c
+    extern/zlib-1.3.2/trees.c
+    extern/zlib-1.3.2/uncompr.c
+    extern/zlib-1.3.2/zutil.c)
 target_compile_options(boost_beast_lib_zlib PRIVATE
     $<$<C_COMPILER_ID:GNU>:-w>
     $<$<C_COMPILER_ID:Clang>:-w>
@@ -75,7 +75,7 @@ target_compile_options(boost_beast_lib_zlib PRIVATE
     $<$<C_COMPILER_ID:MSVC>:/wd4127>
     $<$<C_COMPILER_ID:MSVC>:/wd4244>
     $<$<C_COMPILER_ID:MSVC>:/wd4131>)
-target_include_directories(boost_beast_lib_zlib PUBLIC extern/zlib-1.3.1)
+target_include_directories(boost_beast_lib_zlib PUBLIC extern/zlib-1.3.2)
 set_target_properties(boost_beast_lib_zlib PROPERTIES FOLDER "static-libs")
 
 # boost_beast_lib_test
