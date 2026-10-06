@@ -8,7 +8,7 @@
 //
 // This is a derivative work based on Zlib, copyright below:
 /*
-    Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -42,15 +42,7 @@
 #include <boost/beast/zlib/detail/bitstream.hpp>
 #include <boost/beast/zlib/detail/ranges.hpp>
 #include <boost/beast/zlib/detail/window.hpp>
-#if 0
-#include <boost/beast/core/detail/type_traits.hpp>
-#include <boost/throw_exception.hpp>
-#include <algorithm>
-#include <array>
-#include <cstdint>
 #include <cstring>
-#include <stdexcept>
-#endif
 
 namespace boost {
 namespace beast {
@@ -208,6 +200,7 @@ private:
 
     Mode mode_ = HEAD;              // current inflate mode
     int last_ = 0;                  // true if processing last block
+    error_code ec_;                 // last error, empty if no error
     unsigned dmax_ = 32768U;        // zlib header max distance (INFLATE_STRICT)
 
     // sliding window

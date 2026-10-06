@@ -6,9 +6,10 @@
 //
 // Official repository: https://github.com/boostorg/beast
 //
-// This is a derivative work based on Zlib, copyright below:
+// This is a derivative work based on Zlib 1.3.2 (inflate.c, inffast.c,
+// inftrees.c), copyright below:
 /*
-    Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -50,6 +51,9 @@ void
 inflate_stream::
 doClear()
 {
+    int const bits = w_.bits();
+    w_ = window();
+    doReset(bits);
 }
 
 void
@@ -62,6 +66,7 @@ doReset(int windowBits)
     w_.reset(windowBits);
 
     bi_.flush();
+    ec_ = {};
     mode_ = HEAD;
     last_ = 0;
     dmax_ = 32768U;
@@ -75,6 +80,15 @@ void
 inflate_stream::
 doWrite(z_params& zs, Flush flush, error_code& ec)
 {
+    ec = {};
+
+    if(zs.next_out == nullptr ||
+        (zs.next_in == nullptr && zs.avail_in != 0))
+    {
+        BOOST_BEAST_ASSIGN_EC(ec, error::stream_error);
+        return;
+    }
+
     ranges r;
     r.in.first = static_cast<
         std::uint8_t const*>(zs.next_in);
@@ -121,7 +135,9 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         [&](error e)
         {
             BOOST_BEAST_ASSIGN_EC(ec, e);
+            ec_ = ec;
             mode_ = BAD;
+            done();
         };
 
     if(mode_ == TYPE)
@@ -250,7 +266,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 lens_[order[have_++]] = 0;
 
             next_ = &codes_[0];
-            lencode_ = next_;
+            lencode_ = distcode_ = next_;
             lenbits_ = 7;
             inflate_table(build::codes, &lens_[0],
                 order.size(), &next_, &lenbits_, work_, ec);
@@ -268,11 +284,16 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         {
             while(have_ < nlen_ + ndist_)
             {
-                std::uint16_t v;
-                if(! bi_.fill(lenbits_, r.in.next, r.in.last))
-                    return done();
-                bi_.peek(v, lenbits_);
-                auto cp = &lencode_[v];
+                code const* cp;
+                for(;;)
+                {
+                    cp = &lencode_[bi_.peek_fast() &
+                        ((1U << lenbits_) - 1)];
+                    if(cp->bits <= bi_.size())
+                        break;
+                    if(! bi_.fill_8(r.in.next, r.in.last))
+                        return done();
+                }
                 if(cp->val < 16)
                 {
                     bi_.drop(cp->bits);
@@ -336,7 +357,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             if(ec)
             {
                 mode_ = BAD;
-                return;
+                break;
             }
             distcode_ = next_;
             distbits_ = 6;
@@ -345,7 +366,7 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
             if(ec)
             {
                 mode_ = BAD;
-                return;
+                break;
             }
             mode_ = LEN_;
             if(flush == Flush::trees)
@@ -365,25 +386,35 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 if(ec)
                 {
                     mode_ = BAD;
-                    return;
+                    break;
                 }
                 if(mode_ == TYPE)
                     back_ = -1;
                 break;
             }
-            if(! bi_.fill(lenbits_, r.in.next, r.in.last))
-                return done();
-            std::uint16_t v;
             back_ = 0;
-            bi_.peek(v, lenbits_);
-            auto cp = &lencode_[v];
+            code const* cp;
+            for(;;)
+            {
+                cp = &lencode_[bi_.peek_fast() &
+                    ((1U << lenbits_) - 1)];
+                if(cp->bits <= bi_.size())
+                    break;
+                if(! bi_.fill_8(r.in.next, r.in.last))
+                    return done();
+            }
             if(cp->op && (cp->op & 0xf0) == 0)
             {
                 auto prev = cp;
-                if(! bi_.fill(prev->bits + prev->op, r.in.next, r.in.last))
-                    return done();
-                bi_.peek(v, prev->bits + prev->op);
-                cp = &lencode_[prev->val + (v >> prev->bits)];
+                for(;;)
+                {
+                    cp = &lencode_[prev->val + ((bi_.peek_fast() &
+                        ((1U << (prev->bits + prev->op)) - 1)) >> prev->bits)];
+                    if(static_cast<unsigned>(prev->bits + cp->bits) <= bi_.size())
+                        break;
+                    if(! bi_.fill_8(r.in.next, r.in.last))
+                        return done();
+                }
                 bi_.drop(prev->bits + cp->bits);
                 back_ += prev->bits + cp->bits;
             }
@@ -427,18 +458,28 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
 
         case DIST:
         {
-            if(! bi_.fill(distbits_, r.in.next, r.in.last))
-                return done();
-            std::uint16_t v;
-            bi_.peek(v, distbits_);
-            auto cp = &distcode_[v];
+            code const* cp;
+            for(;;)
+            {
+                cp = &distcode_[bi_.peek_fast() &
+                    ((1U << distbits_) - 1)];
+                if(cp->bits <= bi_.size())
+                    break;
+                if(! bi_.fill_8(r.in.next, r.in.last))
+                    return done();
+            }
             if((cp->op & 0xf0) == 0)
             {
                 auto prev = cp;
-                if(! bi_.fill(prev->bits + prev->op, r.in.next, r.in.last))
-                    return done();
-                bi_.peek(v, prev->bits + prev->op);
-                cp = &distcode_[prev->val + (v >> prev->bits)];
+                for(;;)
+                {
+                    cp = &distcode_[prev->val + ((bi_.peek_fast() &
+                        ((1U << (prev->bits + prev->op)) - 1)) >> prev->bits)];
+                    if(static_cast<unsigned>(prev->bits + cp->bits) <= bi_.size())
+                        break;
+                    if(! bi_.fill_8(r.in.next, r.in.last))
+                        return done();
+                }
                 bi_.drop(prev->bits + cp->bits);
                 back_ += prev->bits + cp->bits;
             }
@@ -495,8 +536,10 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
                 auto in = r.out.next - offset_;
                 auto n = clamp(length_, r.out.avail());
                 length_ -= n;
+                auto out = r.out.next; // see inflate_fast
                 while(n--)
-                    *r.out.next++ = *in++;
+                    *out++ = *in++;
+                r.out.next = out;
             }
             if(length_ == 0)
                 mode_ = LEN;
@@ -524,6 +567,10 @@ doWrite(z_params& zs, Flush flush, error_code& ec)
         }
 
         case BAD:
+            if(ec)
+                ec_ = ec;   // set by inflate_table or inflate_fast
+            else
+                ec = ec_;   // zlib returns Z_DATA_ERROR again
             return done();
 
         case SYNC:
@@ -574,9 +621,9 @@ inflate_table(
     unsigned mask;                  // mask for low root bits
     code here;                      // table entry for duplication
     code *next;                     // next available space in table
-    std::uint16_t const* base;      // base value table to use
-    std::uint16_t const* extra;     // extra bits table to use
-    unsigned match;                 // use base and extra for symbol >= match
+    std::uint16_t const* base = nullptr;  // base value table to use
+    std::uint16_t const* extra = nullptr; // extra bits table to use
+    unsigned match = 0;             // use base and extra for symbol >= match
     std::uint16_t count[15+1];      // number of codes of each length
     std::uint16_t offs[15+1];       // offsets in table for each length
 
@@ -588,7 +635,7 @@ inflate_table(
     // Length codes 257..285 extra
     static std::uint16_t constexpr lext[31] = {
         16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18,
-        19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 77, 202};
+        19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 199, 75};
 
     // Distance codes 0..29 base
     static std::uint16_t constexpr dbase[32] = {
@@ -725,7 +772,6 @@ inflate_table(
     switch (type)
     {
     case build::codes:
-        base = extra = work;    /* dummy value--not used */
         match = 20;
         break;
     case build::lens:
@@ -733,10 +779,9 @@ inflate_table(
         extra = lext;
         match = 257;
         break;
-    default:            /* build::dists */
+    case build::dists:
         base = dbase;
         extra = dext;
-        match = 0;
     }
 
     /* initialize state for loop */
@@ -980,8 +1025,12 @@ void
 inflate_stream::
 inflate_fast(ranges& r, error_code& ec)
 {
+    unsigned char const* in;    // local r.in.next
     unsigned char const* last;  // have enough input while in < last
-    unsigned char *end;         // while out < end, enough space available
+    unsigned char* out;         // local r.out.next
+    unsigned char const* beg;   // this call's initial r.out.next
+    unsigned char* end;         // while out < end, enough space available
+    bitstream bi;               // local bit accumulator
     std::size_t op;             // code bits, operation, extra bits, or window position, window bytes to copy
     unsigned len;               // match length, unused bytes
     unsigned dist;              // match distance
@@ -990,23 +1039,28 @@ inflate_fast(ranges& r, error_code& ec)
     unsigned const dmask =
         (1U << distbits_) - 1;  // mask for first level of distance codes
 
-    last = r.in.next + (r.in.avail() - 5);
-    end = r.out.next + (r.out.avail() - 257);
+    // stores through `out` may alias the members, so work on locals
+    in = r.in.next;
+    last = in + (r.in.avail() - 5);
+    out = r.out.next;
+    beg = r.out.first;
+    end = out + (r.out.avail() - 257);
+    bi = bi_;
 
     /* decode literals and length/distances until end-of-block or not enough
        input data or output space */
     do
     {
-        if(bi_.size() < 15)
-            bi_.fill_16(r.in.next);
-        auto cp = &lencode_[bi_.peek_fast() & lmask];
+        if(bi.size() < 15)
+            bi.fill_16(in);
+        auto cp = &lencode_[bi.peek_fast() & lmask];
     dolen:
-        bi_.drop(cp->bits);
+        bi.drop(cp->bits);
         op = (unsigned)(cp->op);
         if(op == 0)
         {
             // literal
-            *r.out.next++ = (unsigned char)(cp->val);
+            *out++ = (unsigned char)(cp->val);
         }
         else if(op & 16)
         {
@@ -1015,29 +1069,29 @@ inflate_fast(ranges& r, error_code& ec)
             op &= 15; // number of extra bits
             if(op)
             {
-                if(bi_.size() < op)
-                    bi_.fill_8(r.in.next);
-                len += (unsigned)bi_.peek_fast() & ((1U << op) - 1);
-                bi_.drop(op);
+                if(bi.size() < op)
+                    bi.fill_8(in);
+                len += (unsigned)bi.peek_fast() & ((1U << op) - 1);
+                bi.drop(op);
             }
-            if(bi_.size() < 15)
-                bi_.fill_16(r.in.next);
-            cp = &distcode_[bi_.peek_fast() & dmask];
+            if(bi.size() < 15)
+                bi.fill_16(in);
+            cp = &distcode_[bi.peek_fast() & dmask];
         dodist:
-            bi_.drop(cp->bits);
+            bi.drop(cp->bits);
             op = (unsigned)(cp->op);
             if(op & 16)
             {
                 // distance base
                 dist = (unsigned)(cp->val);
                 op &= 15; // number of extra bits
-                if(bi_.size() < op)
+                if(bi.size() < op)
                 {
-                    bi_.fill_8(r.in.next);
-                    if(bi_.size() < op)
-                        bi_.fill_8(r.in.next);
+                    bi.fill_8(in);
+                    if(bi.size() < op)
+                        bi.fill_8(in);
                 }
-                dist += (unsigned)bi_.peek_fast() & ((1U << op) - 1);
+                dist += (unsigned)bi.peek_fast() & ((1U << op) - 1);
 #ifdef INFLATE_STRICT
                 if(dist > dmax_)
                 {
@@ -1046,9 +1100,9 @@ inflate_fast(ranges& r, error_code& ec)
                     break;
                 }
 #endif
-                bi_.drop(op);
+                bi.drop(op);
 
-                op = r.out.used();
+                op = static_cast<std::size_t>(out - beg);
                 if(dist > op)
                 {
                     // copy from window
@@ -1060,24 +1114,24 @@ inflate_fast(ranges& r, error_code& ec)
                         break;
                     }
                     auto const n = clamp(len, op);
-                    w_.read(r.out.next, op, n);
-                    r.out.next += n;
+                    w_.read(out, op, n);
+                    out += n;
                     len -= n;
                 }
                 if(len > 0)
                 {
                     // copy from output
-                    auto in = r.out.next - dist;
-                    auto n = clamp(len, r.out.avail());
+                    auto from = out - dist;
+                    auto n = clamp(len, static_cast<std::size_t>(r.out.last - out));
                     len -= n;
                     while(n--)
-                        *r.out.next++ = *in++;
+                        *out++ = *from++;
                 }
             }
             else if((op & 64) == 0)
             {
                 // 2nd level distance code
-                cp = &distcode_[cp->val + (bi_.peek_fast() & ((1U << op) - 1))];
+                cp = &distcode_[cp->val + (bi.peek_fast() & ((1U << op) - 1))];
                 goto dodist;
             }
             else
@@ -1090,7 +1144,7 @@ inflate_fast(ranges& r, error_code& ec)
         else if((op & 64) == 0)
         {
             // 2nd level length code
-            cp = &lencode_[cp->val + (bi_.peek_fast() & ((1U << op) - 1))];
+            cp = &lencode_[cp->val + (bi.peek_fast() & ((1U << op) - 1))];
             goto dolen;
         }
         else if(op & 32)
@@ -1106,10 +1160,15 @@ inflate_fast(ranges& r, error_code& ec)
             break;
         }
     }
-    while(r.in.next < last && r.out.next < end);
+    while(in < last && out < end);
 
     // return unused bytes (on entry, bits < 8, so in won't go too far back)
-    bi_.rewind(r.in.next);
+    bi.rewind(in);
+
+    // update state and return
+    r.in.next = in;
+    r.out.next = out;
+    bi_ = bi;
 }
 
 } // detail

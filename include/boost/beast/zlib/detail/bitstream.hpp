@@ -95,6 +95,11 @@ public:
     void
     fill_8(FwdIt& it);
 
+    // fill 8 bits, returns false if there is no input
+    template<class FwdIt>
+    bool
+    fill_8(FwdIt& first, FwdIt const& last);
+
     // fill 16 bits, unchecked
     template<class FwdIt>
     void
@@ -145,6 +150,18 @@ fill_8(FwdIt& it)
 {
     v_ += static_cast<value_type>(*it++) << n_;
     n_ += 8;
+}
+
+template<class FwdIt>
+bool
+bitstream::
+fill_8(FwdIt& first, FwdIt const& last)
+{
+    if(first == last)
+        return false;
+    v_ += static_cast<value_type>(*first++) << n_;
+    n_ += 8;
+    return true;
 }
 
 template<class FwdIt>

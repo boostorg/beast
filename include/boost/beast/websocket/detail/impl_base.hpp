@@ -24,6 +24,7 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/asio/buffer.hpp>
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
@@ -197,7 +198,23 @@ struct impl_base<true>
            (role == role_type::server &&
                 pmd_config_.client_no_context_takeover))
         {
-            pmd_->zi.clear();
+            /*  Not resetting the inflater for now, see
+                https://github.com/boostorg/beast/issues/3118
+
+                - RFC 7692 7.2.2 lets the receiver keep or drop the window;
+                  only the sender must drop it (7.2.1).
+                - Keeping it tolerates peers that agree to no context
+                  takeover but still refer back. Beast has done this since
+                  Boost 1.70: 8ea282e turned zi.reset() into zi.clear(),
+                  which was a no-op until the zlib 1.3.2 port.
+                - zi.reset() rejects such peers and keeps the window
+                  allocated; zi.clear() also frees it between messages
+                  (the memory saving the parameter exists for), at the
+                  cost of one allocation per message.
+                - Most implementations reset; Chromium, Firefox and a few
+                  libraries keep it. No known peer depends on keeping it.
+            */
+            // pmd_->zi.clear();
         }
     }
 
@@ -285,13 +302,20 @@ struct impl_base<true>
         {
             detail::pmd_normalize(pmd_config_);
             pmd_.reset(::new pmd_type);
+            /*  permessage-deflate allows a window of 8 bits (256 bytes),
+                which deflate does not support; zlib rejects it for raw
+                streams. Compress with a 9-bit window instead. This is
+                safe for the peer, because match distances never exceed
+                the window size minus 262, so a 256-byte inflate window
+                is never exceeded. The inflater keeps the negotiated size.
+            */
             if(role == role_type::client)
             {
                 pmd_->zi.reset(
                     pmd_config_.server_max_window_bits);
                 pmd_->zo.reset(
                     pmd_opts_.compLevel,
-                    pmd_config_.client_max_window_bits,
+                    (std::max)(pmd_config_.client_max_window_bits, 9),
                     pmd_opts_.memLevel,
                     zlib::Strategy::normal);
             }
@@ -301,7 +325,7 @@ struct impl_base<true>
                     pmd_config_.client_max_window_bits);
                 pmd_->zo.reset(
                     pmd_opts_.compLevel,
-                    pmd_config_.server_max_window_bits,
+                    (std::max)(pmd_config_.server_max_window_bits, 9),
                     pmd_opts_.memLevel,
                     zlib::Strategy::normal);
             }
