@@ -14,6 +14,7 @@
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <chrono>
 #include <random>
+#include <string>
 
 #include "zlib-1.3.2/zlib.h"
 
@@ -48,7 +49,8 @@ class inflate_stream_test : public beast::unit_test::suite
         {
             inflateEnd(&zs);
             zs = {};
-            const auto res = inflateInit2(&zs, windowBits);
+            // negative for a raw deflate stream
+            const auto res = inflateInit2(&zs, -windowBits);
             switch(res){
             case Z_OK:
                break;
@@ -191,7 +193,8 @@ public:
         int level,                  // 0=none, 1..9, -1=default
         int windowBits,             // 9..15
         int memLevel,               // 1..9 (8=default)
-        int strategy)               // e.g. Z_DEFAULT_STRATEGY
+        int strategy,               // e.g. Z_DEFAULT_STRATEGY
+        int flush = Z_FULL_FLUSH)   // e.g. Z_FINISH
     {
         int result;
         z_stream zs;
@@ -214,8 +217,8 @@ public:
         zs.avail_in = static_cast<uInt>(in.size());
         zs.next_out = (Bytef*)&out[0];
         zs.avail_out = static_cast<uInt>(out.size());
-        result = deflate(&zs, Z_FULL_FLUSH);
-        if(result != Z_OK)
+        result = deflate(&zs, flush);
+        if(result != (flush == Z_FINISH ? Z_STREAM_END : Z_OK))
             throw std::logic_error("deflate failed");
         out.resize(zs.total_out);
         deflateEnd(&zs);
@@ -269,6 +272,16 @@ public:
                 {
                     error_code ec;
                     is.write(zs, flush_, ec);
+                    if( ec == error::need_buffers &&
+                        (flush_ == Flush::block || flush_ == Flush::trees) &&
+                        zs.avail_in > 0 && zs.avail_out > 0)
+                    {
+                        // The call stopped at a block boundary that was
+                        // already in the bit buffer, so it consumed no
+                        // input and produced no output. zlib reports
+                        // Z_BUF_ERROR for this; the next call makes progress.
+                        continue;
+                    }
                     if( ec == error::need_buffers ||
                         ec == error::end_of_stream)
                     {
@@ -489,9 +502,6 @@ public:
             m(Beast{full, full}, check);
         }
 
-        // VFALCO Fails, but I'm unsure of what the correct
-        //        behavior of Z_TREES/Flush::trees is.
-#if 0
         {
             Matrix m{*this};
             auto const check = corpus2(10000);
@@ -500,15 +510,18 @@ public:
             m.strategy(Z_DEFAULT_STRATEGY);
             m(Beast{full, once, Flush::trees}, check);
         }
-#endif
 
-        check({0x63, 0x18, 0x05, 0x40, 0x0c, 0x00}, {}, 8,  3);
-        check({0xed, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x80,
+        // infcover.c "window wrap": 3 input bytes at a time, 256-byte window
+        BEAST_EXPECT(check({0x63, 0x18, 0x05, 0x40, 0x0c, 0x00},
+            error::end_of_stream, 8,  3).size() == 262);
+        // infcover.c "window end"
+        BEAST_EXPECT(check({0xed, 0xc0, 0x81, 0x00, 0x00, 0x00, 0x00, 0x80,
                0xa0, 0xfd, 0xa9, 0x17, 0xa9, 0x00, 0x00, 0x00,
                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-               0x00, 0x00, 0x00, 0x00, 0x00, 0x06}, {});
+               0x00, 0x00, 0x00, 0x00, 0x00, 0x06},
+            error::end_of_stream).size() == 33025);
     }
 
     std::string check(
@@ -517,26 +530,43 @@ public:
         std::size_t window_size = 15,
         std::size_t len = -1)
     {
-        std::string out(1024, 0);
+        std::string out;
         z_params zs;
         inflate_stream is;
         is.reset(static_cast<int>(window_size));
         boost::system::error_code ec;
 
-        zs.next_in = &*in.begin();
-        zs.next_out = &out[0];
-        zs.avail_in = (std::min)(in.size(), len);
-        zs.avail_out = out.size();
-
-        while (zs.avail_in > 0 && !ec)
+        // Offer at most `len` bytes per call, carrying unconsumed input
+        // forward, like inf() in zlib's test/infcover.c.
+        std::size_t pos = 0;
+        for(;;)
         {
+            char buf[1024];
+            zs.next_in = in.begin() + pos;
+            zs.avail_in = (std::min)(in.size() - pos, len);
+            zs.next_out = buf;
+            zs.avail_out = sizeof(buf);
             is.write(zs, Flush::sync, ec);
-            auto n = (std::min)(zs.avail_in, len);
-            zs.next_in = static_cast<char const*>(zs.next_in) + n;
-            zs.avail_in -= n;
+            pos = static_cast<std::size_t>(
+                static_cast<std::uint8_t const*>(zs.next_in) - in.begin());
+            out.append(buf, sizeof(buf) - zs.avail_out);
+            if(ec) // end_of_stream, an error, or need_buffers: no progress possible
+                break;
         }
 
         BEAST_EXPECT(ec == expected);
+        if(ec && ec != error::end_of_stream && ec != error::need_buffers)
+        {
+            // the error is reported again until the stream is reset
+            zs.next_in = &*in.begin();
+            zs.avail_in = in.size();
+            zs.next_out = &out[0];
+            zs.avail_out = out.size();
+            error_code again;
+            is.write(zs, Flush::sync, again);
+            BEAST_EXPECT(again == ec);
+            BEAST_EXPECT(zs.avail_in == in.size());
+        }
         return out;
     }
 
@@ -561,8 +591,8 @@ public:
         check({0x04, 0x80, 0x49, 0x92, 0x24, 0x49, 0x92, 0x24,
                0x71, 0xff, 0xff, 0x93, 0x11, 0x00},
             error::over_subscribed_length);
-        check({0x04, 0x80, 0x49, 0x92, 0x24, 0x0f, 0xb4, 0xff,
-               0xff, 0xc3, 0x84},
+        check({0x04, 0x80, 0x49, 0x92, 0x24, 0x49, 0x92, 0x24,
+               0x0f, 0xb4, 0xff, 0xff, 0xc3, 0x84},
             error::incomplete_length_set);
         check({0x04, 0xc0, 0x81, 0x08, 0x00, 0x00, 0x00, 0x00,
                0x20, 0x7f, 0xeb, 0x0b, 0x00, 0x00},
@@ -635,6 +665,472 @@ public:
     }
 
     void
+    testNullPointers(IDecompressor& d)
+    {
+        std::string out(16, '\0');
+        std::initializer_list<std::uint8_t> in = {0x03, 0x00};
+
+        d.init();
+        d.next_in(&*in.begin());
+        d.avail_in(in.size());
+        d.next_out(nullptr);
+        d.avail_out(out.size());
+        BEAST_EXPECT(d.write(Flush::sync) == error::stream_error);
+
+        d.init();
+        d.next_in(nullptr);
+        d.avail_in(in.size());
+        d.next_out(&out[0]);
+        d.avail_out(out.size());
+        BEAST_EXPECT(d.write(Flush::sync) == error::stream_error);
+
+        // a null input pointer is fine when there is no input
+        d.init();
+        d.next_in(nullptr);
+        d.avail_in(0);
+        d.next_out(&out[0]);
+        d.avail_out(out.size());
+        BEAST_EXPECT(d.write(Flush::sync) == error::need_buffers);
+    }
+
+    void
+    testErrorCodeCleared()
+    {
+        // a stale error in `ec` is cleared when the operation succeeds
+        std::string out(16, '\0');
+        std::initializer_list<std::uint8_t> in =
+            {0x00, 0x00, 0x00, 0xff, 0xff}; // empty non-final stored block
+        inflate_stream is;
+        z_params zp;
+        zp.next_in = &*in.begin();
+        zp.avail_in = in.size();
+        zp.next_out = &out[0];
+        zp.avail_out = out.size();
+
+        error_code ec = error::stream_error;
+        is.write(zp, Flush::sync, ec);
+        BEAST_EXPECT(! ec);
+        BEAST_EXPECT(zp.avail_in == 0);
+    }
+
+    void
+    testStickyError(IDecompressor& d)
+    {
+        /*  A data error is final: every later call returns the same
+            error and consumes no input, until the stream is reset.
+        */
+        std::string out(16, '\0');
+        std::initializer_list<std::uint8_t> bad = {0x06};        // reserved block type
+        std::initializer_list<std::uint8_t> good = {0x03, 0x00}; // empty final block
+
+        d.init();
+        d.next_in(&*bad.begin());
+        d.avail_in(bad.size());
+        d.next_out(&out[0]);
+        d.avail_out(out.size());
+        auto const ec = d.write(Flush::sync);
+        BEAST_EXPECT(ec && ec != error::need_buffers);
+        for(int i = 0; i < 2; ++i)
+        {
+            d.next_in(&*good.begin());
+            d.avail_in(good.size());
+            d.next_out(&out[0]);
+            d.avail_out(out.size());
+            BEAST_EXPECT(d.write(Flush::sync) == ec);
+            BEAST_EXPECT(d.avail_in() == good.size());
+        }
+
+        d.init();
+        d.next_in(&*good.begin());
+        d.avail_in(good.size());
+        d.next_out(&out[0]);
+        d.avail_out(out.size());
+        BEAST_EXPECT(d.write(Flush::sync) == error::end_of_stream);
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    // Parity with the reference zlib
+    //
+    //--------------------------------------------------------------------------
+
+    /*  The output of a decompressor is recorded byte for byte, along with
+        the result of every call, so that the two engines can be compared.
+    */
+    struct trace
+    {
+        std::string out;
+        std::string log;
+        bool finished = false;
+
+        bool
+        operator==(trace const& rhs) const
+        {
+            return out == rhs.out &&
+                log == rhs.log &&
+                finished == rhs.finished;
+        }
+    };
+
+    // Record the result of one call, with the bytes it consumed and produced
+    static
+    void
+    record(trace& t, error_code const& ec,
+        std::size_t consumed, std::size_t produced)
+    {
+        t.log += std::to_string(ec.value());
+        t.log += ':';
+        t.log += std::to_string(consumed);
+        t.log += ':';
+        t.log += std::to_string(produced);
+        t.log += ';';
+    }
+
+    /*  Decompress `in`, feeding `in_step` bytes per round and offering
+        `out_step` bytes of output space per call, using `flush` on every
+        call. A round calls write until its input is consumed and there
+        is room left in the output buffer, or until no progress is
+        possible. Flush::block and Flush::trees return early, so those
+        rounds keep calling until no progress is possible.
+    */
+    static
+    trace
+    drive(
+        IDecompressor& d,
+        string_view in,
+        std::size_t out_size,
+        std::size_t in_step,
+        std::size_t out_step,
+        Flush flush)
+    {
+        trace t;
+        std::string out(out_size + 1024, '\0');
+        std::size_t ip = 0;
+        std::size_t op = 0;
+        for(;;)
+        {
+            std::size_t left = (std::min)(in_step, in.size() - ip);
+            d.next_in(in.data() + ip);
+            d.avail_in(left);
+            for(int calls = 0;; ++calls)
+            {
+                std::size_t const m = (std::min)(out_step, out.size() - op);
+                if(m == 0 || calls > 100000)
+                {
+                    t.log += m == 0 ? "overflow;" : "stuck;";
+                    t.out = out.substr(0, op);
+                    return t;
+                }
+                d.next_out(&out[op]);
+                d.avail_out(m);
+                error_code const ec = d.write(flush);
+                std::size_t const produced = m - d.avail_out();
+                std::size_t const consumed = left - d.avail_in();
+                op += produced;
+                ip += consumed;
+                left = d.avail_in();
+                record(t, ec, consumed, produced);
+                if(ec == error::end_of_stream)
+                {
+                    t.finished = true;
+                    t.out = out.substr(0, op);
+                    return t;
+                }
+                if(ec == error::need_buffers)
+                    break; // more input is needed
+                if(ec)
+                {
+                    t.out = out.substr(0, op);
+                    return t;
+                }
+                if(left == 0 && d.avail_out() != 0 &&
+                    flush != Flush::block && flush != Flush::trees)
+                    break; // the round is complete
+            }
+            if(ip >= in.size())
+                break;
+        }
+        t.out = out.substr(0, op);
+        return t;
+    }
+
+    void
+    checkParity(
+        int level, int windowBits, int strategy, int zflush,
+        std::string const& check,
+        std::size_t in_step, std::size_t out_step, Flush flush)
+    {
+        auto const in = compress(check, level, windowBits, 8, strategy, zflush);
+        zlib_decompressor.init(windowBits);
+        auto const zt = drive(zlib_decompressor,
+            in, check.size(), in_step, out_step, flush);
+        beast_decompressor.init(windowBits);
+        auto const bt = drive(beast_decompressor,
+            in, check.size(), in_step, out_step, flush);
+        std::string what;
+        what += "level=" + std::to_string(level);
+        what += " windowBits=" + std::to_string(windowBits);
+        what += " strategy=" + std::to_string(strategy);
+        what += " zflush=" + std::to_string(zflush);
+        what += " size=" + std::to_string(check.size());
+        what += " in_step=" + std::to_string(in_step);
+        what += " out_step=" + std::to_string(out_step);
+        what += " flush=" + std::to_string(static_cast<int>(flush));
+        if(zflush == Z_FINISH)
+            BEAST_EXPECTS(zt.finished && zt.out == check, "zlib: " + what);
+        BEAST_EXPECTS(bt == zt, "beast: " + what);
+    }
+
+    void
+    testParity()
+    {
+        std::string const small = "Hello, world!";
+        auto const text = corpus1(1024);
+        auto const random = corpus2(1024);
+        auto const big = corpus1(70000);
+        auto const all = std::size_t(-1);
+        Flush const flushes[] = {
+            Flush::none, Flush::sync, Flush::block, Flush::trees};
+
+        for(int level : {0, 1, 6, 9})
+        for(int windowBits : {9, 15})
+        for(int strategy : {0, 2, 3, 4})
+        for(int zflush : {Z_FINISH, Z_FULL_FLUSH})
+        {
+            for(auto const* check : {&small, &text, &random})
+            {
+                // everything in one call
+                checkParity(level, windowBits, strategy, zflush,
+                    *check, all, all, Flush::sync);
+                for(auto flush : flushes)
+                {
+                    // one byte in, one byte out
+                    checkParity(level, windowBits, strategy, zflush,
+                        *check, 1, 1, flush);
+                    // small pieces both ways
+                    checkParity(level, windowBits, strategy, zflush,
+                        *check, 7, 5, flush);
+                    // everything in, tiny output buffer
+                    checkParity(level, windowBits, strategy, zflush,
+                        *check, all, 3, flush);
+                    // small pieces in, big output buffer
+                    checkParity(level, windowBits, strategy, zflush,
+                        *check, 64, 4096, flush);
+                }
+            }
+            checkParity(level, windowBits, strategy, zflush,
+                big, all, all, Flush::sync);
+            checkParity(level, windowBits, strategy, zflush,
+                big, 4096, 1000, Flush::none);
+        }
+    }
+
+    void
+    testFinalCodeInLastByte(IDecompressor& d)
+    {
+        /*  Five distinct 9-bit literals after the 3-bit block header fill
+            exactly six bytes, so the 7-bit end-of-block code lies entirely
+            within the last byte. The stream must decode completely when no
+            input follows it, which requires pulling input one byte at a
+            time rather than filling the bit buffer to the table width.
+        */
+        std::string const check = "\x90\x91\x92\x93\x94";
+        auto const in = compress(check, 6, 15, 8, Z_FIXED, Z_FINISH);
+        if(! BEAST_EXPECT(in.size() == 7))
+            return;
+        for(auto flush : {Flush::none, Flush::sync, Flush::finish})
+        {
+            std::string out(16, '\0');
+            d.init(15);
+            d.next_in(in.data());
+            d.avail_in(in.size());
+            d.next_out(&out[0]);
+            d.avail_out(out.size());
+            BEAST_EXPECT(d.write(flush) == error::end_of_stream);
+            BEAST_EXPECT(d.avail_in() == 0);
+            BEAST_EXPECT(out.substr(0, check.size()) == check);
+        }
+    }
+
+    void
+    testClear()
+    {
+        /*  clear() puts the stream in a newly constructed state, so a
+            stream abandoned halfway through, with the window and the
+            bit buffer in use, must decode another one from its first
+            byte. The window size is kept.
+        */
+        auto const check = corpus1(3000);
+        auto const in = compress(check, 6, 9, 8, Z_DEFAULT_STRATEGY, Z_FINISH);
+        std::string out(check.size(), '\0');
+        inflate_stream is;
+        is.reset(9);
+        {
+            z_params zs{};
+            zs.next_in = in.data();
+            zs.avail_in = in.size() / 2;
+            zs.next_out = &out[0];
+            zs.avail_out = out.size();
+            error_code ec;
+            is.write(zs, Flush::sync, ec);
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(zs.total_out > 0 && zs.total_out < check.size());
+        }
+        for(int i = 0; i < 2; ++i)
+        {
+            // the second round clears a completed stream
+            is.clear();
+            z_params zs{};
+            zs.next_in = in.data();
+            zs.avail_in = in.size();
+            zs.next_out = &out[0];
+            zs.avail_out = out.size();
+            error_code ec;
+            is.write(zs, Flush::finish, ec);
+            BEAST_EXPECT(ec == error::end_of_stream);
+            BEAST_EXPECT(zs.total_out == check.size());
+            BEAST_EXPECT(out == check);
+        }
+        {
+            // clear is harmless on a fresh stream
+            inflate_stream fresh;
+            fresh.clear();
+            z_params zs{};
+            zs.next_in = in.data();
+            zs.avail_in = in.size();
+            zs.next_out = &out[0];
+            zs.avail_out = out.size();
+            error_code ec;
+            fresh.write(zs, Flush::finish, ec);
+            BEAST_EXPECT(ec == error::end_of_stream);
+            BEAST_EXPECT(out == check);
+        }
+    }
+
+    void
+    testFastWindowWrap()
+    {
+        /*  A match decoded by the fast path whose source lies across the
+            physical end of the sliding window and then continues into the
+            output of the current call. The stream is one fixed Huffman
+            block: 514 literals with 8-bit codes, a match of 258 bytes at
+            distance 3, eight more literals, end of block. With a 512-byte
+            window written in two calls of 300 and 214 bytes, the write
+            index is 2 after the literals: the two newest bytes sit at the
+            start of the window. The match then takes one byte from the end
+            of the window, those two bytes, and the rest from what it has
+            just produced.
+        */
+        struct bits
+        {
+            std::string out;
+            unsigned buf = 0;
+            unsigned n = 0;
+
+            // extra bits and header fields go least significant bit first
+            void put(unsigned value, unsigned len)
+            {
+                buf |= value << n;
+                n += len;
+                while(n >= 8)
+                {
+                    out.push_back(static_cast<char>(buf & 0xff));
+                    buf >>= 8;
+                    n -= 8;
+                }
+            }
+
+            // Huffman codes go most significant bit first
+            void code(unsigned c, unsigned len)
+            {
+                unsigned r = 0;
+                for(unsigned i = 0; i < len; ++i)
+                    r = (r << 1) | ((c >> i) & 1);
+                put(r, len);
+            }
+
+            void finish()
+            {
+                if(n)
+                    put(0, 8 - n);
+            }
+        };
+        bits b;
+        std::string check;
+        b.put(1, 1); // final block
+        b.put(1, 2); // fixed Huffman codes
+        for(unsigned i = 0; i < 514; ++i)
+        {
+            // literals 0..143 have 8-bit codes 0x30..0xbf
+            auto const v = (i * 7) % 144;
+            check.push_back(static_cast<char>(v));
+            b.code(0x30 + v, 8);
+        }
+        b.code(0xc5, 8); // length code 285: 258 bytes
+        b.code(2, 5);    // distance code 2: distance 3
+        for(unsigned i = 0; i < 258; ++i)
+            check.push_back(check[check.size() - 3]);
+        for(unsigned i = 0; i < 8; ++i)
+        {
+            auto const v = 100 + i;
+            check.push_back(static_cast<char>(v));
+            b.code(0x30 + v, 8);
+        }
+        b.code(0, 7); // end of block
+        b.finish();
+        auto const& in = b.out;
+        // 3 + 514*8 + 8 + 5 + 8*8 + 7 bits: the match code starts
+        // three bits into byte 514 and ends in byte 515
+        if(! BEAST_EXPECT(in.size() == 525))
+            return;
+
+        // the reference decoder accepts the stream
+        {
+            std::string zout(check.size(), '\0');
+            zlib_decompressor.init(9);
+            zlib_decompressor.next_in(in.data());
+            zlib_decompressor.avail_in(in.size());
+            zlib_decompressor.next_out(&zout[0]);
+            zlib_decompressor.avail_out(zout.size());
+            BEAST_EXPECT(zlib_decompressor.write(Flush::finish) ==
+                error::end_of_stream);
+            BEAST_EXPECT(zout == check);
+        }
+
+        inflate_stream is;
+        is.reset(9);
+        std::string out(check.size(), '\0');
+        z_params zs{};
+        error_code ec;
+
+        // 300 literals, limited by the output space
+        zs.next_in = in.data();
+        zs.avail_in = 515;
+        zs.next_out = &out[0];
+        zs.avail_out = 300;
+        is.write(zs, Flush::none, ec);
+        BEAST_EXPECT(! ec);
+        BEAST_EXPECT(zs.avail_out == 0);
+
+        // the other 214 literals, limited by the input: the five
+        // available bits of the match code cannot be decoded yet
+        zs.next_out = &out[300];
+        zs.avail_out = out.size() - 300;
+        is.write(zs, Flush::none, ec);
+        BEAST_EXPECT(! ec);
+        BEAST_EXPECT(zs.avail_in == 0);
+        BEAST_EXPECT(zs.total_out == 514);
+
+        // the match is the first code the fast path decodes
+        zs.next_in = in.data() + 515;
+        zs.avail_in = in.size() - 515;
+        is.write(zs, Flush::finish, ec);
+        BEAST_EXPECT(ec == error::end_of_stream);
+        BEAST_EXPECT(zs.total_out == check.size());
+        BEAST_EXPECT(out == check);
+    }
+
+    void
     run() override
     {
         testInflate(zlib_decompressor);
@@ -647,6 +1143,16 @@ public:
         testFixedHuffmanFlushTrees(beast_decompressor);
         testUncompressedFlushTrees(zlib_decompressor);
         testUncompressedFlushTrees(beast_decompressor);
+        testNullPointers(zlib_decompressor);
+        testNullPointers(beast_decompressor);
+        testStickyError(zlib_decompressor);
+        testStickyError(beast_decompressor);
+        testErrorCodeCleared();
+        testFinalCodeInLastByte(zlib_decompressor);
+        testFinalCodeInLastByte(beast_decompressor);
+        testClear();
+        testFastWindowWrap();
+        testParity();
     }
 };
 

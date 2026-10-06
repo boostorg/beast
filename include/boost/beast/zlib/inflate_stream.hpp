@@ -8,7 +8,7 @@
 //
 // This is a derivative work based on Zlib, copyright below:
 /*
-    Copyright (C) 1995-2022 Jean-loup Gailly and Mark Adler
+    Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -203,7 +203,9 @@ public:
         `zs.next_out` was null), `error::need_buffers` if no progress is possible or
         if there was not enough room in the output buffer when `Flush::finish` is
         used. Note that `error::need_buffers` is not fatal, and `write` can be called
-        again with more input and more output space to continue decompressing.
+        again with more input and more output space to continue decompressing. If
+        the input data was corrupted, the error is returned again on every later
+        call until the stream is reset.
     */
     void
     write(z_params& zs, Flush flush, error_code& ec)
