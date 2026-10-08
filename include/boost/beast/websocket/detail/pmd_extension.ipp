@@ -235,12 +235,9 @@ pmd_negotiate_impl(
             o.server_max_window_bits;
     if(config.server_max_window_bits < 15)
     {
-        // ZLib's deflateInit silently treats 8 as
-        // 9 due to a bug, so prevent 8 from being used.
-        //
-        if(config.server_max_window_bits < 9)
-            config.server_max_window_bits = 9;
-
+        // RFC 7692 7.1.2.1: the response value must not exceed the
+        // offer. 8 is honored by compressing with a 9-bit window,
+        // see open_pmd.
         s += "; server_max_window_bits=";
         s += to_static_string(
             config.server_max_window_bits);

@@ -9,6 +9,7 @@ Version 362:
 * `zlib::deflate_stream` uses `memLevel` 8 by default
 * `zlib::inflate_stream::write` returns `error::stream_error` for null buffer pointers
 * `zlib::inflate_stream::write` errors from corrupt input are sticky until the stream is reset
+* `websocket::stream` answers a permessage-deflate `server_max_window_bits=8` offer with 8 instead of 9
 
 --------------------------------------------------------------------------------
 
