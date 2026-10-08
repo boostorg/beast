@@ -509,10 +509,10 @@ public:
             "permessage-deflate; server_max_window_bits=15",
             "permessage-deflate");
 
-        // minimum window size of 8 bits (a zlib bug)
+        // minimum window size of 8 bits
         accept(
             "permessage-deflate; server_max_window_bits=8",
-            "permessage-deflate; server_max_window_bits=9");
+            "permessage-deflate; server_max_window_bits=8");
 
         // non-default server_max_window_bits setting
         pmd.server_max_window_bits = 10;
@@ -520,17 +520,11 @@ public:
             "permessage-deflate",
             "permessage-deflate; server_max_window_bits=10");
 
-        // clamped server_max_window_bits setting #1
+        // clamped server_max_window_bits setting
         pmd.server_max_window_bits = 10;
         accept(
             "permessage-deflate; server_max_window_bits=14",
             "permessage-deflate; server_max_window_bits=10");
-
-        // clamped server_max_window_bits setting #2
-        pmd.server_max_window_bits=8;
-        accept(
-            "permessage-deflate; server_max_window_bits=14",
-            "permessage-deflate; server_max_window_bits=9");
 
         pmd.server_max_window_bits = 15;
 
@@ -869,6 +863,65 @@ public:
         }
     }
 
+    void
+    testIssue3119()
+    {
+        // server_max_window_bits=8 is answered with 8, and the
+        // server's output fits a 256-byte inflate window.
+        net::io_context ioc;
+        stream<test::stream> wsc{ioc};
+        stream<test::stream> wss{ioc};
+        wsc.next_layer().connect(wss.next_layer());
+
+        permessage_deflate pmd;
+        pmd.client_enable = true;
+        pmd.server_enable = true;
+        wsc.set_option(pmd);
+        wss.set_option(pmd);
+
+        // permessage_deflate rejects 8, so offer it directly
+        wsc.set_option(stream_base::decorator(
+            [](request_type& req)
+            {
+                req.set(http::field::sec_websocket_extensions,
+                    "permessage-deflate; server_max_window_bits=8");
+            }));
+
+        response_type res;
+        wsc.async_handshake(res, "localhost", "/", test::success_handler());
+        wss.async_accept(test::success_handler());
+        ioc.run();
+
+        BEAST_EXPECT(res[http::field::sec_websocket_extensions] ==
+            "permessage-deflate; server_max_window_bits=8");
+        permessage_deflate_status status;
+        wss.get_status(status);
+        BEAST_EXPECT(status.active && status.server_window_bits == 8);
+        wsc.get_status(status);
+        BEAST_EXPECT(status.active && status.server_window_bits == 8);
+
+        // Repeats 300 bytes apart are out of reach of a 9-bit
+        // deflate window, whose longest distance is 250, but a
+        // 10-bit one would match across them, farther back than
+        // a 256-byte inflate window can follow.
+        std::string const block = random_string().substr(0, 300);
+        std::string s;
+        for(int i = 0; i < 16; ++i)
+            s += block;
+        wss.binary(true);
+        wss.write(net::buffer(s));
+
+        // Inflating one byte at a time resolves every match
+        // through the 256-byte window.
+        std::string got;
+        do
+        {
+            char c;
+            got.append(&c, wsc.read_some(net::buffer(&c, 1)));
+        }
+        while(! wsc.is_message_done());
+        BEAST_EXPECT(got == s);
+    }
 
     void
     run() override
@@ -884,6 +937,7 @@ public:
         boost::ignore_unused(&handshake_test::testAwaitableCompiles);
 #endif
         testIssue2364();
+        testIssue3119();
     }
 };
 
