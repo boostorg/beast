@@ -285,26 +285,39 @@ next(error_code& ec, Visit&& visit)
 
 template<
     bool isRequest, class Body, class Fields>
-void
+std::size_t
 serializer<isRequest, Body, Fields>::
 consume(std::size_t n)
 {
+    std::size_t consumed = 0u;
     switch(s_)
     {
     case do_header:
+    {
         BOOST_ASSERT(
             n <= buffer_bytes(v_.template get<2>()));
-        v_.template get<2>().consume(n);
-        if(buffer_bytes(v_.template get<2>()) > 0)
+        cb2_t & cb = v_.template get<2>();
+
+        const std::size_t pre_size = buffer_bytes(cb.buffer_sequence().template get<0u>());
+        const std::size_t skip = (std::max)(cb.skip(), pre_size); // the start of the consumed data
+        cb.consume(n);
+        if (cb.skip() > skip)
+          consumed += cb.skip() - skip;
+
+        if (cb.skip() > pre_size)
+          header_done_ = true;
+
+        if(buffer_bytes(cb) > 0)
             break;
-        header_done_ = true;
+
         v_.reset();
         if(! more_)
             goto go_complete;
         s_ = do_body + 1;
         break;
-
+    }
     case do_header_only:
+    {
         BOOST_ASSERT(
             n <= buffer_bytes(v_.template get<1>()));
         v_.template get<1>().consume(n);
@@ -316,12 +329,13 @@ consume(std::size_t n)
             goto go_complete;
         s_ = do_body;
         break;
-
+    }
     case do_body + 2:
     {
         BOOST_ASSERT(
             n <= buffer_bytes(v_.template get<3>()));
         v_.template get<3>().consume(n);
+        consumed = n;
         if(buffer_bytes(v_.template get<3>()) > 0)
             break;
         v_.reset();
@@ -330,23 +344,43 @@ consume(std::size_t n)
         s_ = do_body + 1;
         break;
     }
-
     //----------------------------------------------------------------------
 
     case do_header_c:
+    {
         BOOST_ASSERT(
             n <= buffer_bytes(v_.template get<4>()));
-        v_.template get<4>().consume(n);
-        if(buffer_bytes(v_.template get<4>()) > 0)
+
+        cb4_t& cb = v_.template get<4>();
+        const typename cb4_t::sequence_type & bs = cb.buffer_sequence();
+
+        const std::size_t prefix = buffer_bytes(bs.template get<0>())
+                                 + buffer_bytes(bs.template get<1>())
+                                 + buffer_bytes(bs.template get<2>())
+                                 + buffer_bytes(bs.template get<3>());
+
+        const std::size_t suffix = buffer_bytes(bs.template get<5>());
+        const std::size_t skip = (std::max)(cb.skip(), prefix);
+
+        cb.consume(n);
+
+        const std::size_t consume_end = (std::min)(buffer_bytes(bs) - suffix, cb.skip());
+
+        if (cb.skip() > skip)
+            consumed += consume_end - skip;
+
+        if (cb.skip() >= buffer_bytes(bs.template get<0>()))
+            header_done_ = true;
+
+        if(buffer_bytes(cb) > 0)
             break;
-        header_done_ = true;
         v_.reset();
         if(more_)
             s_ = do_body_c + 1;
         else
             s_ = do_final_c;
         break;
-
+    }
     case do_header_only_c:
     {
         BOOST_ASSERT(
@@ -366,10 +400,27 @@ consume(std::size_t n)
     }
 
     case do_body_c + 2:
+    {
         BOOST_ASSERT(
             n <= buffer_bytes(v_.template get<5>()));
-        v_.template get<5>().consume(n);
-        if(buffer_bytes(v_.template get<5>()) > 0)
+
+        cb5_t& cb = v_.template get<5>();
+        const typename cb5_t::sequence_type & bs = cb.buffer_sequence();
+
+        const std::size_t prefix = buffer_bytes(bs.template get<0>())
+                                 + buffer_bytes(bs.template get<1>())
+                                 + buffer_bytes(bs.template get<2>());
+
+        const std::size_t suffix = buffer_bytes(bs.template get<4>());
+        const std::size_t skip = (std::max)(cb.skip(), prefix);
+
+        cb.consume(n);
+
+        const std::size_t consume_end = (std::min)({buffer_bytes(bs), suffix, cb.skip()});
+        if (cb.skip() > skip)
+            consumed += consume_end - skip;
+
+        if(buffer_bytes(cb) > 0)
             break;
         v_.reset();
         if(more_)
@@ -378,12 +429,33 @@ consume(std::size_t n)
             s_ = do_final_c;
         break;
 
+    }
     case do_body_final_c:
     {
         BOOST_ASSERT(
             n <= buffer_bytes(v_.template get<6>()));
-        v_.template get<6>().consume(n);
-        if(buffer_bytes(v_.template get<6>()) > 0)
+
+        cb6_t& cb = v_.template get<6>();
+        const typename cb6_t::sequence_type & bs = cb.buffer_sequence();
+
+        const std::size_t prefix = buffer_bytes(bs.template get<0>())
+                                 + buffer_bytes(bs.template get<1>())
+                                 + buffer_bytes(bs.template get<2>());
+
+        const std::size_t suffix = buffer_bytes(bs.template get<4>())
+                                 + buffer_bytes(bs.template get<5>())
+                                 + buffer_bytes(bs.template get<6>())
+                                 + buffer_bytes(bs.template get<7>());
+
+        const std::size_t skip = (std::max)(cb.skip(), prefix);
+
+        cb.consume(n);
+
+        const std::size_t consume_end = (std::min)({buffer_bytes(bs), suffix, cb.skip()});
+        if (cb.skip() > skip)
+            consumed += consume_end - skip;
+
+        if(buffer_bytes(cb) > 0)
             break;
         v_.reset();
         s_ = do_complete;
@@ -394,10 +466,34 @@ consume(std::size_t n)
     {
         BOOST_ASSERT(
             n <= buffer_bytes(v_.template get<7>()));
-        v_.template get<7>().consume(n);
-        if(buffer_bytes(v_.template get<7>()) > 0)
+
+        cb7_t& cb = v_.template get<7>();
+        const typename cb7_t::sequence_type & bs = cb.buffer_sequence();
+
+        const std::size_t prefix = buffer_bytes(bs.template get<0>())
+                                 + buffer_bytes(bs.template get<1>())
+                                 + buffer_bytes(bs.template get<2>())
+                                 + buffer_bytes(bs.template get<3>());
+
+        const std::size_t suffix = buffer_bytes(bs.template get<5>())
+                                 + buffer_bytes(bs.template get<6>())
+                                 + buffer_bytes(bs.template get<7>())
+                                 + buffer_bytes(bs.template get<8>());
+
+        const std::size_t skip = (std::max)(cb.skip(), prefix);
+
+        cb.consume(n);
+
+        const std::size_t consume_end = (std::min)({buffer_bytes(bs), suffix, cb.skip()});
+        if (cb.skip() > skip)
+            consumed += consume_end - skip;
+
+        if (cb.skip() >= buffer_bytes(bs.template get<0>()))
+            header_done_ = true;
+
+        if(buffer_bytes(cb) > 0)
             break;
-        header_done_ = true;
+
         v_.reset();
         s_ = do_complete;
         break;
@@ -422,6 +518,7 @@ consume(std::size_t n)
         s_ = do_complete;
         break;
     }
+    return consumed;
 }
 
 } // http
