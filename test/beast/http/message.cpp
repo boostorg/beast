@@ -87,23 +87,23 @@ public:
         >::value);
 
     //BOOST_CORE_STATIC_ASSERT(! std::is_constructible<request<one_arg_body>,
-    //    verb, string_view, unsigned>::value);
+    //    verb, core::string_view, unsigned>::value);
 
     BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
-        verb, string_view, unsigned, Arg1>::value);
+        verb, core::string_view, unsigned, Arg1>::value);
 
     BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
-        verb, string_view, unsigned, Arg1&&>::value);
+        verb, core::string_view, unsigned, Arg1&&>::value);
 
     BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
-        verb, string_view, unsigned, Arg1 const>::value);
+        verb, core::string_view, unsigned, Arg1 const>::value);
 
     BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
-        verb, string_view, unsigned, Arg1 const&>::value);
+        verb, core::string_view, unsigned, Arg1 const&>::value);
 
     // 1-arg + fields
     BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>,
-        verb, string_view, unsigned, Arg1, fields::allocator_type>::value);
+        verb, core::string_view, unsigned, Arg1, fields::allocator_type>::value);
 
     BOOST_CORE_STATIC_ASSERT(std::is_constructible<request<one_arg_body>, std::piecewise_construct_t,
             std::tuple<Arg1>>::value);
@@ -198,15 +198,15 @@ public:
 
         test_fields() = delete;
         test_fields(token) {}
-        string_view get_method_impl() const { return {}; }
-        string_view get_target_impl() const { return target; }
-        string_view get_reason_impl() const { return {}; }
+        core::string_view get_method_impl() const { return {}; }
+        core::string_view get_target_impl() const { return target; }
+        core::string_view get_reason_impl() const { return {}; }
         bool get_chunked_impl() const { return false; }
         bool get_keep_alive_impl(unsigned) const { return true; }
         bool has_content_length_impl() const { return false; }
-        void set_method_impl(string_view) {}
-        void set_target_impl(string_view s) { target = std::string(s); }
-        void set_reason_impl(string_view) {}
+        void set_method_impl(core::string_view) {}
+        void set_target_impl(core::string_view s) { target = std::string(s); }
+        void set_reason_impl(core::string_view) {}
         void set_chunked_impl(bool) {}
         void set_content_length_impl(boost::optional<std::uint64_t>) {}
         void set_keep_alive_impl(unsigned, bool) {}
@@ -352,7 +352,7 @@ public:
                 BEAST_EXPECT(h.method_string() == to_string(v));
             };
         auto const scheck =
-            [&](string_view s)
+            [&](core::string_view s)
             {
                 h.method_string(s);
                 BEAST_EXPECT(h.method() == string_to_verb(s));

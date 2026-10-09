@@ -58,6 +58,12 @@ namespace net = boost::asio;
 #define BOOST_BEAST_DEPRECATION_STRING \
     "This is a deprecated interface, #define BOOST_BEAST_ALLOW_DEPRECATED to allow it"
 
+#if defined(_MSC_VER) && ! defined(__clang__)
+#define BOOST_BEAST_DEPRECATED(msg)
+#else
+#define BOOST_BEAST_DEPRECATED(msg) BOOST_DEPRECATED(msg)
+#endif
+
 #ifndef BOOST_BEAST_ASSUME
 # ifdef BOOST_GCC
 #  define BOOST_BEAST_ASSUME(cond) \

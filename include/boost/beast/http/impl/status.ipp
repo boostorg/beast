@@ -127,7 +127,7 @@ to_status_class(status v)
     return to_status_class(static_cast<int>(v));
 }
 
-string_view
+core::string_view
 obsolete_reason(status v)
 {
     switch(static_cast<status>(v))

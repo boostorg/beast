@@ -167,7 +167,7 @@ struct test_acceptor
 
 class test_server
 {
-    string_view s_;
+    core::string_view s_;
     std::ostream& log_;
     net::io_context ioc_;
     net::ip::tcp::acceptor acceptor_;
@@ -175,7 +175,7 @@ class test_server
     std::thread t_;
 
     void
-    fail(error_code const& ec, string_view what)
+    fail(error_code const& ec, core::string_view what)
     {
         if(ec != net::error::operation_aborted)
             log_ << what << ": " << ec.message() << "\n";
@@ -183,7 +183,7 @@ class test_server
 
 public:
     test_server(
-        string_view s,
+        core::string_view s,
         net::ip::tcp::endpoint ep,
         std::ostream& log)
         : s_(s)
@@ -253,12 +253,12 @@ private:
     class session
         : public std::enable_shared_from_this<session>
     {
-        string_view s_;
+        core::string_view s_;
         net::ip::tcp::socket socket_;
 
     public:
         session(
-            string_view s,
+            core::string_view s,
             net::ip::tcp::socket sock,
             std::ostream&)
             : s_(s)

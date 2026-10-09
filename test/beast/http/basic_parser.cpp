@@ -213,7 +213,7 @@ public:
 
     template<class Parser, class Test>
     void
-    parsegrind(string_view msg, Test const& test, bool skip = false)
+    parsegrind(core::string_view msg, Test const& test, bool skip = false)
     {
         parsegrind<Parser>(net::const_buffer{
             msg.data(), msg.size()}, test, skip);
@@ -229,14 +229,14 @@ public:
 
     template<class Parser>
     void
-    parsegrind(string_view msg)
+    parsegrind(core::string_view msg)
     {
         parsegrind<Parser>(msg, [](Parser const&){});
     }
 
     template<class Parser>
     void
-    failgrind(string_view msg, error_code const& result)
+    failgrind(core::string_view msg, error_code const& result)
     {
         for(std::size_t i = 1; i < msg.size() - 1; ++i)
         {
@@ -321,7 +321,7 @@ public:
     testObsFold()
     {
         auto const check =
-            [&](std::string const& s, string_view value)
+            [&](std::string const& s, core::string_view value)
             {
                 std::string m =
                     "GET / HTTP/1.1\r\n"
@@ -1055,7 +1055,7 @@ public:
 
     static
     net::const_buffer
-    buf(string_view s)
+    buf(core::string_view s)
     {
         return {s.data(), s.size()};
     }
@@ -1258,7 +1258,7 @@ public:
         error_code ec;
         test_parser<true> p;
         p.eager(true);
-        string_view s =
+        core::string_view s =
             "GET / HTTP/1.1\r\n"
             "\r\n"
             "die!";
@@ -1295,7 +1295,7 @@ public:
         error_code ec;
         test_parser<false> p;
         p.eager(true);
-        string_view s =
+        core::string_view s =
             "HTTP/1.1 101 Switching Protocols\r\n"
             "Content-Length: 2147483648\r\n"
             "\r\n";
@@ -1312,12 +1312,12 @@ public:
     testFuzz()
     {
         auto const grind =
-        [&](string_view s)
+        [&](core::string_view s)
         {
             static_string<100> ss(s.data(), s.size());
             test::fuzz_rand r;
             test::fuzz(ss, 4, 5, r,
-            [&](string_view s)
+            [&](core::string_view s)
             {
                 error_code ec;
                 test_parser<false> p;
@@ -1327,7 +1327,7 @@ public:
             });
         };
         auto const good =
-        [&](string_view s)
+        [&](core::string_view s)
         {
             std::string msg =
                 "HTTP/1.1 200 OK\r\n"
@@ -1344,7 +1344,7 @@ public:
             grind(msg);
         };
         auto const bad =
-        [&](string_view s)
+        [&](core::string_view s)
         {
             std::string msg =
                 "HTTP/1.1 200 OK\r\n"
@@ -1400,7 +1400,7 @@ public:
     {
         using base = detail::basic_parser_base;
         auto const good =
-            [&](string_view s, std::uint32_t v0)
+            [&](core::string_view s, std::uint32_t v0)
             {
                 std::uint64_t v;
                 auto const result =
@@ -1409,7 +1409,7 @@ public:
                     BEAST_EXPECTS(v == v0, s);
             };
         auto const bad =
-            [&](string_view s)
+            [&](core::string_view s)
             {
                 std::uint64_t v;
                 auto const result =
@@ -1436,7 +1436,7 @@ public:
     {
         using base = detail::basic_parser_base;
         auto const good =
-            [&](string_view s, std::uint64_t v0)
+            [&](core::string_view s, std::uint64_t v0)
             {
                 std::uint64_t v;
                 auto it = s.data();
@@ -1446,7 +1446,7 @@ public:
                     BEAST_EXPECTS(v == v0, s);
             };
         auto const bad =
-            [&](string_view s)
+            [&](core::string_view s)
             {
                 std::uint64_t v;
                 auto it = s.data();
@@ -1631,7 +1631,7 @@ public:
 
     void testChunkedBodySize()
     {
-        string_view resp =
+        core::string_view resp =
             "HTTP/1.1 200 OK\r\n"
             "Server: test\r\n"
             "Transfer-Encoding: chunked\r\n"
@@ -1684,9 +1684,9 @@ public:
         // a quoted chunk-ext value is a quoted-string and may only hold
         // qdtext or a valid quoted-pair, see rfc7230 section 4.1.1
         auto const ce =
-            [&](string_view chunk, error_code expected)
+            [&](core::string_view chunk, error_code expected)
             {
-                string_view const hdr =
+                core::string_view const hdr =
                     "POST / HTTP/1.1\r\n"
                     "Transfer-Encoding: chunked\r\n"
                     "\r\n";

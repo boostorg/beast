@@ -255,7 +255,7 @@ public:
 
         // operations
         {
-            string_view const s = "Hello, world!";
+            core::string_view const s = "Hello, world!";
             flat_buffer b1{64};
             BEAST_EXPECT(b1.size() == 0);
             BEAST_EXPECT(b1.max_size() == 64);
