@@ -477,6 +477,26 @@ public:
             BEAST_THROWS(f.set("", big_value),                boost::system::system_error);
         }
 
+        // reject CR or LF in a field name or value (rfc7230 3.2)
+        {
+            fields f;
+            error_code ec;
+
+            f.insert(field::age, "a\r\nb", "1", ec);
+            BEAST_EXPECT(ec == error::bad_field);
+            f.insert(field::age, "age", "1\r\nInjected: x", ec);
+            BEAST_EXPECT(ec == error::bad_value);
+            f.insert(field::age, "age", "1\ntwo", ec);
+            BEAST_EXPECT(ec == error::bad_value);
+            f.insert(field::age, "age", "1\rtwo", ec);
+            BEAST_EXPECT(ec == error::bad_value);
+
+            BEAST_THROWS(f.set(field::location, "/\r\nSet-Cookie: x"),
+                boost::system::system_error);
+            BEAST_THROWS(f.set("X\r\nY", "1"),  boost::system::system_error);
+            BEAST_THROWS(f.insert("X", "1\r\n2"), boost::system::system_error);
+        }
+
         {
             fields f;
             BEAST_EXPECT(! f.contains("Content-Type"));
