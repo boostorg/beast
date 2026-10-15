@@ -227,13 +227,68 @@ struct impl_base<true>
 
     void
     on_response_pmd(
-        http::response<http::string_body> const& res)
+        http::response<http::string_body> const& res,
+        error_code& ec)
     {
-        detail::pmd_offer offer;
-        detail::pmd_read(offer, res);
-        // VFALCO see if offer satisfies pmd_config_,
-        //        return an error if not.
-        pmd_config_ = offer; // overwrite for now
+        detail::pmd_offer const& offer = pmd_config_;
+        detail::pmd_offer agreed;
+        detail::pmd_read(agreed, res);
+
+        if(agreed.accept)
+        {
+            // RFC 7692 §5: a server must not accept a compression extension
+            // that the client did not offer.
+            if(! offer.accept)
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
+                return;
+            }
+
+            // RFC 7692 §7.1.2.1: server_max_window_bits limits the window
+            // used to compress server-to-client messages. When the offer
+            // specifies a limit, the server must not exceed it. An omitted
+            // response parameter implies the default 15-bit (32 KiB) window.
+            if(offer.server_max_window_bits > 0)
+            {
+                int const server_bits =
+                    agreed.server_max_window_bits == 0 ?
+                        15 : agreed.server_max_window_bits;
+                if(server_bits > offer.server_max_window_bits)
+                {
+                    BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
+                    return;
+                }
+            }
+
+            // RFC 7692 §7.1.2.2: client_max_window_bits must have a value
+            // in the server's response, a bare parameter is invalid.
+            if(agreed.client_max_window_bits == -1)
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
+                return;
+            }
+
+            // RFC 7692 §7.1.2.2: the server must not return
+            // client_max_window_bits unless the client offered that parameter.
+            if( offer.client_max_window_bits == 0 &&
+                agreed.client_max_window_bits != 0)
+            {
+                BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
+                return;
+            }
+
+            // RFC 7692 7.1.2.2: the server may select a smaller client
+            // window than offered. If omitted, or larger than the offer,
+            // use the offered limit as the effective value.
+            if(offer.client_max_window_bits > 0)
+            {
+                if( agreed.client_max_window_bits == 0 ||
+                    agreed.client_max_window_bits > offer.client_max_window_bits)
+                    agreed.client_max_window_bits = offer.client_max_window_bits;
+            }
+        }
+
+        pmd_config_ = agreed;
     }
 
     template<class Allocator>
@@ -458,7 +513,8 @@ struct impl_base<false>
 
     void
     on_response_pmd(
-        http::response<http::string_body> const&)
+        http::response<http::string_body> const&,
+        error_code&)
     {
     }
 

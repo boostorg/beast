@@ -140,6 +140,12 @@ enum class error
     */
     upgrade_declined,
 
+    /** The WebSocket handshake Sec-WebSocket-Extensions field is invalid
+
+        Error codes with this value will compare equal to @ref condition::handshake_failed
+    */
+    bad_sec_extensions,
+
     //
     // Protocol errors
     //
