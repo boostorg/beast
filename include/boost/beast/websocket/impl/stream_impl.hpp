@@ -686,7 +686,9 @@ on_response(
     }
 
     ec = {};
-    this->on_response_pmd(res);
+    this->on_response_pmd(res, ec);
+    if(ec)
+        return;
     this->open(role_type::client);
 }
 

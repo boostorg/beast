@@ -75,6 +75,7 @@ public:
         check(condition::handshake_failed, error::no_sec_accept);
         check(condition::handshake_failed, error::bad_sec_accept);
         check(condition::handshake_failed, error::upgrade_declined);
+        check(condition::handshake_failed, error::bad_sec_extensions);
     }
 };
 
