@@ -685,7 +685,6 @@ on_response(
             return err(error::bad_sec_accept);
     }
 
-    ec = {};
     this->on_response_pmd(res, ec);
     if(ec)
         return;

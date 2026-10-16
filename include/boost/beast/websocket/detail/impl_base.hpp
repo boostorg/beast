@@ -232,7 +232,9 @@ struct impl_base<true>
     {
         detail::pmd_offer const& offer = pmd_config_;
         detail::pmd_offer agreed;
-        detail::pmd_read(agreed, res);
+        detail::pmd_read(agreed, res, ec);
+        if(ec)
+            return;
 
         if(agreed.accept)
         {
@@ -514,8 +516,9 @@ struct impl_base<false>
     void
     on_response_pmd(
         http::response<http::string_body> const&,
-        error_code&)
+        error_code& ec)
     {
+        ec = {};
     }
 
     template<class Allocator>

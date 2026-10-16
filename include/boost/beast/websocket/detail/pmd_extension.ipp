@@ -42,7 +42,10 @@ parse_bits(string_view s)
 // Parse permessage-deflate request fields
 //
 void
-pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
+pmd_read_impl(
+    pmd_offer& offer,
+    http::ext_list const& list,
+    error_code& ec)
 {
     offer.accept = false;
     offer.server_max_window_bits= 0;
@@ -64,6 +67,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         // The negotiation offer contains multiple
                         // extension parameters with the same name.
                         //
+                        BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                         return; // MUST decline
                     }
                     if(param.second.empty())
@@ -71,6 +75,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         // The negotiation offer extension
                         // parameter is missing the value.
                         //
+                        BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                         return; // MUST decline
                     }
                     offer.server_max_window_bits =
@@ -81,6 +86,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         // The negotiation offer contains an
                         // extension parameter with an invalid value.
                         //
+                        BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                         return; // MUST decline
                     }
                 }
@@ -92,6 +98,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         // The negotiation offer contains multiple
                         // extension parameters with the same name.
                         //
+                        BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                         return; // MUST decline
                     }
                     if(! param.second.empty())
@@ -104,6 +111,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                             // The negotiation offer contains an
                             // extension parameter with an invalid value.
                             //
+                            BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                             return; // MUST decline
                         }
                     }
@@ -120,6 +128,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         // The negotiation offer contains multiple
                         // extension parameters with the same name.
                         //
+                        BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                         return; // MUST decline
                     }
                     if(! param.second.empty())
@@ -127,6 +136,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         // The negotiation offer contains an
                         // extension parameter with an invalid value.
                         //
+                        BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                         return; // MUST decline
                     }
                     offer.server_no_context_takeover = true;
@@ -139,6 +149,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         // The negotiation offer contains multiple
                         // extension parameters with the same name.
                         //
+                        BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                         return; // MUST decline
                     }
                     if(! param.second.empty())
@@ -146,6 +157,7 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                         // The negotiation offer contains an
                         // extension parameter with an invalid value.
                         //
+                        BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                         return; // MUST decline
                     }
                     offer.client_no_context_takeover = true;
@@ -155,13 +167,16 @@ pmd_read_impl(pmd_offer& offer, http::ext_list const& list)
                     // The negotiation offer contains an extension
                     // parameter not defined for use in an offer.
                     //
+                    BOOST_BEAST_ASSIGN_EC(ec, error::bad_sec_extensions);
                     return; // MUST decline
                 }
             }
+            ec = {};
             offer.accept = true;
             return;
         }
     }
+    ec = {};
 }
 
 static_string<512>
