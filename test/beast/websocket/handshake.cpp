@@ -397,8 +397,8 @@ public:
 
     // The client must validate the server's permessage-deflate response
     // against its own offer: reject a sliding window larger than offered, a
-    // response-invalid parameter form, or an extension it never offered
-    // (rfc6455 4.1 step 5, rfc7692 5/7.1.2.1/7.1.2.2).
+    // response-invalid parameter form, an extension it never offered, or a
+    // malformed response (rfc6455 4.1 step 5, rfc7692 5/7/7.1.2.1/7.1.2.2).
     void
     testExtResponseWindow()
     {
@@ -506,6 +506,35 @@ public:
             "permessage-deflate; server_max_window_bits=10;"
             " client_max_window_bits=10"));
         BEAST_EXPECT(status.server_window_bits == 10);
+        BEAST_EXPECT(status.client_window_bits == 10);
+
+        // a malformed accepting response: a parameter with an invalid
+        // value, a duplicate parameter, or a parameter not defined for
+        // use in a response -> reject (rfc7692 7)
+        BEAST_EXPECT(handshake_with(15, 15,
+            "permessage-deflate; server_max_window_bits=16") ==
+                error::bad_sec_extensions);
+        BEAST_EXPECT(handshake_with(10, 15,
+            "permessage-deflate; server_max_window_bits") ==
+                error::bad_sec_extensions);
+        BEAST_EXPECT(handshake_with(15, 15,
+            "permessage-deflate; client_max_window_bits=7") ==
+                error::bad_sec_extensions);
+        BEAST_EXPECT(handshake_with(10, 15,
+            "permessage-deflate; server_max_window_bits=10;"
+            " server_max_window_bits=10") ==
+                error::bad_sec_extensions);
+        BEAST_EXPECT(handshake_with(15, 15,
+            "permessage-deflate; server_no_context_takeover=1") ==
+                error::bad_sec_extensions);
+        BEAST_EXPECT(handshake_with(15, 15,
+            "permessage-deflate; unknown=1") ==
+                error::bad_sec_extensions);
+
+        // a quoted value is valid (rfc7692 5.2) -> accept
+        BEAST_EXPECT(! handshake_with(10, 10,
+            "permessage-deflate; server_max_window_bits=\"10\";"
+            " client_max_window_bits=\"10\""));
         BEAST_EXPECT(status.client_window_bits == 10);
     }
 

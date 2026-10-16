@@ -11,6 +11,7 @@
 #define BOOST_BEAST_WEBSOCKET_DETAIL_PMD_EXTENSION_HPP
 
 #include <boost/beast/core/error.hpp>
+#include <boost/beast/websocket/error.hpp>
 #include <boost/beast/websocket/option.hpp>
 #include <boost/beast/http/rfc7230.hpp>
 #include <utility>
@@ -49,7 +50,10 @@ parse_bits(string_view s);
 
 BOOST_BEAST_DECL
 void
-pmd_read_impl(pmd_offer& offer, http::ext_list const& list);
+pmd_read_impl(
+    pmd_offer& offer,
+    http::ext_list const& list,
+    error_code& ec);
 
 BOOST_BEAST_DECL
 static_string<512>
@@ -62,16 +66,28 @@ pmd_negotiate_impl(
     pmd_offer const& offer,
     permessage_deflate const& o);
 
-// Parse permessage-deflate request fields
+// Parse permessage-deflate fields
+//
+template<class Allocator>
+void
+pmd_read(pmd_offer& offer,
+    http::basic_fields<Allocator> const& fields,
+    error_code& ec)
+{
+    http::ext_list list{
+        fields[http::field::sec_websocket_extensions]};
+    detail::pmd_read_impl(offer, list, ec);
+}
+
+// Parse permessage-deflate fields
 //
 template<class Allocator>
 void
 pmd_read(pmd_offer& offer,
     http::basic_fields<Allocator> const& fields)
 {
-    http::ext_list list{
-        fields["Sec-WebSocket-Extensions"]};
-    detail::pmd_read_impl(offer, list);
+    error_code ec;
+    detail::pmd_read(offer, fields, ec);
 }
 
 // Set permessage-deflate fields for a client offer

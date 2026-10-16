@@ -10,7 +10,7 @@ Version 362:
 * `zlib::inflate_stream::write` returns `error::stream_error` for null buffer pointers
 * `zlib::inflate_stream::write` errors from corrupt input are sticky until the stream is reset
 * `websocket::stream` answers a permessage-deflate `server_max_window_bits=8` offer with 8 instead of 9
-* `websocket::stream` fails the client handshake with `error::bad_sec_extensions` when the permessage-deflate response exceeds the offered `server_max_window_bits`
+* `websocket::stream` fails the client handshake with `error::bad_sec_extensions` when the permessage-deflate response is malformed, was not offered, or exceeds the offered `server_max_window_bits`
 * `websocket::stream` compresses with the offered `client_max_window_bits` when the permessage-deflate response omits it or returns a larger value
 
 --------------------------------------------------------------------------------
