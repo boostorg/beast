@@ -1098,7 +1098,7 @@ public:
         // still selects its smaller window (rfc7692 7.1.2.1)
         auto status = offer_with(15, 15);
         BEAST_EXPECTS(offered ==
-            "permessage-deflate; client_max_window_bits=15", offered);
+            "permessage-deflate; client_max_window_bits", offered);
         BEAST_EXPECT(status.active);
         BEAST_EXPECT(status.server_window_bits == 9);
         BEAST_EXPECT(status.client_window_bits == 15);
@@ -1107,7 +1107,7 @@ public:
         status = offer_with(10, 15);
         BEAST_EXPECTS(offered ==
             "permessage-deflate; server_max_window_bits=10;"
-            " client_max_window_bits=15", offered);
+            " client_max_window_bits", offered);
         BEAST_EXPECT(status.active);
         BEAST_EXPECT(status.server_window_bits == 9);
 
