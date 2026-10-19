@@ -1067,6 +1067,59 @@ public:
     }
 
     void
+    testIssue2671()
+    {
+        std::string offered;
+        auto const offer_with =
+        [&](int server_max_window_bits,
+            int client_max_window_bits)
+        {
+            echo_server es{log};
+            stream<test::stream> ws{ioc_};
+            ws.next_layer().connect(es.stream());
+            permessage_deflate pd;
+            pd.client_enable = true;
+            pd.server_max_window_bits = server_max_window_bits;
+            pd.client_max_window_bits = client_max_window_bits;
+            ws.set_option(pd);
+            ws.set_option(stream_base::decorator(
+                [&offered](request_type& req)
+                {
+                    offered = std::string(
+                        req[http::field::sec_websocket_extensions]);
+                }));
+            ws.handshake("localhost", "/");
+            permessage_deflate_status status;
+            ws.get_status(status);
+            return status;
+        };
+
+        // the default of 15 is omitted from the offer; the server
+        // still selects its smaller window (rfc7692 7.1.2.1)
+        auto status = offer_with(15, 15);
+        BEAST_EXPECTS(offered ==
+            "permessage-deflate; client_max_window_bits=15", offered);
+        BEAST_EXPECT(status.active);
+        BEAST_EXPECT(status.server_window_bits == 9);
+        BEAST_EXPECT(status.client_window_bits == 15);
+
+        // a limit below the default is still offered
+        status = offer_with(10, 15);
+        BEAST_EXPECTS(offered ==
+            "permessage-deflate; server_max_window_bits=10;"
+            " client_max_window_bits=15", offered);
+        BEAST_EXPECT(status.active);
+        BEAST_EXPECT(status.server_window_bits == 9);
+
+        // a non-default client_max_window_bits is offered with a value
+        status = offer_with(15, 12);
+        BEAST_EXPECTS(offered ==
+            "permessage-deflate; client_max_window_bits=12", offered);
+        BEAST_EXPECT(status.active);
+        BEAST_EXPECT(status.client_window_bits == 12);
+    }
+
+    void
     run() override
     {
         testHandshake();
@@ -1082,6 +1135,7 @@ public:
 #endif
         testIssue2364();
         testIssue3119();
+        testIssue2671();
     }
 };
 
