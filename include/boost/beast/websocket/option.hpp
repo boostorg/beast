@@ -33,7 +33,7 @@ namespace websocket {
 */
 struct permessage_deflate
 {
-    /// `true` to offer the extension in the server role
+    /// `true` to accept the extension in the server role
     bool server_enable = false;
 
     /// `true` to offer the extension in the client role
