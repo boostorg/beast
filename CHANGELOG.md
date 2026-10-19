@@ -12,6 +12,7 @@ Version 362:
 * `websocket::stream` answers a permessage-deflate `server_max_window_bits=8` offer with 8 instead of 9
 * `websocket::stream` fails the client handshake with `error::bad_sec_extensions` when the permessage-deflate response is malformed, was not offered, or exceeds the offered `server_max_window_bits`
 * `websocket::stream` compresses with the offered `client_max_window_bits` when the permessage-deflate response omits it or returns a larger value
+* `websocket::stream` omits `server_max_window_bits` from the permessage-deflate offer when it is the default of 15
 
 --------------------------------------------------------------------------------
 

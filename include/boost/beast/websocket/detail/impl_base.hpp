@@ -337,7 +337,8 @@ struct impl_base<true>
             detail::pmd_offer config;
             config.accept = true;
             config.server_max_window_bits =
-                pmd_opts_.server_max_window_bits;
+                pmd_opts_.server_max_window_bits == 15 ?
+                    0 : pmd_opts_.server_max_window_bits;
             config.client_max_window_bits =
                 pmd_opts_.client_max_window_bits;
             config.server_no_context_takeover =
