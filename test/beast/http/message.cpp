@@ -395,6 +395,27 @@ public:
     }
 
     void
+    testStartLineInjection()
+    {
+        // a CR or LF in the method, target, or reason splits
+        // the serialized start line, the same way it does in
+        // a field name or value (rfc7230 3.1)
+        header<true> req;
+        req.method_string("XYZ");
+        req.target("/");
+        BEAST_THROWS(req.method_string("GE\rT"), system_error);
+        BEAST_THROWS(req.target("/\r\nHost: evil"), system_error);
+        BEAST_THROWS(req.target("/\n"), system_error);
+        BEAST_EXPECT(req.method_string() == "XYZ");
+        BEAST_EXPECT(req.target() == "/");
+
+        header<false> res;
+        BEAST_THROWS(res.reason("OK\r\nSet-Cookie: sid=x"),
+            system_error);
+        BEAST_THROWS(res.reason("OK\r"), system_error);
+    }
+
+    void
     testNeedEof()
     {
         {
@@ -510,6 +531,7 @@ public:
         testMethod();
         testStatus();
         testReason();
+        testStartLineInjection();
         testNeedEof();
     }
 };
