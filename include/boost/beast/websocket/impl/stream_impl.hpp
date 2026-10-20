@@ -257,7 +257,7 @@ struct stream<NextLayer, deflateSupported>::impl_type
     request_type
     build_request(
         detail::sec_ws_key_type& key,
-        string_view host, string_view target,
+        core::string_view host, core::string_view target,
         Decorator const& decorator);
 
     void
@@ -623,7 +623,7 @@ request_type
 stream<NextLayer, deflateSupported>::impl_type::
 build_request(
     detail::sec_ws_key_type& key,
-    string_view host, string_view target,
+    core::string_view host, core::string_view target,
     Decorator const& decorator)
 {
     request_type req;

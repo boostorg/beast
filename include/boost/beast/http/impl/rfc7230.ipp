@@ -19,7 +19,7 @@ namespace http {
 
 
 void param_list::const_iterator::
-unquote(string_view sr, std::string &s)
+unquote(core::string_view sr, std::string &s)
 {
     s.clear();
     s.reserve(sr.size());
@@ -49,7 +49,7 @@ increment()
         pi_.v.second.front() == '"')
     {
         unquote(pi_.v.second, s_);
-        pi_.v.second = string_view{
+        pi_.v.second = core::string_view{
             s_.data(), s_.size()};
     }
 }
@@ -97,7 +97,7 @@ increment()
                 if(! detail::is_token_char(*it_))
                     break;
             }
-            v_.first = string_view{&*p0,
+            v_.first = core::string_view{&*p0,
                 static_cast<std::size_t>(it_ - p0)};
 			if (it_ == last_)
 				return;
@@ -111,7 +111,7 @@ increment()
                 if(pi.empty())
                     break;
             }
-            v_.second = param_list{string_view{&*it_,
+            v_.second = param_list{core::string_view{&*it_,
                 static_cast<std::size_t>(pi.it - it_)}};
             it_ = pi.it;
             return;
@@ -125,7 +125,7 @@ increment()
 
 auto
 ext_list::
-find(string_view const& s) -> const_iterator
+find(core::string_view const& s) -> const_iterator
 {
     return std::find_if(begin(), end(),
         [&s](value_type const& v)
@@ -136,7 +136,7 @@ find(string_view const& s) -> const_iterator
 
 bool
 ext_list::
-exists(string_view const& s)
+exists(core::string_view const& s)
 {
     return find(s) != end();
 }
@@ -176,7 +176,7 @@ increment()
                 if(! detail::is_token_char(*it_))
                     break;
             }
-            v_ = string_view{&*p0,
+            v_ = core::string_view{&*p0,
                 static_cast<std::size_t>(it_ - p0)};
             return;
         }
@@ -189,7 +189,7 @@ increment()
 
 bool
 token_list::
-exists(string_view const& s)
+exists(core::string_view const& s)
 {
     return std::find_if(begin(), end(),
         [&s](value_type const& v)

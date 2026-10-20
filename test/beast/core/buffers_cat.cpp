@@ -72,7 +72,7 @@ public:
     void
     testBufferSequence()
     {
-        string_view s = "Hello, world!";
+        core::string_view s = "Hello, world!";
         net::const_buffer b1(s.data(), 6);
         net::const_buffer b2(
             s.data() + b1.size(), s.size() - b1.size());

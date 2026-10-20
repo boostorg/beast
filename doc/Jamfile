@@ -46,7 +46,8 @@ docca.reference reference.qbk
             \"BOOST_ASIO_DEFAULT_COMPLETION_TOKEN(e)= =__deduced__\" \\
             \"BOOST_ASIO_COMPLETION_TOKEN_FOR(sig)=class\" \\
             GENERATING_DOCUMENTATION \\
-            BOOST_BEAST_DECL"
+            BOOST_BEAST_DECL \\
+            \"BOOST_BEAST_DEPRECATED(msg)=\""
         <doxygen:param>ABBREVIATE_BRIEF=
         <doxygen:param>INLINE_INHERITED_MEMB=YES
         <doxygen:param>JAVADOC_AUTOBRIEF=YES

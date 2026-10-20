@@ -20,8 +20,8 @@ namespace beast {
 
 bool
 iequals(
-    beast::string_view lhs,
-    beast::string_view rhs)
+    core::string_view lhs,
+    core::string_view rhs)
 {
     if(lhs.size() != rhs.size())
         return false;
@@ -50,8 +50,8 @@ slow:
 
 bool
 iless::operator()(
-    string_view lhs,
-    string_view rhs) const
+    core::string_view lhs,
+    core::string_view rhs) const
 {
     using std::begin;
     using std::end;

@@ -153,21 +153,21 @@ public:
     {
         void
         on_request_impl(
-            verb, string_view, string_view,
+            verb, core::string_view, core::string_view,
             int, error_code&) override
         {
         }
 
         void
         on_response_impl(
-            int, string_view, int,
+            int, core::string_view, int,
             error_code&) override
         {
         }
 
         void
         on_field_impl(
-            field, string_view, string_view,
+            field, core::string_view, core::string_view,
             error_code&) override
         {
         }
@@ -186,7 +186,7 @@ public:
 
         std::size_t
         on_body_impl(
-            string_view,
+            core::string_view,
             error_code&) override
         {
             return 0;
@@ -195,7 +195,7 @@ public:
         void
         on_chunk_header_impl(
             std::uint64_t,
-            string_view,
+            core::string_view,
             error_code&) override
         {
         }
@@ -203,7 +203,7 @@ public:
         std::size_t
         on_chunk_body_impl(
             std::uint64_t,
-            string_view,
+            core::string_view,
             error_code&) override
         {
             return 0;
@@ -222,26 +222,26 @@ public:
             net::mutable_buffer;
 
         void
-        on_request_impl(verb, string_view,
-            string_view, int, error_code&) override
+        on_request_impl(verb, core::string_view,
+            core::string_view, int, error_code&) override
         {
         }
 
         void
         on_response_impl(int,
-            string_view, int, error_code&) override
+            core::string_view, int, error_code&) override
         {
         }
 
         void
         on_field_impl(field,
-            string_view, string_view, error_code&) override
+            core::string_view, core::string_view, error_code&) override
         {
         }
 
         void
         on_trailer_field_impl(field,
-            string_view, string_view, error_code&) override
+            core::string_view, core::string_view, error_code&) override
         {
         }
 
@@ -259,20 +259,20 @@ public:
 
         std::size_t
         on_body_impl(
-            string_view s, error_code&) override
+            core::string_view s, error_code&) override
         {
             return s.size();
         }
 
         void
         on_chunk_header_impl(std::uint64_t,
-            string_view, error_code&) override
+            core::string_view, error_code&) override
         {
         }
 
         std::size_t
         on_chunk_body_impl(std::uint64_t,
-            string_view s, error_code&) override
+            core::string_view s, error_code&) override
         {
             return s.size();
         }

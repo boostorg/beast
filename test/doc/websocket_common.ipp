@@ -11,6 +11,7 @@
 
 namespace net = boost::asio;
 namespace beast = boost::beast;
+namespace core = boost::core;
 using namespace boost::beast;
 using namespace boost::beast::websocket;
 

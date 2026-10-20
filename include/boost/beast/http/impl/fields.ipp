@@ -29,7 +29,7 @@ inline
 void
 filter_token_list(
     beast::detail::temporary_buffer& s,
-    string_view value,
+    core::string_view value,
     iequals_predicate const& pred)
 {
     token_list te{value};
@@ -53,7 +53,7 @@ filter_token_list(
 void
 filter_token_list_last(
     beast::detail::temporary_buffer& s,
-    string_view value,
+    core::string_view value,
     iequals_predicate const& pred)
 {
     token_list te{value};
@@ -87,7 +87,7 @@ filter_token_list_last(
 
 void
 keep_alive_impl(
-    beast::detail::temporary_buffer& s, string_view value,
+    beast::detail::temporary_buffer& s, core::string_view value,
     unsigned version, bool keep_alive)
 {
     if(version < 11)

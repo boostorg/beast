@@ -239,8 +239,8 @@ skip_token(ForwardIt& it, ForwardIt last)
         ++it;
 }
 
-string_view
-trim(string_view s)
+core::string_view
+trim(core::string_view s)
 {
     auto first = s.begin();
     auto last = s.end();
@@ -344,7 +344,7 @@ increment()
 
 bool
 opt_token_list_policy::operator()(value_type& v,
-    char const*& it, string_view s) const
+    char const*& it, core::string_view s) const
 {
     v = {};
     auto need_comma = it != s.data();
@@ -370,7 +370,7 @@ opt_token_list_policy::operator()(value_type& v,
                 if(! detail::is_token_char(*it))
                     break;
             }
-            v = string_view{p0,
+            v = core::string_view{p0,
                 static_cast<std::size_t>(it - p0)};
             return true;
         }

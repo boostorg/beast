@@ -287,7 +287,7 @@ public:
         }
 
         void
-        operator()(int v, string_view s)
+        operator()(int v, core::string_view s)
         {
             fail_ = false;
             BEAST_EXPECT(v == 42);
@@ -295,7 +295,7 @@ public:
         }
 
         void
-        operator()(int v, string_view s, move_arg<1>)
+        operator()(int v, core::string_view s, move_arg<1>)
         {
             fail_ = false;
             BEAST_EXPECT(v == 42);
@@ -303,7 +303,7 @@ public:
         }
 
         void
-        operator()(int v, string_view s, move_arg<1>, move_arg<2>)
+        operator()(int v, core::string_view s, move_arg<1>, move_arg<2>)
         {
             fail_ = false;
             BEAST_EXPECT(v == 42);
@@ -319,7 +319,7 @@ public:
 
         void
         operator()(
-            error_code, std::size_t n, string_view s)
+            error_code, std::size_t n, core::string_view s)
         {
             boost::ignore_unused(s);
             fail_ = false;
@@ -527,7 +527,7 @@ public:
         // void(error_code, size_t)
         bind_front_handler(test_cb{}, ec, n)();
 
-        // void(error_code, size_t)(string_view)
+        // void(error_code, size_t)(core::string_view)
         bind_front_handler(test_cb{}, ec, n)("s");
 
         // perfect forwarding
