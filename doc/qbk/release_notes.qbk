@@ -11,6 +11,38 @@
 
 [/-----------------------------------------------------------------------------]
 
+[heading Boost 1.93]
+
+[*API Changes]
+
+* [issue 3114] `zlib::deflate_stream::reset` rejects `windowBits` 8.
+  ['Actions Required]:
+  * If your code uses `zlib::deflate_stream` directly with a `windowBits`
+    of 8, pass 9 instead, which is the value previously used in its place.
+    `websocket::stream` is not affected, it compresses with a 9-bit window
+    when permessage-deflate negotiates 8.
+
+[*Fixes]
+
+* [issue 3111] `http::ext_list` does not carry parameters from the previous extension into one that has none
+* [issue 3115] `detail::base64::decoded_size` accounts for unpadded input
+* [issue 3114] `zlib::deflate_stream::write` returns `error::stream_error` for null buffer pointers
+* [issue 3114] `zlib::inflate_stream::write` returns `error::stream_error` for null buffer pointers
+* [issue 3114] `zlib::inflate_stream::write` errors from corrupt input are sticky until the stream is reset
+* [issue 3119] `websocket::stream` answers a permessage-deflate `server_max_window_bits=8` offer with 8 instead of 9
+* [issue 3113] `websocket::stream` fails the client handshake with `error::bad_sec_extensions` when the permessage-deflate response is malformed, was not offered, or exceeds the offered `server_max_window_bits`
+* [issue 3113] `websocket::stream` compresses with the offered `client_max_window_bits` when the permessage-deflate response omits it or returns a larger value
+
+[*Improvements]
+
+* [issue 3114] `zlib::deflate_stream` and `zlib::inflate_stream` are ported from zlib 1.3.2
+* [issue 2671] `websocket::stream` omits `server_max_window_bits` from the permessage-deflate offer when it is the default of 15 (improved server compatibility)
+* [issue 2671] `websocket::stream` offers `client_max_window_bits` without a value when it is the default of 15 (improved server compatibility)
+
+[*Documentation]
+
+* [issue 3108] Fixed the `@tparam` name in the `buffers_iterator_type` documentation
+
 [heading Boost 1.92]
 
 [*API Changes]
