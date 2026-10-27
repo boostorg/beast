@@ -745,6 +745,21 @@ equal_range(string_view name) const ->
         ++list_.iterator_to(*(--result.second))};
 }
 
+template<class Allocator>
+auto
+basic_fields<Allocator>::
+find_last(field name) const ->
+    const_iterator
+{
+    BOOST_ASSERT(name != field::unknown);
+    auto const result = set_.equal_range(
+        to_string(name), key_compare{});
+    if(result.first == result.second)
+        return list_.end();
+    return list_.iterator_to(
+        *std::prev(result.second));
+}
+
 //------------------------------------------------------------------------------
 
 namespace detail {
@@ -761,10 +776,11 @@ struct iequals_predicate
     string_view sv2;
 };
 
-// Filter the last item in a token list
+// Append the non-matching items of a token
+// list to s, as a comma separated list
 BOOST_BEAST_DECL
 void
-filter_token_list_last(
+filter_token_list(
     beast::detail::temporary_buffer& s,
     string_view value,
     iequals_predicate const& pred);
@@ -817,16 +833,10 @@ bool
 basic_fields<Allocator>::
 get_chunked_impl() const
 {
-    auto const te = token_list{
-        (*this)[field::transfer_encoding]};
-    for(auto it = te.begin(); it != te.end();)
-    {
-        auto const next = std::next(it);
-        if(next == te.end())
-            return beast::iequals(*it, "chunked");
-        it = next;
-    }
-    return false;
+    auto const it = find_last(field::transfer_encoding);
+    if(it == end())
+        return false;
+    return detail::is_chunked_coding(it->value());
 }
 
 template<class Allocator>
@@ -890,42 +900,55 @@ void
 basic_fields<Allocator>::
 set_chunked_impl(bool value)
 {
-    beast::detail::temporary_buffer buf;
-    auto it = find(field::transfer_encoding);
     if(value)
     {
         // append "chunked"
-        if(it == end())
+        auto const range = equal_range(field::transfer_encoding);
+        if(range.first == range.second)
         {
             set(field::transfer_encoding, "chunked");
             return;
         }
-        auto const te = token_list{it->value()};
-        for(auto itt = te.begin();;)
+        if(std::next(range.first) == range.second &&
+            detail::is_chunked_coding(range.first->value()))
+            return; // already set
+        // combine repeated fields into one list,
+        // removing any "chunked" tokens
+        beast::detail::temporary_buffer buf;
+        for(auto it = range.first; it != range.second; ++it)
+            detail::filter_token_list(
+                buf, it->value(), {"chunked", {}});
+        if(buf.empty())
         {
-            auto const next = std::next(itt);
-            if(next == te.end())
-            {
-                if(beast::iequals(*itt, "chunked"))
-                    return; // already set
-                break;
-            }
-            itt = next;
+            set(field::transfer_encoding, "chunked");
+            return;
         }
-
-        buf.append(it->value(), ", chunked");
+        buf.append(", chunked");
         set(field::transfer_encoding, buf.view());
         return;
     }
-    // filter "chunked"
-    if(it == end())
+    // remove "chunked"
+    auto const range = equal_range(field::transfer_encoding);
+    if(range.first == range.second)
         return;
-
-    detail::filter_token_list_last(buf, it->value(), {"chunked", {}});
-    if(! buf.empty())
-        set(field::transfer_encoding, buf.view());
-    else
+    string_view last;
+    for(auto const& s : token_list{
+            std::prev(range.second)->value()})
+        last = s;
+    if(! beast::iequals(last, "chunked"))
+        return;
+    // combine repeated fields into one list,
+    // removing any "chunked" tokens
+    beast::detail::temporary_buffer buf;
+    for(auto it = range.first; it != range.second; ++it)
+        detail::filter_token_list(
+            buf, it->value(), {"chunked", {}});
+    if(buf.empty())
+    {
         erase(field::transfer_encoding);
+        return;
+    }
+    set(field::transfer_encoding, buf.view());
 }
 
 template<class Allocator>

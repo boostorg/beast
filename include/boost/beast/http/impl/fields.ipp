@@ -25,63 +25,20 @@ BOOST_CORE_STATIC_ASSERT((std::numeric_limits<std::size_t>::max)() >=
 
 // Filter a token list
 //
-inline
 void
 filter_token_list(
     beast::detail::temporary_buffer& s,
     string_view value,
     iequals_predicate const& pred)
 {
-    token_list te{value};
-    auto it = te.begin();
-    auto last = te.end();
-    if(it == last)
-        return;
-    while(pred(*it))
-        if(++it == last)
-            return;
-    s.append(*it);
-    while(++it != last)
+    for(auto const& t : token_list{value})
     {
-        if(! pred(*it))
-        {
-            s.append(", ", *it);
-        }
-    }
-}
-
-void
-filter_token_list_last(
-    beast::detail::temporary_buffer& s,
-    string_view value,
-    iequals_predicate const& pred)
-{
-    token_list te{value};
-    if(te.begin() != te.end())
-    {
-        auto it = te.begin();
-        auto next = std::next(it);
-        if(next == te.end())
-        {
-            if(! pred(*it))
-                s.append(*it);
-            return;
-        }
-        s.append(*it);
-        for(;;)
-        {
-            it = next;
-            next = std::next(it);
-            if(next == te.end())
-            {
-                if(! pred(*it))
-                {
-                    s.append(", ", *it);
-                }
-                return;
-            }
-            s.append(", ", *it);
-        }
+        if(pred(t))
+            continue;
+        if(s.empty())
+            s.append(t);
+        else
+            s.append(", ", t);
     }
 }
 

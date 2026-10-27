@@ -14,6 +14,8 @@ Version 362:
 * `websocket::stream` compresses with the offered `client_max_window_bits` when the permessage-deflate response omits it or returns a larger value
 * `websocket::stream` omits `server_max_window_bits` from the permessage-deflate offer when it is the default of 15
 * `websocket::stream` offers `client_max_window_bits` without a value when it is the default of 15
+* `http::message::chunked` reports the framing of the last `Transfer-Encoding` field, matching the parser
+* `http::message::chunked` combines repeated `Transfer-Encoding` fields when setting or clearing the chunked encoding
 
 --------------------------------------------------------------------------------
 

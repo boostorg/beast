@@ -728,12 +728,16 @@ public:
 
     /** Set or clear the chunked Transfer-Encoding
 
-        This function will set or remove the "chunked" transfer
-        encoding as the last item in the list of encodings in the
-        field.
+        When setting, the values of every Transfer-Encoding field
+        are combined into one comma separated list, any "chunked"
+        tokens are removed, and "chunked" is appended as the final
+        encoding.
 
-        If the result of removing the chunked token results in an
-        empty string, the field is erased.
+        When clearing, if the last Transfer-Encoding field ends in
+        the "chunked" token, the values of every Transfer-Encoding
+        field are combined into one comma separated list and any
+        "chunked" tokens are removed; if no tokens remain, the
+        fields are erased. Otherwise, the message is unchanged.
 
         The Content-Length field is erased unconditionally.
     */

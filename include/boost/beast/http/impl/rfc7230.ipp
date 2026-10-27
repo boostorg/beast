@@ -199,6 +199,25 @@ exists(string_view const& s)
     ) != end();
 }
 
+namespace detail {
+
+bool
+is_chunked_coding(string_view value)
+{
+    token_list const list{value};
+    auto const it = std::find_if(
+        list.begin(), list.end(),
+        [](string_view const& s)
+        {
+            return beast::iequals(s, "chunked");
+        });
+    if(it == list.end())
+        return false;
+    return std::next(it) == list.end();
+}
+
+} // detail
+
 } // http
 } // beast
 } // boost

@@ -994,11 +994,11 @@ public:
 
         res.set(field::transfer_encoding, "chunked, foo");
         chunked(true);
-        BEAST_EXPECT(res[field::transfer_encoding] == "chunked, foo, chunked");
+        BEAST_EXPECT(res[field::transfer_encoding] == "foo, chunked");
 
         res.set(field::transfer_encoding, "chunked, foo, chunked");
         chunked(true);
-        BEAST_EXPECT(res[field::transfer_encoding] == "chunked, foo, chunked");
+        BEAST_EXPECT(res[field::transfer_encoding] == "foo, chunked");
 
         res.set(field::transfer_encoding, "foo, chunked");
         chunked(false);
@@ -1010,7 +1010,87 @@ public:
 
         res.set(field::transfer_encoding, "chunked, foo, chunked");
         chunked(false);
-        BEAST_EXPECT(res[field::transfer_encoding] == "chunked, foo");
+        BEAST_EXPECT(res[field::transfer_encoding] == "foo");
+
+        // repeated Transfer-Encoding fields: the last
+        // field determines the chunked framing
+        res.erase(field::transfer_encoding);
+        res.insert(field::transfer_encoding, "gzip");
+        res.insert(field::transfer_encoding, "chunked");
+        BEAST_EXPECT(res.chunked());
+
+        // clearing removes only the chunked framing;
+        // other codings are preserved
+        chunked(false);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 1);
+        BEAST_EXPECT(res[field::transfer_encoding] == "gzip");
+
+        // clearing combines repeated Transfer-Encoding
+        // fields into one, preserving the codings
+        res.erase(field::transfer_encoding);
+        res.insert(field::transfer_encoding, "gzip");
+        res.insert(field::transfer_encoding, "deflate, chunked");
+        chunked(false);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 1);
+        BEAST_EXPECT(res[field::transfer_encoding] == "gzip, deflate");
+
+        res.erase(field::transfer_encoding);
+        res.insert(field::transfer_encoding, "chunked");
+        res.insert(field::transfer_encoding, "gzip");
+        BEAST_EXPECT(! res.chunked());
+
+        chunked(true);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 1);
+        BEAST_EXPECT(res[field::transfer_encoding] == "gzip, chunked");
+
+        // setting merges repeated Transfer-Encoding
+        // fields into one, preserving the codings
+        res.erase(field::transfer_encoding);
+        res.insert(field::transfer_encoding, "gzip");
+        res.insert(field::transfer_encoding, "deflate");
+        chunked(true);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 1);
+        BEAST_EXPECT(res[field::transfer_encoding] == "gzip, deflate, chunked");
+
+        res.erase(field::transfer_encoding);
+        res.insert(field::transfer_encoding, "chunked");
+        res.insert(field::transfer_encoding, "gzip, chunked");
+        chunked(true);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 1);
+        BEAST_EXPECT(res[field::transfer_encoding] == "gzip, chunked");
+
+        res.erase(field::transfer_encoding);
+        res.insert(field::transfer_encoding, "gzip");
+        res.insert(field::transfer_encoding, "");
+        chunked(true);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 1);
+        BEAST_EXPECT(res[field::transfer_encoding] == "gzip, chunked");
+
+        // setting collapses fields which contain only
+        // chunked tokens into a single chunked field
+        res.erase(field::transfer_encoding);
+        res.insert(field::transfer_encoding, "chunked");
+        res.insert(field::transfer_encoding, "chunked");
+        chunked(true);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 1);
+        BEAST_EXPECT(res[field::transfer_encoding] == "chunked");
+
+        res.set(field::transfer_encoding, "chunked, chunked");
+        chunked(true);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 1);
+        BEAST_EXPECT(res[field::transfer_encoding] == "chunked");
+
+        // clearing strips the chunked coding across
+        // duplicate fields
+        res.erase(field::transfer_encoding);
+        res.insert(field::transfer_encoding, "chunked");
+        res.insert(field::transfer_encoding, "chunked");
+        chunked(false);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
+
+        res.set(field::transfer_encoding, "chunked, chunked");
+        chunked(false);
+        BEAST_EXPECT(res.count(field::transfer_encoding) == 0);
     }
 
     void
