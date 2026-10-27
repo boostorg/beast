@@ -816,6 +816,9 @@ private:
     template<class OtherAlloc>
     friend class basic_fields;
 
+    const_iterator
+    find_last(field name) const;
+
     element*
     try_create_new_element(
         field name,

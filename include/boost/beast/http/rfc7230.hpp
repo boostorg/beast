@@ -320,6 +320,21 @@ bool
 validate_list(detail::basic_parsed_list<
     Policy> const& list);
 
+namespace detail {
+
+/*  Returns `true` if the value designates the chunked coding.
+
+    The value is treated as a comma separated list of transfer
+    codings; content which does not parse as a list of tokens
+    is ignored. For a valid list, the result is `true` only
+    when "chunked" appears exactly once, as the final coding.
+*/
+BOOST_BEAST_DECL
+bool
+is_chunked_coding(string_view value);
+
+} // detail
+
 } // http
 } // beast
 } // boost

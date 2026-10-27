@@ -829,15 +829,7 @@ do_field(field f,
         f_ |= flagTransferEncoding;
 
         ec = {};
-        auto const v = token_list{value};
-        auto const p = std::find_if(v.begin(), v.end(),
-            [&](string_view const& s)
-            {
-                return beast::iequals("chunked"_sv, s);
-            });
-        if(p == v.end())
-            return;
-        if(std::next(p) != v.end())
+        if(! detail::is_chunked_coding(value))
             return;
         len_ = 0;
         f_ |= flagChunked;
