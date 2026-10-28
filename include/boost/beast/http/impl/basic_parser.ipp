@@ -823,6 +823,13 @@ do_field(field f,
             return;
         }
 
+        if(! validate_list(opt_token_list{value}))
+        {
+            // malformed coding list
+            BOOST_BEAST_ASSIGN_EC(ec, error::bad_transfer_encoding);
+            return;
+        }
+
         // Record that a Transfer-Encoding was present so a Content-Length
         // arriving afterwards is rejected the same way it would be if the
         // fields arrived in the opposite order.
