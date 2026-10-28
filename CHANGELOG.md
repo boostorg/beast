@@ -16,6 +16,7 @@ Version 362:
 * `websocket::stream` offers `client_max_window_bits` without a value when it is the default of 15
 * `http::message::chunked` reports the framing of the last `Transfer-Encoding` field, matching the parser
 * `http::message::chunked` combines repeated `Transfer-Encoding` fields when setting or clearing the chunked encoding
+* `http::basic_parser` rejects a `Transfer-Encoding` value that is not a valid token list
 
 --------------------------------------------------------------------------------
 

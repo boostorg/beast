@@ -764,9 +764,14 @@ public:
         parsegrind<Preq>(ce("gzip, chunked \r\n"),         expect_flags{*this, parse_flag::chunked});
         parsegrind<Preq>(ce("gzip, \r\n chunked\r\n"),     expect_flags{*this, parse_flag::chunked});
 
-        // Technically invalid but beyond the parser's scope to detect
-        // VFALCO Look into this
-        //parsegrind<Preq>(ce("custom;key=\",chunked\r\n"),  expect_flags{*this, parse_flag::chunked});
+        // values which do not parse as a list of tokens are
+        // rejected; a strict peer could assign them a
+        // different framing
+        failgrind<Preq>(ce("chunked gzip\r\n"),            error::bad_transfer_encoding);
+        failgrind<Preq>(ce("chunked\tgzip\r\n"),           error::bad_transfer_encoding);
+        failgrind<Preq>(ce("chunked;a=b, gzip\r\n"),       error::bad_transfer_encoding);
+        failgrind<Preq>(ce("chunked;;, gzip\r\n"),         error::bad_transfer_encoding);
+        failgrind<Preq>(ce("custom;key=\",chunked\r\n"),   error::bad_transfer_encoding);
 
         parsegrind<Pres>(te("gzip\r\n"),                   expect_flags{*this, 0});
         parsegrind<Pres>(te("chunked, gzip\r\n"),          expect_flags{*this, 0});
@@ -774,9 +779,9 @@ public:
         parsegrind<Pres>(te("chunked,\r\n gzip\r\n"),      expect_flags{*this, 0});
         parsegrind<Pres>(te("chunked,\r\n ,gzip\r\n"),     expect_flags{*this, 0});
         parsegrind<Pres>(te("bigchunked\r\n"),             expect_flags{*this, 0});
-        parsegrind<Pres>(te("chunk\r\n ked\r\n"),          expect_flags{*this, 0});
-        parsegrind<Pres>(te("bar\r\n ley chunked\r\n"),    expect_flags{*this, 0});
-        parsegrind<Pres>(te("barley\r\n chunked\r\n"),     expect_flags{*this, 0});
+        failgrind<Pres>(te("chunk\r\n ked\r\n"),           error::bad_transfer_encoding);
+        failgrind<Pres>(te("bar\r\n ley chunked\r\n"),     error::bad_transfer_encoding);
+        failgrind<Pres>(te("barley\r\n chunked\r\n"),      error::bad_transfer_encoding);
 
         parsegrind<Preq>(m("Transfer-EncodinX: none\r\n"), expect_flags{*this, 0});
         parsegrind<Preq>(m("Transfer-Encodings: 2\r\n"),   expect_flags{*this, 0});
