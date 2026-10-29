@@ -625,7 +625,13 @@ public:
         parsegrind<P>("GET / HTTP/1.0\r\n\r\n",                expect_keepalive(*this, false));
         parsegrind<P>("GET / HTTP/1.0\r\n"
                    "Connection: keep-alive\r\n\r\n",        expect_keepalive(*this, true));
+        parsegrind<P>("GET / HTTP/1.0\r\n"
+                   "Connection: upgrade\r\n"
+                   "Connection: keep-alive\r\n\r\n",        expect_keepalive(*this, true));
         parsegrind<P>("GET / HTTP/1.1\r\n"
+                   "Connection: close\r\n\r\n",             expect_keepalive(*this, false));
+        parsegrind<P>("GET / HTTP/1.1\r\n"
+                   "Connection: upgrade\r\n"
                    "Connection: close\r\n\r\n",             expect_keepalive(*this, false));
 
         parsegrind<P>(cn("x\r\n"),                             expect_flags{*this, 0});

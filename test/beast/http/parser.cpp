@@ -642,6 +642,38 @@ public:
     }
 
     void
+    testIssue3124()
+    {
+        // repeated Connection fields: message::keep_alive agrees with parser
+        {
+            error_code ec;
+            response_parser<string_body> p;
+            p.put(buf(
+                "HTTP/1.1 200 OK\r\n"
+                "Connection: upgrade\r\n"
+                "Connection: close\r\n"
+                "Content-Length: 0\r\n"
+                "\r\n"), ec);
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(! p.keep_alive());
+            BEAST_EXPECT(! p.get().keep_alive());
+        }
+        {
+            error_code ec;
+            response_parser<string_body> p;
+            p.put(buf(
+                "HTTP/1.0 200 OK\r\n"
+                "Connection: upgrade\r\n"
+                "Connection: keep-alive\r\n"
+                "Content-Length: 0\r\n"
+                "\r\n"), ec);
+            BEAST_EXPECT(! ec);
+            BEAST_EXPECT(p.keep_alive());
+            BEAST_EXPECT(p.get().keep_alive());
+        }
+    }
+
+    void
     run() override
     {
         testParse();
@@ -654,6 +686,7 @@ public:
         testIssue1187();
         testIssue1880();
         testIssue2861();
+        testIssue3124();
     }
 };
 

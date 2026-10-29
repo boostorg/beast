@@ -844,18 +844,18 @@ bool
 basic_fields<Allocator>::
 get_keep_alive_impl(unsigned version) const
 {
-    auto const it = find(field::connection);
+    auto const range = equal_range(field::connection);
     if(version < 11)
     {
-        if(it == end())
-            return false;
-        return token_list{
-            it->value()}.exists("keep-alive");
+        for(auto it = range.first; it != range.second; ++it)
+            if(token_list{it->value()}.exists("keep-alive"))
+                return true;
+        return false;
     }
-    if(it == end())
-        return true;
-    return ! token_list{
-        it->value()}.exists("close");
+    for(auto it = range.first; it != range.second; ++it)
+        if(token_list{it->value()}.exists("close"))
+            return false;
+    return true;
 }
 
 template<class Allocator>
@@ -974,9 +974,99 @@ set_keep_alive_impl(
     unsigned version, bool keep_alive)
 {
     // VFALCO What about Proxy-Connection ?
-    auto const value = (*this)[field::connection];
+    auto const range = equal_range(field::connection);
+    if(range.first == range.second)
+    {
+        if(version < 11)
+        {
+            if(keep_alive)
+                set(field::connection, "keep-alive");
+        }
+        else
+        {
+            if(! keep_alive)
+                set(field::connection, "close");
+        }
+        return;
+    }
+
     beast::detail::temporary_buffer buf;
-    detail::keep_alive_impl(buf, value, version, keep_alive);
+    if(version < 11)
+    {
+        if(keep_alive)
+        {
+            bool has_keep_alive = false;
+            for(auto it = range.first; it != range.second; ++it)
+            {
+                for(auto const& t : token_list{it->value()})
+                {
+                    if(beast::iequals(t, "close"))
+                        continue;
+                    if(beast::iequals(t, "keep-alive"))
+                    {
+                        if(has_keep_alive)
+                            continue;
+                        has_keep_alive = true;
+                    }
+                    if(buf.empty())
+                        buf.append(t);
+                    else
+                        buf.append(", ", t);
+                }
+            }
+            if(! has_keep_alive)
+            {
+                if(buf.empty())
+                    buf.append("keep-alive");
+                else
+                    buf.append(", keep-alive");
+            }
+        }
+        else
+        {
+            for(auto it = range.first; it != range.second; ++it)
+                detail::filter_token_list(
+                    buf, it->value(), {"close", "keep-alive"});
+        }
+    }
+    else
+    {
+        if(keep_alive)
+        {
+            for(auto it = range.first; it != range.second; ++it)
+                detail::filter_token_list(
+                    buf, it->value(), {"close", "keep-alive"});
+        }
+        else
+        {
+            bool has_close = false;
+            for(auto it = range.first; it != range.second; ++it)
+            {
+                for(auto const& t : token_list{it->value()})
+                {
+                    if(beast::iequals(t, "keep-alive"))
+                        continue;
+                    if(beast::iequals(t, "close"))
+                    {
+                        if(has_close)
+                            continue;
+                        has_close = true;
+                    }
+                    if(buf.empty())
+                        buf.append(t);
+                    else
+                        buf.append(", ", t);
+                }
+            }
+            if(! has_close)
+            {
+                if(buf.empty())
+                    buf.append("close");
+                else
+                    buf.append(", close");
+            }
+        }
+    }
     if(buf.empty())
         erase(field::connection);
     else

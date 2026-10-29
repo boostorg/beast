@@ -862,6 +862,129 @@ public:
 
         test11("foo");
         test11(big);
+
+        // repeated Connection fields: HTTP/1.1
+        res.version(11);
+        res.erase(field::connection);
+        res.insert(field::connection, "upgrade");
+        res.insert(field::connection, "close");
+        BEAST_EXPECT(! res.keep_alive());
+
+        res.erase(field::connection);
+        res.insert(field::connection, "close");
+        res.insert(field::connection, "upgrade");
+        BEAST_EXPECT(! res.keep_alive());
+
+        res.erase(field::connection);
+        res.insert(field::connection, "upgrade");
+        res.insert(field::connection, "foo");
+        BEAST_EXPECT(res.keep_alive());
+
+        // setting combines repeated Connection fields
+        // into one, removing close and keep-alive
+        res.erase(field::connection);
+        res.insert(field::connection, "foo");
+        res.insert(field::connection, "bar, close");
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "foo, bar");
+
+        res.erase(field::connection);
+        res.insert(field::connection, "close");
+        res.insert(field::connection, "close");
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        // clearing combines repeated Connection fields
+        // into one, preserving other tokens and adding close
+        res.erase(field::connection);
+        res.insert(field::connection, "foo");
+        res.insert(field::connection, "bar");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "foo, bar, close");
+
+        res.erase(field::connection);
+        res.insert(field::connection, "foo");
+        res.insert(field::connection, "bar, close");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "foo, bar, close");
+
+        res.erase(field::connection);
+        res.insert(field::connection, "close");
+        res.insert(field::connection, "close");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "close");
+
+        res.erase(field::connection);
+        res.insert(field::connection, "keep-alive");
+        res.insert(field::connection, "close");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "close");
+
+        // repeated Connection fields: HTTP/1.0
+        res.version(10);
+        res.erase(field::connection);
+        res.insert(field::connection, "upgrade");
+        res.insert(field::connection, "keep-alive");
+        BEAST_EXPECT(res.keep_alive());
+
+        res.erase(field::connection);
+        res.insert(field::connection, "keep-alive");
+        res.insert(field::connection, "upgrade");
+        BEAST_EXPECT(res.keep_alive());
+
+        res.erase(field::connection);
+        res.insert(field::connection, "upgrade");
+        res.insert(field::connection, "foo");
+        BEAST_EXPECT(! res.keep_alive());
+
+        // setting combines repeated Connection fields
+        // into one, adding keep-alive
+        res.erase(field::connection);
+        res.insert(field::connection, "foo");
+        res.insert(field::connection, "bar");
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "foo, bar, keep-alive");
+
+        res.erase(field::connection);
+        res.insert(field::connection, "foo, close");
+        res.insert(field::connection, "bar");
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "foo, bar, keep-alive");
+
+        res.erase(field::connection);
+        res.insert(field::connection, "keep-alive");
+        res.insert(field::connection, "keep-alive");
+        keep_alive(true);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "keep-alive");
+
+        // clearing combines repeated Connection fields
+        // into one, removing keep-alive and close
+        res.erase(field::connection);
+        res.insert(field::connection, "foo");
+        res.insert(field::connection, "bar, keep-alive");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 1);
+        BEAST_EXPECT(res[field::connection] == "foo, bar");
+
+        res.erase(field::connection);
+        res.insert(field::connection, "keep-alive");
+        res.insert(field::connection, "keep-alive");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 0);
+
+        res.erase(field::connection);
+        res.insert(field::connection, "keep-alive");
+        res.insert(field::connection, "close");
+        keep_alive(false);
+        BEAST_EXPECT(res.count(field::connection) == 0);
     }
 
     void
