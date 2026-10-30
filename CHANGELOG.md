@@ -17,6 +17,7 @@ Version 362:
 * `http::message::chunked` reports the framing of the last `Transfer-Encoding` field, matching the parser
 * `http::message::chunked` combines repeated `Transfer-Encoding` fields when setting or clearing the chunked encoding
 * `http::basic_parser` rejects a `Transfer-Encoding` value that is not a valid token list
+* The example root certificates are regenerated from NSS 3.132 and exclude the eMudhra emSign roots
 
 --------------------------------------------------------------------------------
 
