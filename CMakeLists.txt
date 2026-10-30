@@ -37,6 +37,7 @@ if (BOOST_BEAST_IS_ROOT)
 endif ()
 option(BOOST_BEAST_BUILD_TESTS "Build boost::beast tests" ${BUILD_TESTING})
 option(BOOST_BEAST_BUILD_FUZZERS "Build boost::beast fuzzers" OFF)
+option(BOOST_BEAST_EXPERIMENTAL_MODULE "Build experimental boost.beast C++20 module" OFF)
 option(BOOST_BEAST_BUILD_EXAMPLES "Build boost::beast examples" ${BOOST_BEAST_IS_ROOT})
 option(BOOST_BEAST_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 
@@ -161,6 +162,15 @@ endif ()
 #-------------------------------------------------
 if (BOOST_BEAST_BUILD_TESTS)
     add_subdirectory(test)
+endif ()
+
+#-------------------------------------------------
+#
+# Module
+#
+#-------------------------------------------------
+if (BOOST_BEAST_EXPERIMENTAL_MODULE)
+    add_subdirectory(modules)
 endif ()
 
 #-------------------------------------------------
