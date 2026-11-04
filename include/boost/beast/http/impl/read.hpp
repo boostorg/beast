@@ -200,6 +200,11 @@ public:
                 }
                 if(ec != http::error::need_more)
                     break;
+                if(self.cancelled() != net::cancellation_type::none)
+                {
+                    BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
+                    break;
+                }
 
             do_read:
                 BOOST_ASIO_CORO_YIELD
@@ -309,6 +314,11 @@ public:
             {
                 do
                 {
+                    if(self.cancelled() != net::cancellation_type::none)
+                    {
+                        BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
+                        break;
+                    }
                     BOOST_ASIO_CORO_YIELD
                     {
                         BOOST_ASIO_HANDLER_LOCATION((
