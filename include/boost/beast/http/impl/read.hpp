@@ -209,7 +209,6 @@ public:
             do_read:
                 BOOST_ASIO_CORO_YIELD
                 {
-                    cont_ = true;
                     // VFALCO This was read_size_or_throw
                     auto const size = read_size(b_, 65536);
                     if(size == 0)
@@ -227,6 +226,7 @@ public:
                         __FILE__, __LINE__,
                         "http::async_read_some"));
 
+                    cont_ = true;
                     s_.async_read_some(*mb, std::move(self));
                 }
                 b_.commit(bytes_transferred);

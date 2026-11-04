@@ -37,6 +37,7 @@
 * [issue 3123] `http::basic_parser` rejects a `Transfer-Encoding` value that is not a valid token list
 * [issue 3126] The example root certificates are regenerated from NSS 3.132 and exclude the eMudhra emSign roots
 * [issue 3128] `http::async_read` honors cancellation between intermediate reads
+* [issue 3128] `http::async_read_some` does not complete inside the initiating function on `error::buffer_overflow`
 
 [*Improvements]
 

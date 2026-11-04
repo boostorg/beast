@@ -829,6 +829,30 @@ public:
     }
 
     void
+    testBufferOverflowNotInline()
+    {
+        net::io_context ioc;
+        test::stream ts(ioc);
+        // an incomplete start line which fills the buffer
+        flat_static_buffer<16> b;
+        b.commit(net::buffer_copy(
+            b.prepare(16), net::buffer("GET /aaaaaaaaaaa", 16)));
+        request_parser<string_body> p;
+        bool initiating = true;
+        bool invoked = false;
+        async_read_some(ts, b, p,
+            [&](error_code ec, std::size_t)
+            {
+                invoked = true;
+                BEAST_EXPECT(! initiating);
+                BEAST_EXPECTS(ec == error::buffer_overflow, ec.message());
+            });
+        initiating = false;
+        ioc.run();
+        BEAST_EXPECT(invoked);
+    }
+
+    void
     run() override
     {
         testThrow();
@@ -865,6 +889,7 @@ public:
                 testCancellation(yield);
             });
         testCancellationBetweenReads();
+        testBufferOverflowNotInline();
     }
 
 
