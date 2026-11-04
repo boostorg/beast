@@ -17,6 +17,8 @@
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/asio/async_result.hpp>
+#include <boost/asio/bind_cancellation_slot.hpp>
+#include <boost/asio/cancellation_signal.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -526,6 +528,52 @@ public:
                 simple_executor> op(
                     test::any_handler(), {});
             op.complete_now();
+        }
+
+        // cancellation
+        {
+            using handler_type = net::cancellation_slot_binder<
+                final_handler, net::cancellation_slot>;
+            bool invoked = false;
+            net::cancellation_signal sig;
+            async_base<handler_type, simple_executor> op(
+                net::bind_cancellation_slot(
+                    sig.slot(), final_handler{invoked}), {});
+            BEAST_EXPECT(op.cancelled() == net::cancellation_type::none);
+
+            // only the allowed types are recorded, even
+            // when nothing is connected to the slot
+            sig.emit(net::cancellation_type::total);
+            BEAST_EXPECT(op.cancelled() == net::cancellation_type::none);
+            sig.emit(net::cancellation_type::terminal);
+            BEAST_EXPECT(op.cancelled() == net::cancellation_type::terminal);
+
+            // the record is the most recent emission
+            sig.emit(net::cancellation_type::total);
+            BEAST_EXPECT(op.cancelled() == net::cancellation_type::none);
+
+            // an intermediate operation connected to the
+            // slot receives the allowed types
+            auto received = net::cancellation_type::none;
+            op.get_cancellation_slot().assign(
+                [&](net::cancellation_type t){ received = t; });
+            sig.emit(net::cancellation_type::total);
+            BEAST_EXPECT(received == net::cancellation_type::none);
+            sig.emit(net::cancellation_type::terminal);
+            BEAST_EXPECT(received == net::cancellation_type::terminal);
+            // changing the allowed types discards the record
+            // and disconnects what was connected to the slot
+            op.set_allowed_cancellation(net::cancellation_type::all);
+            BEAST_EXPECT(op.cancelled() == net::cancellation_type::none);
+            received = net::cancellation_type::none;
+            sig.emit(net::cancellation_type::terminal);
+            BEAST_EXPECT(received == net::cancellation_type::none);
+            BEAST_EXPECT(op.cancelled() == net::cancellation_type::terminal);
+            op.get_cancellation_slot().assign(
+                [&](net::cancellation_type t){ received = t; });
+            sig.emit(net::cancellation_type::total);
+            BEAST_EXPECT(received == net::cancellation_type::total);
+            BEAST_EXPECT(op.cancelled() == net::cancellation_type::total);
         }
 
         // legacy hooks

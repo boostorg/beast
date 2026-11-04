@@ -10,13 +10,26 @@
 #ifndef BOOST_BEAST_CORE_DETAIL_ASYNC_BASE_HPP
 #define BOOST_BEAST_CORE_DETAIL_ASYNC_BASE_HPP
 
+#include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/type_traits.hpp>
 
 #include <boost/asio/associated_immediate_executor.hpp>
+#include <boost/asio/cancellation_type.hpp>
 
 namespace boost {
 namespace beast {
 namespace detail {
+
+struct allowed_cancellation_filter
+{
+    net::cancellation_type mask;
+
+    net::cancellation_type
+    operator()(net::cancellation_type type) const noexcept
+    {
+        return type & mask;
+    }
+};
 
 struct stable_base
 {

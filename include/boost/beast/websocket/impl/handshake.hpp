@@ -106,6 +106,8 @@ public:
 
             // write HTTP request
             impl.do_pmd_config(d_.req);
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -119,6 +121,8 @@ public:
                 goto upcall;
 
             // read HTTP response
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -140,6 +144,8 @@ public:
                     impl.rd_buf.data()));
                 impl.rd_buf.clear();
 
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    goto upcall;
                 BOOST_ASIO_CORO_YIELD
                 {
                     BOOST_ASIO_HANDLER_LOCATION((

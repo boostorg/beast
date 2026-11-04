@@ -225,6 +225,8 @@ public:
 
             if (needs_res_100_)
             {
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    goto upcall;
                 BOOST_ASIO_CORO_YIELD
                 {
                     BOOST_ASIO_HANDLER_LOCATION((__FILE__, __LINE__, "websocket::async_accept"));
@@ -234,6 +236,8 @@ public:
             }
 
             // Send response
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -330,6 +334,8 @@ public:
             if(ec)
                 goto upcall;
 
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -344,6 +350,8 @@ public:
                 BOOST_BEAST_ASSIGN_EC(ec, error::closed);
             }
             if(impl.check_stop_now(ec))
+                goto upcall;
+            if(impl.check_cancelled(ec, this->cancelled()))
                 goto upcall;
 
             {

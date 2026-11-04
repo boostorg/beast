@@ -13,13 +13,13 @@
 #include <boost/beast/core/detail/config.hpp>
 #include <boost/beast/core/detail/allocator.hpp>
 #include <boost/beast/core/detail/async_base.hpp>
-#include <boost/beast/core/detail/filtering_cancellation_slot.hpp>
 #include <boost/asio/append.hpp>
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/associated_cancellation_slot.hpp>
 #include <boost/asio/associated_executor.hpp>
 #include <boost/asio/associated_immediate_executor.hpp>
 #include <boost/asio/bind_executor.hpp>
+#include <boost/asio/cancellation_state.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/handler_continuation_hook.hpp>
@@ -187,7 +187,9 @@ class async_base
 
     Handler h_;
     net::executor_work_guard<Executor1> wg1_;
-    net::cancellation_type act_{net::cancellation_type::terminal};
+    net::cancellation_state st_{
+        net::get_associated_cancellation_slot(h_, net::cancellation_slot()),
+        detail::allowed_cancellation_filter{net::cancellation_type::terminal}};
 public:
     /** The type of executor associated with this object.
 
@@ -337,36 +339,68 @@ public:
     }
 
 
-  /** The type of cancellation_slot associated with this object.
+    /** The type of cancellation_slot associated with this object.
 
-      If a class derived from @ref async_base is a completion
-      handler, then the associated cancellation_slot of the
-      derived class will be this type.
-
-      The default type is a filtering cancellation slot,
-      that only allows terminal cancellation.
-  */
-    using cancellation_slot_type =
-            beast::detail::filtering_cancellation_slot<net::associated_cancellation_slot_t<Handler>>;
+        If a class derived from @ref async_base is a completion
+        handler, then the associated cancellation_slot of the
+        derived class will be this type.
+    */
+    using cancellation_slot_type = net::cancellation_slot;
 
     /** Returns the cancellation_slot associated with this object.
 
         If a class derived from @ref async_base is a completion
         handler, then the object returned from this function will be used
         as the associated cancellation_slot of the derived class.
+
+        The slot belongs to a cancellation state attached to the slot
+        associated with the final completion handler. A cancellation
+        emitted there is filtered by the allowed types, recorded, and
+        forwarded to this slot. The record is available through
+        @ref cancelled even when no intermediate operation was
+        connected to receive it.
     */
     cancellation_slot_type
     get_cancellation_slot() const noexcept
     {
-        return cancellation_slot_type(act_, net::get_associated_cancellation_slot(h_,
-            net::cancellation_slot()));
+        return st_.slot();
     }
 
-    /// Set the allowed cancellation types, default is `terminal`.
-    void set_allowed_cancellation(
-            net::cancellation_type allowed_cancellation_types = net::cancellation_type::terminal)
+    /** Returns the cancellation recorded for this operation.
+
+        The record is the allowed part of the most recent cancellation
+        emitted on the slot associated with the final completion handler,
+        and is discarded when the allowed types are set. A composed
+        operation should check it when it resumes, before starting
+        another intermediate operation, since a cancellation emitted
+        after the previous one completed had no intermediate operation
+        to cancel.
+
+        @return The allowed types of the most recent emission, or
+        `net::cancellation_type::none`.
+    */
+    net::cancellation_type
+    cancelled() const noexcept
     {
-        act_ = allowed_cancellation_types;
+        return st_.cancelled();
+    }
+
+    /** Set the allowed cancellation types, default is `terminal`.
+
+        This replaces the cancellation state: the recorded types are
+        discarded, and anything connected to the slot returned by
+        @ref get_cancellation_slot is disconnected. It must not be
+        called while an intermediate operation is outstanding, and
+        the recorded types should be checked before calling it.
+    */
+    void
+    set_allowed_cancellation(
+        net::cancellation_type allowed_cancellation_types =
+            net::cancellation_type::terminal)
+    {
+        st_ = net::cancellation_state(
+            net::get_associated_cancellation_slot(h_, net::cancellation_slot()),
+            detail::allowed_cancellation_filter{allowed_cancellation_types});
     }
 
     /// Returns the handler associated with this object
@@ -416,6 +450,7 @@ public:
     complete(bool is_continuation, Args&&... args)
     {
         this->before_invoke_hook();
+        st_.slot().clear();
         if(! is_continuation)
         {
             auto const ex = this->get_immediate_executor();
@@ -450,6 +485,7 @@ public:
     complete_now(Args&&... args)
     {
         this->before_invoke_hook();
+        st_.slot().clear();
         wg1_.reset();
         h_(std::forward<Args>(args)...);
     }

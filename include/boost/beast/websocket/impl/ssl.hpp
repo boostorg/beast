@@ -71,6 +71,11 @@ struct ssl_shutdown_op
             BOOST_ASIO_CORO_YIELD
                 s_.async_shutdown(std::move(self));
             ec_ = ec;
+            if(self.cancelled() != net::cancellation_type::none)
+            {
+                BOOST_BEAST_ASSIGN_EC(ec_, net::error::operation_aborted);
+                return self.complete(ec_);
+            }
 
             using boost::beast::websocket::async_teardown;
             BOOST_ASIO_CORO_YIELD
