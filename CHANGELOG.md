@@ -20,6 +20,7 @@ Version 362:
 * The example root certificates are regenerated from NSS 3.132 and exclude the eMudhra emSign roots
 * `http::async_read` honors cancellation between intermediate reads
 * `http::async_read_some` does not complete inside the initiating function on `error::buffer_overflow`
+* `websocket::stream` honors cancellation between intermediate operations
 
 --------------------------------------------------------------------------------
 

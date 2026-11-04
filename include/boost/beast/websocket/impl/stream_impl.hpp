@@ -375,6 +375,17 @@ struct stream<NextLayer, deflateSupported>::impl_type
         return true;
     }
 
+    bool
+    check_cancelled(
+        error_code& ec,
+        net::cancellation_type cancelled)
+    {
+        if(cancelled == net::cancellation_type::none)
+            return false;
+        BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
+        return check_stop_now(ec);
+    }
+
     // Change the status of the stream
     void
     change_status(status new_status)

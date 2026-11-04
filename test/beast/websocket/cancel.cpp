@@ -21,6 +21,8 @@
 
 #include "test.hpp"
 
+#include <chrono>
+
 namespace boost {
 namespace beast {
 namespace websocket {
@@ -171,6 +173,10 @@ public:
                                     || ec == net::error::broken_pipe
                                      // winapi WSAECONNRESET, as system_category
                                     || ec == error_code(10054, boost::system::system_category())
+                                     // winapi WSAECONNABORTED, as system_category
+                                    || ec == error_code(10053, boost::system::system_category())
+                                     // winapi ERROR_CONNECTION_ABORTED, as system_category
+                                    || ec == error_code(1236, boost::system::system_category())
                                     || ec == net::error::bad_descriptor
                                     || ec == net::error::eof, ec.message());
                         get_lowest_layer(ws1).close();
@@ -193,6 +199,10 @@ public:
                                       || ec == net::error::not_connected
                                       // winapi WSAECONNRESET, as system_category
                                       || ec == error_code(10054, boost::system::system_category())
+                                      // winapi WSAECONNABORTED, as system_category
+                                      || ec == error_code(10053, boost::system::system_category())
+                                      // winapi ERROR_CONNECTION_ABORTED, as system_category
+                                      || ec == error_code(1236, boost::system::system_category())
                                       || ec == net::error::eof, ec.message());
                         get_lowest_layer(ws1).close();
                     }
@@ -218,10 +228,188 @@ public:
         BEAST_EXPECT(cancel_counter > 0u);
     }
 
+    // A terminal cancellation emitted after an operation on the
+    // next layer completed, but before the websocket operation
+    // resumed, has no operation on the next layer to cancel. The
+    // websocket operation must observe it instead of starting the
+    // next one.
+    void
+    testCancellationBetweenOps()
+    {
+        struct fixture
+        {
+            net::io_context ioc;
+            stream<test::stream> ws{ioc};
+            test::stream peer{ioc};
+            net::cancellation_signal sig;
+            bool invoked = false;
+            // bytes written to the peer by the handshake
+            std::size_t sent = 0;
+
+            struct handler
+            {
+                fixture& f;
+                void operator()(error_code ec, std::size_t) const
+                {
+                    f.invoked = true;
+                    BEAST_EXPECTS(ec == net::error::operation_aborted, ec.message());
+                }
+            };
+
+            // server role: incoming frames are masked, the payloads
+            // are not inspected so the mask key is arbitrary
+            explicit fixture(string_view input = {})
+            {
+                ws.next_layer().connect(peer);
+                http::request<http::empty_body> req{http::verb::get, "/", 11};
+                req.set(http::field::host, "test");
+                req.set(http::field::upgrade, "websocket");
+                req.set(http::field::connection, "upgrade");
+                req.set(http::field::sec_websocket_key, "dGhlIHNhbXBsZSBub25jZQ==");
+                req.set(http::field::sec_websocket_version, "13");
+                ws.accept(req);
+                sent = peer.nwrite_bytes();
+                ws.next_layer().append(input);
+                // eof follows the input, so an operation that should
+                // have been cancelled fails instead of hanging
+                ws.next_layer().close_remote();
+            }
+
+            // queued ahead of the first completion from the next
+            // layer, so the operation observes it when it resumes
+            void post_cancel()
+            {
+                net::post(ioc, [this]{ sig.emit(net::cancellation_type::terminal); });
+            }
+
+            net::cancellation_slot_binder<handler, net::cancellation_slot>
+            bind()
+            {
+                return net::bind_cancellation_slot(sig.slot(), handler{*this});
+            }
+
+            // nothing is written to the peer after the cancellation
+            void run()
+            {
+                ioc.run();
+                BEAST_EXPECT(invoked);
+                BEAST_EXPECT(peer.nwrite_bytes() == sent);
+            }
+        };
+
+        // read_some: the frame header is split across two reads
+        {
+            fixture f("\x82");
+            f.post_cancel();
+            char buf[16];
+            f.ws.async_read_some(net::buffer(buf), f.bind());
+            f.run();
+        }
+
+        // read: the first fragment is not the last one
+        {
+            fixture f("\x01\x81\x01\x01\x01\x01\x41");
+            f.post_cancel();
+            flat_buffer b;
+            f.ws.async_read(b, f.bind());
+            f.run();
+        }
+
+        // read_some: the ping is already buffered, the cancellation
+        // lands while the operation is dispatched before invoking
+        // the control callback, the pong is not written
+        {
+            fixture f(
+                "\x81\x80\x01\x01\x01\x01"
+                "\x89\x80\x01\x01\x01\x01");
+            f.ws.control_callback([](frame_type, string_view){});
+            char buf[16];
+            // consumes the text frame, the ping stays buffered
+            f.ws.async_read_some(net::buffer(buf),
+                [](error_code, std::size_t){});
+            f.ioc.run();
+            f.ioc.restart();
+            f.post_cancel();
+            f.ws.async_read_some(net::buffer(buf), f.bind());
+            f.run();
+        }
+
+        // write: the message is sent as several fragments
+        {
+            fixture f;
+            f.post_cancel();
+            f.ws.auto_fragment(true);
+            f.ws.write_buffer_bytes(8);
+            char const msg[64] = {};
+            f.ws.async_write(net::buffer(msg), f.bind());
+            f.ioc.run();
+            BEAST_EXPECT(f.invoked);
+            // only the first fragment was written
+            BEAST_EXPECT(f.peer.nwrite_bytes() == f.sent + 2 + 8);
+        }
+
+        // write: a ping takes the write lock between two fragments,
+        // the cancellation landed before the write is suspended
+        {
+            fixture f;
+            f.post_cancel();
+            f.ws.auto_fragment(true);
+            f.ws.write_buffer_bytes(8);
+            char const msg[16] = {};
+            f.ws.async_write(net::buffer(msg), f.bind());
+            f.ws.async_ping({}, [](error_code){});
+            f.ioc.run();
+            BEAST_EXPECT(f.invoked);
+            // only the first fragment was written
+            BEAST_EXPECT(f.peer.nwrite_bytes() == f.sent + 2 + 8);
+        }
+
+        // write: resumed by the ping which held the write lock,
+        // and cancelled by the ping's handler before it runs again
+        {
+            fixture f;
+            f.ws.async_ping({},
+                [&](error_code)
+                {
+                    f.sig.emit(net::cancellation_type::terminal);
+                });
+            char const msg[8] = {};
+            f.ws.async_write(net::buffer(msg), f.bind());
+            f.ioc.run();
+            BEAST_EXPECT(f.invoked);
+            // only the ping was written
+            BEAST_EXPECT(f.peer.nwrite_bytes() == f.sent + 2);
+        }
+    }
+
+    // The teardown waits for the peer to close the connection,
+    // a cancellation emitted while it waits completes it.
+    void
+    testTeardownCancellation()
+    {
+        net::io_context ioc;
+        net::ip::tcp::socket s1(ioc), s2(ioc);
+        test::connect(s1, s2);
+        net::cancellation_signal sig;
+        bool invoked = false;
+        async_teardown(role_type::server, s1,
+            net::bind_cancellation_slot(sig.slot(),
+                [&](error_code ec)
+                {
+                    invoked = true;
+                    BEAST_EXPECTS(ec == net::error::operation_aborted, ec.message());
+                }));
+        net::post(ioc, [&]{ sig.emit(net::cancellation_type::terminal); });
+        ioc.run_for(std::chrono::seconds(1));
+        BEAST_EXPECT(invoked);
+    }
+
     void
     run() override
     {
         brute_force();
+        testCancellationBetweenOps();
+        testTeardownCancellation();
     }
 };
 

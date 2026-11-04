@@ -86,6 +86,11 @@ public:
                 }
                 if(ec == net::error::would_block)
                 {
+                    if(this->cancelled() != net::cancellation_type::none)
+                    {
+                        BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
+                        goto upcall;
+                    }
                     BOOST_ASIO_CORO_YIELD
                     {
                         BOOST_ASIO_HANDLER_LOCATION((
@@ -97,6 +102,8 @@ public:
                             net::socket_base::wait_read,
                                 beast::detail::bind_continuation(std::move(*this)));
                     }
+                    if(ec)
+                        goto upcall;
                     continue;
                 }
                 if(ec)

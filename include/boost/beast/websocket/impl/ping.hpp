@@ -108,6 +108,8 @@ public:
                 goto upcall;
 
             // Send ping frame
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((

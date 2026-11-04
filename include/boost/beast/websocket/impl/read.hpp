@@ -99,6 +99,8 @@ public:
             if(! impl.rd_block.try_lock(this))
             {
             do_suspend:
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    return this->complete(cont, ec, bytes_written_);
                 BOOST_ASIO_CORO_YIELD
                 {
                     BOOST_ASIO_HANDLER_LOCATION((
@@ -182,6 +184,8 @@ public:
                         goto close;
                     }
                     BOOST_ASSERT(impl.rd_block.is_locked(this));
+                    if(impl.check_cancelled(ec, this->cancelled()))
+                        goto upcall;
                     BOOST_ASIO_CORO_YIELD
                     {
                         BOOST_ASIO_HANDLER_LOCATION((
@@ -243,7 +247,8 @@ public:
                                     net::dispatch(ex, std::move(*this));
                                 }
                                 BOOST_ASSERT(cont);
-                                // VFALCO call check_stop_now() here?
+                                if(impl.check_stop_now(ec))
+                                    goto upcall;
                             }
                         }
                         {
@@ -303,6 +308,8 @@ public:
 
                         // Send pong
                         BOOST_ASSERT(impl.wr_block.is_locked(this));
+                        if(impl.check_cancelled(ec, this->cancelled()))
+                            goto upcall;
                         BOOST_ASIO_CORO_YIELD
                         {
                             BOOST_ASIO_HANDLER_LOCATION((
@@ -342,6 +349,8 @@ public:
                                     net::dispatch(ex, std::move(*this));
                                 }
                                 BOOST_ASSERT(cont);
+                                if(impl.check_stop_now(ec))
+                                    goto upcall;
                             }
                         }
                         auto const cb = buffers_prefix(clamp(
@@ -374,6 +383,8 @@ public:
                                     net::dispatch(ex, std::move(*this));
                                 }
                                 BOOST_ASSERT(cont);
+                                if(impl.check_stop_now(ec))
+                                    goto upcall;
                             }
                         }
                         auto const cb = buffers_prefix(clamp(
@@ -429,6 +440,8 @@ public:
                     {
                         // Fill the read buffer first, otherwise we
                         // get fewer bytes at the cost of one I/O.
+                        if(impl.check_cancelled(ec, this->cancelled()))
+                            goto upcall;
                         BOOST_ASIO_CORO_YIELD
                         {
                             BOOST_ASIO_HANDLER_LOCATION((
@@ -481,6 +494,8 @@ public:
                         BOOST_ASSERT(buffer_bytes(cb_) > 0);
                         BOOST_ASSERT(buffer_bytes(buffers_prefix(
                             clamp(impl.rd_remain), cb_)) > 0);
+                        if(impl.check_cancelled(ec, this->cancelled()))
+                            goto upcall;
                         BOOST_ASIO_CORO_YIELD
                         {
                             BOOST_ASIO_HANDLER_LOCATION((
@@ -531,6 +546,8 @@ public:
                         ! did_read_)
                     {
                         // read new
+                        if(impl.check_cancelled(ec, this->cancelled()))
+                            goto upcall;
                         BOOST_ASIO_CORO_YIELD
                         {
                             BOOST_ASIO_HANDLER_LOCATION((
@@ -670,6 +687,8 @@ public:
 
                 // Send close frame
                 BOOST_ASSERT(impl.wr_block.is_locked(this));
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    goto upcall;
                 BOOST_ASIO_CORO_YIELD
                 {
                     BOOST_ASIO_HANDLER_LOCATION((
@@ -687,6 +706,8 @@ public:
             // Teardown
             using beast::websocket::async_teardown;
             BOOST_ASSERT(impl.wr_block.is_locked(this));
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -783,6 +804,8 @@ public:
             do
             {
                 // VFALCO TODO use boost::beast::bind_continuation
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    goto upcall;
                 BOOST_ASIO_CORO_YIELD
                 {
                     auto mb = beast::detail::dynamic_buffer_prepare(b_,

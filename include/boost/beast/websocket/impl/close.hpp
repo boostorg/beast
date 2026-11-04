@@ -122,6 +122,8 @@ public:
             impl.wr_close = true;
             impl.change_status(status::closing);
             impl.update_timer(this->get_executor());
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -188,6 +190,8 @@ public:
                 {
                     if(ev_)
                         goto teardown;
+                    if(impl.check_cancelled(ec, this->cancelled()))
+                        goto upcall;
                     BOOST_ASIO_CORO_YIELD
                     {
                         BOOST_ASIO_HANDLER_LOCATION((
@@ -234,6 +238,8 @@ public:
                 {
                     impl.rd_remain -= impl.rd_buf.size();
                     impl.rd_buf.consume(impl.rd_buf.size());
+                    if(impl.check_cancelled(ec, this->cancelled()))
+                        goto upcall;
                     BOOST_ASIO_CORO_YIELD
                     {
                         BOOST_ASIO_HANDLER_LOCATION((
@@ -258,6 +264,8 @@ public:
             // Teardown
             BOOST_ASSERT(impl.wr_block.is_locked(this));
             using beast::websocket::async_teardown;
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((

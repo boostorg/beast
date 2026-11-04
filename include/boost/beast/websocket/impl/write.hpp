@@ -172,6 +172,8 @@ operator()(
         if(! impl.wr_block.try_lock(this))
         {
         do_suspend:
+            if(impl.check_cancelled(ec, this->cancelled()))
+                return this->complete(cont, ec, bytes_transferred_);
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -217,6 +219,8 @@ operator()(
             detail::write<flat_static_buffer_base>(
                 impl.wr_fb, fh_);
             impl.wr_cont = ! fin_;
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -257,6 +261,8 @@ operator()(
                     impl.wr_fb, fh_);
                 impl.wr_cont = ! fin_;
                 // Send frame
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    goto upcall;
                 BOOST_ASIO_CORO_YIELD
                 {
                     BOOST_ASIO_HANDLER_LOCATION((
@@ -324,6 +330,8 @@ operator()(
             remain_ -= n;
             impl.wr_cont = ! fin_;
             // write frame header and some payload
+            if(impl.check_cancelled(ec, this->cancelled()))
+                goto upcall;
             BOOST_ASIO_CORO_YIELD
             {
                 BOOST_ASIO_HANDLER_LOCATION((
@@ -360,6 +368,8 @@ operator()(
                     impl.wr_buf.get(), n), key_);
                 remain_ -= n;
                 // write more payload
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    goto upcall;
                 BOOST_ASIO_CORO_YIELD
                 {
                     BOOST_ASIO_HANDLER_LOCATION((
@@ -410,6 +420,8 @@ operator()(
                     impl.wr_fb, fh_);
                 impl.wr_cont = ! fin_;
                 // Send frame
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    goto upcall;
                 BOOST_ASIO_CORO_YIELD
                 {
                     BOOST_ASIO_HANDLER_LOCATION((
@@ -493,6 +505,8 @@ operator()(
                     flat_static_buffer_base>(impl.wr_fb, fh_);
                 impl.wr_cont = ! fin_;
                 // Send frame
+                if(impl.check_cancelled(ec, this->cancelled()))
+                    goto upcall;
                 BOOST_ASIO_CORO_YIELD
                 {
                     BOOST_ASIO_HANDLER_LOCATION((
