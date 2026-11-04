@@ -12,7 +12,10 @@
 
 #include "test_buffer.hpp"
 
+#include <boost/asio/bind_cancellation_slot.hpp>
+#include <boost/asio/cancellation_signal.hpp>
 #include <boost/asio/error.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/beast/_experimental/unit_test/suite.hpp>
 #include <boost/beast/core/buffers_suffix.hpp>
 #include <boost/beast/core/detail/static_ostream.hpp>
@@ -317,6 +320,41 @@ public:
     }
 
     void
+    testAsyncWriteCancellation()
+    {
+        auto const check = [](
+            std::size_t iterations, error_code expected)
+        {
+            net::io_context ioc;
+            test::stream out(ioc), in(ioc);
+            test::connect(out, in);
+            detail::test_buffers_generator gen;
+            gen.iterations_ = iterations;
+            net::cancellation_signal sig;
+            bool invoked = false;
+            // test::stream queues the completion of a write
+            // when it is initiated, so this runs first
+            net::post(ioc, [&]{ sig.emit(net::cancellation_type::terminal); });
+            async_write(out, gen, net::bind_cancellation_slot(sig.slot(),
+                [&](error_code ec, std::size_t total)
+                {
+                    invoked = true;
+                    BEAST_EXPECTS(ec == expected, ec.message());
+                    BEAST_EXPECT(total == 2 * iterations);
+                }));
+            ioc.run();
+            BEAST_EXPECT(invoked);
+            BEAST_EXPECT(1 == out.nwrite());
+        };
+
+        // the generator has more to write
+        check(5, net::error::operation_aborted);
+
+        // the write completes the generator
+        check(1, {});
+    }
+
+    void
     run() override
     {
         for(error_code emulate_error :
@@ -330,6 +368,7 @@ public:
 
         testWriteFail();
         testAsyncWriteFail();
+        testAsyncWriteCancellation();
     }
 };
 
