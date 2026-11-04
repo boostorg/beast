@@ -18,7 +18,10 @@
 #include <boost/asio/coroutine.hpp>
 
 #include <boost/beast/core/buffer_traits.hpp>
+#include <boost/beast/core/error.hpp>
 #include <boost/beast/core/stream_traits.hpp>
+
+#include <boost/asio/error.hpp>
 
 #include <boost/throw_exception.hpp>
 #include <type_traits>
@@ -49,6 +52,11 @@ struct write_buffers_generator_op
         {
             while(! g_.is_done())
             {
+                if(self.cancelled() != net::cancellation_type::none)
+                {
+                    BOOST_BEAST_ASSIGN_EC(ec, net::error::operation_aborted);
+                    goto complete;
+                }
                 BOOST_ASIO_CORO_YIELD
                 {
                     auto cb = g_.prepare(ec);
