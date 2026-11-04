@@ -787,6 +787,47 @@ public:
         // the timer handler may be invoked after the test suite is complete if we don't post.
         asio::post(ioc_, do_yield);
     }
+
+    void
+    testCancellationBetweenReads()
+    {
+        auto const check = [](string_view input, error_code expected)
+        {
+            net::io_context ioc;
+            test::stream ts(ioc, input);
+            // eof follows the input, so a read that should
+            // have been cancelled fails instead of hanging
+            ts.close_remote();
+            flat_buffer b;
+            request<string_body> m;
+            net::cancellation_signal sig;
+            bool invoked = false;
+            net::post(ioc, [&]{ sig.emit(net::cancellation_type::terminal); });
+            async_read(ts, b, m, net::bind_cancellation_slot(sig.slot(),
+                [&](error_code ec, std::size_t)
+                {
+                    invoked = true;
+                    BEAST_EXPECTS(ec == expected, ec.message());
+                }));
+            ioc.run();
+            BEAST_EXPECT(invoked);
+        };
+
+        // read_some_op: the parser needs more after the read_some
+        check("GET / HTTP/1.1\r\n", net::error::operation_aborted);
+
+        // read_op: the header is done but the body is not
+        check(
+            "POST / HTTP/1.1\r\n"
+            "Content-Length: 5\r\n"
+            "\r\n", net::error::operation_aborted);
+
+        // the read_some completes the message
+        check(
+            "GET / HTTP/1.1\r\n"
+            "\r\n", {});
+    }
+
     void
     run() override
     {
@@ -823,6 +864,7 @@ public:
             {
                 testCancellation(yield);
             });
+        testCancellationBetweenReads();
     }
 
 
