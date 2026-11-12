@@ -40,6 +40,7 @@
 * [issue 3128] `http::async_read_some` does not complete inside the initiating function on `error::buffer_overflow`
 * [issue 3128] `websocket::stream` honors cancellation between intermediate operations
 * [issue 3128] `beast::async_write` honors cancellation between intermediate writes
+* [issue 3135] `saved_handler` move construction and move assignment accept an empty source
 
 [*Improvements]
 

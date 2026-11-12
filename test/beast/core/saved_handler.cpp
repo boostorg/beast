@@ -151,6 +151,17 @@ public:
     testSavedHandler()
     {
         {
+            saved_handler sh1;
+            saved_handler sh2(std::move(sh1));
+            BEAST_EXPECT(! sh1.has_value());
+            BEAST_EXPECT(! sh2.has_value());
+
+            sh1 = std::move(sh2);
+            BEAST_EXPECT(! sh1.has_value());
+            BEAST_EXPECT(! sh2.has_value());
+        }
+
+        {
             saved_handler sh;
             BEAST_EXPECT(! sh.has_value());
 
@@ -238,6 +249,20 @@ public:
             BEAST_EXPECT(! sh.has_value());
             BEAST_EXPECT(!sig.slot().has_handler());
 
+        }
+        {
+            net::cancellation_signal sig;
+            saved_handler sh1;
+            sh1.emplace(
+                net::bind_cancellation_slot(
+                    sig.slot(), handler{}));
+
+            saved_handler sh2(std::move(sh1));
+            BEAST_EXPECT(! sh1.has_value());
+            BEAST_EXPECT(sh2.has_value());
+            sig.emit(net::cancellation_type::terminal);
+            BEAST_EXPECT(! sh2.has_value());
+            BEAST_EXPECT(! sig.slot().has_handler());
         }
         {
             saved_handler sh;

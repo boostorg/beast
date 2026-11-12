@@ -22,6 +22,7 @@ Version 362:
 * `http::async_read_some` does not complete inside the initiating function on `error::buffer_overflow`
 * `websocket::stream` honors cancellation between intermediate operations
 * `beast::async_write` honors cancellation between intermediate writes
+* `saved_handler` move construction and move assignment accept an empty source
 
 --------------------------------------------------------------------------------
 
