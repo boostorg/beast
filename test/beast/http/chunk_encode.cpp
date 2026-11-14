@@ -221,6 +221,24 @@ public:
         ce.insert("q", R"(1"2\)");
         BEAST_EXPECT(ce.str() == R"(;x;y=z;z="\"";p="\\";q="1\"2\\")");
         BEAST_EXPECT(str(ce)  == R"(x,y,z,z,",p,\,q,1"2\,)");
+
+        ce.clear();
+        BEAST_EXPECT(ce.str().empty());
+        BEAST_EXPECT(ce.begin() == ce.end());
+
+        ce.insert(string_view{});
+        BEAST_EXPECT(ce.str() == ";");
+        BEAST_EXPECT(str(ce) == ",");
+        ce.clear();
+
+        ce.insert("x", string_view{});
+        BEAST_EXPECT(ce.str() == ";x");
+        BEAST_EXPECT(str(ce) == "x,");
+        ce.clear();
+
+        ce.insert(string_view{}, "value");
+        BEAST_EXPECT(ce.str() == ";=value");
+        BEAST_EXPECT(str(ce) == ",value,");
     }
 
     void
@@ -272,8 +290,11 @@ public:
         {
             error_code ec;
             chunk_extensions ce;
+            ce.insert("old", "value");
             ce.parse(s, ec);
             BEAST_EXPECT(ec);
+            BEAST_EXPECT(ce.str().empty());
+            BEAST_EXPECT(ce.begin() == ce.end());
             grind(s);
         };
         chunkExtensionsTest(good, bad);
