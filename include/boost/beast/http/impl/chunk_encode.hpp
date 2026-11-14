@@ -576,8 +576,7 @@ do_insert(string_view name, string_view value)
     {
         s_.reserve(1 + name.size());
         s_.push_back(';');
-        if(! name.empty())
-            s_.append(name.data(), name.size());
+        s_.append(name.data(), name.size());
         return;
     }
 
@@ -595,8 +594,7 @@ do_insert(string_view name, string_view value)
         // token
         s_.reserve(1 + name.size() + 1 + value.size());
         s_.push_back(';');
-        if(! name.empty())
-            s_.append(name.data(), name.size());
+        s_.append(name.data(), name.size());
         s_.push_back('=');
         s_.append(value.data(), value.size());
     }
@@ -607,8 +605,7 @@ do_insert(string_view name, string_view value)
             1 + name.size() + 1 +
             1 + value.size() + 20 + 1);
         s_.push_back(';');
-        if(! name.empty())
-            s_.append(name.data(), name.size());
+        s_.append(name.data(), name.size());
         s_.append("=\"", 2);
         for(auto const c : value)
         {
