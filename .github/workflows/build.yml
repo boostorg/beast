@@ -83,6 +83,10 @@ jobs:
             os: ubuntu-latest
             container: ubuntu:26.04
             install: g++-16
+          - toolset: gcc-16
+            cxxstd: 11,14,17,20,23,2c
+            os: ubuntu-26.04-arm
+            install: g++-16
           - toolset: clang
             compiler: clang++-3.7
             cxxstd: 11,14
@@ -208,8 +212,10 @@ jobs:
             container: ubuntu:26.04
             install: clang-22
           - toolset: clang
-            os: macos-14
-            cxxstd: 11,14,17,20,2b
+            compiler: clang++-22
+            cxxstd: 11,14,17,20,23,2c
+            os: ubuntu-26.04-arm
+            install: clang-22
           - toolset: clang
             os: macos-15
             cxxstd: 11,14,17,20,23,2c
@@ -218,7 +224,7 @@ jobs:
             cxxstd: 11,14,17,20,23,2c
 
     needs: [runner-selection]
-    runs-on: ${{ fromJSON(needs.runner-selection.outputs.labelmatrix)[matrix.os] }}
+    runs-on: ${{ fromJSON(needs.runner-selection.outputs.labelmatrix)[matrix.os] || matrix.os }}
     container:
       image: ${{ matrix.container }}
       volumes:
@@ -272,7 +278,7 @@ jobs:
       - name: Create user-config.jam
         if: matrix.compiler
         run: |
-          echo "using ${{matrix.toolset}} : : ${{matrix.compiler}} ;" > ~/user-config.jam
+          echo "using ${{matrix.toolset}} : : ${{matrix.compiler}} : <triple>none ;" > ~/user-config.jam
 
       - name: Run tests
         run: |
@@ -396,7 +402,6 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: ubuntu-24.04
-          - os: macos-14
           - os: macos-15
           - os: macos-26
 
@@ -444,7 +449,6 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: ubuntu-24.04
-          - os: macos-14
           - os: macos-15
           - os: macos-26
 
@@ -502,7 +506,6 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: ubuntu-24.04
-          - os: macos-14
           - os: macos-15
           - os: macos-26
 
