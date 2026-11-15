@@ -653,7 +653,8 @@ insert(string_view name)
         varint_size(0));
     auto dest = &range_[offset];
     varint_write(dest, name.size());
-    std::memcpy(dest, name.data(), name.size());
+    if(! name.empty())
+        std::memcpy(dest, name.data(), name.size());
     dest += name.size();
     varint_write(dest, 0);
 }
@@ -676,10 +677,12 @@ insert(string_view name, string_view value)
         value.size());
     auto dest = &range_[offset];
     varint_write(dest, name.size());
-    std::memcpy(dest, name.data(), name.size());
+    if(! name.empty())
+        std::memcpy(dest, name.data(), name.size());
     dest += name.size();
     varint_write(dest, value.size());
-    std::memcpy(dest, value.data(), value.size());
+    if(! value.empty())
+        std::memcpy(dest, value.data(), value.size());
 }
 
 template<class Allocator>

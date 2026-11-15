@@ -42,6 +42,7 @@
 * [issue 3128] `beast::async_write` honors cancellation between intermediate writes
 * [issue 3135] `saved_handler` move construction and move assignment accept an empty source
 * [issue 3137] `http::basic_chunk_extensions` is empty after `clear` or a failed `parse`
+* [issue 3137] `http::basic_chunk_extensions::insert` accepts default-constructed `string_view` arguments
 
 [*Improvements]
 
