@@ -23,6 +23,7 @@ Version 362:
 * `websocket::stream` honors cancellation between intermediate operations
 * `beast::async_write` honors cancellation between intermediate writes
 * `saved_handler` move construction and move assignment accept an empty source
+* `http::basic_chunk_extensions` is empty after `clear` or a failed `parse`
 
 --------------------------------------------------------------------------------
 
