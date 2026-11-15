@@ -623,6 +623,7 @@ public:
     clear()
     {
         s_.clear();
+        range_.clear();
     }
 
     /** Parse a set of chunk extensions

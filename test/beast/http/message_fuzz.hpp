@@ -674,6 +674,7 @@ chunkExtensionsTest(
     bad(";x =");
     bad(";x = ");
     bad(";x==");
+    bad(R"(;x="unterminated)");
 }
 
 } // http

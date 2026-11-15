@@ -626,12 +626,14 @@ basic_chunk_extensions<Allocator>::
 parse(string_view s, error_code& ec)
 {
     do_parse(s.data(), s.data() + s.size(), ec);
-    if(! ec)
+    if(ec)
     {
-        s_.clear();
-        for(auto const& v : *this)
-            do_insert(v.first, v.second);
+        clear();
+        return;
     }
+    s_.clear();
+    for(auto const& v : *this)
+        do_insert(v.first, v.second);
 }
 
 template<class Allocator>
