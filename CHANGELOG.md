@@ -24,6 +24,7 @@ Version 362:
 * `beast::async_write` honors cancellation between intermediate writes
 * `saved_handler` move construction and move assignment accept an empty source
 * `http::basic_chunk_extensions` is empty after `clear` or a failed `parse`
+* `http::basic_chunk_extensions::insert` accepts default-constructed `string_view` arguments
 
 --------------------------------------------------------------------------------
 

@@ -225,6 +225,20 @@ public:
         ce.clear();
         BEAST_EXPECT(ce.str().empty());
         BEAST_EXPECT(ce.begin() == ce.end());
+
+        ce.insert(string_view{});
+        BEAST_EXPECT(ce.str() == ";");
+        BEAST_EXPECT(str(ce) == ",");
+        ce.clear();
+
+        ce.insert("x", string_view{});
+        BEAST_EXPECT(ce.str() == ";x");
+        BEAST_EXPECT(str(ce) == "x,");
+        ce.clear();
+
+        ce.insert(string_view{}, "value");
+        BEAST_EXPECT(ce.str() == ";=value");
+        BEAST_EXPECT(str(ce) == ",value,");
     }
 
     void
