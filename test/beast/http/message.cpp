@@ -394,6 +394,44 @@ public:
         BEAST_EXPECT(h.reason() == "Not Found");
     }
 
+    template<bool isRequest>
+    void
+    testHeaderKeepAlive()
+    {
+        header<isRequest> h;
+        header<isRequest> const& ch = h;
+
+        BEAST_EXPECT(ch.keep_alive());
+        BEAST_EXPECT(h.count(field::connection) == 0);
+        h.keep_alive(false);
+        BEAST_EXPECT(! ch.keep_alive());
+        BEAST_EXPECT(h[field::connection] == "close");
+        h.keep_alive(true);
+        BEAST_EXPECT(ch.keep_alive());
+        BEAST_EXPECT(h.count(field::connection) == 0);
+
+        h.version(10);
+        BEAST_EXPECT(! ch.keep_alive());
+        h.keep_alive(true);
+        BEAST_EXPECT(ch.keep_alive());
+        BEAST_EXPECT(h[field::connection] == "keep-alive");
+        h.keep_alive(false);
+        BEAST_EXPECT(! ch.keep_alive());
+        BEAST_EXPECT(h.count(field::connection) == 0);
+
+        h.set(field::connection, "upgrade, close");
+        h.keep_alive(true);
+        BEAST_EXPECT(ch.keep_alive());
+        BEAST_EXPECT(h[field::connection] == "upgrade, keep-alive");
+
+        message<isRequest, empty_body> m{std::move(h)};
+        BEAST_EXPECT(m.keep_alive());
+        m.base().keep_alive(false);
+        BEAST_EXPECT(! m.keep_alive());
+        m.keep_alive(true);
+        BEAST_EXPECT(m.base().keep_alive());
+    }
+
     void
     testNeedEof()
     {
@@ -510,6 +548,8 @@ public:
         testMethod();
         testStatus();
         testReason();
+        testHeaderKeepAlive<true>();
+        testHeaderKeepAlive<false>();
         testNeedEof();
     }
 };
