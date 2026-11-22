@@ -116,6 +116,34 @@ public:
         version_ = value;
     }
 
+    /** Returns `true` if the header semantics indicate keep-alive
+
+        The value depends on the version in the header, which must
+        be set to the final value before this function is called or
+        else the return value is unreliable.
+    */
+    bool
+    keep_alive() const
+    {
+        return this->get_keep_alive_impl(this->version());
+    }
+
+    /** Set the keep-alive header semantic option
+
+        This function adjusts the Connection field to indicate
+        whether or not the connection should be kept open after
+        the corresponding response. The result depends on the
+        version set on the header, which must be set to the
+        final value before making this call.
+
+        @param value `true` if the connection should persist.
+    */
+    void
+    keep_alive(bool value)
+    {
+        this->set_keep_alive_impl(this->version(), value);
+    }
+
     /** Return the request-method verb.
 
         If the request-method is not one of the recognized verbs,
@@ -336,6 +364,34 @@ public:
     {
         BOOST_ASSERT(value > 0 && value < 100);
         version_ = value;
+    }
+
+    /** Returns `true` if the header semantics indicate keep-alive
+
+        The value depends on the version in the header, which must
+        be set to the final value before this function is called or
+        else the return value is unreliable.
+    */
+    bool
+    keep_alive() const
+    {
+        return this->get_keep_alive_impl(this->version());
+    }
+
+    /** Set the keep-alive header semantic option
+
+        This function adjusts the Connection field to indicate
+        whether or not the connection should be kept open after
+        the corresponding response. The result depends on the
+        version set on the header, which must be set to the
+        final value before making this call.
+
+        @param value `true` if the connection should persist.
+    */
+    void
+    keep_alive(bool value)
+    {
+        this->set_keep_alive_impl(this->version(), value);
     }
 #endif
 
@@ -782,7 +838,7 @@ public:
     bool
     keep_alive() const
     {
-        return this->get_keep_alive_impl(this->version());
+        return this->base().keep_alive();
     }
 
     /** Set the keep-alive message semantic option
@@ -798,7 +854,7 @@ public:
     void
     keep_alive(bool value)
     {
-        this->set_keep_alive_impl(this->version(), value);
+        this->base().keep_alive(value);
     }
 
     /** Returns `true` if the message semantics require an end of file.
