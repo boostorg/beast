@@ -346,7 +346,7 @@ need_eof(std::false_type) const
             status_class::informational ||
         has_content_length() ||
         chunked())
-        return ! keep_alive();
+        return ! this->keep_alive();
     return true;
 }
 
