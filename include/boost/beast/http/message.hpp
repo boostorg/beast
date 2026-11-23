@@ -116,9 +116,9 @@ public:
         version_ = value;
     }
 
-    /** Returns `true` if the header semantics indicate keep-alive
+    /** Returns `true` if the message semantics indicate keep-alive
 
-        The value depends on the version in the header, which must
+        The value depends on the version in the message, which must
         be set to the final value before this function is called or
         else the return value is unreliable.
     */
@@ -128,12 +128,12 @@ public:
         return this->get_keep_alive_impl(this->version());
     }
 
-    /** Set the keep-alive header semantic option
+    /** Set the keep-alive message semantic option
 
         This function adjusts the Connection field to indicate
         whether or not the connection should be kept open after
         the corresponding response. The result depends on the
-        version set on the header, which must be set to the
+        version set on the message, which must be set to the
         final value before making this call.
 
         @param value `true` if the connection should persist.
@@ -366,9 +366,9 @@ public:
         version_ = value;
     }
 
-    /** Returns `true` if the header semantics indicate keep-alive
+    /** Returns `true` if the message semantics indicate keep-alive
 
-        The value depends on the version in the header, which must
+        The value depends on the version in the message, which must
         be set to the final value before this function is called or
         else the return value is unreliable.
     */
@@ -378,12 +378,12 @@ public:
         return this->get_keep_alive_impl(this->version());
     }
 
-    /** Set the keep-alive header semantic option
+    /** Set the keep-alive message semantic option
 
         This function adjusts the Connection field to indicate
         whether or not the connection should be kept open after
         the corresponding response. The result depends on the
-        version set on the header, which must be set to the
+        version set on the message, which must be set to the
         final value before making this call.
 
         @param value `true` if the connection should persist.
@@ -829,34 +829,6 @@ public:
     void
     content_length(boost::optional<std::uint64_t> const& value);
 
-    /** Returns `true` if the message semantics indicate keep-alive
-
-        The value depends on the version in the message, which must
-        be set to the final value before this function is called or
-        else the return value is unreliable.
-    */
-    bool
-    keep_alive() const
-    {
-        return this->base().keep_alive();
-    }
-
-    /** Set the keep-alive message semantic option
-
-        This function adjusts the Connection field to indicate
-        whether or not the connection should be kept open after
-        the corresponding response. The result depends on the
-        version set on the message, which must be set to the
-        final value before making this call.
-
-        @param value `true` if the connection should persist.
-    */
-    void
-    keep_alive(bool value)
-    {
-        this->base().keep_alive(value);
-    }
-
     /** Returns `true` if the message semantics require an end of file.
 
         For HTTP requests, this function returns the logical
@@ -1008,7 +980,7 @@ private:
     bool
     need_eof(std::true_type) const
     {
-        return ! keep_alive();
+        return ! this->keep_alive();
     }
 
     bool
